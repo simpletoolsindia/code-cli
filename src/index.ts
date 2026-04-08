@@ -2,58 +2,75 @@
 /**
  * Beast CLI - Main Entry Point
  * AI Coding Agent with 45+ Providers
+ * MCP tools work automatically (black box)
  */
 
-import { BeastTUI } from './tui/index.ts'
-import { createProvider, type ProviderConfig } from './providers/index.ts'
-import { MCPHub, TCPTransport, connectExtraSkillsMCP, defaultMCPConfig } from './mcp/index.ts'
-
-// Re-export main components
-export { BeastTUI, createProvider, MCPHub, TCPTransport, connectExtraSkillsMCP, defaultMCPConfig }
-export type { ProviderConfig }
+import { createProvider } from './providers/index.ts'
+import { TCPTransport } from './mcp/index.ts'
 
 // Version
 const VERSION = '1.0.0'
 
-// CLI Mode
-type CLIMode = 'interactive' | 'chat' | 'demo' | 'test'
+// MCP Server URL (auto-connects silently)
+const MCP_SERVER_HOST = process.env.MCP_HOST || 'localhost'
+const MCP_SERVER_PORT = parseInt(process.env.MCP_PORT || '7710')
 
 interface CLIOptions {
-  mode?: CLIMode
   provider?: string
   model?: string
-  baseUrl?: string
-  apiKey?: string
-  demo?: boolean
-  test?: boolean
   help?: boolean
+  test?: boolean
+}
+
+// Check if MCP server is running
+async function checkMCPServer(): Promise<boolean> {
+  try {
+    const transport = new TCPTransport(MCP_SERVER_HOST, MCP_SERVER_PORT)
+    await transport.connect()
+    const tools = await transport.listTools()
+    console.log(`   🔧 MCP: ${tools.length} tools connected`)
+    return true
+  } catch {
+    return false
+  }
+}
+
+// Check LLM provider
+async function checkProvider(baseUrl: string): Promise<string> {
+  try {
+    const res = await fetch(`${baseUrl}/api/tags`, { signal: AbortSignal.timeout(1000) })
+    if (res.ok) {
+      const data = await res.json()
+      const count = data.models?.length || 0
+      return `${count} models`
+    }
+  } catch {}
+  return 'offline'
 }
 
 function printHelp() {
   console.log(`
-🐉 Beast CLI v${VERSION} - AI Coding Agent for Power Users
+🐉 Beast CLI v${VERSION} - AI Coding Agent
 
 USAGE:
   beast [options]
 
 OPTIONS:
-  --mode <mode>     Mode: interactive, chat, demo, test (default: interactive)
-  --provider <name> LLM provider (ollama, lmstudio, anthropic, openai, etc.)
-  --model <name>    Model name
-  --base-url <url> Base URL for local providers
-  --api-key <key>   API key for cloud providers
-  --demo            Run interactive demo
-  --test            Run integration tests
-  --help            Show this help
+  --provider <name>  LLM provider (ollama, lmstudio, anthropic, openai)
+  --model <name>      Model name
+  --help              Show this help
 
-EXAMPLES:
-  beast --mode demo
-  beast --provider ollama --model llama3.1:8b
-  beast --provider anthropic --api-key sk-ant-...
+QUICK START:
+  beast                              # Auto-detect everything
+  beast --provider ollama            # Use Ollama
+  beast --provider anthropic         # Use Claude
 
 PROVIDERS:
   Local:   ollama, lmstudio, jan
-  Cloud:   anthropic, openai, deepseek, openrouter, groq, qwen, gemini, mistral
+  Cloud:   anthropic, openai, deepseek, openrouter, groq
+
+MCP TOOLS (automatic):
+  Web search, GitHub, code execution, data analysis - just works!
 `)
 }
 
@@ -69,37 +86,15 @@ async function main() {
       case '-h':
         options.help = true
         break
-      case '--mode':
-      case '-m':
-        options.mode = args[++i] as CLIMode
-        break
       case '--provider':
-      case '-p':
         options.provider = args[++i]
         break
       case '--model':
         options.model = args[++i]
         break
-      case '--base-url':
-      case '-u':
-        options.baseUrl = args[++i]
-        break
-      case '--api-key':
-      case '-k':
-        options.apiKey = args[++i]
-        break
-      case '--demo':
-      case '-d':
-        options.demo = true
-        break
       case '--test':
-      case '-t':
         options.test = true
         break
-      default:
-        if (arg.startsWith('--')) {
-          console.warn(`Unknown option: ${arg}`)
-        }
     }
   }
 
@@ -109,43 +104,90 @@ async function main() {
   }
 
   if (options.test) {
-    console.log('Running integration tests...')
-    console.log('Use: bun test-mcp-integration.ts  # MCP + Ollama + LM Studio tests')
-    console.log('Use: bun test-providers.ts        # All provider tests')
+    console.log('Running tests...')
+    console.log('• bun test-providers.ts  - Test LLM providers')
+    console.log('• bun test-mcp-integration.ts - Test MCP server')
     process.exit(0)
   }
 
-  if (options.demo) {
-    console.log('Starting demo mode...')
-    console.log('Use: bun demo.ts                  # Demo with real AI responses')
-    console.log('Use: bun demo-live.tsx             # Live TUI demo')
-    process.exit(0)
-  }
-
-  // Start interactive mode (TUI)
+  // Auto-detect providers
   console.log(`
 🐉 Beast CLI v${VERSION}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
+
+  console.log('\n📡 Detecting services...')
+
+  // Check Ollama
+  const ollamaStatus = await checkProvider('http://localhost:11434')
+  console.log(`   🦙 Ollama:    ${ollamaStatus}`)
+
+  // Check LM Studio
+  const lmStatus = await checkProvider('http://localhost:1234')
+  console.log(`   🏋️ LM Studio: ${lmStatus}`)
+
+  // Check MCP server (silent/black box)
+  const mcpAvailable = await checkMCPServer()
+  if (!mcpAvailable) {
+    console.log('   🔧 MCP Tools: Not running (optional)')
+  }
+
+  // Show detected provider
+  const provider = options.provider || 'ollama'
+  const model = options.model || 'llama3.1:8b'
+
+  console.log(`
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  Local providers: Ollama, LM Studio, Jan.ai
-  Cloud providers: Claude, GPT, DeepSeek, OpenRouter, Groq, Qwen, Gemini
+✅ Ready to use!
+   Provider: ${provider}
+   Model:   ${model}
 
-  Quick start:
-  • Run 'bun demo.ts' for interactive demo
-  • Run 'bun test-mcp-integration.ts' to test integrations
-  • Run 'bun test-providers.ts' to test all providers
+Type your request or try:
+   "What's the weather today?"
+   "Create a React login form"
+   "Search for latest AI news"
 
-  MCP Server: Connect to extra_skills_mcp_tools (64+ tools)
-  docker compose -f ../extra_skills_mcp_tools/docker-compose.local.yml up -d
-
+Exit: Ctrl+C
 `)
 
-  // For now, show available modules
-  console.log('Available modules:')
-  console.log('  • providers/  - LLM provider integrations')
-  console.log('  • mcp/       - MCP server support (TCP, SSE, HTTP)')
-  console.log('  • tui/       - Terminal UI components')
-  console.log('')
+  // Simple REPL
+  const readline = await import('readline')
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  })
+
+  const prompt = () => rl.question('\n❯ ', async (input) => {
+    if (!input.trim() || input === 'exit' || input === 'quit') {
+      console.log('\n👋 Goodbye!\n')
+      process.exit(0)
+    }
+
+    console.log('\n⏳ Thinking...')
+
+    // Use local provider
+    try {
+      const p = await createProvider({
+        provider: provider as any,
+        model: model,
+        baseUrl: provider === 'ollama' ? 'http://localhost:11434' :
+                 provider === 'lmstudio' ? 'http://localhost:1234/v1' : undefined,
+      })
+
+      const response = await p.create({
+        messages: [{ role: 'user', content: input }],
+        maxTokens: 500,
+      })
+
+      console.log(`\n🤖 ${response.content}`)
+    } catch (e) {
+      console.log(`\n❌ Error: ${e}`)
+    }
+
+    prompt()
+  })
+
+  prompt()
 }
 
 // Run
