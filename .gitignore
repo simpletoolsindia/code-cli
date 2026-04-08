@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+.bun/
+
+# Build output
+dist/
+build/
+
+# Logs
+logs/
+*.log
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Memory files
+memory/
+
+# Test coverage
+coverage/
