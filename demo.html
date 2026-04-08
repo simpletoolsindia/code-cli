@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beast CLI - Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --muted: #8b949e;
+      --accent: #58a6ff;
+      --success: #3fb950;
+      --warning: #d29922;
+      --error: #f85149;
+      --green: #7ee787;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+
+    /* Header */
+    .header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(180deg, rgba(88,166,255,0.05) 0%, transparent 100%);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    .logo-text {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .logo-text span {
+      color: var(--success);
+    }
+
+    .badge {
+      background: rgba(88,166,255,0.15);
+      color: var(--accent);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    /* Providers */
+    .providers {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .provider {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      transition: all 0.3s ease;
+    }
+
+    .provider.active {
+      border-color: var(--accent);
+      background: rgba(88,166,255,0.1);
+    }
+
+    .provider.online {
+      border-color: var(--success);
+    }
+
+    .provider.online .status {
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+    }
+
+    .provider.offline .status {
+      background: var(--muted);
+    }
+
+    .status {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: blink 2s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .model-badge {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .current-model {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+    }
+
+    .current-model .label {
+      color: var(--muted);
+    }
+
+    .current-model .value {
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    .mode-selector {
+      display: flex;
+      gap: 8px;
+      margin-left: auto;
+    }
+
+    .mode {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+    }
+
+    .mode:hover {
+      background: rgba(255,255,255,0.05);
+    }
+
+    .mode.active {
+      border-color: currentColor;
+    }
+
+    .mode.plan { color: var(--accent); }
+    .mode.write { color: var(--success); }
+    .mode.auto { color: var(--warning); }
+    .mode.review { color: #a371f7; }
+
+    /* Chat */
+    .chat {
+      height: 400px;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .message {
+      display: flex;
+      gap: 12px;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message.user {
+      flex-direction: row-reverse;
+    }
+
+    .message-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .message.user .message-avatar {
+      background: var(--success);
+    }
+
+    .message.assistant .message-avatar {
+      background: linear-gradient(135deg, #10b981, #059669);
+    }
+
+    .message-content {
+      max-width: 75%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .message.user .message-content {
+      background: var(--success);
+      color: #000;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.assistant .message-content {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+    }
+
+    .message.system .message-content {
+      background: rgba(88,166,255,0.1);
+      border: 1px dashed var(--accent);
+      color: var(--accent);
+      font-size: 13px;
+    }
+
+    /* Input */
+    .input-area {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 12px;
+    }
+
+    .input-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0 16px;
+      transition: border-color 0.2s;
+    }
+
+    .input-wrapper:focus-within {
+      border-color: var(--accent);
+    }
+
+    .input-wrapper input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-size: 14px;
+      padding: 14px 0;
+      outline: none;
+      font-family: inherit;
+    }
+
+    .input-wrapper input::placeholder {
+      color: var(--muted);
+    }
+
+    .send-btn {
+      width: 44px;
+      height: 44px;
+      background: var(--success);
+      border: none;
+      border-radius: 10px;
+      color: #000;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .send-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(63,185,80,0.3);
+    }
+
+    /* Footer */
+    .footer {
+      padding: 12px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .footer kbd {
+      background: var(--bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      border: 1px solid var(--border);
+    }
+
+    /* Typing indicator */
+    .typing {
+      display: flex;
+      gap: 4px;
+      padding: 8px 0;
+    }
+
+    .typing span {
+      width: 6px;
+      height: 6px;
+      background: var(--muted);
+      border-radius: 50%;
+      animation: typing 1s ease-in-out infinite;
+    }
+
+    .typing span:nth-child(2) { animation-delay: 0.2s; }
+    .typing span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typing {
+      0%, 100% { transform: translateY(0); opacity: 0.5; }
+      50% { transform: translateY(-4px); opacity: 1; }
+    }
+
+    /* Feature cards */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      padding: 24px;
+    }
+
+    .feature {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      animation: fadeInUp 0.5s ease forwards;
+      opacity: 0;
+    }
+
+    .feature:nth-child(1) { animation-delay: 0.1s; }
+    .feature:nth-child(2) { animation-delay: 0.2s; }
+    .feature:nth-child(3) { animation-delay: 0.3s; }
+    .feature:nth-child(4) { animation-delay: 0.4s; }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .feature-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+
+    .feature h3 {
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .feature p {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">
+        <div class="logo-icon">🐉</div>
+        <div class="logo-text">Beast <span>CLI</span></div>
+      </div>
+      <div class="badge">v1.0.0</div>
+    </div>
+
+    <!-- Providers -->
+    <div class="providers">
+      <span style="color: var(--muted); font-size: 13px;">Providers:</span>
+      <div class="provider online active">
+        <span class="status"></span>
+        <span>🦙 Ollama</span>
+      </div>
+      <div class="provider online">
+        <span class="status"></span>
+        <span>🏋️ LM Studio</span>
+      </div>
+      <div class="provider offline">
+        <span class="status"></span>
+        <span>🧠 Claude</span>
+      </div>
+      <div class="provider offline">
+        <span class="status"></span>
+        <span>🤖 GPT</span>
+      </div>
+    </div>
+
+    <!-- Model & Mode -->
+    <div class="model-badge">
+      <div class="current-model">
+        <span class="label">Model:</span>
+        <span class="value">qwen2.5-coder:32b</span>
+      </div>
+      <div class="mode-selector">
+        <div class="mode" onclick="setMode('plan', this)">📋 Plan</div>
+        <div class="mode active" onclick="setMode('write', this)">✏️ Write</div>
+        <div class="mode" onclick="setMode('auto', this)">🚀 Auto</div>
+        <div class="mode" onclick="setMode('review', this)">🔍 Review</div>
+      </div>
+    </div>
+
+    <!-- Chat -->
+    <div class="chat" id="chat">
+      <div class="message system">
+        <div class="message-avatar">⚡</div>
+        <div class="message-content">
+          Welcome! Beast CLI is ready. Type your request or try an example below.
+        </div>
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="input-area">
+      <div class="input-wrapper">
+        <input type="text" id="messageInput" placeholder="Ask me anything..." onkeypress="handleKeyPress(event)">
+      </div>
+      <button class="send-btn" onclick="sendMessage()">➤</button>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div>
+        <kbd>Tab</kbd> Switch Provider &nbsp;
+        <kbd>/mode</kbd> Change Mode &nbsp;
+        <kbd>/help</kbd> Commands
+      </div>
+      <div>45+ Providers • Local & Cloud</div>
+    </div>
+
+    <!-- Features -->
+    <div class="features">
+      <div class="feature">
+        <div class="feature-icon">🦙</div>
+        <h3>Local Models</h3>
+        <p>Run Ollama, LM Studio, Jan.ai locally with full privacy</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">☁️</div>
+        <h3>Cloud Providers</h3>
+        <p>Claude, GPT, DeepSeek, and 40+ more providers</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🔒</div>
+        <h3>Secure</h3>
+        <p>Landlock sandbox, dangerous pattern detection</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🚀</div>
+        <h3>Fast</h3>
+        <p>Token optimization, 80% reduction with MCP</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State
+    let currentMode = 'write';
+    const messages = [
+      { role: 'system', content: 'Welcome! Beast CLI is ready. Type your request or try an example below.' }
+    ];
+
+    // Mode selector
+    function setMode(mode, el) {
+      document.querySelectorAll('.mode').forEach(m => m.classList.remove('active'));
+      el.classList.add('active');
+      currentMode = mode;
+      addMessage('assistant', `Switched to ${mode.toUpperCase()} mode.`);
+    }
+
+    // Add message to chat
+    function addMessage(role, content) {
+      const chat = document.getElementById('chat');
+      const icons = { user: '👤', assistant: '🤖', system: '⚡' };
+
+      const msg = document.createElement('div');
+      msg.className = `message ${role}`;
+      msg.innerHTML = `
+        <div class="message-avatar">${icons[role]}</div>
+        <div class="message-content">${content}</div>
+      `;
+
+      chat.appendChild(msg);
+      chat.scrollTop = chat.scrollHeight;
+      messages.push({ role, content });
+    }
+
+    // Show typing indicator
+    function showTyping() {
+      const chat = document.getElementById('chat');
+      const typing = document.createElement('div');
+      typing.id = 'typing';
+      typing.className = 'message assistant';
+      typing.innerHTML = `
+        <div class="message-avatar">🤖</div>
+        <div class="message-content">
+          <div class="typing">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      `;
+      chat.appendChild(typing);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    // Hide typing
+    function hideTyping() {
+      const typing = document.getElementById('typing');
+      if (typing) typing.remove();
+    }
+
+    // Send message
+    function sendMessage() {
+      const input = document.getElementById('messageInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      addMessage('user', text);
+      input.value = '';
+
+      showTyping();
+
+      // Simulate response
+      setTimeout(() => {
+        hideTyping();
+        const responses = [
+          "I'll help you with that! Let me create the necessary files.",
+          "Great question! Here's my approach to solve this.",
+          "I understand. Let me analyze the codebase and provide a solution.",
+          "Thanks! I'm ready to help. Starting work now..."
+        ];
+        addMessage('assistant', responses[Math.floor(Math.random() * responses.length)]);
+      }, 1000 + Math.random() * 1000);
+    }
+
+    // Handle Enter key
+    function handleKeyPress(e) {
+      if (e.key === 'Enter') sendMessage();
+    }
+
+    // Example interactions
+    setTimeout(() => {
+      addMessage('assistant', "Try these examples:\n• 'Create a React login form'\n• 'Fix the bug in auth.ts'\n• 'Add dark mode to my app'");
+    }, 2000);
+  </script>
+</body>
+</html>
