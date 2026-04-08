@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "bun build src/index.ts --outdir dist --target node",
-    "test": "bun test test-*.ts",
+    "test": "bun run test-all.ts",
     "dev": "bun run src/index.ts"
   },
   "keywords": ["ai", "coding", "cli", "agent", "llm"],

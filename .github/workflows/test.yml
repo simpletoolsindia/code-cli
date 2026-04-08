@@ -15,4 +15,7 @@ jobs:
         with:
           bun-version: latest
       - run: bun install
-      - run: bun test
+      - run: bun run test-p1.ts
+      - run: bun run test-p3.ts
+      - run: bun run test-p4.ts
+      - run: bun run test-multiagent.ts
