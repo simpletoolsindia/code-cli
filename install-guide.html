@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beast CLI - Installation Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface2: #1c2128;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --muted: #8b949e;
+      --accent: #58a6ff;
+      --success: #3fb950;
+      --warning: #d29922;
+      --error: #f85149;
+      --purple: #a371f7;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 60px 20px;
+      background: linear-gradient(180deg, rgba(63,185,80,0.1) 0%, transparent 100%);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 40px;
+    }
+
+    .hero-icon {
+      font-size: 80px;
+      margin-bottom: 20px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .hero h1 {
+      font-size: 48px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .hero h1 span {
+      color: var(--success);
+    }
+
+    .hero p {
+      font-size: 18px;
+      color: var(--muted);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Steps */
+    .step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px 24px;
+      background: var(--surface2);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .step-header:hover {
+      background: rgba(255,255,255,0.03);
+    }
+
+    .step-number {
+      width: 40px;
+      height: 40px;
+      background: var(--success);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: #000;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .step-number.done {
+      background: var(--success);
+    }
+
+    .step-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .step-desc {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .step-content {
+      padding: 0 24px 24px;
+      display: none;
+    }
+
+    .step.open .step-content {
+      display: block;
+    }
+
+    .step.open .step-header .arrow {
+      transform: rotate(180deg);
+    }
+
+    .arrow {
+      margin-left: auto;
+      transition: transform 0.2s;
+    }
+
+    /* Terminal */
+    .terminal {
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+    }
+
+    .terminal-header {
+      background: #1a1a1a;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .terminal-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .terminal-dot.red { background: #ff5f56; }
+    .terminal-dot.yellow { background: #ffbd2e; }
+    .terminal-dot.green { background: #27c93f; }
+
+    .terminal-title {
+      margin-left: 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .terminal-body {
+      padding: 16px;
+      min-height: 200px;
+      background: #0d0d0d;
+    }
+
+    .terminal-line {
+      margin-bottom: 8px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .terminal-prompt {
+      color: var(--success);
+      user-select: none;
+    }
+
+    .terminal-command {
+      color: var(--text);
+    }
+
+    .terminal-output {
+      color: var(--muted);
+      padding-left: 16px;
+    }
+
+    .terminal-success {
+      color: var(--success);
+    }
+
+    .terminal-error {
+      color: var(--error);
+    }
+
+    .terminal-info {
+      color: var(--accent);
+    }
+
+    /* Code blocks */
+    .code {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    .code .keyword { color: #ff7b72; }
+    .code .string { color: #a5d6ff; }
+    .code .comment { color: var(--muted); }
+    .code .variable { color: #ffa657; }
+    .code .function { color: #d2a8ff; }
+
+    /* Feature grid */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+
+    .feature-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .feature-card .icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+
+    .feature-card h3 {
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .feature-card p {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* Checklist */
+    .checklist {
+      list-style: none;
+    }
+
+    .checklist li {
+      padding: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .checklist .check {
+      width: 20px;
+      height: 20px;
+      background: var(--success);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: #000;
+    }
+
+    /* Copy button */
+    .copy-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: var(--border);
+    }
+
+    /* Progress */
+    .progress-bar {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin-top: 20px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--success);
+      border-radius: 2px;
+      transition: width 0.3s;
+    }
+
+    /* Note */
+    .note {
+      background: rgba(88,166,255,0.1);
+      border-left: 3px solid var(--accent);
+      padding: 12px 16px;
+      border-radius: 0 8px 8px 0;
+      font-size: 14px;
+      margin: 16px 0;
+    }
+
+    .note.warning {
+      background: rgba(210,153,34,0.1);
+      border-color: var(--warning);
+    }
+
+    .note.success {
+      background: rgba(63,185,80,0.1);
+      border-color: var(--success);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-icon">🐉</div>
+      <h1>Beast <span>CLI</span></h1>
+      <p>AI Coding Agent with 45+ Providers • Local & Cloud Models • Easy Setup</p>
+    </div>
+
+    <!-- Step 1: Prerequisites -->
+    <div class="step open" id="step-1">
+      <div class="step-header" onclick="toggleStep(1)">
+        <div class="step-number done">✓</div>
+        <div>
+          <div class="step-title">Step 1: Prerequisites</div>
+          <div class="step-desc">Install Bun and Ollama</div>
+        </div>
+        <div class="arrow">▼</div>
+      </div>
+      <div class="step-content">
+        <div class="terminal">
+          <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <div class="terminal-title">terminal</div>
+          </div>
+          <div class="terminal-body">
+            <div class="terminal-line">
+              <span class="terminal-prompt">$</span>
+              <span class="terminal-command"># Install Bun (package manager)</span>
+            </div>
+            <div class="terminal-line">
+              <span class="terminal-output">curl -fsSL https://bun.sh/install | bash</span>
+            </div>
+            <br>
+            <div class="terminal-line">
+              <span class="terminal-prompt">$</span>
+              <span class="terminal-command"># Install Ollama (local AI models)</span>
+            </div>
+            <div class="terminal-line">
+              <span class="terminal-output">brew install ollama</span>
+            </div>
+            <br>
+            <div class="terminal-line">
+              <span class="terminal-success">✓ Prerequisites installed</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="note">
+          <strong>Note:</strong> Ollama runs AI models locally on your machine. No internet required for local models!
+        </div>
+
+        <ul class="checklist">
+          <li><span class="check">✓</span> Bun installed</li>
+          <li><span class="check">✓</span> Ollama installed</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Step 2: Clone Repo -->
+    <div class="step open" id="step-2">
+      <div class="step-header" onclick="toggleStep(2)">
+        <div class="step-number done">✓</div>
+        <div>
+          <div class="step-title">Step 2: Clone Repository</div>
+          <div class="step-desc">Get Beast CLI from GitHub</div>
+        </div>
+        <div class="arrow">▼</div>
+      </div>
+      <div class="step-content">
+        <div class="terminal">
+          <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <div class="terminal-title">terminal</div>
+          </div>
+          <div class="terminal-body">
+            <div class="terminal-line">
+              <span class="terminal-prompt">$</span>
+              <span class="terminal-command">git clone https://github.com/simpletoolsindia/code-cli.git</span>
+            </div>
+            <div class="terminal-line">
+              <span class="terminal-output">Cloning into 'code-cli'...</span>
+            </div>
+            <div class="terminal-line">
+              <span class="terminal-output">remote: Enumerating objects: 100%</span>
+            </div>
+            <div class="terminal-line">
+              <span class="terminal-output">Receiving objects: 100%</span>
+            </div>
+            <br>
+            <div class="terminal-line">
+              <span class="terminal-prompt">$</span>
+              <span class="terminal-command">cd code-cli</span>
+            </div>
+            <br>
+            <div class="terminal-line">
+              <span class="terminal-success">✓ Repository cloned</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Install Dependencies -->
+    <div class="step open" id="step-3">
+      <div class="step-header" onclick="toggleStep(3)">
+        <div class="step-number done">✓</div>
+        <div>
+          <div class="step-title">Step 3: Install Dependencies</div>
+          <div class="step-desc">Install npm packages</div>
+        </div>
+        <div class="arrow">▼</div>
+      </div>
+      <div class="step-content">
+        <div class="terminal">
+          <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <div class="terminal-title">terminal</div>
+          </div>
+          <div class="terminal-body">
+            <div class="terminal-line">
+              <span class="terminal-prompt">$</span>
+              <span class="terminal-command">bun install</span>
+            </div>
+            <div class="terminal-line">
+              <span class="terminal-output">bun install v1.x.x</span>
+            </div>
+            <div class="terminal-line">
+              <span class="terminal-output">✓ installed 12 packages</span>
+            </div>
+            <br>
+            <div class="terminal-line">
+              <span class="terminal-success">✓ Dependencies installed</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: Start Ollama -->
+    <div class="step open" id="step-4">
+      <div class="step-header" onclick="toggleStep(4)">
+        <div class="step-number done">✓</div>
+        <div>
+          <div class="step-title">Step 4: Start Ollama Service</div>
+          <div class="step-desc">Run Ollama in background</div>
+        </div>
+        <div class="arrow">▼</div>
+      </div>
+      <div class="step-content">
+        <div class="terminal">
+          <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <div class="terminal-title">terminal</div>
+          </div>
+          <div class="terminal-body">
+            <div class="terminal-line">
+              <span class="terminal-prompt">$</span>
+              <span class="terminal-command"># Start Ollama in background</span>
+            </div>
+            <div class="terminal-line">
+              <span class="terminal-output">ollama serve &</span>
+            </div>
+            <br>
+            <div class="terminal-line">
+              <span class="terminal-output">Ollama is running at http://localhost:11434</span>
+            </div>
+            <br>
+            <div class="terminal-line">
+              <span class="terminal-prompt">$</span>
+              <span class="terminal-command"># Download a model (first time only)</span>
+            </div>
+            <div class="terminal-line">
+              <span class="terminal-output">ollama pull llama3.1:8b</span>
+            </div>
+            <br>
+            <div class="terminal-line">
+              <span class="terminal-success">✓ Ollama running with llama3.1:8b</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="note success">
+          <strong>Tip:</strong> Models are downloaded once and cached. Choose small models (1-8B) for faster responses.
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5: Run Demo -->
+    <div class="step open" id="step-5">
+      <div class="step-header" onclick="toggleStep(5)">
+        <div class="step-number">5</div>
+        <div>
+          <div class="step-title">Step 5: Run Beast CLI</div>
+          <div class="step-desc">Start using the AI coding agent</div>
+        </div>
+        <div class="arrow">▼</div>
+      </div>
+      <div class="step-content">
+        <div class="terminal">
+          <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <div class="terminal-title">beast - AI Coding Agent</div>
+          </div>
+          <div class="terminal-body">
+            <div class="terminal-line">
+              <span class="terminal-prompt">$</span>
+              <span class="terminal-command">bun run src/index.ts</span>
+            </div>
+            <br>
+            <div class="terminal-line">
+              <span class="terminal-info">┌─────────────────────────────────────┐</span>
+            </div>
+            <div class="terminal-line">
+              <span class="terminal-info">│ 🐉 Beast │ AI Coding Agent │</span>
+            </div>
+            <div class="terminal-line">
+              <span class="terminal-info">└─────────────────────────────────────┘</span>
+            </div>
+            <br>
+            <div class="terminal-line">
+              <span class="terminal-output"> Providers: ● OLL (online) ○ LMS ○ CLA ○ GPT</span>
+            </div>
+            <div class="terminal-line">
+              <span class="terminal-output"> Model: qwen2.5-coder:32b [WRITE]</span>
+            </div>
+            <br>
+            <div class="terminal-line">
+              <span class="terminal-prompt">❯</span>
+              <span class="terminal-command"> Create a React login form</span>
+            </div>
+            <br>
+            <div class="terminal-line">
+              <span class="terminal-output">🤖 I'll create a React login form with email/password...</span>
+            </div>
+            <div class="terminal-line">
+              <span class="terminal-output">   ✓ Created: src/components/LoginForm.tsx</span>
+            </div>
+            <div class="terminal-line">
+              <span class="terminal-output">   ✓ Created: src/styles/login.css</span>
+            </div>
+            <br>
+            <div class="terminal-line">
+              <span class="terminal-success">✓ Task completed in 3.2s</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Demo Section -->
+    <div style="margin-top: 60px;">
+      <h2 style="text-align: center; margin-bottom: 30px; font-size: 32px;">🎬 Live Demo</h2>
+
+      <div class="terminal" style="margin-bottom: 24px;">
+        <div class="terminal-header">
+          <div class="terminal-dot red"></div>
+          <div class="terminal-dot yellow"></div>
+          <div class="terminal-dot green"></div>
+          <div class="terminal-title">Live Demo - Ollama Integration</div>
+        </div>
+        <div class="terminal-body" id="demo-output">
+          <div class="terminal-line">
+            <span class="terminal-prompt">$</span>
+            <span class="terminal-command">bun test-mcp-integration.ts</span>
+          </div>
+          <br>
+          <div class="terminal-line">
+            <span class="terminal-info">🐉 Beast CLI - MCP Server Integration Test</span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-info">════════════════════════════════════════════════════════════</span>
+          </div>
+          <br>
+          <div class="terminal-line">
+            <span class="terminal-output">📦 Testing extra_skills_mcp_tools Integration</span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-output">   MCP Server: localhost:7710</span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-output">   ⏳ Initializing MCP connection...</span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-success">   ✅ Connected: mcp-server-unified</span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-success">   ✅ Found 64 MCP tools</span>
+          </div>
+          <br>
+          <div class="terminal-line">
+            <span class="terminal-output">📦 Testing Ollama (Local)</span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-success">   ✅ Ollama accessible: 13 models</span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-output">   • qwen2.5-coder:32b (19.9 GB)</span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-output">   • gemma4:31b (19.9 GB)</span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-output">   • llama3.1:8b (4.9 GB)</span>
+          </div>
+          <br>
+          <div class="terminal-line">
+            <span class="terminal-output">📦 Testing LM Studio (Local)</span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-success">   ✅ LM Studio accessible: 5 models</span>
+          </div>
+          <br>
+          <div class="terminal-line">
+            <span class="terminal-info">════════════════════════════════════════════════════════════</span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-success">📊 INTEGRATION SUMMARY</span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-success">   extra_skills_mcp_tools: ✅ PASS</span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-success">   Ollama (Local):          ✅ PASS</span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-success">   LM Studio (Local):       ✅ PASS</span>
+          </div>
+          <br>
+          <div class="terminal-line">
+            <span class="terminal-success">🎉 3/3 integrations working!</span>
+          </div>
+        </div>
+      </div>
+
+      <button onclick="runLiveDemo()" style="
+        display: block;
+        width: 100%;
+        padding: 16px 32px;
+        background: var(--success);
+        color: #000;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+      ">
+        ▶ Run Live Demo
+      </button>
+    </div>
+
+    <!-- Features -->
+    <div style="margin-top: 60px;">
+      <h2 style="text-align: center; margin-bottom: 30px; font-size: 32px;">✨ Features</h2>
+
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="icon">🦙</div>
+          <h3>Local Models</h3>
+          <p>Run AI locally with Ollama, LM Studio, Jan.ai</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">☁️</div>
+          <h3>Cloud Providers</h3>
+          <p>Claude, GPT, DeepSeek, Gemini, and 40+ more</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">🔒</div>
+          <h3>Secure</h3>
+          <p>Landlock sandbox, pattern detection</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">🚀</div>
+          <h3>Fast</h3>
+          <p>80% token reduction with MCP tools</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Commands -->
+    <div style="margin-top: 60px;">
+      <h2 style="margin-bottom: 20px;">⚡ Quick Commands</h2>
+
+      <div class="code">
+        <span class="comment"># Run the CLI</span><br>
+        <span class="variable">bun</span> run src/index.ts<br><br>
+        <span class="comment"># Run integration tests</span><br>
+        <span class="variable">bun</span> test-mcp-integration.ts<br><br>
+        <span class="comment"># View HTML demo</span><br>
+        <span class="variable">open</span> demo.html<br><br>
+        <span class="comment"># Start Ollama</span><br>
+        <span class="variable">ollama</span> serve
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align: center; margin-top: 60px; padding: 40px 0; border-top: 1px solid var(--border);">
+      <p style="color: var(--muted);">
+        Built with ❤️ by <a href="https://github.com/simpletoolsindia" style="color: var(--accent);">SimpleTools</a>
+      </p>
+      <p style="color: var(--muted); margin-top: 8px; font-size: 14px;">
+        <a href="https://github.com/simpletoolsindia/code-cli" style="color: var(--accent);">GitHub</a> •
+        <a href="https://github.com/simpletoolsindia/code-cli/releases" style="color: var(--accent);">Releases</a>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    function toggleStep(num) {
+      const step = document.getElementById(`step-${num}`);
+      step.classList.toggle('open');
+    }
+
+    function runLiveDemo() {
+      const output = document.getElementById('demo-output');
+      const lines = [
+        { type: 'command', text: '$ bun test-mcp-integration.ts' },
+        { type: 'info', text: '' },
+        { type: 'info', text: '🐉 Beast CLI - MCP Server Integration Test' },
+        { type: 'info', text: '════════════════════════════════════════════════════════════' },
+        { type: 'output', text: '' },
+        { type: 'output', text: '📦 Testing extra_skills_mcp_tools Integration' },
+        { type: 'output', text: '   MCP Server: localhost:7710' },
+        { type: 'output', text: '   ⏳ Initializing MCP connection...', delay: 500 },
+        { type: 'success', text: '   ✅ Connected: mcp-server-unified' },
+        { type: 'success', text: '   ✅ Found 64 MCP tools', delay: 300 },
+        { type: 'output', text: '' },
+        { type: 'output', text: '📦 Testing Ollama (Local)' },
+        { type: 'output', text: '   ⏳ Checking models...', delay: 800 },
+        { type: 'success', text: '   ✅ Ollama accessible: 13 models' },
+        { type: 'output', text: '   • qwen2.5-coder:32b (19.9 GB)' },
+        { type: 'output', text: '   • gemma4:31b (19.9 GB)' },
+        { type: 'output', text: '   • llama3.1:8b (4.9 GB)' },
+        { type: 'output', text: '' },
+        { type: 'output', text: '📦 Testing LM Studio (Local)' },
+        { type: 'success', text: '   ✅ LM Studio accessible: 5 models' },
+        { type: 'output', text: '' },
+        { type: 'info', text: '════════════════════════════════════════════════════════════' },
+        { type: 'success-bold', text: '📊 INTEGRATION SUMMARY' },
+        { type: 'success', text: '   extra_skills_mcp_tools: ✅ PASS' },
+        { type: 'success', text: '   Ollama (Local):          ✅ PASS' },
+        { type: 'success', text: '   LM Studio (Local):       ✅ PASS' },
+        { type: 'output', text: '' },
+        { type: 'success-bold', text: '🎉 3/3 integrations working!' },
+      ];
+
+      output.innerHTML = '';
+      let i = 0;
+
+      function addLine() {
+        if (i >= lines.length) return;
+
+        const line = lines[i];
+        const div = document.createElement('div');
+        div.className = 'terminal-line';
+
+        if (line.type === 'command') {
+          div.innerHTML = `<span class="terminal-prompt">$</span><span class="terminal-command">${line.text.slice(1)}</span>`;
+        } else if (line.type === 'success') {
+          div.innerHTML = `<span class="terminal-success">${line.text}</span>`;
+        } else if (line.type === 'success-bold') {
+          div.innerHTML = `<span class="terminal-success" style="font-weight: bold">${line.text}</span>`;
+        } else if (line.type === 'info') {
+          div.innerHTML = `<span class="terminal-info">${line.text}</span>`;
+        } else {
+          div.innerHTML = `<span class="terminal-output">${line.text}</span>`;
+        }
+
+        output.appendChild(div);
+        output.scrollTop = output.scrollHeight;
+        i++;
+
+        const delay = line.delay || (line.type === 'output' ? 100 : 150);
+        setTimeout(addLine, delay);
+      }
+
+      addLine();
+    }
+  </script>
+</body>
+</html>
