@@ -10,7 +10,7 @@ import { TCPTransport } from './mcp/index.ts'
 import { execSync } from 'child_process'
 
 // Version
-const VERSION = '1.0.1'
+const VERSION = '1.0.2'
 
 // MCP Server URL
 const MCP_SERVER_HOST = process.env.MCP_HOST || 'localhost'
@@ -36,16 +36,62 @@ async function checkMCPServer(): Promise<{ available: boolean; toolCount: number
   }
 }
 
+// Start Colima if Docker isn't running
+async function startColima(): Promise<boolean> {
+  console.log('   🐋 Checking Docker runtime...')
+
+  // Check if Docker daemon is running
+  try {
+    execSync('docker info', { stdio: 'pipe' })
+    console.log('   ✅ Docker is running')
+    return true
+  } catch {
+    // Docker not running, try to start Colima
+    console.log('   🔄 Docker not running, trying to start Colima...')
+  }
+
+  // Check if Colima is installed
+  try {
+    execSync('colima --version', { stdio: 'pipe' })
+  } catch {
+    console.log('   ⚠️  Colima not found.')
+    console.log('   💡 Install Colima: brew install colima')
+    return false
+  }
+
+  // Check if Colima is already running
+  try {
+    execSync('colima list', { stdio: 'pipe' })
+    const status = execSync('colima list 2>/dev/null', { encoding: 'utf8' })
+    if (status.includes('Running')) {
+      console.log('   ✅ Colima is already running')
+      return true
+    }
+  } catch {}
+
+  // Start Colima
+  try {
+    console.log('   🚀 Starting Colima (this may take a minute)...')
+    execSync('colima start --arch aarch64 --cpu 4 --memory 4 --disk 50', {
+      stdio: 'pipe',
+      timeout: 180000,
+    })
+    console.log('   ✅ Colima started successfully!')
+    return true
+  } catch (e: any) {
+    console.log(`   ⚠️  Failed to start Colima: ${e.message}`)
+    return false
+  }
+}
+
 // Auto-start MCP server using Docker
 async function autoStartMCP(): Promise<boolean> {
-  console.log('   🔧 MCP: Not found, trying to start...')
+  console.log('   🔧 MCP: Not found, checking Docker...')
 
-  // Check if Docker is available
-  try {
-    execSync('docker --version', { stdio: 'pipe' })
-  } catch {
-    console.log('   ⚠️  Docker not found. MCP tools unavailable.')
-    console.log('   💡 Install Docker: https://docs.docker.com/get-docker/')
+  // Check/start Docker/Colima
+  const dockerReady = await startColima()
+  if (!dockerReady) {
+    console.log('   ⚠️  Docker unavailable. MCP tools will be limited.')
     return false
   }
 
@@ -58,16 +104,21 @@ async function autoStartMCP(): Promise<boolean> {
 
   for (const composePath of mcpPaths) {
     try {
-      execSync(`docker compose -f ${composePath} up -d`, { stdio: 'pipe' })
-      console.log('   ✅ MCP server started!')
+      execSync(`docker compose -f ${composePath} up -d`, { stdio: 'pipe', timeout: 120000 })
+      console.log('   ✅ MCP server container started!')
       // Wait for server to be ready
-      await new Promise(r => setTimeout(r, 2000))
+      console.log('   ⏳ Waiting for MCP server...')
+      await new Promise(r => setTimeout(r, 3000))
       return true
-    } catch {}
+    } catch (e: any) {
+      console.log(`   ⚠️  Could not start MCP from ${composePath}: ${e.message}`)
+    }
   }
 
-  console.log('   ⚠️  Could not auto-start MCP. Run manually:')
-  console.log('   docker compose -f extra_skills_mcp_tools/docker-compose.local.yml up -d')
+  console.log('   ⚠️  MCP server not found.')
+  console.log('   💡 Clone and run:')
+  console.log('      git clone https://github.com/simpletoolsindia/extra_skills_mcp_tools')
+  console.log('      cd extra_skills_mcp_tools && docker compose up -d')
   return false
 }
 
