@@ -1,16 +1,17 @@
 {
   "name": "@simpletoolsindia/beast-cli",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "AI Coding Agent for Power Users",
   "main": "dist/index.js",
   "type": "module",
   "bin": {
-    "beast": "./dist/index.js"
+    "beast": "dist/index.js"
   },
   "scripts": {
     "build": "bun build src/index.ts --outdir dist --target node",
     "test": "bun run test-all.ts",
-    "dev": "bun run src/index.ts"
+    "dev": "bun run src/index.ts",
+    "prepublishOnly": "bun run build"
   },
   "keywords": [
     "ai",
