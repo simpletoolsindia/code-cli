@@ -1,6 +1,6 @@
 {
   "name": "@simpletoolsindia/beast-cli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "AI Coding Agent for Power Users",
   "main": "dist/index.js",
   "type": "module",
@@ -12,7 +12,13 @@
     "test": "bun run test-all.ts",
     "dev": "bun run src/index.ts"
   },
-  "keywords": ["ai", "coding", "cli", "agent", "llm"],
+  "keywords": [
+    "ai",
+    "coding",
+    "cli",
+    "agent",
+    "llm"
+  ],
   "author": "SimpleTools",
   "license": "MIT",
   "dependencies": {
