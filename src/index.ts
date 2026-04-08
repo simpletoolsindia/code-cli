@@ -7,11 +7,12 @@
 
 import { createProvider } from './providers/index.ts'
 import { TCPTransport } from './mcp/index.ts'
+import { execSync } from 'child_process'
 
 // Version
-const VERSION = '1.0.0'
+const VERSION = '1.0.1'
 
-// MCP Server URL (auto-connects silently)
+// MCP Server URL
 const MCP_SERVER_HOST = process.env.MCP_HOST || 'localhost'
 const MCP_SERVER_PORT = parseInt(process.env.MCP_PORT || '7710')
 
@@ -20,19 +21,54 @@ interface CLIOptions {
   model?: string
   help?: boolean
   test?: boolean
+  setup?: boolean
 }
 
 // Check if MCP server is running
-async function checkMCPServer(): Promise<boolean> {
+async function checkMCPServer(): Promise<{ available: boolean; toolCount: number }> {
   try {
     const transport = new TCPTransport(MCP_SERVER_HOST, MCP_SERVER_PORT)
     await transport.connect()
     const tools = await transport.listTools()
-    console.log(`   🔧 MCP: ${tools.length} tools connected`)
-    return true
+    return { available: true, toolCount: tools.length }
   } catch {
+    return { available: false, toolCount: 0 }
+  }
+}
+
+// Auto-start MCP server using Docker
+async function autoStartMCP(): Promise<boolean> {
+  console.log('   🔧 MCP: Not found, trying to start...')
+
+  // Check if Docker is available
+  try {
+    execSync('docker --version', { stdio: 'pipe' })
+  } catch {
+    console.log('   ⚠️  Docker not found. MCP tools unavailable.')
+    console.log('   💡 Install Docker: https://docs.docker.com/get-docker/')
     return false
   }
+
+  // Try to start MCP server
+  const mcpPaths = [
+    '../extra_skills_mcp_tools/docker-compose.local.yml',
+    'extra_skills_mcp_tools/docker-compose.local.yml',
+    '/Users/sridhar/code/extra_skills_mcp_tools/docker-compose.local.yml',
+  ]
+
+  for (const composePath of mcpPaths) {
+    try {
+      execSync(`docker compose -f ${composePath} up -d`, { stdio: 'pipe' })
+      console.log('   ✅ MCP server started!')
+      // Wait for server to be ready
+      await new Promise(r => setTimeout(r, 2000))
+      return true
+    } catch {}
+  }
+
+  console.log('   ⚠️  Could not auto-start MCP. Run manually:')
+  console.log('   docker compose -f extra_skills_mcp_tools/docker-compose.local.yml up -d')
+  return false
 }
 
 // Check LLM provider
@@ -58,19 +94,20 @@ USAGE:
 OPTIONS:
   --provider <name>  LLM provider (ollama, lmstudio, anthropic, openai)
   --model <name>      Model name
+  --setup             Install MCP server (optional)
   --help              Show this help
 
 QUICK START:
   beast                              # Auto-detect everything
   beast --provider ollama            # Use Ollama
-  beast --provider anthropic         # Use Claude
 
 PROVIDERS:
   Local:   ollama, lmstudio, jan
   Cloud:   anthropic, openai, deepseek, openrouter, groq
 
-MCP TOOLS (automatic):
-  Web search, GitHub, code execution, data analysis - just works!
+MCP TOOLS:
+  MCP server auto-starts if Docker is available.
+  For manual setup: docker compose -f extra_skills_mcp_tools/docker-compose.local.yml up -d
 `)
 }
 
@@ -110,6 +147,12 @@ async function main() {
     process.exit(0)
   }
 
+  if (options.setup) {
+    console.log('Setting up MCP server...')
+    await autoStartMCP()
+    process.exit(0)
+  }
+
   // Auto-detect providers
   console.log(`
 🐉 Beast CLI v${VERSION}
@@ -125,10 +168,22 @@ async function main() {
   const lmStatus = await checkProvider('http://localhost:1234')
   console.log(`   🏋️ LM Studio: ${lmStatus}`)
 
-  // Check MCP server (silent/black box)
-  const mcpAvailable = await checkMCPServer()
-  if (!mcpAvailable) {
-    console.log('   🔧 MCP Tools: Not running (optional)')
+  // Check MCP server (auto-start if possible)
+  const mcp = await checkMCPServer()
+  if (!mcp.available) {
+    // Try to auto-start MCP server
+    const started = await autoStartMCP()
+    if (started) {
+      // Re-check
+      const mcp2 = await checkMCPServer()
+      if (mcp2.available) {
+        console.log(`   🔧 MCP: ${mcp2.toolCount} tools connected!`)
+      }
+    } else {
+      console.log('   🔧 MCP: Not available (optional)')
+    }
+  } else {
+    console.log(`   🔧 MCP: ${mcp.toolCount} tools connected!`)
   }
 
   // Show detected provider
