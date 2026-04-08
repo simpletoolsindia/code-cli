@@ -14,6 +14,20 @@ export interface LLMMessage {
   role: 'system' | 'user' | 'assistant'
   content: string
   name?: string
+  toolCalls?: ToolCall[]
+  toolCallId?: string
+}
+
+export interface ToolCall {
+  id: string
+  name: string
+  arguments: Record<string, unknown>
+}
+
+export interface ToolResult {
+  toolCallId: string
+  content: string
+  isError?: boolean
 }
 
 export interface LLMRequest {
@@ -28,6 +42,7 @@ export interface LLMRequest {
 export interface LLMResponse {
   content: string
   model: string
+  toolCalls?: ToolCall[]
   usage?: {
     promptTokens: number
     completionTokens: number
@@ -114,15 +129,43 @@ async function createAnthropicProvider(config: LLMConfig): Promise<LLMProvider> 
       const systemMessage = request.messages.find(m => m.role === 'system')
       const otherMessages = request.messages.filter(m => m.role !== 'system')
 
+      // Build Anthropic message format — handle tool_calls and tool_results
+      const anthropicMessages = otherMessages.map(m => {
+        if (m.toolCalls) {
+          // Assistant message with tool calls
+          return {
+            role: 'assistant' as const,
+            content: m.toolCalls.map(tc => ({
+              type: 'tool_use' as const,
+              id: tc.id,
+              name: tc.name,
+              input: tc.arguments,
+            })),
+          }
+        } else if (m.toolCallId) {
+          // Tool result message
+          return {
+            role: 'user' as const,
+            content: [{
+              type: 'tool_result' as const,
+              tool_use_id: m.toolCallId,
+              content: m.content,
+            }],
+          }
+        } else {
+          return {
+            role: m.role as 'user' | 'assistant',
+            content: m.content,
+          }
+        }
+      })
+
       const response = await client.messages.create({
         model: request.model ?? config.model ?? 'claude-sonnet-4-20250514',
         max_tokens: request.maxTokens ?? config.maxTokens ?? 4096,
         temperature: request.temperature ?? config.temperature ?? 0.7,
         system: systemMessage?.content,
-        messages: otherMessages.map(m => ({
-          role: m.role as 'user' | 'assistant',
-          content: m.content,
-        })),
+        messages: anthropicMessages,
         tools: request.tools?.map(t => ({
           name: t.name,
           description: t.description,
@@ -130,16 +173,24 @@ async function createAnthropicProvider(config: LLMConfig): Promise<LLMProvider> 
         })),
       })
 
-      // Extract text from content blocks
+      // Extract text + tool_use blocks from content
       let content = ''
+      const toolCalls: ToolCall[] = []
       for (const block of response.content) {
         if (block.type === 'text') {
           content += block.text
+        } else if (block.type === 'tool_use') {
+          toolCalls.push({
+            id: block.id,
+            name: block.name,
+            arguments: block.input as Record<string, unknown>,
+          })
         }
       }
 
       return {
         content,
+        toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
         model: response.model,
         usage: {
           promptTokens: response.usage.input_tokens,
@@ -152,29 +203,52 @@ async function createAnthropicProvider(config: LLMConfig): Promise<LLMProvider> 
   }
 }
 
-// OpenAI Provider
+// OpenAI Provider (also used by: groq, deepseek, mistral, lmstudio, jan, qwen, openrouter)
 async function createOpenAIProvider(config: LLMConfig): Promise<LLMProvider> {
   const OpenAI = await import('openai')
 
   return {
-    name: 'openai',
-    models: ['gpt-4o', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo'],
+    name: config.provider,
+    models: [],
     apiFormat: 'openai',
 
     async create(request: LLMRequest): Promise<LLMResponse> {
       const client = new OpenAI.OpenAI({ apiKey: config.apiKey, baseURL: config.baseUrl })
 
+      // Build messages with tool support
+      const messages = request.messages.map(m => {
+        if (m.toolCalls) {
+          return {
+            role: 'assistant' as const,
+            content: m.content || null,
+            tool_calls: m.toolCalls.map(tc => ({
+              id: tc.id,
+              type: 'function' as const,
+              function: { name: tc.name, arguments: JSON.stringify(tc.arguments) },
+            })),
+          }
+        } else if (m.toolCallId) {
+          return {
+            role: 'tool' as const,
+            tool_call_id: m.toolCallId,
+            content: m.content,
+          }
+        } else {
+          return {
+            role: m.role as 'system' | 'user' | 'assistant',
+            content: m.content,
+            name: m.name,
+          }
+        }
+      })
+
       const response = await client.chat.completions.create({
         model: request.model ?? config.model,
         max_tokens: request.maxTokens ?? config.maxTokens ?? 4096,
         temperature: request.temperature ?? config.temperature ?? 0.7,
-        messages: request.messages.map(m => ({
-          role: m.role,
-          content: m.content,
-          name: m.name,
-        })),
+        messages,
         tools: request.tools?.map(t => ({
-          type: 'function',
+          type: 'function' as const,
           function: {
             name: t.name,
             description: t.description,
@@ -184,15 +258,34 @@ async function createOpenAIProvider(config: LLMConfig): Promise<LLMProvider> {
       })
 
       const choice = response.choices[0]
+      const msg = choice.message
+
+      // Extract tool_calls from response
+      const toolCalls: ToolCall[] = []
+      if (msg.tool_calls) {
+        for (const tc of msg.tool_calls) {
+          if (tc.function) {
+            let args: Record<string, unknown> = {}
+            try { args = JSON.parse(tc.function.arguments) } catch {}
+            toolCalls.push({
+              id: tc.id,
+              name: tc.function.name,
+              arguments: args,
+            })
+          }
+        }
+      }
+
       return {
-        content: choice.message.content ?? '',
+        content: msg.content ?? '',
+        toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
         model: response.model,
         usage: {
           promptTokens: response.usage?.prompt_tokens ?? 0,
           completionTokens: response.usage?.completion_tokens ?? 0,
           totalTokens: response.usage?.total_tokens ?? 0,
         },
-        finishReason: choice.finish_reason as 'stop' | 'length',
+        finishReason: choice.finish_reason as 'stop' | 'length' | 'content_filter',
       }
     },
   }
@@ -217,20 +310,59 @@ async function createOpenRouterProvider(config: LLMConfig): Promise<LLMProvider>
         },
       })
 
+      const messages = request.messages.map(m => {
+        if (m.toolCalls) {
+          return {
+            role: 'assistant' as const,
+            content: m.content || null,
+            tool_calls: m.toolCalls.map(tc => ({
+              id: tc.id,
+              type: 'function' as const,
+              function: { name: tc.name, arguments: JSON.stringify(tc.arguments) },
+            })),
+          }
+        } else if (m.toolCallId) {
+          return {
+            role: 'tool' as const,
+            tool_call_id: m.toolCallId,
+            content: m.content,
+          }
+        } else {
+          return {
+            role: m.role as 'system' | 'user' | 'assistant',
+            content: m.content,
+            name: m.name,
+          }
+        }
+      })
+
       const response = await client.chat.completions.create({
         model: request.model ?? config.model,
         max_tokens: request.maxTokens ?? config.maxTokens ?? 4096,
         temperature: request.temperature ?? config.temperature ?? 0.7,
-        messages: request.messages.map(m => ({
-          role: m.role,
-          content: m.content,
-          name: m.name,
+        messages,
+        tools: request.tools?.map(t => ({
+          type: 'function' as const,
+          function: { name: t.name, description: t.description, parameters: t.inputSchema },
         })),
       })
 
       const choice = response.choices[0]
+      const msg = choice.message
+      const toolCalls: ToolCall[] = []
+      if (msg.tool_calls) {
+        for (const tc of msg.tool_calls) {
+          if (tc.function) {
+            let args: Record<string, unknown> = {}
+            try { args = JSON.parse(tc.function.arguments) } catch {}
+            toolCalls.push({ id: tc.id, name: tc.function.name, arguments: args })
+          }
+        }
+      }
+
       return {
-        content: choice.message.content ?? '',
+        content: msg.content ?? '',
+        toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
         model: response.model,
         usage: {
           promptTokens: response.usage?.prompt_tokens ?? 0,
@@ -247,29 +379,58 @@ async function createOpenRouterProvider(config: LLMConfig): Promise<LLMProvider>
 async function createOllamaProvider(config: LLMConfig): Promise<LLMProvider> {
   return {
     name: 'ollama',
-    models: ['llama3', 'llama3.1', 'codellama', 'mistral', 'mixtral', 'phi3'],
+    models: [],
     apiFormat: 'ollama',
 
     async create(request: LLMRequest): Promise<LLMResponse> {
       const baseUrl = config.baseUrl ?? 'http://localhost:11434'
-      const systemMessage = request.messages.find(m => m.role === 'system')
-      const otherMessages = request.messages.filter(m => m.role !== 'system')
+
+      // Build messages with tool support
+      const ollamaMessages: Record<string, unknown>[] = []
+      for (const m of request.messages) {
+        if (m.toolCalls) {
+          // Assistant message with tool calls
+          const toolCalls = m.toolCalls.map((tc, i) => ({
+            function: {
+              name: tc.name,
+              arguments: JSON.stringify(tc.arguments),
+            },
+          }))
+          ollamaMessages.push({ role: 'assistant', content: m.content || '', tool_calls: toolCalls })
+        } else if (m.toolCallId) {
+          // Tool result message
+          ollamaMessages.push({ role: 'tool', tool_call_id: m.toolCallId, content: m.content })
+        } else {
+          ollamaMessages.push({ role: m.role, content: m.content })
+        }
+      }
+
+      const body: Record<string, unknown> = {
+        model: request.model ?? config.model,
+        messages: ollamaMessages,
+        stream: false,
+        options: {
+          temperature: request.temperature ?? config.temperature ?? 0.7,
+          num_predict: request.maxTokens ?? config.maxTokens ?? 4096,
+        },
+      }
+
+      // Add tools if provided
+      if (request.tools && request.tools.length > 0) {
+        body.tools = request.tools.map(t => ({
+          type: 'function',
+          function: {
+            name: t.name,
+            description: t.description,
+            parameters: t.inputSchema,
+          },
+        }))
+      }
 
       const response = await fetch(`${baseUrl}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: request.model ?? config.model,
-          messages: [
-            ...(systemMessage ? [{ role: 'system', content: systemMessage.content }] : []),
-            ...otherMessages.map(m => ({ role: m.role, content: m.content })),
-          ],
-          stream: false,
-          options: {
-            temperature: request.temperature ?? config.temperature ?? 0.7,
-            num_predict: request.maxTokens ?? config.maxTokens ?? 4096,
-          },
-        }),
+        body: JSON.stringify(body),
       })
 
       if (!response.ok) {
@@ -279,8 +440,23 @@ async function createOllamaProvider(config: LLMConfig): Promise<LLMProvider> {
 
       const data = await response.json()
 
+      // Extract tool_calls from response
+      const toolCalls: ToolCall[] = []
+      if (data.message?.tool_calls) {
+        for (const tc of data.message.tool_calls) {
+          let args: Record<string, unknown> = {}
+          try { args = JSON.parse(tc.function.arguments) } catch {}
+          toolCalls.push({
+            id: `ollama_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+            name: tc.function.name,
+            arguments: args,
+          })
+        }
+      }
+
       return {
         content: data.message?.content ?? '',
+        toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
         model: data.model ?? config.model,
         usage: {
           promptTokens: data.prompt_eval_count ?? 0,

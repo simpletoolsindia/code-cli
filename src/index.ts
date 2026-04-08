@@ -7,6 +7,7 @@
 
 import { createProvider } from './providers/index.ts'
 import { TCPTransport } from './mcp/index.ts'
+import type { ToolCall } from './providers/index.ts'
 import {
   detectAllProviders,
   fetchLocalModels,
@@ -24,7 +25,7 @@ import { statSync } from 'node:fs'
 import readline from 'node:readline'
 
 // Version
-const VERSION = '1.0.3'
+const VERSION = '1.0.4'
 
 // MCP Server URL
 const MCP_SERVER_HOST = process.env.MCP_HOST || 'localhost'
@@ -40,15 +41,21 @@ interface CLIOptions {
   setup?: boolean
 }
 
+interface MCPTool {
+  name: string
+  description?: string
+  inputSchema: Record<string, unknown>
+}
+
 interface Session {
   provider: string
   model: string
   apiKey?: string
   baseUrl: string
-  messages: { role: string; content: string }[]
+  messages: { role: string; content: string; toolCalls?: ToolCall[]; toolCallId?: string }[]
 }
 
-// ── readline helpers ─────────────────────────────────────────────────────────
+// ── Helpers ──────────────────────────────────────────────────────────────────
 
 function question(prompt: string): Promise<string> {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
@@ -73,16 +80,57 @@ async function maskedPrompt(promptText: string): Promise<string> {
   })
 }
 
+// Animated spinner
+const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
+let spinnerHandle: ReturnType<typeof setInterval> | null = null
+
+function startSpinner(label: string): void {
+  let frame = 0
+  process.stdout.write(`\r${label} ${SPINNER_FRAMES[frame]}`)
+  spinnerHandle = setInterval(() => {
+    frame = (frame + 1) % SPINNER_FRAMES.length
+    process.stdout.write(`\r${label} ${SPINNER_FRAMES[frame]}  `)
+  }, 80)
+}
+
+function stopSpinner(done = false, label = ''): void {
+  if (spinnerHandle) {
+    clearInterval(spinnerHandle)
+    spinnerHandle = null
+  }
+  if (done) {
+    process.stdout.write(`\r${label} ✅\n`)
+  } else {
+    process.stdout.write('\r' + ' '.repeat(50) + '\r')
+  }
+}
+
+// Streaming write — writes text char by char with cursor
+function streamText(text: string): void {
+  process.stdout.write('\n🤖 ')
+  for (const ch of text) {
+    process.stdout.write(ch)
+  }
+  process.stdout.write('\n')
+}
+
+// Print token usage in a compact line
+function printUsage(usage?: { promptTokens: number; completionTokens: number; totalTokens: number }): void {
+  if (!usage) return
+  const { promptTokens, completionTokens, totalTokens } = usage
+  process.stdout.write(`\n   📊 Tokens: prompt=${promptTokens} | completion=${completionTokens} | total=${totalTokens}\n`)
+}
+
 // ── MCP Server ────────────────────────────────────────────────────────────────
 
-async function checkMCPServer(): Promise<{ available: boolean; toolCount: number }> {
+async function checkMCPServer(): Promise<{ available: boolean; toolCount: number; tools: MCPTool[] }> {
   try {
     const transport = new TCPTransport(MCP_SERVER_HOST, MCP_SERVER_PORT)
     await transport.connect()
     const tools = await transport.listTools()
-    return { available: true, toolCount: tools.length }
+    return { available: true, toolCount: tools.length, tools }
   } catch {
-    return { available: false, toolCount: 0 }
+    return { available: false, toolCount: 0, tools: [] }
   }
 }
 
@@ -155,10 +203,54 @@ async function autoStartMCP(): Promise<boolean> {
   return false
 }
 
+// ── MCP Tool Calling ──────────────────────────────────────────────────────────
+
+let mcpTransport: TCPTransport | null = null
+let mcpTools: MCPTool[] = []
+
+async function connectMCP(): Promise<MCPTool[]> {
+  try {
+    const transport = new TCPTransport(MCP_SERVER_HOST, MCP_SERVER_PORT)
+    await transport.connect()
+    mcpTransport = transport
+    const tools = await transport.listTools()
+    mcpTools = tools.map(t => ({
+      name: t.name,
+      description: t.description,
+      inputSchema: t.inputSchema,
+    }))
+    return mcpTools
+  } catch {
+    return []
+  }
+}
+
+async function callMCPTool(name: string, args: Record<string, unknown>): Promise<string> {
+  if (!mcpTransport) return `MCP server not connected`
+  try {
+    const result = await mcpTransport.callTool(name, args)
+    // Extract text content from result
+    const texts = result.content
+      .filter(c => c.type === 'text')
+      .map(c => c.text ?? '')
+      .join('\n')
+    return texts || '(no output)'
+  } catch (e) {
+    return `Error: ${e}`
+  }
+}
+
+function formatMCPTools(): { name: string; description?: string; inputSchema: Record<string, unknown> }[] {
+  return mcpTools.map(t => ({
+    name: t.name,
+    description: t.description ?? `MCP tool: ${t.name}`,
+    inputSchema: t.inputSchema,
+  }))
+}
+
 // ── Provider & Model selection ───────────────────────────────────────────────
 
 async function selectProvider(providers: ProviderInfo[], config: ReturnType<typeof loadConfig>): Promise<string> {
-  // If config has a saved provider and it's still available, auto-select it
   if (config.provider) {
     const saved = providers.find(p => p.id === config.provider)
     if (saved) {
@@ -188,10 +280,7 @@ async function selectProvider(providers: ProviderInfo[], config: ReturnType<type
   return byId[idx]
 }
 
-async function selectModelForProvider(
-  provider: string,
-  savedModel?: string
-): Promise<string> {
+async function selectModelForProvider(provider: string, savedModel?: string): Promise<string> {
   const isLocal = !isCloudProvider(provider)
 
   if (isLocal) {
@@ -201,18 +290,14 @@ async function selectModelForProvider(
       console.log('   ⚠️  No models found. Is the server running?')
       return DEFAULT_MODEL[provider] ?? 'llama3.1:8b'
     }
-
-    // If saved model is available, use it
     if (savedModel && models.includes(savedModel)) {
       console.log(`\n   Using saved model: ${savedModel}`)
       return savedModel
     }
-
     const choices = models.map(m => `  ${m}`)
-    const idx = await numberedMenu(`🦙 Models on Ollama:`, choices)
+    const idx = await numberedMenu(`🦙 Models on ${provider}:`, choices)
     return models[idx]
   } else {
-    // Cloud provider — show known models
     const models = CLOUD_MODELS[provider] ?? []
     if (savedModel && models.includes(savedModel)) {
       console.log(`\n   Using saved model: ${savedModel}`)
@@ -236,12 +321,11 @@ async function promptApiKey(provider: string): Promise<string | null> {
   }
 
   console.log(`\n⚠️  ${provider} requires an API key.`)
-  console.log(`    You can set the env var \`${envName[provider]}=<key>\` and re-run.`)
+  console.log(`    Set env var: export ${envName[provider]}=<your-key>`)
   const key = await maskedPrompt(`    Enter API key (or press Enter to skip): `)
   const trimmed = key.trim()
 
   if (trimmed) {
-    // Save to config
     saveConfig({ provider, apiKey: trimmed, model: undefined })
     console.log(`    ✅ Saved to ~/.beast-cli.yml`)
   }
@@ -255,62 +339,53 @@ async function interactiveSetup(config: ReturnType<typeof loadConfig>): Promise<
 🐉 Beast CLI v${VERSION}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
 
-  // Detect providers
   console.log('\n📡 Detecting services...')
   const providers = await detectAllProviders()
 
   const ollama = providers.find(p => p.id === 'ollama')
   const lmstudio = providers.find(p => p.id === 'lmstudio')
 
-  if (ollama) {
-    console.log(`   🦙 Ollama: ${ollama.models.length} models`)
-  } else {
-    console.log('   🦙 Ollama: offline')
-  }
-  if (lmstudio) {
-    console.log(`   🏋️ LM Studio: ${lmstudio.models.length} models`)
-  } else {
-    console.log('   🏋️ LM Studio: offline')
-  }
+  if (ollama) console.log(`   🦙 Ollama: ${ollama.models.length} models`)
+  else console.log('   🦙 Ollama: offline')
+  if (lmstudio) console.log(`   🏋️ LM Studio: ${lmstudio.models.length} models`)
+  else console.log('   🏋️ LM Studio: offline')
 
-  // Check MCP
+  // Connect MCP
   const mcp = await checkMCPServer()
   if (!mcp.available) {
     const started = await autoStartMCP()
     if (started) {
       const mcp2 = await checkMCPServer()
-      if (mcp2.available) console.log(`   🔧 MCP: ${mcp2.toolCount} tools connected!`)
+      if (mcp2.available) {
+        mcpTools = mcp2.tools
+        console.log(`   🔧 MCP: ${mcp2.toolCount} tools connected!`)
+      }
     } else {
       console.log('   🔧 MCP: Not available (optional)')
     }
   } else {
+    mcpTools = mcp.tools
     console.log(`   🔧 MCP: ${mcp.toolCount} tools connected!`)
   }
 
-  // Select provider
   const provider = await selectProvider(providers, config)
 
-  // Get API key for cloud providers
   let apiKey: string | undefined
   if (isCloudProvider(provider)) {
     const key = await promptApiKey(provider)
     if (!key) {
       console.log('   ⚠️  No API key — switching to Ollama')
       const fallback = providers.find(p => p.id === 'ollama')
-      if (fallback) {
-        return interactiveSetup(config) // re-prompt with different defaults
-      }
+      if (fallback) return interactiveSetup(config)
       process.exit(1)
     }
     apiKey = key
   }
 
-  // Select model
   const savedModel = config.model
   const model = await selectModelForProvider(provider, savedModel)
   const baseUrl = getBaseUrl(provider)
 
-  // Persist selection
   saveConfig({ provider, model })
 
   return { provider, model, apiKey, baseUrl, messages: [] }
@@ -326,14 +401,15 @@ function buildSession(provider: string, model: string, config: ReturnType<typeof
 // ── Banner ───────────────────────────────────────────────────────────────────
 
 function printBanner(session: Session) {
-  const status = isCloudProvider(session.provider) ? '☁️' : '🦙'
+  const icon = isCloudProvider(session.provider) ? '☁️' : '🦙'
+  const toolInfo = mcpTools.length > 0 ? ` | 🔧 ${mcpTools.length} MCP tools` : ''
   console.log(`
 🐉 Beast CLI v${VERSION}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ✅ Ready!
-   ${status} Provider: ${session.provider}
-   📋 Model:   ${session.model}
+   ${icon} Provider: ${session.provider}
+   📋 Model:   ${session.model}${toolInfo}
 
 Type your request or try:
    /help   for all commands
@@ -364,14 +440,15 @@ async function repl(session: Session) {
     if (trimmed === '/help') {
       console.log(`
 Commands:
-  /help       Show this help
-  /models     List available models for current provider
-  /model      Interactively switch model
-  /model <n>  Switch to model <n> from the list
-  /provider   Interactively switch provider
+  /help         Show this help
+  /models       List available models for current provider
+  /model        Interactively switch model
+  /model <name> Switch to model by name or number
+  /provider     Interactively switch provider
   /provider <name>  Switch directly to provider
-  /clear      Clear chat history
-  /exit       Exit
+  /tools        List available MCP tools
+  /clear        Clear chat history
+  /exit         Exit
 `)
       promptUser(); return
     }
@@ -393,6 +470,19 @@ Commands:
       promptUser(); return
     }
 
+    if (trimmed === '/tools') {
+      if (mcpTools.length === 0) {
+        console.log('\n⚠️  No MCP tools connected. Start MCP server to enable tools.')
+      } else {
+        console.log(`\n🔧 ${mcpTools.length} MCP tools available:`)
+        mcpTools.forEach(t => {
+          const desc = t.description ? ` — ${t.description.slice(0, 60)}` : ''
+          console.log(`  • ${t.name}${desc}`)
+        })
+      }
+      promptUser(); return
+    }
+
     if (trimmed === '/model') {
       const model = await selectModelForProvider(session.provider, session.model)
       session.model = model
@@ -403,31 +493,16 @@ Commands:
 
     if (trimmed.startsWith('/model ')) {
       const target = trimmed.slice(7).trim()
-      if (isCloudProvider(session.provider)) {
-        const models = CLOUD_MODELS[session.provider] ?? []
-        // Try by number
-        const n = parseInt(target)
-        if (n >= 1 && n <= models.length) {
-          session.model = models[n - 1]
-        } else if (models.includes(target)) {
-          session.model = target
-        } else {
-          console.log(`\n⚠️  Unknown model: ${target}`)
-          console.log(`   Run /models to see available models.`)
-          promptUser(); return
-        }
-      } else {
-        const models = await fetchLocalModels(session.provider)
-        const n = parseInt(target)
-        if (n >= 1 && n <= models.length) {
-          session.model = models[n - 1]
-        } else if (models.includes(target)) {
-          session.model = target
-        } else {
-          console.log(`\n⚠️  Model not found: ${target}`)
-          console.log(`   Run /models to see available models.`)
-          promptUser(); return
-        }
+      const models = isCloudProvider(session.provider)
+        ? CLOUD_MODELS[session.provider] ?? []
+        : await fetchLocalModels(session.provider)
+      const n = parseInt(target)
+      if (n >= 1 && n <= models.length) session.model = models[n - 1]
+      else if (models.includes(target)) session.model = target
+      else {
+        console.log(`\n⚠️  Unknown model: ${target}`)
+        console.log(`   Run /models to see available models.`)
+        promptUser(); return
       }
       saveConfig({ provider: session.provider, model: session.model })
       console.log(`\n✅ Model switched to: ${session.model}`)
@@ -438,13 +513,11 @@ Commands:
       const config = loadConfig()
       const providers = await detectAllProviders()
       const newProvider = await selectProvider(providers, config)
-
       if (isCloudProvider(newProvider)) {
         const key = await promptApiKey(newProvider)
         if (!key) { console.log('\n⚠️  Provider switch cancelled.'); promptUser(); return }
         session.apiKey = key
       }
-
       const newModel = await selectModelForProvider(newProvider)
       session.provider = newProvider
       session.model = newModel
@@ -483,36 +556,91 @@ Commands:
       promptUser(); return
     }
 
-    // ── Chat ────────────────────────────────────────────────────────────────
-    console.log('\n⏳ Thinking...')
+    // ── Agent Loop ───────────────────────────────────────────────────────────
+    const MAX_TOOL_CALLS = 20 // safety limit
+    let toolCallCount = 0
+    const agentMessages = [...session.messages, { role: 'user' as const, content: trimmed }]
+
+    startSpinner('⏳ Thinking')
     try {
-      const p = await createProvider({
+      const provider = await createProvider({
         provider: session.provider as any,
         model: session.model,
         apiKey: session.apiKey,
         baseUrl: session.baseUrl || undefined,
       })
 
-      const response = await p.create({
-        messages: [
-          ...session.messages,
-          { role: 'user', content: trimmed },
-        ],
-        maxTokens: 4096,
-      })
+      // Agent loop: keep calling LLM until no more tool calls
+      while (toolCallCount < MAX_TOOL_CALLS) {
+        const tools = mcpTools.length > 0 ? formatMCPTools() : undefined
 
-      console.log(`\n🤖 ${response.content}`)
+        const response = await provider.create({
+          messages: agentMessages,
+          tools,
+          maxTokens: 4096,
+        })
 
-      // Append to history
-      session.messages.push({ role: 'user', content: trimmed })
-      session.messages.push({ role: 'assistant', content: response.content })
+        // Print thinking complete + usage on first response
+        if (toolCallCount === 0) {
+          stopSpinner(true, '⏳ Thinking')
+          printUsage(response.usage)
+        }
 
-      // Trim history to last 20 messages to avoid context bloat
+        // If no tool calls, we're done — print response and break
+        if (!response.toolCalls || response.toolCalls.length === 0) {
+          if (response.content) {
+            streamText(response.content)
+          }
+          agentMessages.push({ role: 'assistant', content: response.content })
+          break
+        }
+
+        // Process tool calls
+        for (const tc of response.toolCalls) {
+          toolCallCount++
+          const toolName = tc.name
+          const toolArgs = tc.arguments ?? {}
+
+          stopSpinner(false)
+          process.stdout.write(`\n🔧 Calling MCP tool: ${toolName}(${JSON.stringify(toolArgs).slice(0, 80)})...\n`)
+          startSpinner('⏳ Tool')
+
+          const result = await callMCPTool(toolName, toolArgs)
+
+          stopSpinner(true, '⏳ Tool')
+          console.log(`   📤 Result: ${result.slice(0, 200)}${result.length > 200 ? '...' : ''}`)
+
+          // Add assistant tool call message
+          agentMessages.push({
+            role: 'assistant',
+            content: response.content,
+            toolCalls: [tc],
+          })
+          // Add tool result message
+          agentMessages.push({
+            role: 'user',
+            content: result,
+            toolCallId: tc.id,
+          })
+        }
+
+        // Continue loop for next LLM turn
+      }
+
+      if (toolCallCount >= MAX_TOOL_CALLS) {
+        console.log(`\n⚠️  Reached tool call limit (${MAX_TOOL_CALLS}). Truncating.`)
+      }
+
+      // Update session history
+      session.messages = agentMessages
       if (session.messages.length > 40) {
         session.messages = session.messages.slice(-40)
       }
     } catch (e) {
+      stopSpinner(false)
       console.log(`\n❌ Error: ${e}`)
+      // Remove failed user message from history
+      session.messages.pop()
     }
 
     promptUser()
@@ -536,27 +664,13 @@ OPTIONS:
   --setup            Auto-start MCP server
   --help             Show this help
 
-LOCAL PROVIDERS:
-  ollama     - Run: brew install ollama && ollama serve
-  lmstudio   - Download from lmstudio.ai
-  jan        - Run: janusher紧闭
-
-CLOUD PROVIDERS:
-  anthropic  - Claude models (needs ANTHROPIC_API_KEY)
-  openai     - GPT models (needs OPENAI_API_KEY)
-  deepseek   - DeepSeek models (needs DEEPSEEK_API_KEY)
-  groq       - Fast inference (needs GROQ_API_KEY)
-  mistral    - Mistral models (needs MISTRAL_API_KEY)
-  openrouter - Unified gateway (needs OPENROUTER_API_KEY)
-  qwen       - Qwen models (needs DASHSCOPE_API_KEY)
-  gemini     - Google Gemini (needs GEMINI_API_KEY)
-
 SESSION COMMANDS:
   /provider       Switch provider (interactive)
-  /provider <n>   Switch to provider by name
+  /provider <name>  Switch to provider by name
   /model          Switch model (interactive)
   /model <name>   Switch to model by name or number
   /models         List available models
+  /tools          List available MCP tools
   /clear          Clear chat history
   /help           Show this help
   /exit           Exit
@@ -583,29 +697,25 @@ async function main() {
   }
 
   if (options.help) { printHelp(); process.exit(0) }
-  if (options.test) {
-    console.log('Running tests...'); process.exit(0)
-  }
-  if (options.setup) {
-    await autoStartMCP(); process.exit(0)
-  }
+  if (options.test) { console.log('Running tests...'); process.exit(0) }
+  if (options.setup) { await autoStartMCP(); process.exit(0) }
 
-  // Load persistent config
+  // Connect MCP first (before setup for faster startup)
+  startSpinner('🔧 Connecting MCP')
+  await connectMCP()
+  stopSpinner(mcpTools.length > 0, '🔧 MCP')
+
   const config = loadConfig()
 
-  // Build session
   let session: Session
   if (options.provider && options.model) {
-    // Direct mode — skip interactive setup
     session = buildSession(options.provider, options.model, config)
     printBanner(session)
   } else {
-    // Interactive setup
     session = await interactiveSetup(config)
     printBanner(session)
   }
 
-  // Start REPL
   await repl(session)
 }
 
