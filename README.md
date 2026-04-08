@@ -488,6 +488,60 @@ Beast CLI is built on the shoulders of giants:
 
 ---
 
+## Reference Repositories (Used for Development)
+
+This project was built by analyzing and combining best practices from these open-source repositories:
+
+| Repository | URL | Purpose |
+|------------|-----|---------|
+| **Claude Code** | ChinaSiro/claude-code-sourcemap | Memory taxonomy, multi-agent patterns |
+| **Codex-RS** | openai/codex | Landlock sandbox, ghost commits, repo map, PageRank |
+| **Aider** | Aider-AI/aider | Auto-lint, lazy loading, voice input, repo map |
+| **Cline** | cline/cline | MCP integration, prompt variants, OAuth |
+| **OpenCode** | anomalyco/opencode | Batch execution, collaboration modes |
+
+### Local Copies (for reference)
+
+The following local paths contain the analyzed source code:
+
+```
+/home/sridhar/claude-code-sourcemap/restored-src/src/  # Claude Code
+/home/sridhar/codex/codex-rs/                          # Codex-RS
+/home/sridhar/aider/aider/                             # Aider
+/home/sridhar/cline/                                   # Cline
+/home/sridhar/opencode/packages/opencode/src/           # OpenCode
+```
+
+### Source Files Analyzed
+
+| Feature | Source Repository | Key Files |
+|---------|-------------------|-----------|
+| Memory System | Claude Code | `memdir/memdir.ts`, `extractMemories/` |
+| Landlock Sandbox | Codex-RS | `linux-sandbox/src/lib.rs`, `execpolicy/src/lib.rs` |
+| Multi-Agent | Claude Code | `coordinator/`, `tools/AgentTool/` |
+| MCP Client | Cline | `services/mcp/McpHub.ts` |
+| Auto-Lint | Aider | `linter.py`, `commands.py` |
+| RepoMap + PageRank | Codex-RS | `repomap/src/`, `core/src/repomap.rs` |
+| Ghost Commits | Codex-RS | `git-utils/src/ghost_commits.rs` |
+| Voice Input | Aider | `commands.py` (/voice) |
+| Lazy Loading | Aider | `llm.py` (LazyLiteLLM) |
+| Prompt Variants | Cline | `core/prompts/` |
+| Batch Execution | OpenCode | `tool/batch.ts` |
+
+### Research Documents
+
+Additional research and planning documents are available at:
+
+```
+/home/sridhar/code-cli-plan/
+├── beast-cli-master-index.md   # All tickets and status
+├── beast-cli-research.md       # Full feature analysis
+├── beast-cli-*.md              # Phase-specific tickets
+└── comparison-report.md        # Competitive analysis
+```
+
+---
+
 <p align="center">
   Made with ❤️ by <a href="https://simpletools.in">SimpleTools</a>
 </p>
