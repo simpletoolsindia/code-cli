@@ -319,7 +319,7 @@ All integrations tested and working:
 | Integration | Status | Details |
 |------------|--------|---------|
 | Ollama (Local) | ✅ PASS | 13 models, chat works |
-| LM Studio | ⏳ SKIP | Needs to be started |
+| LM Studio (Local) | ✅ PASS | 5 models, Phi-4-mini (3B) tested |
 | extra_skills_mcp | ✅ PASS | 64 tools via TCP JSON-RPC |
 
 **Test Results** (run with `bun test-all.ts`):
