@@ -101,7 +101,7 @@ async function main() {
   console.log('─'.repeat(50))
   const ollamaResult = await testProvider('Ollama', {
     provider: 'ollama',
-    model: 'llama3.2',
+    model: 'llama3.1:8b',
     baseUrl: 'http://localhost:11434',
   })
   results.push(ollamaResult)

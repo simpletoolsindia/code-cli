@@ -537,12 +537,92 @@ export class MCPOAuthManager {
   }
 }
 
+// TCP Transport - for extra_skills_mcp_tools and similar TCP-based MCP servers
+export class TCPTransport extends BaseTransport {
+  private host: string
+  private port: number
+  private socket?: import('net').Socket
+
+  constructor(host: string, port: number) {
+    super()
+    this.host = host
+    this.port = port
+  }
+
+  async connect(): Promise<void> {
+    const { connect } = await import('net')
+    this.socket = connect(this.port, this.host)
+    this.connected = true
+
+    let buffer = ''
+    this.socket.on('data', (data: Buffer) => {
+      buffer += data.toString()
+      const lines = buffer.split('\n')
+      buffer = lines.pop() ?? ''
+      for (const line of lines) {
+        if (line.trim()) this.handleMessage(line)
+      }
+    })
+
+    this.socket.on('close', () => {
+      this.connected = false
+      this.onDisconnect?.()
+    })
+
+    this.socket.on('error', (err) => {
+      console.error('[MCP TCP] Error:', err.message)
+    })
+
+    // Initialize
+    await this.send('initialize', {
+      protocolVersion: '2024-11-05',
+      capabilities: { tools: {} },
+      clientInfo: { name: 'beast-cli', version: '1.0.0' },
+    })
+  }
+
+  async disconnect(): Promise<void> {
+    this.socket?.end()
+    this.socket = undefined
+    this.connected = false
+  }
+
+  async sendRaw(message: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (!this.socket) {
+        reject(new Error('Socket not connected'))
+        return
+      }
+      this.socket.write(message + '\n', (err) => {
+        if (err) reject(err)
+        else resolve()
+      })
+    })
+  }
+}
+
 // Default config
 export const defaultMCPConfig: MCPConfig = {
   servers: [],
   timeout: 30000,
   retryAttempts: 6,
   retryBaseDelay: 2000,
+}
+
+// extra_skills_mcp_tools integration helper
+export async function connectExtraSkillsMCP(
+  hub: MCPHub,
+  host = 'localhost',
+  port = 7710
+): Promise<void> {
+  // Uses TCP transport for extra_skills_mcp_tools
+  const tcpTransport = new TCPTransport(host, port)
+  try {
+    await tcpTransport.connect()
+    console.log(`[MCP] Connected to extra_skills_mcp_tools at ${host}:${port}`)
+  } catch (e) {
+    console.error(`[MCP] Failed to connect to extra_skills_mcp_tools:`, e)
+  }
 }
 
 export default {
@@ -552,5 +632,7 @@ export default {
   StdioTransport,
   SSETransport,
   HTTPTransport,
+  TCPTransport,
+  connectExtraSkillsMCP,
   defaultMCPConfig,
 }
