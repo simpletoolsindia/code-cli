@@ -8,6 +8,8 @@
 import { createProvider } from './providers/index.ts'
 import { TCPTransport } from './mcp/index.ts'
 import { execSync } from 'child_process'
+import path from 'node:path'
+import { statSync } from 'node:fs'
 
 // Version
 const VERSION = '1.0.2'
@@ -84,6 +86,31 @@ async function startColima(): Promise<boolean> {
   }
 }
 
+// Find docker-compose.local.yml by searching upward from cwd
+function findComposeFile(): string | null {
+  let dir = process.cwd()
+  const root = '/'
+  while (dir !== root) {
+    const composePath = path.join(dir, 'extra_skills_mcp_tools', 'docker-compose.local.yml')
+    try {
+      const stat = statSync(composePath)
+      if (stat.isFile()) return composePath
+    } catch {}
+    dir = path.dirname(dir)
+  }
+  // Fallback: common absolute paths
+  const fallbacks = [
+    '/Users/sridhar/code/extra_skills_mcp_tools/docker-compose.local.yml',
+  ]
+  for (const p of fallbacks) {
+    try {
+      const stat = statSync(p)
+      if (stat.isFile()) return p
+    } catch {}
+  }
+  return null
+}
+
 // Auto-start MCP server using Docker
 async function autoStartMCP(): Promise<boolean> {
   console.log('   🔧 MCP: Not found, checking Docker...')
@@ -95,24 +122,40 @@ async function autoStartMCP(): Promise<boolean> {
     return false
   }
 
-  // Try to start MCP server
-  const mcpPaths = [
-    '../extra_skills_mcp_tools/docker-compose.local.yml',
-    'extra_skills_mcp_tools/docker-compose.local.yml',
-    '/Users/sridhar/code/extra_skills_mcp_tools/docker-compose.local.yml',
-  ]
+  // Find compose file
+  const composePath = findComposeFile()
+  if (!composePath) {
+    console.log('   ⚠️  MCP server not found.')
+    console.log('   💡 Clone and run:')
+    console.log('      git clone https://github.com/simpletoolsindia/extra_skills_mcp_tools')
+    console.log('      cd extra_skills_mcp_tools && docker compose up -d')
+    return false
+  }
 
-  for (const composePath of mcpPaths) {
-    try {
-      execSync(`docker compose -f ${composePath} up -d`, { stdio: 'pipe', timeout: 120000 })
-      console.log('   ✅ MCP server container started!')
-      // Wait for server to be ready
-      console.log('   ⏳ Waiting for MCP server...')
-      await new Promise(r => setTimeout(r, 3000))
+  // Check if mcp-server container is already running/healthy
+  try {
+    const status = execSync(
+      'docker inspect -f "{{.State.Status}}" mcp-server 2>/dev/null',
+      { encoding: 'utf8' }
+    ).trim()
+    if (status === 'running' || status === 'healthy') {
+      console.log('   ✅ MCP server already running')
       return true
-    } catch (e: any) {
-      console.log(`   ⚠️  Could not start MCP from ${composePath}: ${e.message}`)
     }
+  } catch {}
+
+  // Try to start MCP server — suppress stderr to avoid throwing on warnings
+  try {
+    execSync(
+      `docker compose -f "${composePath}" up -d 2>/dev/null`,
+      { stdio: 'pipe', timeout: 120000 }
+    )
+    console.log('   ✅ MCP server container started!')
+    console.log('   ⏳ Waiting for MCP server...')
+    await new Promise(r => setTimeout(r, 3000))
+    return true
+  } catch (e: any) {
+    console.log(`   ⚠️  Could not start MCP from ${composePath}: ${e.message}`)
   }
 
   console.log('   ⚠️  MCP server not found.')
