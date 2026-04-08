@@ -1,6 +1,7 @@
 #!/bin/bash
 #
 # Beast CLI - Live Terminal Demo
+# @simpletoolsindia/beast-cli
 # Run this to show clients a real-time demo
 #
 
@@ -29,11 +30,13 @@ echo -e "${CYAN}║${NC}   ${GREEN}${BOLD}🐉 BEAST CLI${NC} - ${BOLD}AI Coding
 echo -e "${CYAN}║${NC}                                                                   ${CYAN}║${NC}"
 echo -e "${CYAN}╚═══════════════════════════════════════════════════════════════════╝${NC}"
 echo ""
+echo -e "   ${BLUE}📦 npm: ${CYAN}@simpletoolsindia/beast-cli${NC}"
+echo ""
 
 sleep 1
 
 echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${YELLOW} LIVE DEMO - Beast CLI with Ollama Integration${NC}"
+echo -e "${YELLOW} LIVE DEMO - @simpletoolsindia/beast-cli with Ollama${NC}"
 echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 
@@ -137,14 +140,18 @@ echo -e "   ${GREEN}${CHECK}${NC} LM Studio (Local AI)  - ${LM_COUNT:-0} models 
 echo -e "   ${GREEN}${CHECK}${NC} MCP Server (Tools)    - ${TOOL_COUNT:-0} tools available"
 echo ""
 
-echo -e "${BOLD}📁 Beast CLI Commands:${NC}"
-echo -e "   ${CYAN}bun run src/index.ts${NC}        - Start Beast CLI"
-echo -e "   ${CYAN}bun test-mcp-integration.ts${NC} - Run integration tests"
-echo -e "   ${CYAN}open demo.html${NC}              - View HTML demo"
+echo -e "${BOLD}📁 Install Beast CLI:${NC}"
+echo -e "   ${GREEN}npm install -g @simpletoolsindia/beast-cli${NC}"
+echo ""
+echo -e "${BOLD}📁 Commands:${NC}"
+echo -e "   ${CYAN}beast${NC}                       - Start Beast CLI"
+echo -e "   ${CYAN}npx @simpletoolsindia/beast-cli${NC} - Use without install"
+echo -e "   ${CYAN}ollama serve${NC}                 - Start Ollama for local AI"
 echo ""
 
 echo -e "${BOLD}🔗 Quick Links:${NC}"
-echo -e "   ${CYAN}https://github.com/simpletoolsindia/code-cli${NC}"
+echo -e "   ${CYAN}📦 npm:${NC} https://www.npmjs.com/package/@simpletoolsindia/beast-cli"
+echo -e "   ${CYAN}🐙 GitHub:${NC} https://github.com/simpletoolsindia/code-cli"
 echo ""
 
 echo -e "${CYAN}╔═══════════════════════════════════════════════════════════════════╗${NC}"

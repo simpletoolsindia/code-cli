@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Beast CLI - Demo</title>
+  <title>Beast CLI - Interactive Demo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
@@ -16,6 +16,7 @@
     :root {
       --bg: #0d1117;
       --surface: #161b22;
+      --surface2: #1c2128;
       --border: #30363d;
       --text: #c9d1d9;
       --muted: #8b949e;
@@ -31,334 +32,241 @@
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
       padding: 20px;
     }
 
     .container {
-      width: 100%;
       max-width: 900px;
+      margin: 0 auto;
+    }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 40px 20px;
+      background: linear-gradient(180deg, rgba(63,185,80,0.1) 0%, transparent 100%);
+      border-radius: 20px;
+      margin-bottom: 30px;
+    }
+
+    .hero-icon {
+      font-size: 80px;
+      margin-bottom: 20px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .hero h1 {
+      font-size: 48px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .hero h1 span {
+      color: var(--success);
+    }
+
+    .hero p {
+      font-size: 18px;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+
+    /* Install Command */
+    .install-box {
+      background: var(--surface);
+      border: 2px solid var(--success);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .install-box h3 {
+      color: var(--success);
+      margin-bottom: 16px;
+      font-size: 18px;
+    }
+
+    .install-command {
+      background: #000;
+      padding: 16px 24px;
+      border-radius: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      display: inline-block;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid var(--border);
+    }
+
+    .install-command:hover {
+      border-color: var(--accent);
+      transform: scale(1.02);
+    }
+
+    .install-command span {
+      color: var(--success);
+    }
+
+    .copy-hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 12px;
+    }
+
+    /* Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      transition: all 0.3s;
+    }
+
+    .card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+    }
+
+    .card-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .card h3 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .card p {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .card-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge-online {
+      background: rgba(63,185,80,0.2);
+      color: var(--success);
+    }
+
+    .badge-info {
+      background: rgba(88,166,255,0.2);
+      color: var(--accent);
+    }
+
+    /* Chat Preview */
+    .chat-preview {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      margin-bottom: 30px;
     }
 
-    /* Header */
-    .header {
-      padding: 20px 24px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: linear-gradient(180deg, rgba(88,166,255,0.05) 0%, transparent 100%);
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .logo-icon {
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, #10b981, #059669);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      animation: pulse 2s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-    }
-
-    .logo-text {
-      font-size: 20px;
-      font-weight: 600;
-    }
-
-    .logo-text span {
-      color: var(--success);
-    }
-
-    .badge {
-      background: rgba(88,166,255,0.15);
-      color: var(--accent);
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 500;
-    }
-
-    /* Providers */
-    .providers {
-      padding: 16px 24px;
+    .chat-header {
+      background: var(--surface2);
+      padding: 16px 20px;
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       gap: 12px;
-      flex-wrap: wrap;
     }
 
-    .provider {
+    .chat-header .dots {
       display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 14px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 13px;
-      transition: all 0.3s ease;
+      gap: 6px;
     }
 
-    .provider.active {
-      border-color: var(--accent);
-      background: rgba(88,166,255,0.1);
-    }
-
-    .provider.online {
-      border-color: var(--success);
-    }
-
-    .provider.online .status {
-      background: var(--success);
-      box-shadow: 0 0 8px var(--success);
-    }
-
-    .provider.offline .status {
-      background: var(--muted);
-    }
-
-    .status {
-      width: 8px;
-      height: 8px;
+    .chat-header .dot {
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
-      animation: blink 2s ease-in-out infinite;
     }
 
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
+    .chat-header .dot.red { background: var(--error); }
+    .chat-header .dot.yellow { background: var(--warning); }
+    .chat-header .dot.green { background: var(--success); }
 
-    .model-badge {
-      padding: 16px 24px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .current-model {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
-    }
-
-    .current-model .label {
-      color: var(--muted);
-    }
-
-    .current-model .value {
-      color: var(--success);
-      font-weight: 600;
-    }
-
-    .mode-selector {
-      display: flex;
-      gap: 8px;
-      margin-left: auto;
-    }
-
-    .mode {
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 12px;
+    .chat-header h3 {
+      font-size: 14px;
       font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      border: 1px solid transparent;
     }
 
-    .mode:hover {
-      background: rgba(255,255,255,0.05);
-    }
-
-    .mode.active {
-      border-color: currentColor;
-    }
-
-    .mode.plan { color: var(--accent); }
-    .mode.write { color: var(--success); }
-    .mode.auto { color: var(--warning); }
-    .mode.review { color: #a371f7; }
-
-    /* Chat */
-    .chat {
-      height: 400px;
-      overflow-y: auto;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
+    .chat-body {
+      padding: 20px;
+      min-height: 300px;
     }
 
     .message {
       display: flex;
       gap: 12px;
+      margin-bottom: 16px;
       animation: slideIn 0.3s ease;
     }
 
     @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    .message.user {
-      flex-direction: row-reverse;
-    }
+    .message.user { flex-direction: row-reverse; }
 
-    .message-avatar {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 14px;
+      font-size: 16px;
       flex-shrink: 0;
     }
 
-    .message.user .message-avatar {
-      background: var(--success);
-    }
+    .message.user .avatar { background: var(--success); }
+    .message.assistant .avatar { background: linear-gradient(135deg, #10b981, #059669); }
 
-    .message.assistant .message-avatar {
-      background: linear-gradient(135deg, #10b981, #059669);
-    }
-
-    .message-content {
-      max-width: 75%;
+    .bubble {
+      max-width: 70%;
       padding: 12px 16px;
-      border-radius: 12px;
+      border-radius: 16px;
       font-size: 14px;
       line-height: 1.6;
     }
 
-    .message.user .message-content {
+    .message.user .bubble {
       background: var(--success);
       color: #000;
       border-bottom-right-radius: 4px;
     }
 
-    .message.assistant .message-content {
+    .message.assistant .bubble {
       background: var(--bg);
       border: 1px solid var(--border);
       border-bottom-left-radius: 4px;
     }
 
-    .message.system .message-content {
-      background: rgba(88,166,255,0.1);
-      border: 1px dashed var(--accent);
-      color: var(--accent);
-      font-size: 13px;
-    }
-
-    /* Input */
-    .input-area {
-      padding: 16px 24px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      gap: 12px;
-    }
-
-    .input-wrapper {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0 16px;
-      transition: border-color 0.2s;
-    }
-
-    .input-wrapper:focus-within {
-      border-color: var(--accent);
-    }
-
-    .input-wrapper input {
-      flex: 1;
-      background: transparent;
-      border: none;
-      color: var(--text);
-      font-size: 14px;
-      padding: 14px 0;
-      outline: none;
-      font-family: inherit;
-    }
-
-    .input-wrapper input::placeholder {
-      color: var(--muted);
-    }
-
-    .send-btn {
-      width: 44px;
-      height: 44px;
-      background: var(--success);
-      border: none;
-      border-radius: 10px;
-      color: #000;
-      font-size: 18px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
-    }
-
-    .send-btn:hover {
-      transform: scale(1.05);
-      box-shadow: 0 4px 12px rgba(63,185,80,0.3);
-    }
-
-    /* Footer */
-    .footer {
-      padding: 12px 24px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .footer kbd {
-      background: var(--bg);
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      border: 1px solid var(--border);
-    }
-
-    /* Typing indicator */
+    /* Typing */
     .typing {
       display: flex;
       gap: 4px;
@@ -366,8 +274,8 @@
     }
 
     .typing span {
-      width: 6px;
-      height: 6px;
+      width: 8px;
+      height: 8px;
       background: var(--muted);
       border-radius: 50%;
       animation: typing 1s ease-in-out infinite;
@@ -378,248 +286,294 @@
 
     @keyframes typing {
       0%, 100% { transform: translateY(0); opacity: 0.5; }
-      50% { transform: translateY(-4px); opacity: 1; }
+      50% { transform: translateY(-6px); opacity: 1; }
     }
 
-    /* Feature cards */
+    /* Quick Start */
+    .quick-start {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 30px;
+    }
+
+    .quick-start h3 {
+      margin-bottom: 20px;
+      font-size: 20px;
+    }
+
+    .code-block {
+      background: #000;
+      border-radius: 12px;
+      padding: 16px 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      overflow-x: auto;
+    }
+
+    .code-block .comment { color: var(--muted); }
+    .code-block .command { color: var(--success); }
+    .code-block .output { color: var(--accent); }
+
+    /* Features */
     .features {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 16px;
-      padding: 24px;
+      margin-bottom: 30px;
     }
 
     .feature {
-      background: var(--bg);
+      background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 20px;
       text-align: center;
-      animation: fadeInUp 0.5s ease forwards;
-      opacity: 0;
     }
 
-    .feature:nth-child(1) { animation-delay: 0.1s; }
-    .feature:nth-child(2) { animation-delay: 0.2s; }
-    .feature:nth-child(3) { animation-delay: 0.3s; }
-    .feature:nth-child(4) { animation-delay: 0.4s; }
+    .feature-icon { font-size: 32px; margin-bottom: 12px; }
+    .feature h4 { font-size: 14px; margin-bottom: 8px; }
+    .feature p { font-size: 12px; color: var(--muted); }
 
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .feature-icon {
-      font-size: 32px;
-      margin-bottom: 12px;
-    }
-
-    .feature h3 {
-      font-size: 14px;
-      margin-bottom: 8px;
-    }
-
-    .feature p {
-      font-size: 12px;
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 30px;
       color: var(--muted);
-      line-height: 1.5;
+      font-size: 14px;
     }
+
+    .footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--success);
+      color: #000;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 600;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+
+    .toast.show { opacity: 1; }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- Header -->
-    <div class="header">
-      <div class="logo">
-        <div class="logo-icon">🐉</div>
-        <div class="logo-text">Beast <span>CLI</span></div>
-      </div>
-      <div class="badge">v1.0.0</div>
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-icon">🐉</div>
+      <h1>Beast <span>CLI</span></h1>
+      <p>AI Coding Agent • 45+ Providers • Local & Cloud • Easy Install</p>
     </div>
 
-    <!-- Providers -->
-    <div class="providers">
-      <span style="color: var(--muted); font-size: 13px;">Providers:</span>
-      <div class="provider online active">
-        <span class="status"></span>
-        <span>🦙 Ollama</span>
+    <!-- Install Box -->
+    <div class="install-box">
+      <h3>⚡ Quick Install</h3>
+      <div class="install-command" onclick="copyInstall()">
+        npm install -g <span>@simpletoolsindia/beast-cli</span>
       </div>
-      <div class="provider online">
-        <span class="status"></span>
-        <span>🏋️ LM Studio</span>
+      <p class="copy-hint">Click to copy</p>
+    </div>
+
+    <!-- Provider Status -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-icon">🦙</div>
+        <h3>Ollama</h3>
+        <p>Local AI models on your machine</p>
+        <span class="card-badge badge-online">● Online • 13 models</span>
       </div>
-      <div class="provider offline">
-        <span class="status"></span>
-        <span>🧠 Claude</span>
+      <div class="card">
+        <div class="card-icon">🏋️</div>
+        <h3>LM Studio</h3>
+        <p>Desktop AI model runner</p>
+        <span class="card-badge badge-online">● Online • 5 models</span>
       </div>
-      <div class="provider offline">
-        <span class="status"></span>
-        <span>🤖 GPT</span>
+      <div class="card">
+        <div class="card-icon">🧠</div>
+        <h3>Claude</h3>
+        <p>Anthropic's AI assistant</p>
+        <span class="card-badge badge-info">Setup Required</span>
+      </div>
+      <div class="card">
+        <div class="card-icon">🤖</div>
+        <h3>GPT</h3>
+        <p>OpenAI's language models</p>
+        <span class="card-badge badge-info">Setup Required</span>
       </div>
     </div>
 
-    <!-- Model & Mode -->
-    <div class="model-badge">
-      <div class="current-model">
-        <span class="label">Model:</span>
-        <span class="value">qwen2.5-coder:32b</span>
+    <!-- Chat Preview -->
+    <div class="chat-preview">
+      <div class="chat-header">
+        <div class="dots">
+          <div class="dot red"></div>
+          <div class="dot yellow"></div>
+          <div class="dot green"></div>
+        </div>
+        <h3>🐉 Beast CLI - Live Preview</h3>
       </div>
-      <div class="mode-selector">
-        <div class="mode" onclick="setMode('plan', this)">📋 Plan</div>
-        <div class="mode active" onclick="setMode('write', this)">✏️ Write</div>
-        <div class="mode" onclick="setMode('auto', this)">🚀 Auto</div>
-        <div class="mode" onclick="setMode('review', this)">🔍 Review</div>
-      </div>
-    </div>
-
-    <!-- Chat -->
-    <div class="chat" id="chat">
-      <div class="message system">
-        <div class="message-avatar">⚡</div>
-        <div class="message-content">
-          Welcome! Beast CLI is ready. Type your request or try an example below.
+      <div class="chat-body" id="chatBody">
+        <div class="message assistant">
+          <div class="avatar">🤖</div>
+          <div class="bubble">
+            Welcome! Type a message or try one of these examples:
+            <br><br>
+            • "Create a React login form"<br>
+            • "Fix the bug in auth.ts"<br>
+            • "Add dark mode to my app"
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Input -->
-    <div class="input-area">
-      <div class="input-wrapper">
-        <input type="text" id="messageInput" placeholder="Ask me anything..." onkeypress="handleKeyPress(event)">
+    <!-- Quick Start -->
+    <div class="quick-start">
+      <h3>🚀 Quick Start</h3>
+      <div class="code-block">
+        <span class="comment"># 1. Install Beast CLI</span><br>
+        <span class="command">npm install -g @simpletoolsindia/beast-cli</span><br><br>
+        <span class="comment"># 2. Start Ollama (for local models)</span><br>
+        <span class="command">brew install ollama && ollama serve</span><br><br>
+        <span class="comment"># 3. Run Beast CLI</span><br>
+        <span class="command">beast</span><br><br>
+        <span class="comment"># Or use directly</span><br>
+        <span class="command">npx @simpletoolsindia/beast-cli</span>
       </div>
-      <button class="send-btn" onclick="sendMessage()">➤</button>
-    </div>
-
-    <!-- Footer -->
-    <div class="footer">
-      <div>
-        <kbd>Tab</kbd> Switch Provider &nbsp;
-        <kbd>/mode</kbd> Change Mode &nbsp;
-        <kbd>/help</kbd> Commands
-      </div>
-      <div>45+ Providers • Local & Cloud</div>
     </div>
 
     <!-- Features -->
     <div class="features">
       <div class="feature">
-        <div class="feature-icon">🦙</div>
-        <h3>Local Models</h3>
-        <p>Run Ollama, LM Studio, Jan.ai locally with full privacy</p>
-      </div>
-      <div class="feature">
-        <div class="feature-icon">☁️</div>
-        <h3>Cloud Providers</h3>
-        <p>Claude, GPT, DeepSeek, and 40+ more providers</p>
-      </div>
-      <div class="feature">
         <div class="feature-icon">🔒</div>
-        <h3>Secure</h3>
-        <p>Landlock sandbox, dangerous pattern detection</p>
+        <h4>Secure</h4>
+        <p>Landlock sandbox, pattern detection</p>
       </div>
       <div class="feature">
         <div class="feature-icon">🚀</div>
-        <h3>Fast</h3>
-        <p>Token optimization, 80% reduction with MCP</p>
+        <h4>Fast</h4>
+        <p>80% token reduction with MCP</p>
       </div>
+      <div class="feature">
+        <div class="feature-icon">💾</div>
+        <h4>Memory</h4>
+        <p>Persistent context across sessions</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🔌</div>
+        <h4>65+ Tools</h4>
+        <p>Web, GitHub, data analysis</p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>
+        <a href="https://www.npmjs.com/package/@simpletoolsindia/beast-cli">📦 npm</a> •
+        <a href="https://github.com/simpletoolsindia/code-cli">🐙 GitHub</a> •
+        <a href="https://github.com/simpletoolsindia/code-cli/releases">📦 Releases</a>
+      </p>
+      <p style="margin-top: 8px;">Built with ❤️ by SimpleTools</p>
     </div>
   </div>
 
-  <script>
-    // State
-    let currentMode = 'write';
-    const messages = [
-      { role: 'system', content: 'Welcome! Beast CLI is ready. Type your request or try an example below.' }
-    ];
+  <!-- Toast -->
+  <div class="toast" id="toast">Copied to clipboard!</div>
 
-    // Mode selector
-    function setMode(mode, el) {
-      document.querySelectorAll('.mode').forEach(m => m.classList.remove('active'));
-      el.classList.add('active');
-      currentMode = mode;
-      addMessage('assistant', `Switched to ${mode.toUpperCase()} mode.`);
+  <script>
+    // Copy install command
+    function copyInstall() {
+      navigator.clipboard.writeText('npm install -g @simpletoolsindia/beast-cli');
+      showToast();
     }
 
-    // Add message to chat
-    function addMessage(role, content) {
-      const chat = document.getElementById('chat');
-      const icons = { user: '👤', assistant: '🤖', system: '⚡' };
+    // Show toast
+    function showToast() {
+      const toast = document.getElementById('toast');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
 
+    // Chat messages
+    const chatMessages = [
+      {
+        role: 'user',
+        content: 'Create a React login form with email and password'
+      },
+      {
+        role: 'assistant',
+        content: "I'll create a modern React login form with validation and dark mode support. Let me set that up for you..."
+      },
+      {
+        role: 'assistant',
+        content: '✓ Created: src/components/LoginForm.tsx\n✓ Created: src/styles/login.css\n✓ Created: src/hooks/useAuth.ts\n\nReady to use!'
+      }
+    ];
+
+    // Simulate chat
+    let msgIndex = 0;
+    function addMessage(role, content) {
+      const chat = document.getElementById('chatBody');
       const msg = document.createElement('div');
       msg.className = `message ${role}`;
       msg.innerHTML = `
-        <div class="message-avatar">${icons[role]}</div>
-        <div class="message-content">${content}</div>
+        <div class="avatar">${role === 'user' ? '👤' : '🤖'}</div>
+        <div class="bubble">${content.replace(/\n/g, '<br>')}</div>
       `;
-
       chat.appendChild(msg);
       chat.scrollTop = chat.scrollHeight;
-      messages.push({ role, content });
     }
 
-    // Show typing indicator
+    // Simulate typing
     function showTyping() {
-      const chat = document.getElementById('chat');
-      const typing = document.createElement('div');
-      typing.id = 'typing';
-      typing.className = 'message assistant';
-      typing.innerHTML = `
-        <div class="message-avatar">🤖</div>
-        <div class="message-content">
+      const chat = document.getElementById('chatBody');
+      const msg = document.createElement('div');
+      msg.className = 'message assistant';
+      msg.id = 'typing';
+      msg.innerHTML = `
+        <div class="avatar">🤖</div>
+        <div class="bubble">
           <div class="typing">
             <span></span><span></span><span></span>
           </div>
         </div>
       `;
-      chat.appendChild(typing);
+      chat.appendChild(msg);
       chat.scrollTop = chat.scrollHeight;
     }
 
-    // Hide typing
     function hideTyping() {
       const typing = document.getElementById('typing');
       if (typing) typing.remove();
     }
 
-    // Send message
-    function sendMessage() {
-      const input = document.getElementById('messageInput');
-      const text = input.value.trim();
-      if (!text) return;
-
-      addMessage('user', text);
-      input.value = '';
-
+    // Run demo after delay
+    setTimeout(() => {
+      addMessage('user', chatMessages[0].content);
       showTyping();
 
-      // Simulate response
       setTimeout(() => {
         hideTyping();
-        const responses = [
-          "I'll help you with that! Let me create the necessary files.",
-          "Great question! Here's my approach to solve this.",
-          "I understand. Let me analyze the codebase and provide a solution.",
-          "Thanks! I'm ready to help. Starting work now..."
-        ];
-        addMessage('assistant', responses[Math.floor(Math.random() * responses.length)]);
-      }, 1000 + Math.random() * 1000);
-    }
+        addMessage('assistant', chatMessages[1].content);
+        showTyping();
 
-    // Handle Enter key
-    function handleKeyPress(e) {
-      if (e.key === 'Enter') sendMessage();
-    }
-
-    // Example interactions
-    setTimeout(() => {
-      addMessage('assistant', "Try these examples:\n• 'Create a React login form'\n• 'Fix the bug in auth.ts'\n• 'Add dark mode to my app'");
-    }, 2000);
+        setTimeout(() => {
+          hideTyping();
+          addMessage('assistant', chatMessages[2].content);
+        }, 1500);
+      }, 2000);
+    }, 3000);
   </script>
 </body>
 </html>

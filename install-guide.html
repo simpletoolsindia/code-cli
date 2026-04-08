@@ -613,12 +613,20 @@
           <div class="terminal-dot red"></div>
           <div class="terminal-dot yellow"></div>
           <div class="terminal-dot green"></div>
-          <div class="terminal-title">Live Demo - Ollama Integration</div>
+          <div class="terminal-title">Live Demo - @simpletoolsindia/beast-cli</div>
         </div>
         <div class="terminal-body" id="demo-output">
           <div class="terminal-line">
             <span class="terminal-prompt">$</span>
-            <span class="terminal-command">bun test-mcp-integration.ts</span>
+            <span class="terminal-command">npm install -g @simpletoolsindia/beast-cli</span>
+          </div>
+          <div class="terminal-line">
+            <span class="terminal-output">added 12 packages in 2s</span>
+          </div>
+          <br>
+          <div class="terminal-line">
+            <span class="terminal-prompt">$</span>
+            <span class="terminal-command">beast --test</span>
           </div>
           <br>
           <div class="terminal-line">
@@ -739,14 +747,16 @@
       <h2 style="margin-bottom: 20px;">⚡ Quick Commands</h2>
 
       <div class="code">
-        <span class="comment"># Run the CLI</span><br>
-        <span class="variable">bun</span> run src/index.ts<br><br>
+        <span class="comment"># Install from npm (Recommended)</span><br>
+        <span class="keyword">npm</span> install -g <span class="string">@simpletoolsindia/beast-cli</span><br><br>
+        <span class="comment"># Run Beast CLI</span><br>
+        <span class="variable">beast</span><br><br>
+        <span class="comment"># Or use directly with npx</span><br>
+        <span class="variable">npx</span> @simpletoolsindia/beast-cli<br><br>
+        <span class="comment"># Start Ollama (for local AI)</span><br>
+        <span class="variable">ollama</span> serve<br><br>
         <span class="comment"># Run integration tests</span><br>
-        <span class="variable">bun</span> test-mcp-integration.ts<br><br>
-        <span class="comment"># View HTML demo</span><br>
-        <span class="variable">open</span> demo.html<br><br>
-        <span class="comment"># Start Ollama</span><br>
-        <span class="variable">ollama</span> serve
+        <span class="variable">bun</span> test-mcp-integration.ts
       </div>
     </div>
 
