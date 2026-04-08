@@ -1,10 +1,11 @@
 // Configuration System for Beast CLI
 
-import { readFileSync, existsSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { readFileSync, existsSync, writeFileSync, mkdirSync } from 'node:fs'
+import { resolve, dirname } from 'node:path'
 
 export interface BeastConfig {
   // General
+  provider?: string
   model?: string
   apiKey?: string
 
@@ -99,6 +100,45 @@ function parseConfig(content: string): Partial<BeastConfig> {
   return config as Partial<BeastConfig>
 }
 
+// Save config to file (merges updates into existing config)
+export function saveConfig(updates: Partial<BeastConfig>, configPath?: string): void {
+  const filePath = configPath ?? resolve(process.env.HOME ?? '~', '.beast-cli.yml')
+
+  // Read existing config
+  let existing: Partial<BeastConfig> = {}
+  if (existsSync(filePath)) {
+    try {
+      const content = readFileSync(filePath, 'utf-8')
+      existing = parseConfig(content)
+    } catch {}
+  }
+
+  // Merge
+  const merged = { ...existing, ...updates }
+
+  // Serialize back to YAML-like format
+  const lines: string[] = ['# Beast CLI configuration', '']
+  for (const [key, value] of Object.entries(merged)) {
+    if (value !== undefined && value !== null) {
+      if (typeof value === 'string') {
+        lines.push(`${key}: "${value}"`)
+      } else if (typeof value === 'object') {
+        lines.push(`${key}: ${JSON.stringify(value)}`)
+      } else {
+        lines.push(`${key}: ${value}`)
+      }
+    }
+  }
+
+  try {
+    const dir = dirname(filePath)
+    if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
+    writeFileSync(filePath, lines.join('\n') + '\n', 'utf-8')
+  } catch (error) {
+    console.warn(`Failed to save config to ${filePath}:`, error)
+  }
+}
+
 // Load config from file
 export function loadConfig(configPath?: string): BeastConfig {
   const paths = [
@@ -171,6 +211,7 @@ export function validateConfig(config: BeastConfig): string[] {
 
 export default {
   loadConfig,
+  saveConfig,
   validateConfig,
   defaultConfig,
 }
