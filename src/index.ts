@@ -26,7 +26,7 @@ import { statSync } from 'node:fs'
 import readline from 'node:readline'
 
 // Version
-const VERSION = '1.0.7'
+const VERSION = '1.1.0'
 
 // MCP Server URL
 const MCP_SERVER_HOST = process.env.MCP_HOST || 'localhost'
@@ -362,23 +362,41 @@ function buildSession(provider: string, model: string, config: ReturnType<typeof
 // ── Banner ───────────────────────────────────────────────────────────────────
 
 function printBanner(session: Session) {
-  const icon = isCloudProvider(session.provider) ? '☁️' : '🦙'
-  const toolInfo = nativeTools.length > 0 ? ` | 🔧 ${nativeTools.length} native tools` : ''
+  const isCloud = isCloudProvider(session.provider)
+  const icon = isCloud ? '☁️' : '🦙'
+  const providerColor = isCloud ? '\x1b[36m' : '\x1b[32m' // cyan for cloud, green for local
+  const reset = '\x1b[0m'
+  const bold = '\x1b[1m'
+  const dim = '\x1b[2m'
+
+  const toolCount = nativeTools.length
+
   console.log(`
-🐉 Beast CLI v${VERSION}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${bold}${providerColor}
+   ██╗    ██╗███████╗██╗      ██████╗ ██████╗ ███╗   ███╗███████╗${reset}
+   ██║    ██║██╔════╝██║     ██╔════╝██╔═══██╗████╗ ████║██╔════╝${reset}
+${bold}${providerColor}
+   ██║ █╗ ██║█████╗  ██║     ██║     ██║   ██║██╔████╔██║█████╗  ${reset}
+   ██║███╗██║██╔══╝  ██║     ██║     ██║   ██║██║╚██╔╝██║██╔══╝  ${reset}
+${bold}${providerColor}
+   ╚███╔███╔╝███████╗███████╗╚██████╗╚██████╔╝██║ ╚═╝ ██║███████╗${reset}
+   ╚══╝╚══╝ ╚══════╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝${reset}
+${reset}
+${bold}  Version ${VERSION}${reset} · ${dim}45+ Providers${reset} · ${dim}39 Tools${reset} · ${dim}Local AI Ready${reset}
 
-✅ Ready!
-   ${icon} Provider: ${session.provider}
-   📋 Model:   ${session.model}${toolInfo}
+${bold}╔══════════════════════════════════════════════════════════════════╗${reset}
+${bold}║${reset}  ${icon} Provider   ${dim}:${reset} ${providerColor}${session.provider.toUpperCase()}${reset}
+${bold}║${reset}  📋 Model     ${dim}:${reset} ${bold}${providerColor}${session.model}${reset}
+${bold}║${reset}  🔧 Tools     ${dim}:${reset} ${bold}39${reset} native tools ready
+${bold}║${reset}  💬 Context   ${dim}:${reset} ${bold}32K${reset} tokens max context
+${bold}╚══════════════════════════════════════════════════════════════════╝${reset}
 
-Type your request or try:
-   /help   for all commands
-   /models to list available models
-   /model  to switch model
-   /provider to switch provider
+${dim}Commands:${reset}
+  ${bold}/help${reset}       Show all commands     ${bold}/tools${reset}     List available tools
+  ${bold}/model${reset}     Switch model          ${bold}/provider${reset}  Switch provider
+  ${bold}/clear${reset}     Clear chat           ${bold}/exit${reset}       Quit
 
-Exit: Ctrl+C
+${bold}Ready!${reset} Type your request or try ${bold}/help${reset} for commands.
 `)
 }
 
