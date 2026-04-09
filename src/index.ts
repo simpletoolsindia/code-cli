@@ -585,7 +585,7 @@ function providerSupportsNativeTools(sessionProvider: string): boolean {
         const response = await provider.create({
           messages: agentMessages,
           tools,
-          maxTokens: 4096,
+          maxTokens: 16384,
         })
 
         // Print thinking complete + usage on first response
@@ -623,7 +623,7 @@ function providerSupportsNativeTools(sessionProvider: string): boolean {
             const formatted = await provider.create({
               messages: agentMessages,
               tools: undefined,
-              maxTokens: 4096,
+              maxTokens: 16384,
             })
             stopSpinner(true, '⏳ Formatting')
 
@@ -752,7 +752,7 @@ async function main() {
   // Connect MCP first (before setup for faster startup)
   startSpinner('🔧 Connecting MCP')
   await connectMCP()
-  stopSpinner(mcpTools.length > 0, '🔧 MCP')
+  stopSpinner(nativeTools.length > 0, '🔧 MCP')
 
   const config = loadConfig()
 

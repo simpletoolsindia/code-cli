@@ -162,7 +162,7 @@ async function createAnthropicProvider(config: LLMConfig): Promise<LLMProvider> 
 
       const response = await client.messages.create({
         model: request.model ?? config.model ?? 'claude-sonnet-4-20250514',
-        max_tokens: request.maxTokens ?? config.maxTokens ?? 4096,
+        max_tokens: request.maxTokens ?? config.maxTokens ?? 16384,
         temperature: request.temperature ?? config.temperature ?? 0.7,
         system: systemMessage?.content,
         messages: anthropicMessages,
@@ -244,7 +244,7 @@ async function createOpenAIProvider(config: LLMConfig): Promise<LLMProvider> {
 
       const response = await client.chat.completions.create({
         model: request.model ?? config.model,
-        max_tokens: request.maxTokens ?? config.maxTokens ?? 4096,
+        max_tokens: request.maxTokens ?? config.maxTokens ?? 16384,
         temperature: request.temperature ?? config.temperature ?? 0.7,
         messages,
         tools: request.tools?.map(t => ({
@@ -338,7 +338,7 @@ async function createOpenRouterProvider(config: LLMConfig): Promise<LLMProvider>
 
       const response = await client.chat.completions.create({
         model: request.model ?? config.model,
-        max_tokens: request.maxTokens ?? config.maxTokens ?? 4096,
+        max_tokens: request.maxTokens ?? config.maxTokens ?? 16384,
         temperature: request.temperature ?? config.temperature ?? 0.7,
         messages,
         tools: request.tools?.map(t => ({
@@ -420,7 +420,7 @@ async function createOllamaProvider(config: LLMConfig): Promise<LLMProvider> {
         stream: false,
         options: {
           temperature: request.temperature ?? config.temperature ?? 0.7,
-          num_predict: request.maxTokens ?? config.maxTokens ?? 4096,
+          num_predict: request.maxTokens ?? config.maxTokens ?? 16384,
         },
       }
 
@@ -508,7 +508,7 @@ async function createGeminiProvider(config: LLMConfig): Promise<LLMProvider> {
           })),
           systemInstruction: systemMessage ? { parts: [{ text: systemMessage.content }] } : undefined,
           generationConfig: {
-            maxOutputTokens: request.maxTokens ?? config.maxTokens ?? 4096,
+            maxOutputTokens: request.maxTokens ?? config.maxTokens ?? 16384,
             temperature: request.temperature ?? config.temperature ?? 0.7,
           },
         }),
@@ -546,7 +546,7 @@ async function createGroqProvider(config: LLMConfig): Promise<LLMProvider> {
 
       const response = await client.chat.completions.create({
         model: request.model ?? config.model,
-        max_tokens: request.maxTokens ?? config.maxTokens ?? 4096,
+        max_tokens: request.maxTokens ?? config.maxTokens ?? 16384,
         temperature: request.temperature ?? config.temperature ?? 0.7,
         messages: request.messages.map(m => ({ role: m.role, content: m.content })),
       })
@@ -581,7 +581,7 @@ async function createDeepSeekProvider(config: LLMConfig): Promise<LLMProvider> {
 
       const response = await client.chat.completions.create({
         model: request.model ?? config.model,
-        max_tokens: request.maxTokens ?? config.maxTokens ?? 4096,
+        max_tokens: request.maxTokens ?? config.maxTokens ?? 16384,
         temperature: request.temperature ?? config.temperature ?? 0.7,
         messages: request.messages.map(m => ({ role: m.role, content: m.content })),
       })
@@ -616,7 +616,7 @@ async function createMistralProvider(config: LLMConfig): Promise<LLMProvider> {
 
       const response = await client.chat.completions.create({
         model: request.model ?? config.model,
-        max_tokens: request.maxTokens ?? config.maxTokens ?? 4096,
+        max_tokens: request.maxTokens ?? config.maxTokens ?? 16384,
         temperature: request.temperature ?? config.temperature ?? 0.7,
         messages: request.messages.map(m => ({ role: m.role, content: m.content })),
       })
@@ -772,7 +772,7 @@ async function createQwenProvider(config: LLMConfig): Promise<LLMProvider> {
 
       const response = await client.chat.completions.create({
         model: request.model ?? config.model ?? 'qwen-plus',
-        max_tokens: request.maxTokens ?? config.maxTokens ?? 4096,
+        max_tokens: request.maxTokens ?? config.maxTokens ?? 16384,
         temperature: request.temperature ?? config.temperature ?? 0.7,
         messages: request.messages.map(m => ({ role: m.role, content: m.content })),
       })

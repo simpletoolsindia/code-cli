@@ -172,7 +172,7 @@ export const defaultConfig: BeastConfig = {
   model: 'claude-3-5-sonnet-20241022',
   defaultMode: 'default',
   temperature: 0.7,
-  maxTokens: 4096,
+  maxTokens: 16384,
   maxToolResultChars: 10_000,
   toolTimeout: 30_000,
   theme: 'dark',
