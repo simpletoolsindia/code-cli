@@ -6,7 +6,7 @@
 
 import { StdioTransport } from './mcp/index.ts'
 
-const OPENROUTER_KEY = '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'
+const OPENROUTER_KEY = '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'
 const MODEL = 'qwen/qwen3.6-plus'
 const BASE_URL = 'https://openrouter.ai/api/v1'
 
