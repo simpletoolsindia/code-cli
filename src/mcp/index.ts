@@ -84,7 +84,7 @@ export interface MCPNotification {
 abstract class BaseTransport implements MCPTransport {
   protected connected = false
   protected requestId = 0
-  protected pendingRequests = new Map<number, { resolve: (v: unknown) => void; reject: (e: Error) => void }>()
+  protected pendingRequests = new Map<number, { resolve: (v: unknown) => void; reject: (e: Error) => void; timeoutId?: ReturnType<typeof setTimeout> }>()
   protected notificationHandlers: ((method: string, params?: unknown) => void)[] = []
   protected onDisconnect?: () => void
 
@@ -99,16 +99,21 @@ abstract class BaseTransport implements MCPTransport {
     const request: MCPRequest = { jsonrpc: '2.0', id, method, params }
 
     return new Promise((resolve, reject) => {
-      this.pendingRequests.set(id, { resolve: resolve as (v: unknown) => void, reject })
-      this.sendRaw(JSON.stringify(request)).catch(reject)
-
-      // Timeout after 30s
-      setTimeout(() => {
-        if (this.pendingRequests.has(id)) {
+      const timeoutId = setTimeout(() => {
+        const pending = this.pendingRequests.get(id)
+        if (pending) {
           this.pendingRequests.delete(id)
           reject(new Error(`Request ${method} timed out`))
         }
       }, 30000)
+
+      this.pendingRequests.set(id, { resolve: resolve as (v: unknown) => void, reject, timeoutId })
+
+      this.sendRaw(JSON.stringify(request)).catch((err) => {
+        clearTimeout(timeoutId)
+        this.pendingRequests.delete(id)
+        reject(err)
+      })
     })
   }
 
@@ -117,9 +122,11 @@ abstract class BaseTransport implements MCPTransport {
       const msg = JSON.parse(message) as MCPResponse | MCPNotification
 
       if ('id' in msg && msg.id !== undefined) {
-        const pending = this.pendingRequests.get(typeof msg.id === 'string' ? parseInt(msg.id) : msg.id)
+        const idNum = typeof msg.id === 'string' ? parseInt(msg.id) : msg.id
+        const pending = this.pendingRequests.get(idNum)
         if (pending) {
-          this.pendingRequests.delete(typeof msg.id === 'string' ? parseInt(msg.id) : msg.id)
+          clearTimeout(pending.timeoutId)
+          this.pendingRequests.delete(idNum)
           if ('error' in msg && msg.error) {
             pending.reject(new Error(msg.error.message))
           } else if ('result' in msg) {
@@ -185,14 +192,15 @@ export class StdioTransport extends BaseTransport {
       this.onDisconnect?.()
     })
 
+    // Mark connected before sending init (send() checks this.connected)
+    this.connected = true
+
     // Send initialize
     await this.send('initialize', {
       protocolVersion: '2024-11-05',
       capabilities: { roots: { listChanged: true } },
       clientInfo: { name: 'beast-cli', version: '1.0.0' },
     })
-
-    this.connected = true
   }
 
   async disconnect(): Promise<void> {
