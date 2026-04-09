@@ -26,7 +26,7 @@ import { statSync } from 'node:fs'
 import readline from 'node:readline'
 
 // Version
-const VERSION = '1.1.0'
+const VERSION = '1.2.0'
 
 // MCP Server URL
 const MCP_SERVER_HOST = process.env.MCP_HOST || 'localhost'
@@ -224,8 +224,8 @@ function formatMCPTools(): { name: string; description?: string; inputSchema: Re
 
 // ── Provider & Model selection ───────────────────────────────────────────────
 
-async function selectProvider(providers: ProviderInfo[], config: ReturnType<typeof loadConfig>): Promise<string> {
-  if (config.provider) {
+async function selectProvider(providers: ProviderInfo[], config: ReturnType<typeof loadConfig>, forcePrompt = false): Promise<string> {
+  if (!forcePrompt && config.provider) {
     const saved = providers.find(p => p.id === config.provider)
     if (saved) {
       console.log(`\n   Using saved provider: ${saved.name}`)
@@ -254,7 +254,7 @@ async function selectProvider(providers: ProviderInfo[], config: ReturnType<type
   return byId[idx]
 }
 
-async function selectModelForProvider(provider: string, savedModel?: string): Promise<string> {
+async function selectModelForProvider(provider: string, savedModel?: string, forcePrompt = false): Promise<string> {
   const isLocal = !isCloudProvider(provider)
 
   if (isLocal) {
@@ -264,7 +264,7 @@ async function selectModelForProvider(provider: string, savedModel?: string): Pr
       console.log('   ⚠️  No models found. Is the server running?')
       return DEFAULT_MODEL[provider] ?? 'llama3.1:8b'
     }
-    if (savedModel && models.includes(savedModel)) {
+    if (!forcePrompt && savedModel && models.includes(savedModel)) {
       console.log(`\n   Using saved model: ${savedModel}`)
       return savedModel
     }
