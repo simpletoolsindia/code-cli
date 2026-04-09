@@ -1,6 +1,6 @@
 {
   "name": "@simpletoolsindia/beast-cli",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "AI Coding Agent for Power Users",
   "main": "dist/index.js",
   "type": "module",
