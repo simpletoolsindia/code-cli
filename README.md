@@ -9,7 +9,7 @@ npm install -g @simpletoolsindia/beast-cli
 Or one-liner:
 
 ```bash
-curl -Ls https://raw.githubusercontent.com/simpletoolsindia/beast-cli/main/install.sh | sh
+curl -Ls https://raw.githubusercontent.com/simpletoolsindia/code-cli/main/install.sh | sh
 ```
 
 ---
@@ -46,7 +46,7 @@ beast --provider anthropic --model claude-sonnet-4-20250514
 
 ## Documentation
 
-- [Installation](docs/installation.md)
+- [Installation](https://github.com/simpletoolsindia/code-cli#installation)
 - [Configuration](docs/configuration.md)
 - [Providers](docs/providers.md)
 - [Commands](docs/commands.md)

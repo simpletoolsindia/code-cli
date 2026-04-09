@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Beast CLI - One Line Installer
-# curl -Ls https://raw.githubusercontent.com/simpletoolsindia/beast-cli/main/install.sh | sh
+# curl -Ls https://raw.githubusercontent.com/simpletoolsindia/code-cli/main/install.sh | sh
 #
 
 set -e
@@ -48,5 +48,5 @@ echo ""
 echo -e "${GREEN}✅ Beast CLI installed!${NC}"
 echo ""
 echo "Run: ${BOLD}beast${NC}"
-echo "Docs: https://github.com/simpletoolsindia/beast-cli"
+echo "Docs: https://github.com/simpletoolsindia/code-cli"
 echo ""
