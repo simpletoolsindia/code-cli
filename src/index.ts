@@ -7,6 +7,11 @@
 
 import { createProvider } from './providers/index.ts'
 import { TCPTransport } from './mcp/index.ts'
+import { s, fg, dim, bold, reset, green, cyan, yellow, red, icon, box } from './ui/colors.ts'
+import { renderHeader, renderFooter, renderCompactHeader } from './ui/layout.ts'
+import { inlineList, helpPanel, panel } from './ui/format.ts'
+import { renderToolResult } from './ui/tool-renderer.ts'
+import { Spinner } from './ui/spinner.ts'
 import { getFormattedTools, executeTool, getAllTools } from './native-tools/index.ts'
 import type { ToolCall } from './providers/index.ts'
 import {
@@ -93,10 +98,13 @@ async function maskedPrompt(promptText: string): Promise<string> {
 // Animated spinner
 const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
 let spinnerHandle: ReturnType<typeof setInterval> | null = null
+let spinnerLabel = ''
 
 function startSpinner(label: string): void {
+  if (spinnerHandle) clearInterval(spinnerHandle)
+  spinnerLabel = label
   let frame = 0
-  process.stdout.write(`\r${label} ${SPINNER_FRAMES[frame]}`)
+  process.stdout.write(`\r${label} ${SPINNER_FRAMES[frame]}  `)
   spinnerHandle = setInterval(() => {
     frame = (frame + 1) % SPINNER_FRAMES.length
     process.stdout.write(`\r${label} ${SPINNER_FRAMES[frame]}  `)
@@ -109,18 +117,16 @@ function stopSpinner(done = false, label = ''): void {
     spinnerHandle = null
   }
   if (done) {
-    process.stdout.write(`\r${label} ✅\n`)
+    process.stdout.write(`\r${label || spinnerLabel} ${s('✓', fg.success)}\n`)
   } else {
     process.stdout.write('\r' + ' '.repeat(50) + '\r')
   }
 }
 
-// Streaming write — writes text char by char with cursor
+// Streaming write — writes text char by char with styled cursor
 function streamText(text: string): void {
-  process.stdout.write('\n🤖 ')
-  for (const ch of text) {
-    process.stdout.write(ch)
-  }
+  process.stdout.write('\n')
+  process.stdout.write(panel(text, { title: '🤖 Response', titleColor: fg.assistant, width: 70 }))
   process.stdout.write('\n')
 }
 
@@ -128,7 +134,8 @@ function streamText(text: string): void {
 function printUsage(usage?: { promptTokens: number; completionTokens: number; totalTokens: number }): void {
   if (!usage) return
   const { promptTokens, completionTokens, totalTokens } = usage
-  process.stdout.write(`\n   📊 Tokens: prompt=${promptTokens} | completion=${completionTokens} | total=${totalTokens}\n`)
+  process.stdout.write(`\n${s('⚡ ' + totalTokens.toLocaleString() + ' tokens', fg.secondary)} `)
+  process.stdout.write(`(${s('p:' + promptTokens, fg.muted)} ${s('c:' + completionTokens, fg.muted)})\n`)
 }
 
 // ── MCP Server ────────────────────────────────────────────────────────────────
@@ -403,42 +410,33 @@ function buildSession(provider: string, model: string): Session {
 // ── Banner ───────────────────────────────────────────────────────────────────
 
 function printBanner(session: Session) {
-  const isCloud = isCloudProvider(session.provider)
-  const icon = isCloud ? '☁️' : '🦙'
-  const providerColor = isCloud ? '\x1b[36m' : '\x1b[32m' // cyan for cloud, green for local
-  const reset = '\x1b[0m'
-  const bold = '\x1b[1m'
-  const dim = '\x1b[2m'
-
   const toolCount = nativeTools.length
 
-  console.log(`
-${bold}${providerColor}
-   ██╗    ██╗███████╗██╗      ██████╗ ██████╗ ███╗   ███╗███████╗${reset}
-   ██║    ██║██╔════╝██║     ██╔════╝██╔═══██╗████╗ ████║██╔════╝${reset}
-${bold}${providerColor}
-   ██║ █╗ ██║█████╗  ██║     ██║     ██║   ██║██╔████╔██║█████╗  ${reset}
-   ██║███╗██║██╔══╝  ██║     ██║     ██║   ██║██║╚██╔╝██║██╔══╝  ${reset}
-${bold}${providerColor}
-   ╚███╔███╔╝███████╗███████╗╚██████╗╚██████╔╝██║ ╚═╝ ██║███████╗${reset}
-   ╚══╝╚══╝ ╚══════╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝${reset}
-${reset}
-${bold}  Version ${VERSION}${reset} · ${dim}45+ Providers${reset} · ${dim}39 Tools${reset} · ${dim}Local AI Ready${reset}
+  // Compact 2-line header instead of 8-line ASCII art
+  console.log(renderHeader({
+    version: VERSION,
+    provider: session.provider,
+    model: session.model,
+    toolsCount: toolCount,
+  }))
 
-${bold}╔══════════════════════════════════════════════════════════════════╗${reset}
-${bold}║${reset}  ${icon} Provider   ${dim}:${reset} ${providerColor}${session.provider.toUpperCase()}${reset}
-${bold}║${reset}  📋 Model     ${dim}:${reset} ${bold}${providerColor}${session.model}${reset}
-${bold}║${reset}  🔧 Tools     ${dim}:${reset} ${bold}39${reset} native tools ready
-${bold}║${reset}  💬 Context   ${dim}:${reset} ${bold}32K${reset} tokens max context
-${bold}╚══════════════════════════════════════════════════════════════════╝${reset}
+  // Inline status + shortcuts
+  console.log('\n' + inlineList([
+    { icon: icon.prompt, label: 'Type', value: 'your request' },
+    { icon: icon.tool, label: toolCount + ' tools', value: 'available' },
+  ]))
 
-${dim}Commands:${reset}
-  ${bold}/help${reset}       Show all commands     ${bold}/tools${reset}     List available tools
-  ${bold}/model${reset}     Switch model          ${bold}/provider${reset}  Switch provider
-  ${bold}/clear${reset}     Clear chat           ${bold}/exit${reset}       Quit
+  console.log('\n' + s('Commands:', fg.muted))
+  console.log(helpPanel([
+    { cmd: '/help', desc: 'Show all commands' },
+    { cmd: '/tools', desc: 'List available MCP tools' },
+    { cmd: '/model', desc: 'Switch model' },
+    { cmd: '/provider', desc: 'Change provider' },
+    { cmd: '/clear', desc: 'Clear chat history' },
+    { cmd: '/exit', desc: 'Quit Beast CLI' },
+  ]))
 
-${bold}Ready!${reset} Type your request or try ${bold}/help${reset} for commands.
-`)
+  console.log('')
 }
 
 // ── REPL ─────────────────────────────────────────────────────────────────────
@@ -453,7 +451,7 @@ async function repl(session: Session) {
     if (!trimmed) { promptUser(); return }
 
     if (trimmed === 'exit' || trimmed === 'quit') {
-      console.log('\n👋 Goodbye!\n')
+      console.log('\n' + s('👋 Goodbye!', fg.primary) + '\n')
       process.exit(0)
     }
 
@@ -709,14 +707,17 @@ function providerSupportsNativeTools(sessionProvider: string): boolean {
           const toolArgs = tc.arguments ?? {}
 
           stopSpinner(false)
-          process.stdout.write(`\n🔧 Calling tool: ${toolName}(${JSON.stringify(toolArgs).slice(0, 80)})...\n`)
+          // Styled tool call header
+          process.stdout.write(`\n${s('🔧 ' + toolName, fg.tool)} `)
+          process.stdout.write(`(${JSON.stringify(toolArgs).slice(0, 60)}${JSON.stringify(toolArgs).length > 60 ? '...' : ''})\n`)
           startSpinner('⏳ Tool')
 
           const toolResult = await executeTool(toolName, toolArgs)
-          const result = toolResult.success ? toolResult.content : `Error: ${toolResult.error}`
 
           stopSpinner(true, '⏳ Tool')
-          console.log(`   📤 Result: ${result.slice(0, 200)}${result.length > 200 ? '...' : ''}`)
+
+          // Render structured tool result
+          console.log(renderToolResult(toolName, toolResult))
 
           // Add assistant tool call message
           agentMessages.push({
@@ -727,7 +728,7 @@ function providerSupportsNativeTools(sessionProvider: string): boolean {
           // Add tool result message
           agentMessages.push({
             role: 'user',
-            content: result,
+            content: toolResult.content,
             toolCallId: tc.id,
           })
         }
