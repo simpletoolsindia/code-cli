@@ -246,14 +246,23 @@ async function selectProvider(providers: ProviderInfo[]): Promise<string> {
   return byId[idx]
 }
 
+// Color codes
+const dim = '\x1b[2m'
+const reset = '\x1b[0m'
+const bold = '\x1b[1m'
+const green = '\x1b[32m'
+const cyan = '\x1b[36m'
+const yellow = '\x1b[33m'
+const red = '\x1b[31m'
+
 async function selectModelForProvider(provider: string): Promise<string> {
   const isLocal = !isCloudProvider(provider)
 
   if (isLocal) {
-    console.log(`${dim}📋 Fetching models from ${provider}...${reset}`)
+    console.log(dim + 'Fetching models from ' + provider + '...' + reset)
     const models = await fetchLocalModels(provider)
     if (models.length === 0) {
-      console.log(`   ⚠️  No models found. Is Ollama running?`)
+      console.log('   [WARN] No models found. Is Ollama running?')
       return DEFAULT_MODEL[provider] ?? 'llama3.2'
     }
     console.log(`${dim}Available models:${reset}`)
