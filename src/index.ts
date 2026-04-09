@@ -26,7 +26,7 @@ import { statSync } from 'node:fs'
 import readline from 'node:readline'
 
 // Version
-const VERSION = '1.0.4'
+const VERSION = '1.0.7'
 
 // MCP Server URL
 const MCP_SERVER_HOST = process.env.MCP_HOST || 'localhost'
