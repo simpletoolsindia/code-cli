@@ -224,15 +224,7 @@ function formatMCPTools(): { name: string; description?: string; inputSchema: Re
 
 // ── Provider & Model selection ───────────────────────────────────────────────
 
-async function selectProvider(providers: ProviderInfo[], config: ReturnType<typeof loadConfig>, forcePrompt = false): Promise<string> {
-  if (!forcePrompt && config.provider) {
-    const saved = providers.find(p => p.id === config.provider)
-    if (saved) {
-      console.log(`\n   Using saved provider: ${saved.name}`)
-      return saved.id
-    }
-  }
-
+async function selectProvider(providers: ProviderInfo[]): Promise<string> {
   const online = providers.filter(p => p.status === 'online')
   const offline = providers.filter(p => p.status === 'offline')
 
@@ -254,32 +246,30 @@ async function selectProvider(providers: ProviderInfo[], config: ReturnType<type
   return byId[idx]
 }
 
-async function selectModelForProvider(provider: string, savedModel?: string, forcePrompt = false): Promise<string> {
+async function selectModelForProvider(provider: string): Promise<string> {
   const isLocal = !isCloudProvider(provider)
 
   if (isLocal) {
-    console.log(`\n   ⏳ Fetching models from ${provider}...`)
+    console.log(`${dim}📋 Fetching models from ${provider}...${reset}`)
     const models = await fetchLocalModels(provider)
     if (models.length === 0) {
-      console.log('   ⚠️  No models found. Is the server running?')
-      return DEFAULT_MODEL[provider] ?? 'llama3.1:8b'
+      console.log(`   ⚠️  No models found. Is Ollama running?`)
+      return DEFAULT_MODEL[provider] ?? 'llama3.2'
     }
-    if (!forcePrompt && savedModel && models.includes(savedModel)) {
-      console.log(`\n   Using saved model: ${savedModel}`)
-      return savedModel
-    }
-    const choices = models.map(m => `  ${m}`)
-    const idx = await numberedMenu(`🦙 Models on ${provider}:`, choices)
-    return models[idx]
+    console.log(`${dim}Available models:${reset}`)
+    models.forEach((m, i) => console.log(`  ${i+1}. ${m}`))
+    const idx = await question('  Select model number > ')
+    const n = parseInt(idx)
+    if (n >= 1 && n <= models.length) return models[n-1]
+    return models[0]
   } else {
     const models = CLOUD_MODELS[provider] ?? []
-    if (savedModel && models.includes(savedModel)) {
-      console.log(`\n   Using saved model: ${savedModel}`)
-      return savedModel
-    }
-    const choices = models.map(m => `  ${m}`)
-    const idx = await numberedMenu(`☁️  Select a model:`, choices)
-    return models[idx]
+    console.log(`${dim}Available models:${reset}`)
+    models.forEach((m, i) => console.log(`  ${i+1}. ${m}`))
+    const idx = await question('  Select model number > ')
+    const n = parseInt(idx)
+    if (n >= 1 && n <= models.length) return models[n-1]
+    return models[0]
   }
 }
 
@@ -308,54 +298,72 @@ async function promptApiKey(provider: string): Promise<string | null> {
 
 // ── Interactive setup ───────────────────────────────────────────────────────
 
-async function interactiveSetup(config: ReturnType<typeof loadConfig>): Promise<Session> {
+async function interactiveSetup(): Promise<Session> {
+  const reset = '\x1b[0m'
+  const bold = '\x1b[1m'
+  const dim = '\x1b[2m'
+  const green = '\x1b[32m'
+  const cyan = '\x1b[36m'
+  const yellow = '\x1b[33m'
+
   console.log(`
-🐉 Beast CLI v${VERSION}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
+${bold}${green}   ██╗    ██╗███████╗██╗      ██████╗ ██████╗ ███╗   ███╗███████╗${reset}
+${bold}${green}   ██║    ██║██╔════╝██║     ██╔════╝██╔═══██╗████╗ ████║██╔════╝${reset}
+${bold}${green}   ██║ █╗ ██║█████╗  ██║     ██║     ██║   ██║██╔████╔██║█████╗  ${reset}
+${bold}${green}   ██║███╗██║██╔══╝  ██║     ██║     ██║   ██║██║╚██╔╝██║██╔══╝  ${reset}
+${bold}${green}   ╚███╔███╔╝███████╗███████╗╚██████╗╚██████╔╝██║ ╚═╝ ██║███████╗${reset}
+${bold}${green}   ╚══╝╚══╝ ╚══════╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝${reset}
+${reset}
+${bold}   v${VERSION}${reset} · ${dim}45+ Providers${reset} · ${dim}39 Tools${reset} · ${dim}Local AI Ready${reset}
 
-  console.log('\n📡 Detecting services...')
+`)
+
+  console.log(`${dim}📡 Detecting services...${reset}`)
   const providers = await detectAllProviders()
-
-  const ollama = providers.find(p => p.id === 'ollama')
-  const lmstudio = providers.find(p => p.id === 'lmstudio')
-
-  if (ollama) console.log(`   🦙 Ollama: ${ollama.models.length} models`)
-  else console.log('   🦙 Ollama: offline')
-  if (lmstudio) console.log(`   🏋️ LM Studio: ${lmstudio.models.length} models`)
-  else console.log('   🏋️ LM Studio: offline')
 
   // Connect MCP
   const mcp = await checkMCPServer()
   nativeTools = mcp.tools
-  console.log(`   🔧 Native Tools: ${mcp.toolCount} available`)
+  console.log(`${green}✓${reset} MCP: ${mcp.toolCount} tools | ${green}✓${reset} Ollama: ${providers.find(p=>p.id==='ollama')?.models.length || 0} models`)
 
-  const provider = await selectProvider(providers, config)
+  console.log('')
+  const provider = await selectProvider(providers)
 
   let apiKey: string | undefined
   if (isCloudProvider(provider)) {
     const key = await promptApiKey(provider)
     if (!key) {
-      console.log('   ⚠️  No API key — switching to Ollama')
-      const fallback = providers.find(p => p.id === 'ollama')
-      if (fallback) return interactiveSetup(config)
+      console.log(`   ${yellow}⚠${reset} No API key`)
       process.exit(1)
     }
     apiKey = key
   }
 
-  const savedModel = config.model
-  const model = await selectModelForProvider(provider, savedModel)
+  console.log('')
+  const model = await selectModelForProvider(provider)
   const baseUrl = getBaseUrl(provider)
 
-  saveConfig({ provider, model })
+  // Ask context size
+  console.log('')
+  const contextSizes = ['8K', '16K', '32K', '64K', '128K']
+  console.log(`${dim}Context window size:${reset}`)
+  contextSizes.forEach((size, i) => console.log(`  ${dim}[${i+1}]${reset} ${size} tokens`))
+  const ctxIdx = await question('  > ') || '3'
+  const contextSize = contextSizes[parseInt(ctxIdx)-1] || '32K'
+
+  console.log(`
+${green}✓${reset} Provider: ${bold}${provider}${reset}
+${green}✓${reset} Model: ${bold}${model}${reset}
+${green}✓${reset} Context: ${bold}${contextSize} tokens${reset}
+`)
 
   return { provider, model, apiKey, baseUrl, messages: [] }
 }
 
 // ── Session builder (CLI flags) ─────────────────────────────────────────────
 
-function buildSession(provider: string, model: string, config: ReturnType<typeof loadConfig>): Session {
-  const apiKey = getApiKeyFromEnv(provider) ?? config.apiKey
+function buildSession(provider: string, model: string): Session {
+  const apiKey = getApiKeyFromEnv(provider)
   return { provider, model, apiKey, baseUrl: getBaseUrl(provider), messages: [] }
 }
 
@@ -499,7 +507,7 @@ Commands:
       session.model = newModel
       session.baseUrl = getBaseUrl(newProvider)
       saveConfig({ provider: newProvider, model: newModel })
-      printBanner(session)
+      console.log(`\n✓ Provider: ${newProvider} | Model: ${newModel}`)
       promptUser(); return
     }
 
@@ -767,20 +775,16 @@ async function main() {
   if (options.test) { console.log('Running tests...'); process.exit(0) }
   if (options.setup) { await autoStartMCP(); process.exit(0) }
 
-  // Connect MCP first (before setup for faster startup)
+  // Connect MCP
   startSpinner('🔧 Connecting MCP')
   await connectMCP()
   stopSpinner(nativeTools.length > 0, '🔧 MCP')
 
-  const config = loadConfig()
-
   let session: Session
   if (options.provider && options.model) {
-    session = buildSession(options.provider, options.model, config)
-    printBanner(session)
+    session = buildSession(options.provider, options.model)
   } else {
-    session = await interactiveSetup(config)
-    printBanner(session)
+    session = await interactiveSetup()
   }
 
   await repl(session)
