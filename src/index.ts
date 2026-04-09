@@ -255,7 +255,7 @@ async function selectProvider(providers: ProviderInfo[]): Promise<string> {
   return byId[idx]
 }
 
-async function selectModelForProvider(provider: string): Promise<string> {
+async function selectModelForProvider(provider: string, defaultModel?: string): Promise<string> {
   const isLocal = !isCloudProvider(provider)
 
   if (isLocal) {
@@ -265,6 +265,18 @@ async function selectModelForProvider(provider: string): Promise<string> {
       console.log('   [WARN] No models found. Is Ollama running?')
       return DEFAULT_MODEL[provider] ?? 'llama3.2'
     }
+    // Pre-select if defaultModel matches
+    if (defaultModel) {
+      const idx = models.indexOf(defaultModel)
+      if (idx >= 0) {
+        console.log(`${dim}Available models (default: ${defaultModel}):${reset}`)
+        models.forEach((m, i) => console.log(`  ${i+1}. ${m}${i === idx ? ' ←' : ''}`))
+        const choice = await question(`  Select model number [${idx + 1}] > `) || String(idx + 1)
+        const n = parseInt(choice)
+        if (n >= 1 && n <= models.length) return models[n-1]
+        return models[idx]
+      }
+    }
     console.log(`${dim}Available models:${reset}`)
     models.forEach((m, i) => console.log(`  ${i+1}. ${m}`))
     const idx = await question('  Select model number > ')
@@ -273,6 +285,18 @@ async function selectModelForProvider(provider: string): Promise<string> {
     return models[0]
   } else {
     const models = CLOUD_MODELS[provider] ?? []
+    // Pre-select if defaultModel matches
+    if (defaultModel) {
+      const idx = models.indexOf(defaultModel)
+      if (idx >= 0) {
+        console.log(`${dim}Available models (default: ${defaultModel}):${reset}`)
+        models.forEach((m, i) => console.log(`  ${i+1}. ${m}${i === idx ? ' ←' : ''}`))
+        const choice = await question(`  Select model number [${idx + 1}] > `) || String(idx + 1)
+        const n = parseInt(choice)
+        if (n >= 1 && n <= models.length) return models[n-1]
+        return models[idx]
+      }
+    }
     console.log(`${dim}Available models:${reset}`)
     models.forEach((m, i) => console.log(`  ${i+1}. ${m}`))
     const idx = await question('  Select model number > ')
@@ -723,11 +747,16 @@ function providerSupportsNativeTools(sessionProvider: string): boolean {
     } catch (e) {
       stopSpinner(false)
       console.log(`\n❌ Error: ${e}`)
-      // Remove failed user message from history
-      session.messages.pop()
+      // Remove failed user message from history (guard against empty)
+      if (session.messages.length > 0) session.messages.pop()
     }
 
-    promptUser()
+    // Safe promptUser restart — check readline is still open
+    try {
+      if (!rl.closed) promptUser()
+    } catch {
+      // readline closed, exit gracefully
+    }
   })
 
   promptUser()

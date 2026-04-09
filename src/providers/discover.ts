@@ -65,15 +65,15 @@ export function isCloudProvider(provider: string): boolean {
 export const DEFAULT_MODEL: Record<string, string> = {
   anthropic: 'claude-sonnet-4-20250514',
   openai: 'gpt-4o',
-  openrouter: 'openrouter/auto',
+  openrouter: 'qwen/qwen3-32b',
   deepseek: 'deepseek-chat',
   groq: 'llama-3.3-70b-versatile',
   mistral: 'mistral-large-latest',
   qwen: 'qwen-plus',
   gemini: 'gemini-1.5-pro',
-  ollama: 'llama3.1:8b',
-  lmstudio: 'llama3.1:8b',
-  jan: 'llama3.1:8b',
+  ollama: 'llama3.2:latest',
+  lmstudio: 'llama3.2:latest',
+  jan: 'llama3.2:latest',
 }
 
 // ── Cloud provider model lists (for /models command) ─────────────────────────
@@ -94,6 +94,9 @@ export const CLOUD_MODELS: Record<string, string[]> = {
     'o1-mini',
   ],
   openrouter: [
+    'qwen/qwen3-32b',
+    'qwen/qwen3-14b',
+    'qwen/qwen3-8b',
     'openrouter/auto',
     'anthropic/claude-3-opus',
     'openai/gpt-4o',
