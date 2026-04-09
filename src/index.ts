@@ -8,9 +8,11 @@
 import { createProvider } from './providers/index.ts'
 import { TCPTransport } from './mcp/index.ts'
 import { s, fg, dim, bold, reset, green, cyan, yellow, red, icon, box } from './ui/colors.ts'
-import { renderHeader, renderFooter, renderCompactHeader } from './ui/layout.ts'
-import { inlineList, helpPanel, panel } from './ui/format.ts'
+import { renderHeader, renderFooter, renderCompactHeader, contextBar } from './ui/layout.ts'
+import { inlineList, helpPanel, panel, withProgress } from './ui/format.ts'
 import { renderToolResult } from './ui/tool-renderer.ts'
+import { beastSpinner } from './ui/beast-loader.ts'
+import { tipBanner, randomTip } from './ui/tips.ts'
 import { Spinner } from './ui/spinner.ts'
 import { getFormattedTools, executeTool, getAllTools } from './native-tools/index.ts'
 import type { ToolCall } from './providers/index.ts'
@@ -67,6 +69,7 @@ interface Session {
   model: string
   apiKey?: string
   baseUrl: string
+  contextMax?: number   // context window size in tokens (e.g. 32768)
   messages: { role: string; content: string; toolCalls?: ToolCall[]; toolCallId?: string }[]
 }
 
@@ -387,14 +390,27 @@ ${green}✓${reset} Model: ${bold}${model}${reset}
 ${green}✓${reset} Context: ${bold}${contextSize} tokens${reset}
 `)
 
-  return { provider, model, apiKey, baseUrl, messages: [] }
+  return { provider, model, apiKey, baseUrl, messages: [], contextMax: parseContextSize(contextSize) }
 }
 
 // ── Session builder (CLI flags) ─────────────────────────────────────────────
 
 function buildSession(provider: string, model: string): Session {
   const apiKey = getApiKeyFromEnv(provider)
-  return { provider, model, apiKey, baseUrl: getBaseUrl(provider), messages: [] }
+  return { provider, model, apiKey, baseUrl: getBaseUrl(provider), messages: [], contextMax: 32768 }
+}
+
+function parseContextSize(size: string): number {
+  const num = parseInt(size.replace(/K|B$/i, ''))
+  if (size.toUpperCase().endsWith('K')) return num * 1024
+  if (size.toUpperCase().endsWith('B')) return num * 1024 * 1024 * 1024
+  return num
+}
+
+function estimateContextUsed(messages: Session['messages']): number {
+  // Rough estimate: ~4 chars per token, average 50 chars per message
+  const avgTokensPerMsg = 50 / 4
+  return Math.round(messages.length * avgTokensPerMsg)
 }
 
 // ── Banner ───────────────────────────────────────────────────────────────────
@@ -616,7 +632,7 @@ function providerSupportsNativeTools(sessionProvider: string): boolean {
 
     agentMessages.push({ role: 'user' as const, content: trimmed })
 
-    startSpinner('⏳ Thinking')
+    beastSpinner.start('Beast is thinking')
     try {
       const provider = await createProvider({
         provider: session.provider as any,
@@ -635,9 +651,11 @@ function providerSupportsNativeTools(sessionProvider: string): boolean {
           maxTokens: 16384,
         })
 
-        // Print thinking complete + usage on first response
+        // Thinking done
+        beastSpinner.stop('done')
+
+        // Print usage on first response
         if (toolCallCount === 0) {
-          stopSpinner(true, '⏳ Thinking')
           printUsage(response.usage)
         }
 
@@ -649,14 +667,17 @@ function providerSupportsNativeTools(sessionProvider: string): boolean {
 
           // Auto-fallback: local model + real-time query + "I don't know" → call searxng_search
           if (noNativeTools && needsRealTime && looksLikeApology) {
-            stopSpinner(false)
-            console.log('🔍 Auto-detected real-time query. Fetching live data...')
+            console.log(s('\n🔍 Auto-detected real-time query', fg.info) + s(' — fetching live data...', fg.secondary))
 
             const searchQuery = trimmed
-            const searchResult = await executeTool('searxng_search', { query: searchQuery, limit: 10 })
+            const searchResult = await withProgress(
+              'Searching',
+              executeTool('searxng_search', { query: searchQuery, limit: 10 }),
+            )
 
             const resultText = searchResult.success ? searchResult.content : `Error: ${searchResult.error}`
-            console.log(`   📤 Result: ${resultText.slice(0, 300)}${resultText.length > 300 ? '...' : ''}`)
+            const truncated = resultText.length > 200 ? resultText.slice(0, 200) + '...' : resultText
+            console.log(s('  📤 Result:', fg.tool) + ' ' + s(truncated, fg.secondary) + '\n')
 
             // Feed search results back to LLM for formatting
             agentMessages.push({ role: 'assistant', content: response.content })
@@ -666,13 +687,13 @@ function providerSupportsNativeTools(sessionProvider: string): boolean {
             })
 
             // Second LLM call to format the results
-            startSpinner('⏳ Formatting')
+            beastSpinner.start('Formatting response')
             const formatted = await provider.create({
               messages: agentMessages,
               tools: undefined,
               maxTokens: 16384,
             })
-            stopSpinner(true, '⏳ Formatting')
+            beastSpinner.stop('done')
 
             if (formatted.content) {
               streamText(formatted.content)
@@ -696,17 +717,19 @@ function providerSupportsNativeTools(sessionProvider: string): boolean {
           const toolName = tc.name
           const toolArgs = tc.arguments ?? {}
 
-          stopSpinner(false)
-          // Styled tool call header
-          process.stdout.write(`\n${s('🔧 ' + toolName, fg.tool)} `)
-          process.stdout.write(`(${JSON.stringify(toolArgs).slice(0, 60)}${JSON.stringify(toolArgs).length > 60 ? '...' : ''})\n`)
-          startSpinner('⏳ Tool')
+          // Tool call header with styled args
+          process.stdout.write('\n')
+          const argsStr = JSON.stringify(toolArgs)
+          const argsDisplay = argsStr.length > 60 ? argsStr.slice(0, 60) + '...' : argsStr
+          process.stdout.write(s('🔧 ' + toolName, fg.tool) + ' ' + s(argsDisplay, fg.muted) + '\n')
 
-          const toolResult = await executeTool(toolName, toolArgs)
+          // Progress bar during tool execution
+          const toolResult = await withProgress(
+            `Running ${toolName}`,
+            executeTool(toolName, toolArgs),
+          )
 
-          stopSpinner(true, '⏳ Tool')
-
-          // Render structured tool result
+          // Render structured (truncated) tool result
           console.log(renderToolResult(toolName, toolResult))
 
           // Add assistant tool call message
@@ -727,7 +750,7 @@ function providerSupportsNativeTools(sessionProvider: string): boolean {
       }
 
       if (toolCallCount >= MAX_TOOL_CALLS) {
-        console.log(`\n⚠️  Reached tool call limit (${MAX_TOOL_CALLS}). Truncating.`)
+        console.log(s(`\n⚠️  Reached tool call limit (${MAX_TOOL_CALLS}). Truncating.`, fg.warning))
       }
 
       // Update session history
@@ -735,9 +758,16 @@ function providerSupportsNativeTools(sessionProvider: string): boolean {
       if (session.messages.length > 40) {
         session.messages = session.messages.slice(-40)
       }
+
+      // Show tip + context bar after every complete response
+      process.stdout.write(tipBanner())
+      if (session.contextMax) {
+        const used = estimateContextUsed(agentMessages)
+        process.stdout.write(contextBar({ used, max: session.contextMax }) + '\n')
+      }
     } catch (e) {
-      stopSpinner(false)
-      console.log(`\n❌ Error: ${e}`)
+      beastSpinner.stop('error')
+      console.log(`\n${s('❌ Error:', fg.error)} ${e}`)
       // Remove failed user message from history (guard against empty)
       if (session.messages.length > 0) session.messages.pop()
     }

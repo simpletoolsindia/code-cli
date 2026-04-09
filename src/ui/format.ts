@@ -194,6 +194,65 @@ export function progressBar(current: number, total: number, width = 30): string 
   return s('█'.repeat(filled), fg.success) + s('░'.repeat(empty), fg.muted)
 }
 
+// ── Download / Loading Progress ──────────────────────────────────────────────
+
+export interface ProgressState {
+  label: string
+  current: number
+  total: number
+  width?: number
+}
+
+export function renderProgress(state: ProgressState): string {
+  const { label, current, total, width = 24 } = state
+  const pct = total > 0 ? Math.round((current / total) * 100) : 0
+  const filled = Math.round((current / Math.max(total, 1)) * width)
+  const empty = width - filled
+
+  let barColor = fg.success
+  if (pct > 50) barColor = fg.accent
+  if (pct > 80) barColor = fg.warning
+
+  const bar = s('█'.repeat(filled), barColor) + s('░'.repeat(empty), fg.muted)
+  const pctStr = s(`${pct}%`, barColor)
+  const labelStr = s(label, fg.secondary)
+
+  return `${labelStr} ${bar} ${pctStr}`
+}
+
+// Animated progress bar that runs while a promise resolves
+export async function withProgress<T>(
+  label: string,
+  promise: Promise<T>,
+  onTick?: (elapsed: number) => void
+): Promise<T> {
+  const start = Date.now()
+  let ticks = 0
+
+  const ticker = setInterval(() => {
+    const elapsed = Date.now() - start
+    const estimated = Math.min(1, elapsed / 10000) // assume 10s max
+    ticks++
+    const pct = Math.round(estimated * 100)
+    const filled = Math.round(estimated * 24)
+    const barColor = pct > 80 ? fg.warning : pct > 50 ? fg.accent : fg.success
+    const bar = s('█'.repeat(filled), barColor) + s('░'.repeat(24 - filled), fg.muted)
+    process.stderr.write(`\r  ${s(label, fg.secondary)} ${bar} ${s(pct + '%', barColor)}   `)
+    if (onTick) onTick(elapsed)
+  }, 300)
+
+  try {
+    const result = await promise
+    clearInterval(ticker)
+    process.stderr.write(`\r  ${s('✓', fg.success)} ${s(label, fg.secondary)} ${s('done', fg.success)}` + ' '.repeat(20) + '\n')
+    return result
+  } catch (e) {
+    clearInterval(ticker)
+    process.stderr.write(`\r  ${s('✗', fg.error)} ${s(label, fg.secondary)} ${s('failed', fg.error)}` + '\n')
+    throw e
+  }
+}
+
 // ── Help Panel ────────────────────────────────────────────────────────────────
 
 export function helpPanel(commands: Array<{ cmd: string; desc: string; shortcut?: string }>): string {

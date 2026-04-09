@@ -10,6 +10,27 @@ export interface ToolResult {
   error?: string
 }
 
+// ── Result Truncation ────────────────────────────────────────────────────────
+
+const MAX_RESULT_LINES = 2
+const MAX_LINE_WIDTH = 120
+
+function truncateResult(content: string, maxLines = MAX_RESULT_LINES): string {
+  const lines = content.split('\n')
+  if (lines.length <= maxLines) return content
+
+  const visible = lines.slice(0, maxLines)
+  // Also truncate each visible line to max width
+  const truncated = visible.map(l => {
+    const stripped = stripAnsi(l)
+    if (stripped.length <= MAX_LINE_WIDTH) return l
+    return l.slice(0, MAX_LINE_WIDTH - 3) + '...'
+  })
+
+  const remaining = lines.length - maxLines
+  return truncated.join('\n') + '\n' + s(`... (${remaining} more lines)`, fg.muted)
+}
+
 // ── Main Renderer ────────────────────────────────────────────────────────────
 
 export function renderToolResult(name: string, result: ToolResult): string {
@@ -68,15 +89,11 @@ function renderFileList(content: string): string {
 }
 
 function renderFileRead(content: string): string {
-  const lines = content.split('\n').slice(0, 20)
-  const truncated = content.split('\n').length > 20
-  return lines.join('\n') + (truncated ? '\n' + s('...(truncated)', fg.muted) : '')
+  return truncateResult(content, MAX_RESULT_LINES)
 }
 
 function renderCodeOutput(content: string): string {
-  const lines = content.split('\n').slice(0, 30)
-  const truncated = content.split('\n').length > 30
-  return lines.join('\n') + (truncated ? '\n' + s('...(output truncated)', fg.muted) : '')
+  return truncateResult(content, MAX_RESULT_LINES)
 }
 
 function renderSearch(content: string): string {
@@ -88,7 +105,10 @@ function renderSearch(content: string): string {
       return s('No results found', fg.muted)
     }
 
-    return results.slice(0, 10).map((r: any, i: number) => {
+    const shown = results.slice(0, MAX_RESULT_LINES)
+    const remaining = results.length - shown.length
+
+    const items = shown.map((r: any, i: number) => {
       const title = r.title || s('(no title)', fg.muted)
       const url = r.url || ''
       const snippet = r.snippet || ''
@@ -98,7 +118,13 @@ function renderSearch(content: string): string {
         `   ${s(truncate(snippet, 80), fg.secondary)}`,
         `   ${s(truncate(url, 70), fg.link)}`,
       ].join('\n')
-    }).join('\n\n')
+    })
+
+    if (remaining > 0) {
+      items.push(s(`... and ${remaining} more results — use fetch_web for full content`, fg.muted))
+    }
+
+    return items.join('\n\n')
   } catch {
     return renderGeneric(content)
   }
@@ -124,13 +150,19 @@ function renderGithub(content: string): string {
     }
 
     if (Array.isArray(data)) {
-      return data.slice(0, 5).map((r: any, i: number) => {
+      const shown = data.slice(0, MAX_RESULT_LINES)
+      const remaining = data.length - shown.length
+      const items = shown.map((r: any, i: number) => {
         return [
           s(`${i + 1}. `, fg.accent) + s(r.name || r.full_name, fg.bold, fg.primary),
           r.description ? `   ${s(truncate(r.description, 60), fg.secondary)}` : '',
           `   ${s('⭐ ' + formatNumber(r.stars || r.stargazers_count || 0), fg.warning)} ${r.language ? s(r.language, fg.success) : ''}`,
         ].filter(Boolean).join('\n')
-      }).join('\n\n')
+      })
+      if (remaining > 0) {
+        items.push(s(`... and ${remaining} more repos`, fg.muted))
+      }
+      return items.join('\n\n')
     }
 
     return renderGeneric(content)
@@ -144,7 +176,9 @@ function renderHackerNews(content: string): string {
     const data = JSON.parse(content)
     const results = data.results || []
 
-    return results.slice(0, 10).map((r: any, i: number) => {
+    const shown = results.slice(0, MAX_RESULT_LINES)
+    const remaining = results.length - shown.length
+    const items = shown.map((r: any, i: number) => {
       const title = r.title || s('(no title)', fg.muted)
       const score = r.score || r.snippet?.match(/(\d+) points/)?.[1] || '0'
       const comments = r.descendants || r.snippet?.match(/(\d+) comments/)?.[1] || '0'
@@ -153,7 +187,11 @@ function renderHackerNews(content: string): string {
         s(`${i + 1}. `, fg.accent) + s(truncate(title, 60), fg.bold, fg.primary),
         `   ${s('⭐ ' + score, fg.warning)} ${s('💬 ' + comments, fg.cyan)} ${r.url ? s(truncate(r.url, 50), fg.link) : ''}`,
       ].join('\n')
-    }).join('\n\n')
+    })
+    if (remaining > 0) {
+      items.push(s(`... and ${remaining} more stories`, fg.muted))
+    }
+    return items.join('\n\n')
   } catch {
     return renderGeneric(content)
   }
@@ -164,30 +202,35 @@ function renderYouTube(content: string): string {
     const data = JSON.parse(content)
     const results = Array.isArray(data) ? data : data.results || []
 
-    return results.slice(0, 5).map((r: any, i: number) => {
+    const shown = results.slice(0, MAX_RESULT_LINES)
+    const remaining = results.length - shown.length
+    const items = shown.map((r: any, i: number) => {
       return [
         s(`${i + 1}. `, fg.accent) + s(r.name || r.full_name || s('(no name)', fg.muted), fg.bold, fg.primary),
         r.description ? `   ${s(truncate(r.description, 60), fg.secondary)}` : '',
         `   ${s('⭐ ' + formatNumber(r.stars || r.stargazers_count || 0), fg.warning)} ${r.language ? s(r.language, fg.success) : ''}`,
       ].filter(Boolean).join('\n')
-    }).join('\n\n')
+    })
+    if (remaining > 0) {
+      items.push(s(`... and ${remaining} more videos`, fg.muted))
+    }
+    return items.join('\n\n')
   } catch {
     return renderGeneric(content)
   }
 }
 
 function renderWebContent(content: string): string {
-  const lines = content.split('\n').slice(0, 30)
-  const truncated = content.split('\n').length > 30
-  return lines.join('\n') + (truncated ? '\n' + s('...(content truncated, ' + content.split('\n').length + ' lines)', fg.muted) : '')
+  return truncateResult(content, MAX_RESULT_LINES)
 }
 
 function renderGeneric(content: string): string {
   try {
     const parsed = JSON.parse(content)
-    return JSON.stringify(parsed, null, 2).slice(0, 500)
+    const formatted = JSON.stringify(parsed, null, 2)
+    return truncateResult(formatted, MAX_RESULT_LINES)
   } catch {
-    return content.slice(0, 500) + (content.length > 500 ? '\n' + s('...(truncated)', fg.muted) : '')
+    return truncateResult(content, MAX_RESULT_LINES)
   }
 }
 

@@ -37,6 +37,33 @@ export function renderCompactHeader(config: HeaderConfig): string {
   return `${s('🐉', fg.accent)} ${s('Beast', fg.bold, fg.accent)} CLI ${s('v' + version, fg.muted)}  │  ${s(provider, fg.success)}  │  ${s(model, fg.cyan)}`
 }
 
+// ── Context Usage Bar ─────────────────────────────────────────────────────────
+
+export interface ContextStats {
+  used: number       // tokens used in current conversation
+  max: number        // max context window in tokens
+}
+
+export function contextBar(stats: ContextStats): string {
+  const { used, max } = stats
+  const width = 20
+  const pct = Math.min(1, used / max)
+  const filled = Math.round(pct * width)
+  const empty = width - filled
+
+  // Color based on usage level
+  let barColor = fg.success
+  if (pct > 0.75) barColor = fg.warning
+  if (pct > 0.90) barColor = fg.error
+
+  const bar = s('█'.repeat(filled), barColor) + s('░'.repeat(empty), fg.muted)
+  const pctStr = s(`${Math.round(pct * 100)}%`, barColor)
+  const usedStr = s(formatTokens(used), fg.muted)
+  const maxStr = s(formatTokens(max), fg.secondary)
+
+  return `  ${s('🧠', fg.secondary)} ${bar} ${pctStr} ${s('(', fg.muted)}${usedStr}${s('/', fg.muted)}${maxStr}${s(')', fg.muted)}`
+}
+
 // ── Status Footer ────────────────────────────────────────────────────────────
 
 export interface FooterStats {
@@ -44,10 +71,11 @@ export interface FooterStats {
   tokens: number
   duration?: number
   contextMax?: number
+  contextUsed?: number
 }
 
 export function renderFooter(stats: FooterStats): string {
-  const { messages, tokens, duration, contextMax = 32 } = stats
+  const { messages, tokens, duration, contextMax = 32, contextUsed = 0 } = stats
 
   const parts: string[] = []
 
@@ -67,7 +95,15 @@ export function renderFooter(stats: FooterStats): string {
     'tools',
   ]
 
-  return `${parts.join('  ·  ')}\n${s('─'.repeat(60), fg.muted)}\n  [${shortcuts.join(' · ')}]`
+  const footer = `${parts.join('  ·  ')}\n${s('─'.repeat(60), fg.muted)}\n  [${shortcuts.join(' · ')}]`
+
+  // Add context bar if we have usage data
+  if (contextUsed > 0) {
+    const ctxTokens = contextMax * 1024
+    return footer + '\n' + contextBar({ used: contextUsed, max: ctxTokens })
+  }
+
+  return footer
 }
 
 // ── Session Info Bar ─────────────────────────────────────────────────────────
