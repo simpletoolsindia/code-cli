@@ -599,6 +599,16 @@ export class TCPTransport extends BaseTransport {
       })
     })
   }
+
+  // MCP Client interface methods
+  async listTools(): Promise<MCTool[]> {
+    const result = await this.send('tools/list')
+    return (result as { tools?: MCTool[] })?.tools ?? []
+  }
+
+  async callTool(name: string, args?: Record<string, unknown>): Promise<ToolResult> {
+    return await this.send('tools/call', { name, arguments: args ?? {} }) as ToolResult
+  }
 }
 
 // Default config

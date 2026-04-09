@@ -7,6 +7,7 @@
 
 import { createProvider } from './providers/index.ts'
 import { TCPTransport } from './mcp/index.ts'
+import { getFormattedTools, executeTool, getAllTools } from './native-tools/index.ts'
 import type { ToolCall } from './providers/index.ts'
 import {
   detectAllProviders,
@@ -124,14 +125,9 @@ function printUsage(usage?: { promptTokens: number; completionTokens: number; to
 // ── MCP Server ────────────────────────────────────────────────────────────────
 
 async function checkMCPServer(): Promise<{ available: boolean; toolCount: number; tools: MCPTool[] }> {
-  try {
-    const transport = new TCPTransport(MCP_SERVER_HOST, MCP_SERVER_PORT)
-    await transport.connect()
-    const tools = await transport.listTools()
-    return { available: true, toolCount: tools.length, tools }
-  } catch {
-    return { available: false, toolCount: 0, tools: [] }
-  }
+  // Always return native tools available (no MCP needed)
+  const nativeTools = getFormattedTools()
+  return { available: true, toolCount: nativeTools.length, tools: nativeTools as MCPTool[] }
 }
 
 async function startColima(): Promise<boolean> {
@@ -205,47 +201,25 @@ async function autoStartMCP(): Promise<boolean> {
 
 // ── MCP Tool Calling ──────────────────────────────────────────────────────────
 
-let mcpTransport: TCPTransport | null = null
-let mcpTools: MCPTool[] = []
+let nativeTools: MCPTool[] = []
 
 async function connectMCP(): Promise<MCPTool[]> {
-  try {
-    const transport = new TCPTransport(MCP_SERVER_HOST, MCP_SERVER_PORT)
-    await transport.connect()
-    mcpTransport = transport
-    const tools = await transport.listTools()
-    mcpTools = tools.map(t => ({
-      name: t.name,
-      description: t.description,
-      inputSchema: t.inputSchema,
-    }))
-    return mcpTools
-  } catch {
-    return []
-  }
+  // Always use native tools — no TCP connection needed
+  nativeTools = getFormattedTools() as MCPTool[]
+  return nativeTools
 }
 
 async function callMCPTool(name: string, args: Record<string, unknown>): Promise<string> {
-  if (!mcpTransport) return `MCP server not connected`
-  try {
-    const result = await mcpTransport.callTool(name, args)
-    // Extract text content from result
-    const texts = result.content
-      .filter(c => c.type === 'text')
-      .map(c => c.text ?? '')
-      .join('\n')
-    return texts || '(no output)'
-  } catch (e) {
-    return `Error: ${e}`
+  // Use native tool execution instead of MCP TCP
+  const result = await executeTool(name, args)
+  if (result.success) {
+    return result.content
   }
+  return `Error: ${result.error}`
 }
 
 function formatMCPTools(): { name: string; description?: string; inputSchema: Record<string, unknown> }[] {
-  return mcpTools.map(t => ({
-    name: t.name,
-    description: t.description ?? `MCP tool: ${t.name}`,
-    inputSchema: t.inputSchema,
-  }))
+  return nativeTools.length > 0 ? nativeTools as MCPTool[] : getFormattedTools() as MCPTool[]
 }
 
 // ── Provider & Model selection ───────────────────────────────────────────────
@@ -352,21 +326,8 @@ async function interactiveSetup(config: ReturnType<typeof loadConfig>): Promise<
 
   // Connect MCP
   const mcp = await checkMCPServer()
-  if (!mcp.available) {
-    const started = await autoStartMCP()
-    if (started) {
-      const mcp2 = await checkMCPServer()
-      if (mcp2.available) {
-        mcpTools = mcp2.tools
-        console.log(`   🔧 MCP: ${mcp2.toolCount} tools connected!`)
-      }
-    } else {
-      console.log('   🔧 MCP: Not available (optional)')
-    }
-  } else {
-    mcpTools = mcp.tools
-    console.log(`   🔧 MCP: ${mcp.toolCount} tools connected!`)
-  }
+  nativeTools = mcp.tools
+  console.log(`   🔧 Native Tools: ${mcp.toolCount} available`)
 
   const provider = await selectProvider(providers, config)
 
@@ -402,7 +363,7 @@ function buildSession(provider: string, model: string, config: ReturnType<typeof
 
 function printBanner(session: Session) {
   const icon = isCloudProvider(session.provider) ? '☁️' : '🦙'
-  const toolInfo = mcpTools.length > 0 ? ` | 🔧 ${mcpTools.length} MCP tools` : ''
+  const toolInfo = nativeTools.length > 0 ? ` | 🔧 ${nativeTools.length} native tools` : ''
   console.log(`
 🐉 Beast CLI v${VERSION}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -471,15 +432,12 @@ Commands:
     }
 
     if (trimmed === '/tools') {
-      if (mcpTools.length === 0) {
-        console.log('\n⚠️  No MCP tools connected. Start MCP server to enable tools.')
-      } else {
-        console.log(`\n🔧 ${mcpTools.length} MCP tools available:`)
-        mcpTools.forEach(t => {
-          const desc = t.description ? ` — ${t.description.slice(0, 60)}` : ''
-          console.log(`  • ${t.name}${desc}`)
-        })
-      }
+      const tools = getFormattedTools()
+      console.log(`\n🔧 ${tools.length} native tools available:`)
+      tools.forEach(t => {
+        const desc = t.description ? ` — ${t.description.slice(0, 60)}` : ''
+        console.log(`  • ${t.name}${desc}`)
+      })
       promptUser(); return
     }
 
@@ -556,10 +514,60 @@ Commands:
       promptUser(); return
     }
 
-    // ── Agent Loop ───────────────────────────────────────────────────────────
+    // ── Real-time query detection ───────────────────────────────────────────
+
+// Keywords that signal a query needs live web data
+const REALTIME_KEYWORDS = [
+  'price', 'rate', 'rates', 'weather', 'news', 'today', 'current',
+  'latest', 'now', 'recent', 'gold', 'silver', 'petrol', 'dollar',
+  'rupee', 'inflation', 'gdp', 'stock', 'market', 'trending',
+  'score', 'match', 'result', 'election', 'government', 'policy',
+]
+
+// Check if a query looks like it needs real-time data
+function looksLikeRealTimeQuery(query: string): boolean {
+  const lower = query.toLowerCase()
+  return REALTIME_KEYWORDS.some(kw => lower.includes(kw))
+}
+
+// Check if a response from a non-tool-calling model is an "I don't know" apology
+function isApologyOrNoAccess(response: string): boolean {
+  const lower = response.toLowerCase()
+  const noDataPhrases = [
+    "don't have access", "do not have access",
+    "no real-time", "not have real-time", "don't have real-time",
+    "can't access", "cannot access",
+    "don't have current", "no up-to-date", "don't have up-to-date",
+    "don't know current", "don't have the ability to",
+    "don't have browsing", "no browsing ability",
+    "only have knowledge", "training data", "my knowledge",
+    "截止", "我的知识", "我没有实时",
+  ]
+  return noDataPhrases.some(phrase => lower.includes(phrase))
+}
+
+// Detect providers that natively support tool calling (vs. local Ollama-style)
+function providerSupportsNativeTools(sessionProvider: string): boolean {
+  // ollama, lmstudio, jan are local providers where models may not support tool calling
+  // For cloud providers and others, assume native tool calling works
+  const noNativeToolSupport = ['ollama']
+  return !noNativeToolSupport.includes(sessionProvider)
+}
+
+// ── Agent Loop ───────────────────────────────────────────────────────────
     const MAX_TOOL_CALLS = 20 // safety limit
     let toolCallCount = 0
-    const agentMessages = [...session.messages, { role: 'user' as const, content: trimmed }]
+    const agentMessages = [...session.messages]
+
+    // Add system message if tools are available
+    if (nativeTools.length > 0) {
+      agentMessages.unshift({
+        role: 'system',
+        content: `You have access to ${nativeTools.length} native tools. Use them to get real-time data, search the web, read/write files, run code, fetch content, etc. Available tools: ${nativeTools.map(t => `${t.name}: ${t.description ?? 'no description'}`).join(', ')}`,
+      })
+    }
+
+    agentMessages.push({ role: 'user' as const, content: trimmed })
 
     startSpinner('⏳ Thinking')
     try {
@@ -572,7 +580,7 @@ Commands:
 
       // Agent loop: keep calling LLM until no more tool calls
       while (toolCallCount < MAX_TOOL_CALLS) {
-        const tools = mcpTools.length > 0 ? formatMCPTools() : undefined
+        const tools = nativeTools.length > 0 ? formatMCPTools() : undefined
 
         const response = await provider.create({
           messages: agentMessages,
@@ -586,8 +594,48 @@ Commands:
           printUsage(response.usage)
         }
 
-        // If no tool calls, we're done — print response and break
+        // If no tool calls, check for auto-fallback (local models that don't support tools)
         if (!response.toolCalls || response.toolCalls.length === 0) {
+          const noNativeTools = !providerSupportsNativeTools(session.provider)
+          const needsRealTime = looksLikeRealTimeQuery(trimmed)
+          const looksLikeApology = response.content ? isApologyOrNoAccess(response.content) : false
+
+          // Auto-fallback: local model + real-time query + "I don't know" → call searxng_search
+          if (noNativeTools && needsRealTime && looksLikeApology) {
+            stopSpinner(false)
+            console.log('🔍 Auto-detected real-time query. Fetching live data...')
+
+            const searchQuery = trimmed
+            const searchResult = await executeTool('searxng_search', { query: searchQuery, limit: 10 })
+
+            const resultText = searchResult.success ? searchResult.content : `Error: ${searchResult.error}`
+            console.log(`   📤 Result: ${resultText.slice(0, 300)}${resultText.length > 300 ? '...' : ''}`)
+
+            // Feed search results back to LLM for formatting
+            agentMessages.push({ role: 'assistant', content: response.content })
+            agentMessages.push({
+              role: 'user',
+              content: `Search results for "${searchQuery}":\n${resultText}\n\nPlease provide a clear, concise answer based on these results.`,
+            })
+
+            // Second LLM call to format the results
+            startSpinner('⏳ Formatting')
+            const formatted = await provider.create({
+              messages: agentMessages,
+              tools: undefined,
+              maxTokens: 4096,
+            })
+            stopSpinner(true, '⏳ Formatting')
+
+            if (formatted.content) {
+              streamText(formatted.content)
+            }
+            printUsage(formatted.usage ?? response.usage)
+            agentMessages.push({ role: 'assistant', content: formatted.content })
+            break
+          }
+
+          // Normal case: no tool calls, just print and done
           if (response.content) {
             streamText(response.content)
           }
@@ -602,10 +650,11 @@ Commands:
           const toolArgs = tc.arguments ?? {}
 
           stopSpinner(false)
-          process.stdout.write(`\n🔧 Calling MCP tool: ${toolName}(${JSON.stringify(toolArgs).slice(0, 80)})...\n`)
+          process.stdout.write(`\n🔧 Calling tool: ${toolName}(${JSON.stringify(toolArgs).slice(0, 80)})...\n`)
           startSpinner('⏳ Tool')
 
-          const result = await callMCPTool(toolName, toolArgs)
+          const toolResult = await executeTool(toolName, toolArgs)
+          const result = toolResult.success ? toolResult.content : `Error: ${toolResult.error}`
 
           stopSpinner(true, '⏳ Tool')
           console.log(`   📤 Result: ${result.slice(0, 200)}${result.length > 200 ? '...' : ''}`)

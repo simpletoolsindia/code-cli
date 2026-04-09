@@ -389,14 +389,23 @@ async function createOllamaProvider(config: LLMConfig): Promise<LLMProvider> {
       const ollamaMessages: Record<string, unknown>[] = []
       for (const m of request.messages) {
         if (m.toolCalls) {
-          // Assistant message with tool calls
-          const toolCalls = m.toolCalls.map((tc, i) => ({
-            function: {
-              name: tc.name,
-              arguments: JSON.stringify(tc.arguments),
-            },
-          }))
-          ollamaMessages.push({ role: 'assistant', content: m.content || '', tool_calls: toolCalls })
+          // Assistant message with tool calls - content can be null when tool calling
+          // IMPORTANT: arguments must be an OBJECT, not a string
+          const toolCalls = m.toolCalls.map((tc) => {
+            let argsObj: Record<string, unknown>
+            if (typeof tc.arguments === 'string') {
+              try { argsObj = JSON.parse(tc.arguments) } catch { argsObj = {} }
+            } else {
+              argsObj = tc.arguments ?? {}
+            }
+            return {
+              function: {
+                name: tc.name,
+                arguments: argsObj,
+              },
+            }
+          })
+          ollamaMessages.push({ role: 'assistant', content: m.content || null, tool_calls: toolCalls })
         } else if (m.toolCallId) {
           // Tool result message
           ollamaMessages.push({ role: 'tool', tool_call_id: m.toolCallId, content: m.content })
@@ -445,9 +454,15 @@ async function createOllamaProvider(config: LLMConfig): Promise<LLMProvider> {
       if (data.message?.tool_calls) {
         for (const tc of data.message.tool_calls) {
           let args: Record<string, unknown> = {}
-          try { args = JSON.parse(tc.function.arguments) } catch {}
+          // arguments can be a string or already-parsed object depending on Ollama version
+          const rawArgs = tc.function?.arguments
+          if (typeof rawArgs === 'string') {
+            try { args = JSON.parse(rawArgs) } catch {}
+          } else if (rawArgs && typeof rawArgs === 'object') {
+            args = rawArgs as Record<string, unknown>
+          }
           toolCalls.push({
-            id: `ollama_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+            id: tc.id ?? `ollama_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
             name: tc.function.name,
             arguments: args,
           })
