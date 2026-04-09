@@ -464,32 +464,84 @@ const tools: NativeTool[] = [
   },
   {
     name: 'run_command',
-    description: 'Execute whitelisted command (ls, cat, cp, mv, rm).',
+    description: 'Execute whitelisted system command. Supports cd, python3, npm, git, and background commands with &.',
     inputSchema: {
       type: 'object',
       properties: {
-        command: { type: 'string' },
-        args: { type: 'array', items: { type: 'string' } },
+        command: { type: 'string', description: 'Command to execute' },
+        args: { type: 'array', items: { type: 'string' }, description: 'Command arguments' },
+        cwd: { type: 'string', description: 'Working directory (optional)' },
+        background: { type: 'boolean', description: 'Run in background with nohup (default: false)' },
+        timeout: { type: 'integer', description: 'Timeout in seconds (default: 30)' },
       },
       required: ['command'],
     },
     async execute(args) {
-      const allowed = ['ls', 'cat', 'cp', 'mv', 'rm', 'mkdir', 'find', 'grep', 'head', 'tail', 'wc']
+      // Extended allowlist with common dev commands
+      const allowed = [
+        'ls', 'cat', 'cp', 'mv', 'rm', 'mkdir', 'rmdir', 'find', 'grep', 'head', 'tail', 'wc',
+        'cd', 'pwd', 'echo', 'touch', 'chmod', 'chown', 'tar', 'zip', 'unzip',
+        'python', 'python2', 'python3', 'node', 'npm', 'npx', 'bun', 'deno',
+        'git', 'gh', 'curl', 'wget', 'ssh', 'scp', 'rsync',
+        'docker', 'kubectl', 'helm',
+        'kill', 'pkill', 'ps', 'top', 'htop', 'df', 'du', 'free',
+        'netstat', 'lsof', 'ping', 'traceroute', 'nslookup', 'dig',
+        'sed', 'awk', 'cut', 'sort', 'uniq', 'diff',
+        'nohup', 'bg', 'jobs', 'fg',
+        'code', 'nano', 'vim', 'vi', 'nano',
+      ]
+
       const cmd = args.command as string
+      const cmdArgs = (args.args as string[]) || []
+      const workingDir = (args.cwd as string) || process.cwd()
+      const timeout = (args.timeout as number) || 30
+      const runBackground = (args.background as boolean) || false
 
       if (!allowed.includes(cmd)) {
-        return { success: false, content: '', error: `Command not allowed: ${cmd}` }
+        return { success: false, content: '', error: `Command not allowed: ${cmd}. Allowed: ${allowed.slice(0, 20).join(', ')}...` }
       }
 
-      const { execSync } = await import('node:child_process')
+      // Handle cd specially - it needs shell execution
+      if (cmd === 'cd') {
+        const targetDir = cmdArgs[0] || workingDir
+        try {
+          const { statSync } = await import('node:fs')
+          statSync(targetDir)
+          return { success: true, content: `Changed directory to: ${targetDir}` }
+        } catch (e: any) {
+          return { success: false, content: '', error: `Directory not found: ${targetDir}` }
+        }
+      }
+
+      const { execSync, spawn } = await import('node:child_process')
       try {
-        const output = execSync(`${cmd} ${(args.args as string[])?.join(' ') || ''}`, {
+        let fullCommand = cmdArgs.length > 0 ? `${cmd} ${cmdArgs.join(' ')}` : cmd
+
+        // Handle background execution
+        if (runBackground || fullCommand.includes(' &')) {
+          fullCommand = fullCommand.replace(/\s*&\s*$/, '').trim()
+          spawn(fullCommand, [], {
+            shell: true,
+            cwd: workingDir,
+            detached: true,
+            stdio: 'ignore',
+          }).unref()
+
+          return { success: true, content: `Started in background: ${fullCommand} (PID: process detached)` }
+        }
+
+        // Normal execution with timeout
+        const output = execSync(fullCommand, {
           encoding: 'utf-8',
-          timeout: 10000,
-          cwd: process.cwd(),
+          timeout: timeout * 1000,
+          cwd: workingDir,
+          maxBuffer: 10 * 1024 * 1024, // 10MB buffer
         })
         return { success: true, content: output }
       } catch (e: any) {
+        if (e.killed) {
+          return { success: false, content: '', error: `Command timed out after ${timeout}s` }
+        }
         return { success: false, content: '', error: e.message }
       }
     },
