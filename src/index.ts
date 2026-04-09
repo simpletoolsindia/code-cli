@@ -26,7 +26,7 @@ import { statSync } from 'node:fs'
 import readline from 'node:readline'
 
 // Version
-const VERSION = '1.2.0'
+const VERSION = '1.2.4'
 
 // Color codes
 const dim = '\x1b[2m'
