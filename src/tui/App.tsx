@@ -1,248 +1,378 @@
 /**
- * Beast CLI - Modern Minimal TUI
- * Clean, simple, and easy to use
+ * Beast CLI - Modern Professional TUI
+ * Inspired by Claude Code's clean aesthetic
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Box, Text, useInput } from 'ink'
 
-// Simple theme
-export interface Theme {
-  bg: string
-  fg: string
-  accent: string
-  success: string
-  warning: string
-  error: string
-  muted: string
+// Modern color palette
+export const colors = {
+  bg: '#0a0a0f',
+  surface: '#12121a',
+  border: '#2a2a3a',
+  text: '#e4e4e7',
+  muted: '#71717a',
+  accent: '#3b82f6',
+  success: '#22c55e',
+  warning: '#f59e0b',
+  error: '#ef4444',
+  purple: '#a855f7',
+  cyan: '#06b6d4',
 }
 
-export const theme: Theme = {
-  bg: '#0d1117',
-  fg: '#c9d1d9',
-  accent: '#58a6ff',
-  success: '#3fb950',
-  warning: '#d29922',
-  error: '#f85149',
-  muted: '#484f58',
-}
+// Status bar component
+const StatusBar = ({
+  provider,
+  model,
+  tokens,
+  tools,
+  mode
+}: {
+  provider: string
+  model: string
+  tokens: { prompt: number; completion: number }
+  tools: number
+  mode: string
+}) => (
+  <Box
+    flexDirection="column"
+    backgroundColor={colors.surface}
+    borderStyle="round"
+    paddingX={2}
+    paddingY={1}
+  >
+    {/* Top bar */}
+    <Box justifyContent="space-between">
+      <Box>
+        <Text bold color={colors.accent}>🐉 Beast</Text>
+        <Text color={colors.muted}> CLI</Text>
+      </Box>
+      <Box>
+        <Text color={colors.muted}>{new Date().toLocaleTimeString()}</Text>
+      </Box>
+    </Box>
 
-// Provider interface
-export interface Provider {
-  id: string
-  name: string
-  shortName: string
-  status: 'online' | 'offline' | 'loading'
-  defaultModel: string
-}
+    {/* Status indicators */}
+    <Box marginTop={1} flexDirection="column">
+      <Box>
+        <Text color={colors.muted}>  Provider  </Text>
+        <Text bold color={colors.success}>●</Text>
+        <Text color={colors.text}> {provider}</Text>
+      </Box>
+      <Box>
+        <Text color={colors.muted}>  Model     </Text>
+        <Text color={colors.cyan}>{model}</Text>
+      </Box>
+    </Box>
 
-export interface Message {
-  id: string
+    {/* Stats row */}
+    <Box marginTop={1} borderTop={`1 ${colors.border}`} paddingTop={1} flexDirection="column">
+      <Box>
+        <Text color={colors.muted}>  Mode      </Text>
+        <Text bold color={mode === 'plan' ? colors.purple : colors.accent}>{mode.toUpperCase()}</Text>
+      </Box>
+      <Box>
+        <Text color={colors.muted}>  Tools     </Text>
+        <Text color={colors.warning}>{tools} available</Text>
+      </Box>
+      <Box>
+        <Text color={colors.muted}>  Tokens    </Text>
+        <Text color={colors.text}>
+          {tokens.prompt + tokens.completion}
+          <Text color={colors.muted}> (p:{tokens.prompt} c:{tokens.completion})</Text>
+        </Text>
+      </Box>
+    </Box>
+  </Box>
+)
+
+// Message bubble component
+const MessageBubble = ({
+  role,
+  content,
+  timestamp
+}: {
   role: 'user' | 'assistant' | 'system'
   content: string
   timestamp: Date
-}
+}) => {
+  const isUser = role === 'user'
+  const isSystem = role === 'system'
 
-// Auto-detect providers
-async function detectProviders(): Promise<Provider[]> {
-  const providers: Provider[] = []
-
-  // Check Ollama
-  try {
-    const res = await fetch('http://localhost:11434/api/tags', { signal: AbortSignal.timeout(1000) })
-    if (res.ok) {
-      const data = await res.json()
-      providers.push({
-        id: 'ollama',
-        name: 'Ollama',
-        shortName: 'OLL',
-        status: 'online',
-        defaultModel: data.models?.[0]?.name || 'llama3.1:8b',
-      })
-    }
-  } catch {}
-
-  // Check LM Studio
-  try {
-    const res = await fetch('http://localhost:1234/v1/models', { signal: AbortSignal.timeout(1000) })
-    if (res.ok) {
-      providers.push({
-        id: 'lmstudio',
-        name: 'LM Studio',
-        shortName: 'LMS',
-        status: 'online',
-        defaultModel: 'microsoft/phi-4-mini',
-      })
-    }
-  } catch {}
-
-  // Cloud providers (need API keys)
-  providers.push(
-    { id: 'anthropic', name: 'Claude', shortName: 'CLA', status: 'offline', defaultModel: 'claude-sonnet-4-20250514' },
-    { id: 'openai', name: 'GPT', shortName: 'GPT', status: 'offline', defaultModel: 'gpt-4o' },
-  )
-
-  return providers
-}
-
-// Minimal Header
-const Header = () => (
-  <Box flexDirection="column" alignItems="center" marginY={0}>
-    <Text color="cyan" bold>┌─────────────────────────────────────┐</Text>
-    <Box>
-      <Text color="cyan">│</Text>
-      <Text bold color="green"> 🐉 Beast </Text>
-      <Text color="muted">│</Text>
-      <Text color="fg"> AI Coding Agent </Text>
-      <Text color="cyan">│</Text>
-    </Box>
-    <Text color="cyan">└─────────────────────────────────────┘</Text>
-  </Box>
-)
-
-// Provider Pills
-const ProviderPills = ({
-  providers,
-  selected,
-  onSelect,
-}: {
-  providers: Provider[]
-  selected: string
-  onSelect: (id: string) => void
-}) => (
-  <Box>
-    <Text color="muted"> Provider: </Text>
-    {providers.map(p => (
-      <Box key={p.id} marginRight={1}>
+  return (
+    <Box flexDirection="column" marginY={1}>
+      <Box>
         <Text
-          color={p.id === selected ? 'accent' : 'muted'}
-          bold={p.id === selected}
+          color={isUser ? colors.success : isSystem ? colors.warning : colors.accent}
+          bold
         >
-          {p.status === 'online' ? '●' : '○'} {p.shortName}
+          {isUser ? '❯ ' : isSystem ? '⚙ ' : '🤖 '}
+        </Text>
+        <Text color={colors.muted} italic>
+          {timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </Text>
       </Box>
-    ))}
-  </Box>
-)
-
-// Mode Indicator
-const ModeBadge = ({ mode }: { mode: string }) => {
-  const colors: Record<string, string> = {
-    plan: 'cyan',
-    write: 'green',
-    auto: 'yellow',
-    review: 'magenta',
-  }
-  return (
-    <Text color={colors[mode] || 'white'} bold>
-      [{mode.toUpperCase()}]
-    </Text>
+      <Box
+        flexDirection="column"
+        backgroundColor={isUser ? colors.surface : 'transparent'}
+        borderStyle={isUser ? 'round' : 'none'}
+        paddingX={2}
+        paddingY={1}
+        marginLeft={2}
+      >
+        <Text color={colors.text} wrap="wrap">
+          {content}
+        </Text>
+      </Box>
+    </Box>
   )
 }
 
-// Messages
-const Messages = ({ msgs }: { msgs: Message[] }) => (
-  <Box flexDirection="column" flexGrow={1} overflowY="auto">
-    {msgs.map(msg => (
-      <Box key={msg.id} flexDirection="column" marginY={0}>
-        <Box>
-          <Text bold color={msg.role === 'user' ? 'green' : 'accent'}>
-            {msg.role === 'user' ? '❯ ' : '🤖 '}
-          </Text>
-          <Text color="muted" italic> {new Date(msg.timestamp).toLocaleTimeString()}</Text>
-        </Box>
-        <Text color="fg">{msg.content.slice(0, 200)}{msg.content.length > 200 ? '...' : ''}</Text>
-        <Box height={1} />
+// Command hint bar
+const CommandBar = () => (
+  <Box
+    flexDirection="column"
+    backgroundColor={colors.surface}
+    borderStyle="round"
+    paddingX={2}
+    paddingY={1}
+    marginTop={1}
+  >
+    <Text color={colors.muted} bold>Quick Commands:</Text>
+    <Box flexDirection="row" flexWrap="wrap" marginTop={1}>
+      <Box marginRight={3}>
+        <Text color={colors.accent}>/model</Text>
+        <Text color={colors.muted}> - Switch model</Text>
       </Box>
-    ))}
+      <Box marginRight={3}>
+        <Text color={colors.accent}>/provider</Text>
+        <Text color={colors.muted}> - Change provider</Text>
+      </Box>
+      <Box marginRight={3}>
+        <Text color={colors.accent}>/tools</Text>
+        <Text color={colors.muted}> - List tools</Text>
+      </Box>
+      <Box marginRight={3}>
+        <Text color={colors.accent}>/clear</Text>
+        <Text color={colors.muted}> - Clear chat</Text>
+      </Box>
+      <Box>
+        <Text color={colors.accent}>/help</Text>
+        <Text color={colors.muted}> - Full help</Text>
+      </Box>
+    </Box>
   </Box>
 )
 
-// Input Line
-const InputLine = () => (
-  <Box>
-    <Text color="green">❯ </Text>
-    <Text color="muted">Type your request...</Text>
+// Input area
+const InputArea = ({
+  value,
+  onChange,
+  onSubmit
+}: {
+  value: string
+  onChange: (v: string) => void
+  onSubmit: () => void
+}) => {
+  const [cursorPos, setCursorPos] = useState(0)
+
+  useInput((input, key) => {
+    if (key.return) {
+      onSubmit()
+    } else if (key.backspace || key.delete) {
+      if (value.length > 0) {
+        const newVal = value.slice(0, -1)
+        onChange(newVal)
+      }
+    } else if (input) {
+      onChange(value + input)
+    }
+  })
+
+  return (
+    <Box
+      flexDirection="column"
+      borderStyle="round"
+      borderColor={colors.accent}
+      paddingX={2}
+      paddingY={1}
+      marginTop={1}
+    >
+      <Text color={colors.muted}>Enter your request:</Text>
+      <Box marginTop={1}>
+        <Text color={colors.success} bold>❯ </Text>
+        <Text color={colors.text}>{value || ''}</Text>
+        <Text color={colors.accent} dim>_</Text>
+      </Box>
+    </Box>
+  )
+}
+
+// Welcome message
+const WelcomeMessage = ({ provider, model }: { provider: string; model: string }) => (
+  <Box flexDirection="column" padding={2}>
+    <Text bold color={colors.accent} dim>┌─────────────────────────────────────────────────────────┐</Text>
+
+    <Box>
+      <Text color={colors.muted}>│</Text>
+      <Text bold color={colors.success}>  🐉 Beast CLI</Text>
+      <Text color={colors.muted}> v1.0.8</Text>
+      <Text color={colors.muted}>                                    │</Text>
+    </Box>
+
+    <Box>
+      <Text color={colors.muted}>│</Text>
+      <Text color={colors.text}>  Ready to help!                                     │</Text>
+    </Box>
+
+    <Box>
+      <Text color={colors.muted}>│</Text>
+      <Text color={colors.muted}>  Provider: </Text>
+      <Text color={colors.success}>●</Text>
+      <Text color={colors.text}>{provider}</Text>
+      <Text color={colors.muted}>                                      │</Text>
+    </Box>
+
+    <Box>
+      <Text color={colors.muted}>│</Text>
+      <Text color={colors.muted}>  Model: </Text>
+      <Text color={colors.cyan}>{model}</Text>
+      <Text color={colors.muted}>                                          │</Text>
+    </Box>
+
+    <Box>
+      <Text color={colors.muted}>│</Text>
+      <Text color={colors.muted}>  Type </Text>
+      <Text color={colors.accent}>/help</Text>
+      <Text color={colors.muted}> for commands or start typing your request.         │</Text>
+    </Box>
+
+    <Text bold color={colors.accent} dim>└─────────────────────────────────────────────────────────┘</Text>
   </Box>
 )
 
-// Footer
-const Footer = () => (
-  <Box justifyContent="space-between">
-    <Text color="muted">Tab: Switch │ /help: Commands</Text>
-    <Text color="accent">v1.0</Text>
-  </Box>
-)
-
-// Main Component
+// Main App Component
 export const BeastTUI: React.FC<{
   onProviderChange?: (id: string, model: string) => void
   onModeChange?: (mode: string) => void
-}> = ({ onProviderChange, onModeChange }) => {
-  const [providers, setProviders] = useState<Provider[]>([])
-  const [selectedProvider, setSelectedProvider] = useState('ollama')
-  const [mode, setMode] = useState('write')
-  const [messages, setMessages] = useState<Message[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  onMessage?: (msg: string) => void
+}> = ({ onProviderChange, onModeChange, onMessage }) => {
+  const [input, setInput] = useState('')
+  const [messages, setMessages] = useState<Array<{
+    id: string
+    role: 'user' | 'assistant' | 'system'
+    content: string
+    timestamp: Date
+  }>>([])
+  const [mode, setMode] = useState('auto')
+  const [tokens, setTokens] = useState({ prompt: 0, completion: 0 })
+  const [provider] = useState('ollama')
+  const [model] = useState('qwen2.5-coder:7b')
+  const [toolsCount] = useState(39)
 
-  // Auto-detect providers on mount
+  // Show welcome message
   useEffect(() => {
-    detectProviders().then(detected => {
-      setProviders(detected)
-      if (detected.length > 0) {
-        setSelectedProvider(detected[0].id)
-        onProviderChange?.(detected[0].id, detected[0].defaultModel)
-      }
-      setIsLoading(false)
-
-      // Welcome message
-      const online = detected.filter(p => p.status === 'online')
-      setMessages([{
-        id: '1',
-        role: 'assistant',
-        content: online.length > 0
-          ? `Ready! Using ${online[0].name} with model ${online[0].defaultModel}. Type your request or /help for commands.`
-          : 'No local providers found. Configure API keys or start Ollama/LM Studio.',
-        timestamp: new Date(),
-      }])
-    })
+    setMessages([{
+      id: '1',
+      role: 'system',
+      content: `Welcome! Beast CLI is ready.\n\nI can help you with:\n• Writing and editing code\n• Running terminal commands\n• Searching the web\n• Reading and writing files\n• And much more!\n\nTry: "Create a simple web server in Node.js"`,
+      timestamp: new Date(),
+    }])
   }, [])
+
+  // Handle input submission
+  const handleSubmit = () => {
+    if (!input.trim()) return
+
+    // Add user message
+    setMessages(prev => [...prev, {
+      id: Date.now().toString(),
+      role: 'user',
+      content: input,
+      timestamp: new Date(),
+    }])
+
+    // Notify parent
+    onMessage?.(input)
+
+    // Clear input
+    setInput('')
+  }
 
   // Keyboard shortcuts
   useInput((input, key) => {
-    if (key.tab) {
-      const online = providers.filter(p => p.status === 'online')
-      const idx = online.findIndex(p => p.id === selectedProvider)
-      const next = online[(idx + 1) % online.length]
-      if (next) {
-        setSelectedProvider(next.id)
-        onProviderChange?.(next.id, next.defaultModel)
-      }
+    if (key.ctrl && input === 'c') {
+      process.exit(0)
     }
 
     if (input === '/help') {
       setMessages(prev => [...prev, {
         id: Date.now().toString(),
         role: 'assistant',
-        content: `Commands:
-/model <name>  - Switch model
-/mode <plan|write|auto> - Change mode
-/clear          - Clear chat
-/exit           - Quit`,
+        content: `Available Commands:
+━━━━━━━━━━━━━━━━━━━━━
+/model <name>     - Switch AI model
+/provider         - Switch provider (ollama, anthropic, openai)
+/tools            - List available tools
+/mode <mode>      - Set mode: auto, plan, write, review
+/clear            - Clear chat history
+/tokens           - Show token usage
+/exit             - Quit Beast CLI
+
+Examples:
+  /model llama3.2
+  /provider anthropic
+  /mode plan`,
+        timestamp: new Date(),
+      }])
+    }
+
+    if (input === '/clear') {
+      setMessages([])
+    }
+
+    if (input === '/tools') {
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: `Available Tools (39):
+━━━━━━━━━━━━━━━━━━━━━━━━━
+File Operations: file_read, file_write, file_list, file_search, file_grep, file_glob
+Web: fetch_web_content, quick_fetch, searxng_search, search_images
+Code: run_code, run_python_snippet, run_command
+GitHub: github_repo, github_readme, github_issues, github_commits
+YouTube: youtube_transcript, youtube_search, youtube_summarize
+Data: pandas_create, pandas_filter, pandas_aggregate, plot_line, plot_bar`,
+        timestamp: new Date(),
+      }])
+    }
+
+    if (input === '/tokens') {
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: `Token Usage:
+━━━━━━━━━━━━━
+Prompt tokens: ${tokens.prompt}
+Completion: ${tokens.completion}
+Total: ${tokens.prompt + tokens.completion}`,
         timestamp: new Date(),
       }])
     }
 
     if (input.startsWith('/mode ')) {
       const newMode = input.slice(6).trim()
-      if (['plan', 'write', 'auto', 'review'].includes(newMode)) {
+      if (['auto', 'plan', 'write', 'review'].includes(newMode)) {
         setMode(newMode)
         onModeChange?.(newMode)
+        setMessages(prev => [...prev, {
+          id: Date.now().toString(),
+          role: 'system',
+          content: `Mode changed to: ${newMode.toUpperCase()}`,
+          timestamp: new Date(),
+        }])
       }
-    }
-
-    if (input === '/clear') {
-      setMessages([])
     }
 
     if (input === '/exit') {
@@ -250,49 +380,54 @@ export const BeastTUI: React.FC<{
     }
   })
 
-  const currentProv = providers.find(p => p.id === selectedProvider)
-
   return (
-    <Box flexDirection="column" padding={1}>
-      <Header />
+    <Box flexDirection="column" backgroundColor={colors.bg} padding={1}>
+      {/* Header */}
+      <StatusBar
+        provider={provider}
+        model={model}
+        tokens={tokens}
+        tools={toolsCount}
+        mode={mode}
+      />
 
-      <Box marginY={1}>
-        <ProviderPills
-          providers={providers}
-          selected={selectedProvider}
-          onSelect={id => {
-            setSelectedProvider(id)
-            const p = providers.find(p => p.id === id)
-            if (p) onProviderChange?.(id, p.defaultModel)
-          }}
-        />
-        <Text color="muted"> │ </Text>
-        <ModeBadge mode={mode} />
-        <Text color="muted"> │ </Text>
-        <Text color={currentProv?.status === 'online' ? 'success' : 'error'}>
-          {currentProv?.defaultModel || '...'}
-        </Text>
-      </Box>
-
+      {/* Messages */}
       <Box
         flexDirection="column"
-        borderStyle="round"
         flexGrow={1}
+        overflowY="auto"
+        marginY={1}
         padding={1}
-        marginY={0}
       >
-        {isLoading ? (
-          <Text color="muted">Detecting providers...</Text>
-        ) : (
-          <Messages msgs={messages} />
-        )}
+        {messages.map(msg => (
+          <MessageBubble
+            key={msg.id}
+            role={msg.role}
+            content={msg.content}
+            timestamp={msg.timestamp}
+          />
+        ))}
       </Box>
 
-      <Box borderStyle="single" padding={1} marginY={0}>
-        <InputLine />
-      </Box>
+      {/* Command hints */}
+      <CommandBar />
 
-      <Footer />
+      {/* Input */}
+      <InputArea
+        value={input}
+        onChange={setInput}
+        onSubmit={handleSubmit}
+      />
+
+      {/* Footer */}
+      <Box justifyContent="space-between" marginTop={1}>
+        <Text color={colors.muted}>
+          <Text color={colors.accent}>Ctrl+C</Text> exit │
+          <Text color={colors.accent}> Tab</Text> switch │
+          <Text color={colors.accent}> ↑↓</Text> history
+        </Text>
+        <Text color={colors.muted}>github.com/simpletoolsindia/code-cli</Text>
+      </Box>
     </Box>
   )
 }
