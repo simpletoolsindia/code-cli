@@ -28,6 +28,15 @@ import readline from 'node:readline'
 // Version
 const VERSION = '1.2.0'
 
+// Color codes
+const dim = '\x1b[2m'
+const reset = '\x1b[0m'
+const bold = '\x1b[1m'
+const green = '\x1b[32m'
+const cyan = '\x1b[36m'
+const yellow = '\x1b[33m'
+const red = '\x1b[31m'
+
 // MCP Server URL
 const MCP_SERVER_HOST = process.env.MCP_HOST || 'localhost'
 const MCP_SERVER_PORT = parseInt(process.env.MCP_PORT || '7710')
@@ -245,15 +254,6 @@ async function selectProvider(providers: ProviderInfo[]): Promise<string> {
   const idx = await numberedMenu('🐉 Select a provider:', choices)
   return byId[idx]
 }
-
-// Color codes
-const dim = '\x1b[2m'
-const reset = '\x1b[0m'
-const bold = '\x1b[1m'
-const green = '\x1b[32m'
-const cyan = '\x1b[36m'
-const yellow = '\x1b[33m'
-const red = '\x1b[31m'
 
 async function selectModelForProvider(provider: string): Promise<string> {
   const isLocal = !isCloudProvider(provider)
