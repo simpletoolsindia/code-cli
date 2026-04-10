@@ -124,30 +124,39 @@ function Install-FFmpeg {
 function Install-BeastCLI {
     Write-Step "Installing $AppNameDisplay..."
 
-    if (Has-Command "bun") {
-        Write-Info "Using bun..."
-        if (bun pm ls -g 2>$null | Select-String $NpmPackage) {
-            Write-Info "Upgrading existing installation..."
-            bun update -g $NpmPackage
-        } else {
-            bun add -g $NpmPackage
+    if (Has-Command "npm") {
+        Write-Info "Using npm..."
+        try {
+            npm install -g $NpmPackage 2>$null
+            if ($LASTEXITCODE -eq 0) {
+                Write-Success "$AppName installed via npm"
+            } else {
+                throw "npm install failed"
+            }
+        } catch {
+            Write-Err "npm install failed"
+            exit 1
         }
     }
-    elseif (Has-Command "npm") {
-        Write-Info "Using npm..."
-        if (npm list -g $NpmPackage 2>$null) {
-            Write-Info "Upgrading existing installation..."
-            npm update -g $NpmPackage
-        } else {
-            npm install -g $NpmPackage
+    elseif (Has-Command "bun") {
+        Write-Info "Using bun..."
+        try {
+            # bun global install
+            bun add -g $NpmPackage 2>$null
+            if ($LASTEXITCODE -eq 0) {
+                Write-Success "$AppName installed via bun"
+            } else {
+                throw "bun add -g failed"
+            }
+        } catch {
+            Write-Warn "bun install failed, trying npm..."
+            Install-BeastCLI
         }
     }
     else {
         Write-Err "Neither npm nor bun found!"
         exit 1
     }
-
-    Write-Success "$AppName installed"
 }
 
 # ─── Setup TTS ───────────────────────────────────────────────────────────────
