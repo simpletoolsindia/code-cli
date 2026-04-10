@@ -1,5 +1,5 @@
 // Ink TUI Root App - Main entry point for React/Ink interface
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { render, useApp } from 'ink'
 import { Box, Text } from 'ink'
 import { Header } from './components/Header.tsx'
@@ -36,6 +36,8 @@ const BeastApp: React.FC = () => {
   const [provider, setProvider] = useState('ollama')
   const [model, setModel] = useState('llama3.2')
   const [toolsCount, setToolsCount] = useState(0)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const { waitUntil } = useApp()
   const theme = getTheme()
 
@@ -55,23 +57,37 @@ const BeastApp: React.FC = () => {
     baseUrl: getBaseUrl(provider) || undefined,
   })
 
-  // Track spinner start
+  // Track spinner start with immediate feedback
   useEffect(() => {
     if (state.phase === 'thinking' || state.phase === 'streaming') {
       if (spinnerStart === 0) setSpinnerStart(Date.now())
+      if (!isProcessing) setIsProcessing(true)
+      setErrorMessage(null) // Clear previous errors
     } else if (state.phase === 'done' || state.phase === 'error') {
       setSpinnerStart(0)
+      setIsProcessing(false)
     }
   }, [state.phase])
 
-  const handleSubmit = async (input: string) => {
+  const handleSubmit = useCallback(async (input: string) => {
     if (!input.trim()) return
+
+    // Immediate visual feedback before async processing starts
     setSpinnerStart(Date.now())
+    setIsProcessing(true)
+    setErrorMessage(null)
+
+    // Add user message immediately for visual feedback
     setMessages(prev => [...prev, { role: 'user', content: input }])
 
     // Use waitUntil to keep Ink alive while run() completes asynchronously
-    waitUntil(run(input))
-  }
+    waitUntil(run(input).catch((err: Error) => {
+      // Catch and display errors immediately
+      setErrorMessage(err.message || 'Request failed')
+      setIsProcessing(false)
+      setSpinnerStart(0)
+    }))
+  }, [run, waitUntil])
 
   // Sync run() result into messages when phase becomes done/error
   useEffect(() => {
@@ -80,6 +96,12 @@ const BeastApp: React.FC = () => {
         // Don't duplicate if last message is already from this run
         const last = prev[prev.length - 1]
         if (last?.role === 'assistant' && last.content === state.streamedText) return prev
+
+        // Show error inline if present
+        if (state.phase === 'error' && state.error) {
+          setErrorMessage(state.error)
+        }
+
         return [
           ...prev,
           {
@@ -109,14 +131,23 @@ const BeastApp: React.FC = () => {
     <Box flexDirection="column">
       <Header provider={provider} model={model} toolsCount={toolsCount} />
 
+      {/* Immediate feedback spinner - shows as soon as user submits */}
       {(state.phase === 'thinking' || state.phase === 'streaming') && (
         <Box paddingBottom={1}>
           <Spinner state={getSpinnerState()} elapsed={elapsed} />
         </Box>
       )}
 
+      {/* Error message display with immediate visibility */}
+      {errorMessage && (
+        <Box paddingBottom={1}>
+          <Text color={theme.error}>Error: {errorMessage}</Text>
+        </Box>
+      )}
+
       <Body messages={messages} />
 
+      {/* Show running tools with status */}
       {state.toolCalls.filter(tc => tc.status === 'running').length > 0 && (
         <Box flexDirection="column">
           {state.toolCalls
@@ -129,13 +160,13 @@ const BeastApp: React.FC = () => {
 
       {state.phase === 'idle' && <Tips />}
 
-      {state.phase === 'error' && state.error && (
+      {/* Only show error text in status bar for non-critical errors */}
+      {state.phase === 'error' && state.error && !errorMessage && (
         <Text color={theme.error}>{state.error}</Text>
       )}
 
-      {state.phase === 'idle' && (
-        <Input onSubmit={handleSubmit} />
-      )}
+      {/* Pass disabled state to Input for immediate visual feedback */}
+      <Input onSubmit={handleSubmit} disabled={isProcessing} />
 
       <StatusBar
         usedTokens={state.usage?.totalTokens}

@@ -1,4 +1,4 @@
-// Header Component - ASCII logo + provider/model strip
+// Header Component - ASCII logo + provider/model strip with enhanced visuals
 import React, { useEffect, useState } from 'react'
 import { Text, Box } from 'ink'
 import { getTheme } from '../theme.ts'
@@ -38,33 +38,52 @@ export const Header: React.FC<HeaderProps> = ({ provider, model, toolsCount }) =
   const blue = theme.sapphire
   const muted = theme.muted
   const tool = theme.peach
+  const success = theme.success
+  const primary = theme.primary
 
   if (isWide) {
     return (
       <Box flexDirection="column" marginBottom={1}>
-        <Text>
-          <Text color={accent} bold>  BEAST</Text>
-          <Text color={blue} bold> CLI</Text>
-          <Text color={muted}>  AI Coding Agent</Text>
-        </Text>
+        {/* Main branding with enhanced visual hierarchy */}
         <Box>
-          <Text color={theme.success}>{provider}</Text>
-          <Text color={muted}> · </Text>
-          <Text color={theme.info}>{model}</Text>
-          <Text color={muted}> · </Text>
-          <Text color={tool}>{toolsCount} tools</Text>
+          <Text color={accent} bold>  ╔══</Text>
+          <Text color={accent} bold>BEAST</Text>
+          <Text color={blue} bold> CLI</Text>
+          <Text color={accent} bold>══╗</Text>
+        </Box>
+
+        {/* Provider info bar with visual separators */}
+        <Box marginTop={1}>
+          <Text color={muted}>  │</Text>
+          <Text color={success}> {provider}</Text>
+          <Text color={muted}> │</Text>
+          <Text color={blue}> {model}</Text>
+          <Text color={muted}> │</Text>
+          <Text color={tool}> {toolsCount} tools</Text>
+          <Text color={muted}> │</Text>
+        </Box>
+
+        {/* Decorative underline */}
+        <Box>
+          <Text color={accent}>  ╰{'─'.repeat(Math.min(width - 4, 50))}╯</Text>
         </Box>
       </Box>
     )
   }
 
   return (
-    <Box marginBottom={1}>
-      <Text>
+    <Box marginBottom={1} flexDirection="column">
+      <Box>
         <Text color={accent} bold>BEAST</Text>
+        <Text color={blue} bold> CLI</Text>
         <Text color={muted}> · </Text>
-        <Text color={theme.success}>{provider}</Text>
-      </Text>
+        <Text color={success}>{provider}</Text>
+      </Box>
+      <Box>
+        <Text color={blue}>{model}</Text>
+        <Text color={muted}> · </Text>
+        <Text color={tool}>{toolsCount} tools</Text>
+      </Box>
     </Box>
   )
 }

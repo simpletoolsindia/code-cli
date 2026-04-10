@@ -142,7 +142,7 @@ export const bg = {
   mantle:   claudePalette.mantle,
 }
 
-// ── Box Drawing Characters ────────────────────────────────────────────────────
+// ── Box Drawing Characters (Unicode with ASCII Fallback) ───────────────────
 export const box = {
   single: { tl: '┌', tr: '┐', bl: '└', br: '┘', h: '─', v: '│' },
   round:  { tl: '╭', tr: '╮', bl: '╰', br: '╯', h: '─', v: '│' },
@@ -152,6 +152,88 @@ export const box = {
   light:  { tl: '┌', tr: '┐', bl: '└', br: '┘', h: '─', v: '│' },
   // Polished: double-line with subtle accent for premium feel
   polished: { tl: '╔', tr: '╗', bl: '╚', br: '╝', h: '═', v: '║' },
+}
+
+// ASCII fallback box characters for terminals without Unicode support
+export const boxAscii = {
+  single: { tl: '+', tr: '+', bl: '+', br: '+', h: '-', v: '|' },
+  round:  { tl: '+', tr: '+', bl: '+', br: '+', h: '-', v: '|' },
+  heavy:  { tl: '+', tr: '+', bl: '+', br: '+', h: '=', v: '|' },
+  dashed: { tl: '+', tr: '+', bl: '+', br: '+', h: '-', v: '|' },
+  soft:   { tl: '+', tr: '+', bl: '+', br: '+', h: '-', v: '|' },
+  light:  { tl: '+', tr: '+', bl: '+', br: '+', h: '-', v: '|' },
+  polished: { tl: '+', tr: '+', bl: '+', br: '+', h: '=', v: '|' },
+}
+
+// ── Check Unicode Support ─────────────────────────────────────────────────────
+export function supportsUnicode(): boolean {
+  if (NO_COLOR) return false
+  if (process.env.FORCE_COLOR) return true
+  if (process.env.LANG?.toLowerCase().includes('utf-8') || process.env.LC_ALL?.toLowerCase().includes('utf-8')) return true
+  if (process.env.LANG?.toLowerCase().includes('utf8') || process.env.LC_ALL?.toLowerCase().includes('utf8')) return true
+  // Check if terminal reports UTF-8 capability
+  if (process.stdout?.isTTY && process.env.TERM_PROGRAM?.includes('iTerm')) return true
+  if (process.stdout?.isTTY && process.env.TERM_PROGRAM?.includes('Terminal')) return true
+  // Default to true (most modern terminals support UTF-8)
+  return true
+}
+
+// Get appropriate box characters based on terminal capability
+export function getBoxChars() {
+  return supportsUnicode() ? box : boxAscii
+}
+
+// ── ASCII-safe icons (fallback when Unicode fails) ─────────────────────────────
+export const iconAscii = {
+  prompt:      '>',
+  userPrefix:  '>',
+  aiPrefix:    '*',
+
+  // Status
+  success:    '[OK]',
+  error:      '[X]',
+  warning:    '!',
+  info:       'i',
+  check:      '(*)',
+  online:     '[*]',
+  offline:    '[o]',
+
+  // Actions
+  tool:       '>',
+  run:        '>',
+  search:     '[S]',
+  edit:       '[E]',
+  plus:       '+',
+  minus:      '-',
+  arrow:      '->',
+  arrowUp:    '^',
+  arrowDown:  'v',
+  bullet:     '*',
+  separator:  '|',
+
+  // Objects
+  folder:     '>',
+  file:       '>',
+  code:       '[C]',
+  link:       '~>',
+  star:       '*',
+  spark:      '*',
+  sparkles:   '*',
+
+  // Data
+  tokens:     '[]',
+  messages:   '==',
+  time:       '()',
+  context:    '[=]',
+  clock:      '(T)',
+
+  // File type
+  ts:         'TS',
+  js:         'JS',
+  py:         'PY',
+  md:         'MD',
+  json:       '{}',
+  git:        '[G]',
 }
 
 // ── Clean Spinner Frames ──────────────────────────────────────────────────────

@@ -1,5 +1,5 @@
 // Native YouTube Tools
-// Replaces YouTube MCP calls with direct YouTube API
+// Replaces YouTube MCP calls with direct YouTube API + Multiple Fallback Support
 
 const YOUTUBE_API = 'https://www.googleapis.com/youtube/v3'
 
@@ -9,53 +9,167 @@ export interface YouTubeResult {
   error?: string
 }
 
-// YouTube Data API v3 requires a key, but we can use oEmbed/embed as fallback
-export async function youtubeTranscript(
-  url: string
-): Promise<YouTubeResult> {
-  try {
-    // Extract video ID from URL
-    const videoId = extractVideoId(url)
-    if (!videoId) {
-      return { success: false, output: '', error: 'Invalid YouTube URL' }
-    }
+// ── Fallback Chain for YouTube Transcripts ────────────────────────────────────
 
-    // Try to get subtitles via youtube-transcript-api pattern
-    // This is a heuristic - YouTube doesn't have a public API for transcripts
-    const transcriptUrl = `https://youtubetranscript.com/?video=${videoId}`
-    const response = await fetch(transcriptUrl, {
+// Fallback 1: youtube-transcript-api (npm package pattern)
+async function tryTranscriptionDotCom(videoId: string): Promise<YouTubeResult> {
+  try {
+    const response = await fetch(`https://youtubetranscript.com/?video=${videoId}`, {
       signal: AbortSignal.timeout(10000),
     })
-
     if (response.ok) {
       const text = await response.text()
-      return {
-        success: true,
-        output: text.slice(0, 5000),
+      if (text && text.length > 50) {
+        return { success: true, output: text.slice(0, 5000) }
       }
     }
+    return { success: false, output: '', error: 'No transcript available' }
+  } catch (e: any) {
+    return { success: false, output: '', error: e.message }
+  }
+}
 
-    // Fallback: fetch video page and try to extract
+// Fallback 2: Try to extract from YouTube video page (captions extraction)
+async function tryYouTubePageFallback(videoId: string): Promise<YouTubeResult> {
+  try {
     const pageRes = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
-      headers: { 'User-Agent': 'Mozilla/5.0' },
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
       signal: AbortSignal.timeout(10000),
     })
 
     if (pageRes.ok) {
       const html = await pageRes.text()
+      // Try to find caption tracks
       const captionMatch = html.match(/"captionTracks":\[([^\]]+)\]/)
       if (captionMatch) {
-        return { success: true, output: 'Captions available. Use youtube_video_info for details.' }
+        // Extract base URL for captions
+        const baseUrlMatch = captionMatch[1].match(/"baseUrl":"([^"]+)"/)
+        if (baseUrlMatch) {
+          const captionUrl = decodeURIComponent(baseUrlMatch[1])
+          const captionRes = await fetch(captionUrl, {
+            headers: { 'User-Agent': 'Mozilla/5.0' },
+            signal: AbortSignal.timeout(10000),
+          })
+          if (captionRes.ok) {
+            const captionXml = await captionRes.text()
+            // Parse XML to extract text
+            const textMatches = captionXml.match(/<text[^>]*>([^<]+)<\/text>/g)
+            if (textMatches) {
+              const transcript = textMatches
+                .map(m => {
+                  const match = m.match(/<text[^>]*>([^<]+)<\/text>/)
+                  return match ? match[1] : ''
+                })
+                .filter(t => t.trim())
+                .join(' ')
+              return { success: true, output: transcript }
+            }
+          }
+        }
+        return { success: true, output: 'Captions found but could not extract text.' }
       }
     }
-
-    return {
-      success: false,
-      output: '',
-      error: 'Transcript not available. Video may not have captions.',
-    }
+    return { success: false, output: '', error: 'Could not fetch video page' }
   } catch (e: any) {
     return { success: false, output: '', error: e.message }
+  }
+}
+
+// Fallback 3: Try Invidious instance (privacy-friendly YouTube frontend)
+async function tryInvidiousFallback(videoId: string): Promise<YouTubeResult> {
+  const invidiousInstances = [
+    'https://inv.nadeko.net/api/v1',
+    'https://invidious.privacyredirect.com/api/v1',
+    'https://yewtu.be/api/v1',
+  ]
+
+  for (const instance of invidiousInstances) {
+    try {
+      const response = await fetch(`${instance}/captions/${videoId}`, {
+        signal: AbortSignal.timeout(8000),
+      })
+      if (response.ok) {
+        const data = await response.json()
+        if (data.captions && data.captions.length > 0) {
+          // Try to get auto-generated transcript
+          const autoCaption = data.captions.find((c: any) => c.label?.includes('auto'))
+          if (autoCaption) {
+            return { success: true, output: `Auto-generated transcript from ${autoCaption.label}` }
+          }
+        }
+      }
+    } catch {
+      // Try next instance
+      continue
+    }
+  }
+  return { success: false, output: '', error: 'All Invidious instances failed' }
+}
+
+// Fallback 4: yt-dlp command-line tool (if available)
+async function tryYtdlpFallback(url: string): Promise<YouTubeResult> {
+  try {
+    const { execSync } = await import('child_process')
+    // Check if yt-dlp is installed
+    try {
+      execSync('which yt-dlp', { stdio: 'ignore' })
+    } catch {
+      return { success: false, output: '', error: 'yt-dlp not installed' }
+    }
+
+    // Try to download subtitle
+    const output = execSync(
+      `yt-dlp --skip-download --write-subs --write-auto-subs --sub-lang en --stdout --print "%(subtitles.en)s" "${url}"`,
+      { encoding: 'utf-8', timeout: 15000 }
+    )
+    if (output && output.trim()) {
+      return { success: true, output: output }
+    }
+    return { success: false, output: '', error: 'No subtitles extracted' }
+  } catch (e: any) {
+    return { success: false, output: '', error: e.message }
+  }
+}
+
+// Main transcript function with fallback chain
+export async function youtubeTranscript(url: string): Promise<YouTubeResult> {
+  const videoId = extractVideoId(url)
+  if (!videoId) {
+    return { success: false, output: '', error: 'Invalid YouTube URL' }
+  }
+
+  const fallbacks: Array<() => Promise<YouTubeResult>> = [
+    () => tryTranscriptionDotCom(videoId),
+    () => tryYouTubePageFallback(videoId),
+    () => tryInvidiousFallback(videoId),
+    () => tryYtdlpFallback(url),
+  ]
+
+  const fallbackNames = [
+    'Transcription.com',
+    'YouTube Page',
+    'Invidious Instance',
+    'yt-dlp CLI',
+  ]
+
+  let lastError = ''
+
+  for (let i = 0; i < fallbacks.length; i++) {
+    const result = await fallbacks[i]()
+    if (result.success) {
+      return result
+    }
+    lastError = result.error || 'Unknown error'
+    console.log(`   [Fallback ${i + 1}/${fallbacks.length}] ${fallbackNames[i]} failed: ${lastError}`)
+  }
+
+  return {
+    success: false,
+    output: '',
+    error: `All ${fallbacks.length} transcript methods failed. Last error: ${lastError}`,
   }
 }
 
