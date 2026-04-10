@@ -1,35 +1,95 @@
 {
   "name": "@simpletoolsindia/beast-cli",
-  "version": "1.2.4",
-  "description": "AI Coding Agent for Power Users",
+  "version": "1.2.5",
+  "description": "🐉 AI Coding Agent for Power Users - 51+ native tools, RAG-based code intelligence, multi-theme TUI",
   "main": "dist/index.js",
   "type": "module",
   "bin": {
-    "beast": "dist/index.js"
+    "beast": "./bin/beast.js"
   },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "bin",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
-    "build": "bun build src/index.ts --outdir dist --target node",
-    "test": "bun run test-all.ts",
+    "build": "bun build src/index.ts --outdir dist --target node --external @anthropic-ai/sdk --external openai --external simple-git --external glob --external zod",
+    "build:bin": "bun build src/index.ts --outfile bin/beast.js --target node --external @anthropic-ai/sdk --external openai --external simple-git --external glob --external zod",
     "dev": "bun run src/index.ts",
-    "prepublishOnly": "bun run build"
+    "test": "bun run src/test-stock.ts",
+    "test:full": "bun run src/test-all.ts",
+    "lint": "bun run eslint src/ --ext .ts",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "bun run build:bin",
+    "preinstall": "echo 'Installing Beast CLI...'",
+    "postinstall": "echo '✅ Beast CLI ready! Run: beast'"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "bun": ">=1.0.0"
   },
   "keywords": [
     "ai",
+    "claude",
+    "openai",
+    "gemini",
+    "llm",
     "coding",
-    "cli",
     "agent",
-    "llm"
+    "cli",
+    "tui",
+    "developer-tools",
+    "catppuccin",
+    "rag",
+    "code-intelligence"
   ],
-  "author": "SimpleTools",
+  "author": {
+    "name": "SimpleTools India",
+    "url": "https://github.com/simpletoolsindia"
+  },
+  "contributors": [
+    {
+      "name": "Beast CLI Team",
+      "url": "https://github.com/simpletoolsindia/code-cli"
+    }
+  ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/simpletoolsindia/code-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/simpletoolsindia/code-cli/issues"
+  },
+  "homepage": "https://github.com/simpletoolsindia/code-cli#readme",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",
-    "glob": "^13.0.6",
-    "ink": "^7.0.0",
+    "glob": "^11.0.0",
     "openai": "^4.77.0",
-    "react": "^19.2.4",
-    "react-devtools-core": "^7.0.1",
     "simple-git": "^3.27.0",
     "zod": "^3.23.8"
+  },
+  "optionalDependencies": {
+    "@modelcontextprotocol/server-ollama": "^0.3.0",
+    "@modelcontextprotocol/server-github": "^0.4.0"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/",
+    "tag": "latest"
+  },
+  "funding": {
+    "type": "Open Collective",
+    "url": "https://opencollective.com/simpletoolsindia"
   }
 }

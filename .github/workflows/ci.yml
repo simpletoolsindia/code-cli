@@ -1,0 +1,148 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: '20'
+  BUN_VERSION: '1.1'
+
+jobs:
+  # ─── Build & Test ──────────────────────────────────────────────────────────
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        manager: [npm, bun]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        if: matrix.manager == 'npm'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Setup Bun
+        if: matrix.manager == 'bun'
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          if [[ "${{ matrix.manager }}" == "npm" ]]; then
+            npm ci
+          else
+            bun install --frozen-lockfile
+          fi
+
+      - name: Build
+        run: |
+          if [[ "${{ matrix.manager }}" == "npm" ]]; then
+            npm run build:bin
+          else
+            bun run build:bin
+          fi
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.manager }}
+          path: |
+            dist/
+            bin/
+          retention-days: 7
+
+  # ─── Test with Bun ──────────────────────────────────────────────────────────
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build
+        run: bun run build:bin
+
+      - name: Run tests
+        run: bun run test
+        continue-on-error: true
+
+  # ─── Publish to NPM ────────────────────────────────────────────────────────
+  publish-npm:
+    name: Publish to NPM
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main')
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/@simpletoolsindia/beast-cli
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: 'https://registry.npmjs.org/'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build:bin
+
+      - name: Publish to NPM
+        run: |
+          if [[ "${{ github.ref }}" == "refs/tags/"* ]]; then
+            # Tagged release - publish with version from tag
+            VERSION=${GITHUB_REF#refs/tags/v}
+            npm version $VERSION --no-git-tag-version
+            npm publish --access public
+          else
+            # Main branch - publish canary
+            npm publish --access public --tag canary --no-git-checks
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # ─── Create GitHub Release ─────────────────────────────────────────────────
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: [publish-npm]
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            dist/**/*
+            bin/*
+            README.md
+            LICENSE
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

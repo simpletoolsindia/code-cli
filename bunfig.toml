@@ -1,0 +1,9 @@
+# Bunfig - Bun Configuration for Beast CLI
+
+[install]
+cacheDir = ".bun-cache"
+optional = true
+
+[build]
+target = "node"
+outDir = "dist"
