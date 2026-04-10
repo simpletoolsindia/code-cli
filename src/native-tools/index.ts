@@ -804,6 +804,71 @@ const tools: NativeTool[] = [
       }
     },
   },
+  // TTS: Text-to-Speech
+  {
+    name: 'tts_speak',
+    description: 'Read text aloud using Microsoft Edge TTS (free, high quality). Use when user asks to speak, read aloud, or play audio of content.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        text: { type: 'string', description: 'Text to speak aloud' },
+        voice: { type: 'string', description: 'Voice name (e.g., en-US-AriaNeural, en-GB-SoniaNeural). Default: en-US-AriaNeural' },
+        speed: { type: 'string', description: 'Speed adjustment (e.g., +0%, -10%, +20%). Default: +0%' },
+      },
+      required: ['text'],
+    },
+    async execute(args) {
+      try {
+        const { speak, loadTTSConfig } = await import('../tts/index.ts')
+        const config = loadTTSConfig()
+        if (!config.enabled) {
+          return { success: false, content: '', error: 'TTS is disabled. Run /tts on to enable.' }
+        }
+        await speak(args.text as string, { voice: args.voice as string | undefined })
+        return { success: true, content: `Speaking: ${(args.text as string).slice(0, 100)}...` }
+      } catch (e: any) {
+        return { success: false, content: '', error: e.message }
+      }
+    },
+  },
+  {
+    name: 'tts_list_voices',
+    description: 'List all available English voices for TTS.',
+    inputSchema: { type: 'object', properties: {} },
+    async execute() {
+      try {
+        const { listVoices } = await import('../tts/index.ts')
+        const voices = await listVoices()
+        const lines = voices.map(v => `  ${v.ShortName} - ${v.FriendlyName}`)
+        return { success: true, content: `${voices.length} English voices:\n${lines.join('\n')}` }
+      } catch (e: any) {
+        return { success: false, content: '', error: e.message }
+      }
+    },
+  },
+  {
+    name: 'tts_config',
+    description: 'Configure TTS settings. Enable/disable, set default voice.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        enabled: { type: 'boolean', description: 'Enable or disable TTS' },
+        voice: { type: 'string', description: 'Default voice name' },
+        autoPlay: { type: 'boolean', description: 'Auto-play TTS when summary is generated' },
+      },
+    },
+    async execute(args) {
+      try {
+        const { loadTTSConfig, saveTTSConfig } = await import('../tts/index.ts')
+        const current = loadTTSConfig()
+        const updated = { ...current, ...args as any }
+        saveTTSConfig(updated)
+        return { success: true, content: `TTS ${updated.enabled ? 'enabled' : 'disabled'}. Voice: ${updated.defaultVoice || 'en-US-AriaNeural'}` }
+      } catch (e: any) {
+        return { success: false, content: '', error: e.message }
+      }
+    },
+  },
   ...engiTools,
 ]
 
