@@ -14,10 +14,11 @@
   ],
   "scripts": {
     "build": "bun build src/index.ts --outdir dist --target node --external @anthropic-ai/sdk --external openai --external simple-git --external glob --external zod",
-    "build:bin": "bun build src/index.ts --outfile bin/beast.js --target node --external @anthropic-ai/sdk --external openai --external simple-git --external glob --external zod --external open",
+    "build:bin": "bun build src/index.ts --outfile bin/beast.js --target node --external @anthropic-ai/sdk --external openai --external simple-git --external glob --external zod --external open --external ink --external react --external @types/react --external @types/react-dom --external ink-spinner",
     "build:ink": "bunx esbuild src/ui/ink/index.tsx --bundle --platform=node --outfile=bin/beast-ink.js --external:ink --external:react --external:@types/react --external:@types/react-dom --external:ink-spinner --format=esm --target=node18",
     "dev": "bun run src/index.ts",
     "dev:ink": "bun --bun run src/ui/ink/index.tsx",
+    "dev:terminal": "bun --bun run src/ui/terminal/index.ts",
     "test": "echo 'Tests skipped'",
     "test:full": "echo 'Tests skipped'",
     "prepublishOnly": "bun run build:bin"
@@ -64,6 +65,7 @@
     "openai": "^4.77.0",
     "react": "^19.2.5",
     "simple-git": "^3.27.0",
+    "terminal-kit": "^3.1.2",
     "zod": "^3.23.8"
   },
   "publishConfig": {

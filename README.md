@@ -1,8 +1,9 @@
 # 🐉 Beast CLI
 
-**AI Coding Assistant in Your Terminal**
+**AI Coding Agent in Your Terminal**
 
 > Ask questions, write code, search the web, and more — all from the command line.
+> Works on **Linux**, **macOS**, and **Windows** with rich TUI support!
 
 [![npm version](https://img.shields.io/npm/v/@simpletoolsindia/beast-cli)](https://www.npmjs.com/package/@simpletoolsindia/beast-cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -82,7 +83,38 @@ bun add -g @simpletoolsindia/beast-cli
 
 ---
 
-## 🚀 Quick Start
+## 🪟 Windows Support
+
+Beast CLI has full Windows support with multiple UI modes:
+
+### Windows UI Modes
+
+| Mode | Command | Best For |
+|------|---------|----------|
+| **Terminal TUI** | `beast --tui` | ✅ Recommended for Windows - colors, spinners, history |
+| **REPL** | `beast` | Fast, ASCII-safe, universal compatibility |
+
+### Installation on Windows
+
+```powershell
+# Option 1: PowerShell installer (recommended)
+irm https://raw.githubusercontent.com/simpletoolsindia/code-cli/main/install.ps1 | iex
+
+# Option 2: npm (requires Node.js)
+npm install -g @simpletoolsindia/beast-cli
+
+# Option 3: One-liner
+iwr https://raw.githubusercontent.com/simpletoolsindia/code-cli/main/install.sh -UseBash | bash
+```
+
+### Windows Terminal
+
+For the best experience on Windows, use **Windows Terminal** (available in Microsoft Store):
+- Full ANSI color support
+- Better Unicode/emoji rendering
+- Faster performance
+
+### Quick Start
 
 ```bash
 # Start the REPL (auto-detects API keys)

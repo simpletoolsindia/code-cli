@@ -22325,6 +22325,7 @@ var init_banner = __esm(() => {
 var exports_router = {};
 __export(exports_router, {
   launchUI: () => launchUI,
+  launchTerminal: () => launchTerminal,
   launchRepl: () => launchRepl,
   launchInk: () => launchInk
 });
@@ -22337,6 +22338,10 @@ function isInteractive() {
 function getInkSourcePath() {
   const selfDir = dirname3(fileURLToPath(import.meta.url));
   return resolve5(selfDir, "..", "src", "ui", "ink", "index.tsx");
+}
+function getTerminalSourcePath() {
+  const selfDir = dirname3(fileURLToPath(import.meta.url));
+  return resolve5(selfDir, "..", "src", "ui", "terminal", "index.ts");
 }
 async function launchRepl() {
   try {
@@ -22374,6 +22379,23 @@ Failed to launch Ink TUI: ` + String(err), fg2.error));
     await launchRepl();
   }
 }
+async function launchTerminal() {
+  try {
+    const termSource = getTerminalSourcePath();
+    const bunPath = process.env.BUN_INSTALL ? process.env.BUN_INSTALL + "/bin/bun" : "bun";
+    const child = spawn3(bunPath, ["--bun", "run", termSource], {
+      stdio: "inherit",
+      env: { ...process.env, FORCE_COLOR: "1" }
+    });
+    child.on("exit", (code) => process.exit(code ?? 0));
+  } catch (err) {
+    console.error(s2(`
+Failed to launch Terminal TUI: ` + String(err), fg2.error));
+    console.error(s2(`Falling back to REPL mode...
+`, fg2.warning));
+    await launchRepl();
+  }
+}
 async function promptMode() {
   const readline = await import("readline");
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
@@ -22381,21 +22403,38 @@ async function promptMode() {
     console.log(renderCleanBanner2());
     console.log();
     console.log(`  ${s2("[1]", fg2.accent)} ${s2("Minimal REPL", fg2.primary)}   ${dim2}— fast, ASCII-safe, tab complete`);
-    console.log(`  ${s2("[2]", fg2.accent)} ${s2("Rich TUI", fg2.primary)}       ${dim2}— modern React/Ink with spinners & panels`);
+    console.log(`  ${s2("[2]", fg2.accent)} ${s2("Rich TUI", fg2.primary)}       ${dim2}— spinners, colors, mouse support`);
+    if (isWindows2) {
+      console.log(`  ${s2("[3]", fg2.accent)} ${s2("Terminal TUI", fg2.primary)} ${dim2}— cross-platform (Windows optimized)`);
+    }
     console.log();
     console.log(`  ${s2("Tip:", fg2.warning)} ${s2("Use", fg2.muted)} ${s2("--tui", fg2.accent)} ${s2("flag to skip this prompt", fg2.muted)}`);
     console.log();
-    rl.question(s2("  Choose [1]", fg2.muted) + " ", (answer) => {
+    const prompt = isWindows2 ? "  Choose [1]" : "  Choose [1]";
+    rl.question(s2(prompt, fg2.muted) + " ", (answer) => {
       rl.close();
-      resolve6(answer.trim() === "2" ? "ink" : "repl");
+      const choice = answer.trim();
+      if (isWindows2 && choice === "3") {
+        resolve6("terminal");
+      } else if (choice === "2") {
+        resolve6("ink");
+      } else {
+        resolve6("repl");
+      }
     });
   });
 }
 async function launchUI(mode = "auto") {
   if (process.argv.includes("--tui")) {
-    console.log(s2(`
+    if (isWindows2) {
+      console.log(s2(`
+  Launching Terminal TUI (Windows)...`, fg2.accent));
+      await launchTerminal();
+    } else {
+      console.log(s2(`
   Launching Rich TUI...`, fg2.accent));
-    await launchInk();
+      await launchInk();
+    }
     return;
   }
   if (!isInteractive()) {
@@ -22403,19 +22442,50 @@ async function launchUI(mode = "auto") {
     return;
   }
   if (mode === "auto") {
+    if (isWindows2) {
+      const readline = await import("readline");
+      const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+      console.log(renderCleanBanner2());
+      console.log();
+      console.log(s2("  ⚠️  Windows detected - using Terminal TUI for best experience", fg2.warning));
+      console.log();
+      console.log(`  ${s2("[1]", fg2.accent)} ${s2("Terminal TUI", fg2.primary)} ${dim2}— Windows optimized, colors & mouse`);
+      console.log(`  ${s2("[2]", fg2.accent)} ${s2("Minimal REPL", fg2.primary)} ${dim2}— fast, ASCII-safe`);
+      console.log();
+      return new Promise((resolve6) => {
+        rl.question(s2("  Choose [1]", fg2.muted) + " ", (answer) => {
+          rl.close();
+          if (answer.trim() === "2") {
+            launchRepl().then(resolve6);
+          } else {
+            launchTerminal().then(resolve6);
+          }
+        });
+      });
+    }
     const chosen = await promptMode();
     if (chosen === "ink") {
       await launchInk();
+    } else if (chosen === "terminal") {
+      await launchTerminal();
     } else {
       await launchRepl();
     }
     return;
   }
-  mode === "ink" ? await launchInk() : await launchRepl();
+  if (mode === "terminal") {
+    await launchTerminal();
+  } else if (mode === "ink") {
+    await launchInk();
+  } else {
+    await launchRepl();
+  }
 }
+var isWindows2;
 var init_router = __esm(() => {
   init_colors();
   init_banner();
+  isWindows2 = process.platform === "win32";
 });
 
 // src/index.ts
