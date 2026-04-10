@@ -59,6 +59,35 @@ const tools: NativeTool[] = [
     },
   },
   {
+    name: 'open_in_browser',
+    description: 'Open URL in default browser. Use when user wants to see results visually or needs interactive web content.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        url: { type: 'string', description: 'URL to open in browser' },
+        search: { type: 'string', description: 'Search query to open in Google (alternative to url)' },
+      },
+      required: [],
+    },
+    async execute(args) {
+      try {
+        let url = args.url as string
+        if (!url && args.search) {
+          url = `https://www.google.com/search?q=${encodeURIComponent(args.search as string)}`
+        }
+        if (!url) {
+          return { success: false, content: '', error: 'Provide url or search parameter' }
+        }
+        const { execSync } = await import('node:child_process')
+        const opener = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open'
+        execSync(`${opener} "${url}"`, { stdio: 'ignore' })
+        return { success: true, content: `Opened in browser: ${url}` }
+      } catch (e: any) {
+        return { success: false, content: '', error: e.message }
+      }
+    },
+  },
+  {
     name: 'fetch_structured',
     description: 'Fetch and extract structured data (article metadata, product info, tables, links).',
     inputSchema: {

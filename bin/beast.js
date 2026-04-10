@@ -509,9 +509,11 @@ async function createCodexProvider(config) {
         stream: true
       };
       if (request.tools && request.tools.length > 0) {
-        body.tools = request.tools.map((t) => ({
+        const validTools = request.tools.filter((t) => t.name && t.inputSchema);
+        console.log("\uD83D\uDCE1 Sending tools:", validTools.map((t) => t.name).join(", "));
+        body.tools = validTools.map((t) => ({
           type: "function",
-          function: { name: t.name, description: t.description, parameters: t.inputSchema }
+          function: { name: t.name, description: t.description || "", parameters: t.inputSchema }
         }));
       }
       if (request.temperature !== undefined) {
@@ -2168,60 +2170,28 @@ ${s2("AI Coding Agent", fg2.muted)} ${s2("·", fg2.overlay)} ${s2("45+ Providers
 }
 
 // src/ui/tips.ts
-var COMMAND_TIPS = [
-  { cmd: "/model <name>", tip: "Switch models mid-session without restarting", category: "command" },
-  { cmd: "/provider <name>", tip: "Jump between Ollama, OpenRouter, Claude instantly", category: "command" },
-  { cmd: "/tools", tip: "See all available MCP tools and their descriptions", category: "command" },
-  { cmd: "/clear", tip: "Wipes conversation history to reset context window", category: "command" },
-  { cmd: "/models", tip: "List all available models for your current provider", category: "command" },
-  { cmd: "/login", tip: "Authenticate with ChatGPT Plus via OAuth (free with subscription)", category: "command" },
-  { cmd: "/logout", tip: "Clear ChatGPT Plus OAuth tokens", category: "command" },
-  { cmd: "Tab", tip: "Auto-complete tool names and common commands", category: "command" },
-  { cmd: "↑ / ↓", tip: "Navigate through your command history", category: "command" }
-];
-var TOOL_TIPS = [
-  { cmd: "file_read", tip: "Use file_read tool to read any file in the current directory", category: "tool" },
-  { cmd: "file_list", tip: "file_list shows directories, files with sizes and modification times", category: "tool" },
-  { cmd: "file_tree", tip: "View your entire project structure at a glance", category: "tool" },
-  { cmd: "run_code", tip: "run_code executes shell commands — git, npm, docker, anything", category: "tool" },
-  { cmd: "run_python", tip: "run_python runs Python code with a sandboxed interpreter", category: "tool" },
-  { cmd: "github_search_repos", tip: "Search GitHub repositories by keyword with stars and language info", category: "tool" },
-  { cmd: "searxng_search", tip: "Search the web without leaving the CLI — great for current events", category: "tool" },
-  { cmd: "fetch_web", tip: "Fetch full web page content from any URL for detailed research", category: "tool" },
-  { cmd: "web_search", tip: "Quick web search for fast answers", category: "tool" },
-  { cmd: "hacker_news", tip: "Get top Hacker News stories and comments", category: "tool" },
-  { cmd: "youtube_transcript", tip: "Extract transcripts from YouTube videos for learning", category: "tool" },
-  { cmd: "real-time data", tip: "Beast auto-detects queries needing live data (news, weather, prices) and fetches them", category: "tool" }
-];
-var PROVIDER_TIPS = [
-  { cmd: "/provider codex", tip: "Use ChatGPT Plus OAuth — free with your $20/mo subscription!", category: "provider" },
-  { cmd: "/provider ollama", tip: "Ollama runs AI models locally on your machine — no internet needed", category: "provider" },
-  { cmd: "beast --defaults", tip: "Auto-selects best available provider — great for beginners!", category: "provider" },
-  { cmd: "45+ providers", tip: "Use any LLM provider — cloud (OpenRouter, Claude, GPT) or local (Ollama, LM Studio)", category: "provider" },
-  { cmd: "Claude", tip: "Anthropic Claude models offer excellent reasoning and long context", category: "provider" },
-  { cmd: "Groq", tip: "Groq provides ultra-fast inference with free tier available", category: "provider" }
-];
-var CONTEXT_TIPS = [
-  { cmd: "/compact", tip: "Manually trigger context compaction to free up space", category: "context" },
-  { cmd: "context", tip: "Chat history counts toward your context window — /clear to free it up", category: "context" },
-  { cmd: "auto-compact", tip: "Context auto-compacts at 95% usage — never lose your place!", category: "context" },
-  { cmd: "memory", tip: "Memory checkpoints save your task state between sessions", category: "context" }
-];
-var FUN_TIPS = [
-  { cmd: "CLI flags", tip: "Skip setup: beast --provider openrouter --model qwen/qwen3-14b", category: "fun" },
-  { cmd: "MCP tools", tip: "51+ native tools available: file ops, web, code, GitHub, YouTube, HN, and more", category: "fun" },
-  { cmd: "themes", tip: "Use --theme claude for warm editorial styling or --theme dracula for dark mode", category: "fun" },
-  { cmd: "code execution", tip: "Write and run code in any language — Python, JavaScript, Bash, and more", category: "fun" }
-];
-var ALL_TIPS = [
-  ...COMMAND_TIPS,
-  ...TOOL_TIPS,
-  ...PROVIDER_TIPS,
-  ...CONTEXT_TIPS,
-  ...FUN_TIPS
+var TIPS = [
+  { cmd: "/model <name>", tip: "Switch models mid-session without restarting" },
+  { cmd: "/provider <name>", tip: "Jump between Ollama, OpenRouter, Claude instantly" },
+  { cmd: "/tools", tip: "See all available MCP tools and their descriptions" },
+  { cmd: "/clear", tip: "Wipes conversation history to reset context window" },
+  { cmd: "↑ / ↓", tip: "Navigate through your command history" },
+  { cmd: "Tab", tip: "Auto-complete tool names and common commands" },
+  { cmd: "file_read", tip: "Use file_read tool to read any file in the current directory" },
+  { cmd: "file_list", tip: "file_list shows directories, files with sizes and modification times" },
+  { cmd: "run_code", tip: "run_code executes shell commands — git, npm, docker, anything" },
+  { cmd: "run_python", tip: "run_python runs Python code with a sandboxed interpreter" },
+  { cmd: "github_search_repos", tip: "Search GitHub repositories by keyword with stars and language info" },
+  { cmd: "searxng_search", tip: "Search the web without leaving the CLI — great for current events" },
+  { cmd: "fetch_web", tip: "Fetch full web page content from any URL for detailed research" },
+  { cmd: "real-time data", tip: "Beast auto-detects queries needing live data (news, weather, prices) and fetches them" },
+  { cmd: "context", tip: "Chat history counts toward your context window — /clear to free it up" },
+  { cmd: "MCP tools", tip: "39 native tools available: file ops, web, code, GitHub, YouTube, HN, and more" },
+  { cmd: "45+ providers", tip: "Use any LLM provider — cloud (OpenRouter, Claude, GPT) or local (Ollama, LM Studio)" },
+  { cmd: "CLI flags", tip: "Skip setup: beast --provider openrouter --model qwen/qwen3-14b" }
 ];
 function randomTip() {
-  const tip = ALL_TIPS[Math.floor(Math.random() * ALL_TIPS.length)];
+  const tip = TIPS[Math.floor(Math.random() * TIPS.length)];
   return `${s2(icon3.sparkles + " Tip:", fg2.warning)} ${s2(tip.tip, fg2.secondary)} ${s2(`(${tip.cmd})`, fg2.muted)}`;
 }
 function tipBanner() {
@@ -5175,121 +5145,56 @@ var tools = [
   },
   {
     name: "run_command",
-    description: "Execute whitelisted system command. Supports cd, python3, npm, git, and background commands with &.",
+    description: "Execute shell command. Supports any command with bash shell. Use for file ops, servers, scripts, etc.",
     inputSchema: {
       type: "object",
       properties: {
-        command: { type: "string", description: "Command to execute" },
-        args: { type: "array", items: { type: "string" }, description: "Command arguments" },
-        cwd: { type: "string", description: "Working directory (optional)" },
+        command: { type: "string", description: "Shell command to execute (full command with args)" },
+        cwd: { type: "string", description: "Working directory (optional, defaults to current)" },
         background: { type: "boolean", description: "Run in background with nohup (default: false)" },
         timeout: { type: "integer", description: "Timeout in seconds (default: 30)" }
       },
       required: ["command"]
     },
     async execute(args) {
-      const allowed = [
-        "ls",
-        "cat",
-        "cp",
-        "mv",
-        "rm",
-        "mkdir",
-        "rmdir",
-        "find",
-        "grep",
-        "head",
-        "tail",
-        "wc",
-        "cd",
-        "pwd",
-        "echo",
-        "touch",
-        "chmod",
-        "chown",
-        "tar",
-        "zip",
-        "unzip",
-        "python",
-        "python2",
-        "python3",
-        "node",
-        "npm",
-        "npx",
-        "bun",
-        "deno",
-        "git",
-        "gh",
-        "curl",
-        "wget",
-        "ssh",
-        "scp",
-        "rsync",
-        "docker",
-        "kubectl",
-        "helm",
-        "kill",
-        "pkill",
-        "ps",
-        "top",
-        "htop",
-        "df",
-        "du",
-        "free",
-        "netstat",
-        "lsof",
-        "ping",
-        "traceroute",
-        "nslookup",
-        "dig",
-        "sed",
-        "awk",
-        "cut",
-        "sort",
-        "uniq",
-        "diff",
-        "nohup",
-        "bg",
-        "jobs",
-        "fg",
-        "code",
-        "nano",
-        "vim",
-        "vi",
-        "nano"
-      ];
+      const { execSync: execSync2, spawn: spawn2 } = await import("node:child_process");
       const cmd = args.command;
-      const cmdArgs = args.args || [];
       const workingDir = args.cwd || process.cwd();
       const timeout = args.timeout || 30;
       const runBackground = args.background || false;
-      if (!allowed.includes(cmd)) {
-        return { success: false, content: "", error: `Command not allowed: ${cmd}. Allowed: ${allowed.slice(0, 20).join(", ")}...` };
+      const dangerous = ["rm -rf", "dd", "mkfs", ":(){", "fork bomb", "> /dev/", "curl | bash", "wget -O- |"];
+      const isDangerous = dangerous.some((d) => cmd.toLowerCase().includes(d));
+      if (isDangerous) {
+        return { success: false, content: "", error: `⚠️  Dangerous command detected: "${cmd.slice(0, 50)}..."
+
+To execute dangerous commands, run directly in your terminal.` };
       }
-      if (cmd === "cd") {
-        const targetDir = cmdArgs[0] || workingDir;
-        try {
-          const { statSync: statSync2 } = await import("node:fs");
-          statSync2(targetDir);
-          return { success: true, content: `Changed directory to: ${targetDir}` };
-        } catch (e) {
-          return { success: false, content: "", error: `Directory not found: ${targetDir}` };
+      let fullCmd = cmd;
+      if (cmd.startsWith("cd ") && !cmd.includes("&&")) {
+        const match = cmd.match(/^cd\s+(.+)$/);
+        if (match) {
+          const targetDir = match[1].replace(/^~/, process.env.HOME || "~");
+          try {
+            const { statSync: statSync2 } = await import("node:fs");
+            statSync2(targetDir);
+            return { success: true, content: `Directory changed to: ${targetDir}` };
+          } catch {
+            return { success: false, content: "", error: `Directory not found: ${targetDir}` };
+          }
         }
       }
-      const { execSync: execSync2, spawn: spawn2 } = await import("node:child_process");
       try {
-        let fullCommand = cmdArgs.length > 0 ? `${cmd} ${cmdArgs.join(" ")}` : cmd;
-        if (runBackground || fullCommand.includes(" &")) {
-          fullCommand = fullCommand.replace(/\s*&\s*$/, "").trim();
-          spawn2(fullCommand, [], {
+        if (runBackground || cmd.endsWith(" &")) {
+          const cleanCmd = cmd.replace(/\s*&\s*$/, "").trim();
+          spawn2(cleanCmd, [], {
             shell: true,
             cwd: workingDir,
             detached: true,
             stdio: "ignore"
           }).unref();
-          return { success: true, content: `Started in background: ${fullCommand} (PID: process detached)` };
+          return { success: true, content: `Started in background: ${cleanCmd}` };
         }
-        const output = execSync2(fullCommand, {
+        const output = execSync2(`/bin/bash -c ${JSON.stringify(cmd)}`, {
           encoding: "utf-8",
           timeout: timeout * 1000,
           cwd: workingDir,
@@ -5902,73 +5807,33 @@ ${title}`);
     console.log("  Invalid selection. Try again.");
   }
 }
-var currentSpinner = null;
-var spinnerStarted = false;
-var spinnerFrame = 0;
+var SPINNER_FRAMES = ["\u280B", "\u2819", "\u2839", "\u2838", "\u283C", "\u2834", "\u2826", "\u2827", "\u2807", "\u280F"];
+var spinnerHandle = null;
 var spinnerLabel = "";
-var spinnerAnimation = [];
-var spinnerSpeed = 150;
-var THINKING_ANIMS = [
-  "(\u25D5\u203F\u25D5)\uD83D\uDC15",
-  "(=^\u30FB^=)",
-  "(\xA8)\uD83E\uDD8A",
-  "( @)\uD83D\uDC38",
-  "(*)",
-  "(\u25D5\u03C9\u25D5)\uD83D\uDC15",
-  "(=^\u30FB\u03C9\u30FB^=)",
-  "(\u25D5\u203F\u25D5)\uD83E\uDD8A",
-  "(\\/)\uD83D\uDC30",
-  " (=\u30FB)"
-];
-var SEARCH_ANIMS = ["><(((\xBA>", " <(\xBA)>", "><(((\xBA>", "  ~(``)~", "><(((\xBA>"];
-var TOOL_ANIMS = ["(\u25D5\u203F\u25D5)\uD83D\uDC15", "(=^\u30FB^=)", "(\xA8)\uD83E\uDD8A", "(*)", "=(\u30FB)"];
-var THINKING_DOTS = ["\u280B", "\u2819", "\u2839", "\u2838", "\u283C", "\u2834"];
-function startFunSpinner(state = "thinking") {
-  if (currentSpinner)
-    clearInterval(currentSpinner);
+var spinnerStarted = false;
+function startSpinner(label) {
+  if (spinnerHandle)
+    clearInterval(spinnerHandle);
+  spinnerLabel = label;
   spinnerStarted = true;
-  spinnerFrame = 0;
-  if (state === "searching") {
-    spinnerAnimation = SEARCH_ANIMS;
-    spinnerLabel = s("Searching", fg.info);
-    spinnerSpeed = 120;
-  } else if (state === "tool") {
-    spinnerAnimation = TOOL_ANIMS;
-    spinnerLabel = s("Running", fg.tool);
-    spinnerSpeed = 150;
-  } else if (state === "formatting") {
-    spinnerAnimation = ["\u2728", "\u2605", "\u2726", "\u2727", "\u2605"];
-    spinnerLabel = s("Formatting", fg.success);
-    spinnerSpeed = 200;
-  } else {
-    spinnerAnimation = THINKING_ANIMS;
-    spinnerLabel = s("Thinking", fg.accent);
-    spinnerSpeed = 150;
-  }
-  const char = spinnerAnimation[0];
-  const dot = THINKING_DOTS[0];
-  process.stderr.write(`\r${spinnerLabel} ${char} ${dot}  `);
-  currentSpinner = setInterval(() => {
+  let frame = 0;
+  process.stderr.write(`\r${label} ${SPINNER_FRAMES[frame]}  `);
+  spinnerHandle = setInterval(() => {
     if (!spinnerStarted)
       return;
-    spinnerFrame = (spinnerFrame + 1) % spinnerAnimation.length;
-    const animChar = spinnerAnimation[spinnerFrame];
-    const dot2 = THINKING_DOTS[spinnerFrame % THINKING_DOTS.length];
-    process.stderr.write(`\r${spinnerLabel} ${animChar} ${dot2}  `);
-  }, spinnerSpeed);
+    frame = (frame + 1) % SPINNER_FRAMES.length;
+    process.stderr.write(`\r${label} ${SPINNER_FRAMES[frame]}  `);
+  }, 80);
 }
-function stopFunSpinner(status = "done") {
-  if (currentSpinner) {
-    clearInterval(currentSpinner);
-    currentSpinner = null;
+function stopSpinner(done = false, label = "") {
+  if (spinnerHandle) {
+    clearInterval(spinnerHandle);
+    spinnerHandle = null;
   }
   spinnerStarted = false;
   process.stderr.write("\r" + " ".repeat(60) + "\r");
-  if (status === "done") {
-    process.stderr.write(s("\u2713 ", fg.success) + (spinnerLabel || "Done") + `
-`);
-  } else if (status === "error") {
-    process.stderr.write(s("\u2717 ", fg.error) + `Error
+  if (done) {
+    process.stderr.write(`${label} ${s("\u2713", fg.success)}
 `);
   }
 }
@@ -6444,7 +6309,7 @@ Available models on ${session.provider}:`);
       });
     }
     agentMessages.push({ role: "user", content: trimmed });
-    startFunSpinner("thinking");
+    startSpinner("Thinking");
     try {
       const provider = await createProvider({
         provider: session.provider,
@@ -6459,7 +6324,7 @@ Available models on ${session.provider}:`);
           tools: tools2,
           maxTokens: 16384
         });
-        stopFunSpinner("done");
+        stopSpinner(true);
         if (toolCallCount === 0) {
           printUsage(response.usage);
         }
@@ -6484,13 +6349,13 @@ ${resultText}
 
 Please provide a clear, concise answer based on these results.`
             });
-            startFunSpinner("formatting");
+            startSpinner("Formatting");
             const formatted = await provider.create({
               messages: agentMessages,
               tools: undefined,
               maxTokens: 16384
             });
-            stopFunSpinner("done");
+            stopSpinner(true);
             if (formatted.content) {
               streamText(formatted.content);
             }
@@ -6514,9 +6379,7 @@ Please provide a clear, concise answer based on these results.`
           const argsDisplay = argsStr.length > 60 ? argsStr.slice(0, 60) + "..." : argsStr;
           process.stdout.write(s("\uD83D\uDD27 " + toolName, fg.tool) + " " + s(argsDisplay, fg.muted) + `
 `);
-          startFunSpinner("tool");
-          const toolResult = await executeTool(toolName, toolArgs);
-          stopFunSpinner(toolResult.success ? "done" : "error");
+          const toolResult = await withProgress(`Running ${toolName}`, executeTool(toolName, toolArgs));
           console.log(renderToolResult(toolName, toolResult));
           agentMessages.push({
             role: "assistant",
@@ -6545,7 +6408,7 @@ Please provide a clear, concise answer based on these results.`
 `);
       }
     } catch (e) {
-      stopFunSpinner("error");
+      stopSpinner(false);
       console.log(`
 ${s("\u274C Error:", fg.error)} ${e}`);
       if (session.messages.length > 0)
