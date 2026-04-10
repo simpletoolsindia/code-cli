@@ -572,9 +572,12 @@ async function createCodexProvider(config: LLMConfig): Promise<LLMProvider> {
 
       // Add tools for real-time data access (gold rate, weather, etc.)
       if (request.tools && request.tools.length > 0) {
-        body.tools = request.tools.map(t => ({
+        // Filter tools that have required name field
+        const validTools = request.tools.filter(t => t.name && t.inputSchema)
+        console.log('📡 Sending tools:', validTools.map(t => t.name).join(', '))
+        body.tools = validTools.map(t => ({
           type: 'function' as const,
-          function: { name: t.name, description: t.description, parameters: t.inputSchema },
+          function: { name: t.name, description: t.description || '', parameters: t.inputSchema },
         }))
       }
 
