@@ -98,7 +98,7 @@ export function compact(
   const preservedTokens = countMessageTokens(preserved)
 
   // Calculate budget for earlier messages
-  const availableTokens = config.maxTokens - protectedTokens
+  const availableTokens = config.maxTokens - preservedTokens
 
   // Group older messages by file/operation
   const groupedMessages = new Map<string, Message[]>()
@@ -150,7 +150,7 @@ export function compact(
   // Build final message list
   const compactedMessages = [compactionSummary, ...preserved]
 
-  const newTokens = countMessageTokens(compacted)
+  const newTokens = countMessageTokens(compactedMessages)
   const tokensSaved = originalTokens - newTokens
 
   return {

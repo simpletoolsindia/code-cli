@@ -257,3 +257,349 @@ export const styled_ = {
   purple: (t: string) => isColorEnabled() ? fg.purple + t + reset : t,
   prompt: (t: string) => isColorEnabled() ? fg.prompt + t + reset : t,
 }
+
+// ── Theme System ──────────────────────────────────────────────────────────────
+// Inspired by opencode's multi-theme support
+
+export type ThemeName =
+  | 'catppuccin-mocha' | 'catppuccin-frappe' | 'catppuccin-latte'
+  | 'tokyonight' | 'dracula' | 'gruvbox' | 'monokai' | 'nord' | 'one-dark'
+
+export interface Theme {
+  name: string
+  // Base colors
+  crust: string
+  mantle: string
+  base: string
+  surface0: string
+  surface1: string
+  surface2: string
+  // Text
+  text: string
+  subtext0: string
+  subtext1: string
+  overlay0: string
+  // Accents
+  blue: string
+  sapphire: string
+  sky: string
+  teal: string
+  green: string
+  yellow: string
+  peach: string
+  maroon: string
+  red: string
+  mauve: string
+  pink: string
+  flamingo: string
+  lavender: string
+  white: string
+}
+
+// All available themes
+export const themes: Record<ThemeName, Theme> = {
+  // Catppuccin Mocha (current default)
+  'catppuccin-mocha': {
+    name: 'Catppuccin Mocha',
+    crust: '\x1b[48;2;17;17;27m',
+    mantle: '\x1b[48;2;24;24;37m',
+    base: '\x1b[48;2;30;30;46m',
+    surface0: '\x1b[48;2;49;49;68m',
+    surface1: '\x1b[48;2;69;73;90m',
+    surface2: '\x1b[48;2;88;91;112m',
+    text: '\x1b[38;2;205;214;244m',
+    subtext0: '\x1b[38;2;166;173;200m',
+    subtext1: '\x1b[38;2;186;190;204m',
+    overlay0: '\x1b[38;2;108;112;134m',
+    blue: '\x1b[38;2;137;180;250m',
+    sapphire: '\x1b[38;2;62;142;204m',
+    sky: '\x1b[38;2;106;173;214m',
+    teal: '\x1b[38;2;148;226;213m',
+    green: '\x1b[38;2;166;227;161m',
+    yellow: '\x1b[38;2;249;226;175m',
+    peach: '\x1b[38;2;250;179;135m',
+    maroon: '\x1b[38;2;209;133;122m',
+    red: '\x1b[38;2;243;139;168m',
+    mauve: '\x1b[38;2;203;166;247m',
+    pink: '\x1b[38;2;245;194;231m',
+    flamingo: '\x1b[38;2;242;205;205m',
+    lavender: '\x1b[38;2;180;190;254m',
+    white: '\x1b[38;2;230;230;250m',
+  },
+
+  // Catppuccin Frappé
+  'catppuccin-frappe': {
+    name: 'Catppuccin Frappé',
+    crust: '\x1b[48;2;38;42;54m',
+    mantle: '\x1b[48;2;48;52;65m',
+    base: '\x1b[48;2;54;58;73m',
+    surface0: '\x1b[48;2;69;73;88m',
+    surface1: '\x1b[48;2;86;91;108m',
+    surface2: '\x1b[48;2;98;103;122m',
+    text: '\x1b[38;2;205;214;244m',
+    subtext0: '\x1b[38;2;166;173;200m',
+    subtext1: '\x1b[38;2;186;190;204m',
+    overlay0: '\x1b[38;2;108;112;134m',
+    blue: '\x1b[38;2;137;180;250m',
+    sapphire: '\x1b[38;2;62;142;204m',
+    sky: '\x1b[38;2;118;180;214m',
+    teal: '\x1b[38;2;129;200;190m',
+    green: '\x1b[38;2;166;227;161m',
+    yellow: '\x1b[38;2;239;227;175m',
+    peach: '\x1b[38;2;239;159;135m',
+    maroon: '\x1b[38;2;238;133;122m',
+    red: '\x1b[38;2;231;130;132m',
+    mauve: '\x1b[38;2;202;158;230m',
+    pink: '\x1b[38;2;245;194;231m',
+    flamingo: '\x1b[38;2;238;180;180m',
+    lavender: '\x1b[38;2;180;190;254m',
+    white: '\x1b[38;2;230;230;250m',
+  },
+
+  // Nord
+  nord: {
+    name: 'Nord',
+    crust: '\x1b[48;2;46;52;64m',
+    mantle: '\x1b[48;2;32;38;50m',
+    base: '\x1b[48;2;36;40;52m',
+    surface0: '\x1b[48;2;67;76;93m',
+    surface1: '\x1b[48;2;85;93;112m',
+    surface2: '\x1b[48;2;102;110;128m',
+    text: '\x1b[38;2;216;222;233m',
+    subtext0: '\x1b[38;2;191;197;208m',
+    subtext1: '\x1b[38;2;166;173;200m',
+    overlay0: '\x1b[38;2;136;146;157m',
+    blue: '\x1b[38;2;129;161;193m',
+    sapphire: '\x1b[38;2;97;125;168m',
+    sky: '\x1b[38;2;114;159;207m',
+    teal: '\x1b[38;2;136;192;208m',
+    green: '\x1b[38;2;163;190;140m',
+    yellow: '\x1b[38;2;235;203;139m',
+    peach: '\x1b[38;2;229;174;116m',
+    maroon: '\x1b[38;2;180;142;127m',
+    red: '\x1b[38;2;191;97;106m',
+    mauve: '\x1b[38;2;180;142;200m',
+    pink: '\x1b[38;2;217;135;180m',
+    flamingo: '\x1b[38;2;210;142;142m',
+    lavender: '\x1b[38;2;180;190;254m',
+    white: '\x1b[38;2;236;239;244m',
+  },
+
+  // Dracula
+  dracula: {
+    name: 'Dracula',
+    crust: '\x1b[48;2;40;42;68m',
+    mantle: '\x1b[48;2;33;33;54m',
+    base: '\x1b[48;2;45;45;68m',
+    surface0: '\x1b[48;2;68;68;86m',
+    surface1: '\x1b[48;2;85;85;102m',
+    surface2: '\x1b[48;2;98;98;120m',
+    text: '\x1b[38;2;248;248;242m',
+    subtext0: '\x1b[38;2;187;187;197m',
+    subtext1: '\x1b[38;2;166;166;178m',
+    overlay0: '\x1b[38;2;117;113;128m',
+    blue: '\x1b[38;2;98;120;184m',
+    sapphire: '\x1b[38;2;72;96;140m',
+    sky: '\x1b[38;2;92;172;224m',
+    teal: '\x1b[38;2;50;208;208m',
+    green: '\x1b[38;2;80;250;123m',
+    yellow: '\x1b[38;2;241;250;140m',
+    peach: '\x1b[38;2;255;184;135m',
+    maroon: '\x1b[38;2;180;120;120m',
+    red: '\x1b[38;2;255;85;85m',
+    mauve: '\x1b[38;2;189;147;249m',
+    pink: '\x1b[38;2;255;121;198m',
+    flamingo: '\x1b[38;2;240;128;128m',
+    lavender: '\x1b[38;2;180;190;254m',
+    white: '\x1b[38;2;255;255;255m',
+  },
+
+  // Gruvbox Dark
+  gruvbox: {
+    name: 'Gruvbox Dark',
+    crust: '\x1b[48;2;40;40;40m',
+    mantle: '\x1b[48;2;35;35;30m',
+    base: '\x1b[48;2;40;40;35m',
+    surface0: '\x1b[48;2;60;56;54m',
+    surface1: '\x1b[48;2;73;69;66m',
+    surface2: '\x1b[48;2;83;81;77m',
+    text: '\x1b[38;2;235;219;178m',
+    subtext0: '\x1b[38;2;189;174;154m',
+    subtext1: '\x1b[38;2;168;153;132m',
+    overlay0: '\x1b[38;2;146;131;116m',
+    blue: '\x1b[38;2;104;157;184m',
+    sapphire: '\x1b[38;2;80;120;140m',
+    sky: '\x1b[38;2;115;178;200m',
+    teal: '\x1b[38;2;125;170;140m',
+    green: '\x1b[38;2;184;187;98m',
+    yellow: '\x1b[38;2;250;189;47m',
+    peach: '\x1b[38;2;254;151;32m',
+    maroon: '\x1b[38;2;204;120;101m',
+    red: '\x1b[38;2;251;73;52m',
+    mauve: '\x1b[38;2;177;98;135m',
+    pink: '\x1b[38;2;214;93;112m',
+    flamingo: '\x1b[38;2;235;138;108m',
+    lavender: '\x1b[38;2;180;150;200m',
+    white: '\x1b[38;2;251;251;248m',
+  },
+
+  // Monokai
+  monokai: {
+    name: 'Monokai',
+    crust: '\x1b[48;2;39;40;34m',
+    mantle: '\x1b[48;2;35;36;30m',
+    base: '\x1b[48;2;40;40;34m',
+    surface0: '\x1b[48;2;72;72;64m',
+    surface1: '\x1b[48;2;85;85;77m',
+    surface2: '\x1b[48;2;102;102;94m',
+    text: '\x1b[38;2;248;248;240m',
+    subtext0: '\x1b[38;2;190;190;180m',
+    subtext1: '\x1b[38;2;170;170;160m',
+    overlay0: '\x1b[38;2;153;153;144m',
+    blue: '\x1b[38;2;102;217;239m',
+    sapphire: '\x1b[38;2;80;160;200m',
+    sky: '\x1b[38;2;100;180;220m',
+    teal: '\x1b[38;2;166;226;46m',
+    green: '\x1b[38;2;166;226;46m',
+    yellow: '\x1b[38;2;250;227;79m',
+    peach: '\x1b[38;2;250;179;66m',
+    maroon: '\x1b[38;2;200;120;100m',
+    red: '\x1b[38;2;249;38;114m',
+    mauve: '\x1b[38;2;197;134;192m',
+    pink: '\x1b[38;2;243;139;168m',
+    flamingo: '\x1b[38;2;220;120;120m',
+    lavender: '\x1b[38;2;180;170;220m',
+    white: '\x1b[38;2;249;249;249m',
+  },
+
+  // One Dark
+  'one-dark': {
+    name: 'One Dark',
+    crust: '\x1b[48;2;40;44;52m',
+    mantle: '\x1b[48;2;32;35;45m',
+    base: '\x1b[48;2;40;44;52m',
+    surface0: '\x1b[48;2;57;60;72m',
+    surface1: '\x1b[48;2;73;77;90m',
+    surface2: '\x1b[48;2;88;92;108m',
+    text: '\x1b[38;2;220;223;228m',
+    subtext0: '\x1b[38;2;185;188;197m',
+    subtext1: '\x1b[38;2;170;174;185m',
+    overlay0: '\x1b[38;2;128;132;148m',
+    blue: '\x1b[38;2;97;159;226m',
+    sapphire: '\x1b[38;2;70;110;160m',
+    sky: '\x1b[38;2;100;160;210m',
+    teal: '\x1b[38;2;64;192;176m',
+    green: '\x1b[38;2;152;209;113m',
+    yellow: '\x1b[38;2;231;200;112m',
+    peach: '\x1b[38;2;250;170;100m',
+    maroon: '\x1b[38;2;200;130;110m',
+    red: '\x1b[38;2;224;108;117m',
+    mauve: '\x1b[38;2;198;120;221m',
+    pink: '\x1b[38;2;248;108;180m',
+    flamingo: '\x1b[38;2;220;130;130m',
+    lavender: '\x1b[38;2;180;160;240m',
+    white: '\x1b[38;2;255;255;255m',
+  },
+
+  // Tokyo Night
+  tokyonight: {
+    name: 'Tokyo Night',
+    crust: '\x1b[48;2;24;27;38m',
+    mantle: '\x1b[48;2;20;23;35m',
+    base: '\x1b[48;2;30;35;55m',
+    surface0: '\x1b[48;2;48;52;75m',
+    surface1: '\x1b[48;2;65;69;95m',
+    surface2: '\x1b[48;2;82;88;115m',
+    text: '\x1b[38;2;192;202;237m',
+    subtext0: '\x1b[38;2;165;173;200m',
+    subtext1: '\x1b[38;2;180;188;210m',
+    overlay0: '\x1b[38;2;110;118;148m',
+    blue: '\x1b[38;2;122;162;247m',
+    sapphire: '\x1b[38;2;80;130;190m',
+    sky: '\x1b[38;2;100;170;210m',
+    teal: '\x1b[38;2;148;226;213m',
+    green: '\x1b[38;2;166;227;161m',
+    yellow: '\x1b[38;2;238;212;160m',
+    peach: '\x1b[38;2;250;180;130m',
+    maroon: '\x1b[38;2;210;150;140m',
+    red: '\x1b[38;2;245;134;145m',
+    mauve: '\x1b[38;2;197;158;237m',
+    pink: '\x1b[38;2;242;165;220m',
+    flamingo: '\x1b[38;2;235;165;165m',
+    lavender: '\x1b[38;2;180;190;254m',
+    white: '\x1b[38;2;255;255;255m',
+  },
+
+  // Catppuccin Latte (light)
+  'catppuccin-latte': {
+    name: 'Catppuccin Latte',
+    crust: '\x1b[48;2;230;225;220m',
+    mantle: '\x1b[48;2;239;235;230m',
+    base: '\x1b[48;2;244;240;235m',
+    surface0: '\x1b[48;2;205;200;195m',
+    surface1: '\x1b[48;2;187;182;177m',
+    surface2: '\x1b[48;2;168;163;158m',
+    text: '\x1b[38;2;64;64;76m',
+    subtext0: '\x1b[38;2;102;98;113m',
+    subtext1: '\x1b[38;2;114;110;126m',
+    overlay0: '\x1b[38;2;140;136;152m',
+    blue: '\x1b[38;2;30;102;204m',
+    sapphire: '\x1b[38;2;40;100;160m',
+    sky: '\x1b[38;2;50;130;175m',
+    teal: '\x1b[38;2;23;146;153m',
+    green: '\x1b[38;2;64;160;73m',
+    yellow: '\x1b[38;2;250;189;47m',
+    peach: '\x1b[38;2;254;144;76m',
+    maroon: '\x1b[38;2;210;100;100m',
+    red: '\x1b[38;2;210;84;96m',
+    mauve: '\x1b[38;2;136;57;186m',
+    pink: '\x1b[38;2;214;84;157m',
+    flamingo: '\x1b[38;2;200;100;100m',
+    lavender: '\x1b[38;2;100;100;220m',
+    white: '\x1b[38;2;255;255;255m',
+  },
+}
+
+// Current theme state
+let currentTheme: ThemeName = 'catppuccin-mocha'
+
+/**
+ * Get the current theme
+ */
+export function getTheme(): Theme {
+  return themes[currentTheme]
+}
+
+/**
+ * Set the current theme
+ */
+export function setTheme(name: ThemeName): void {
+  if (themes[name]) {
+    currentTheme = name
+  }
+}
+
+/**
+ * Get theme by name
+ */
+export function getThemeByName(name: string): Theme | null {
+  const key = name.toLowerCase().replace(/[_\s]+/g, '-') as ThemeName
+  return themes[key] || null
+}
+
+/**
+ * List all available themes
+ */
+export function listThemes(): Array<{ name: ThemeName; label: string }> {
+  return Object.entries(themes).map(([key, theme]) => ({
+    name: key as ThemeName,
+    label: theme.name,
+  }))
+}
+
+/**
+ * Get current theme name
+ */
+export function getCurrentThemeName(): ThemeName {
+  return currentTheme
+}
