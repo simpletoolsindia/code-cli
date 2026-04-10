@@ -33,6 +33,7 @@ Beast CLI is an **AI assistant in your terminal**. Instead of opening a website 
 - 📝 Write and edit code
 - 🛠️ Run terminal commands
 - 📚 Explain how code works
+- 🔊 **Speak summaries aloud** with text-to-speech (TTS)
 
 **You can use:**
 - 🤖 **Free AI models** (like Ollama) — runs on YOUR computer
@@ -41,25 +42,20 @@ Beast CLI is an **AI assistant in your terminal**. Instead of opening a website 
 
 ---
 
-## 🚀 Getting Started (First Time Setup)
-
-### Step 1: Install Node.js (Required)
-
-**Windows/Mac/Linux:**
-1. Go to [nodejs.org](https://nodejs.org)
-2. Download the **LTS** version (big green button)
-3. Run the installer — click "Next" through all options
-4. Restart your terminal after installation
-
-### Step 2: Install Beast CLI
-
-Open your terminal and run:
+## 🚀 Getting Started (Zero-Config — One Command!)
 
 ```bash
-npm install -g @simpletoolsindia/beast-cli
+# One-line install (auto-installs Node.js & ffmpeg if needed)
+curl -fsSL https://raw.githubusercontent.com/simpletoolsindia/code-cli/main/install.sh | bash
 ```
 
-### Step 3: Start Using Beast
+That's it! The installer handles everything automatically:
+- ✅ Auto-installs Node.js if missing
+- ✅ Auto-installs ffmpeg for audio playback
+- ✅ Enables TTS (text-to-speech) by default
+- ✅ Configures PATH automatically
+
+### Start Using Beast
 
 ```bash
 # Recommended for beginners — uses ChatGPT Plus automatically!
@@ -69,21 +65,19 @@ beast --defaults
 beast
 ```
 
-That's it! Beast will guide you through choosing an AI model.
+Beast will guide you through choosing an AI model.
 
 ---
 
-## ⚡ Quick Install (If You Already Have Node.js)
+## ⚡ Quick Install
 
 ```bash
-# If you have npm
-npm install -g @simpletoolsindia/beast-cli
-
-# If you have Bun
-bun add -g @simpletoolsindia/beast-cli
-
-# Or use the one-line installer
+# Zero-config installer (auto Node.js + ffmpeg + TTS)
 curl -fsSL https://raw.githubusercontent.com/simpletoolsindia/code-cli/main/install.sh | bash
+
+# If you already have Node.js
+npm install -g @simpletoolsindia/beast-cli
+bun add -g @simpletoolsindia/beast-cli
 ```
 
 ---
@@ -172,6 +166,55 @@ autoCompact: true
 | `engi_doc_update_plan` | Plan docs updates |
 | `engi_memory_checkpoint` | Save task state |
 | `engi_memory_restore` | Restore saved task |
+
+---
+
+## 🔊 Text-to-Speech (TTS)
+
+Beast CLI can **speak summaries aloud** using Microsoft Edge TTS (free, high quality, 47 English voices).
+
+### REPL TTS Commands
+
+| Command | Description |
+|---------|-------------|
+| `/tts speak <text>` | Speak text aloud |
+| `/tts list` | List available English voices |
+| `/tts config` | Show current TTS configuration |
+| `/tts set <voice>` | Change the default voice |
+| `/tts on/off` | Enable/disable auto-play |
+
+### Example
+
+```bash
+beast> /tts speak Hello! I'm Beast CLI, your AI coding assistant.
+```
+
+### Available Voices
+
+```bash
+beast> /tts list
+en-US-AriaNeural      # Neural voice (default) — best quality
+en-US-GuyNeural       # Male neural voice
+en-US-JennyNeural     # Female neural voice
+en-GB-SoniaNeural     # British female
+en-AU-NatashaNeural   # Australian female
+# ... 47 total English voices
+```
+
+### Install Audio Player
+
+TTS requires **ffmpeg** for audio playback. The installer handles this automatically. To install manually:
+
+```bash
+# Linux
+sudo apt-get install ffmpeg
+
+# macOS
+brew install ffmpeg
+
+# Windows (with Chocolatey)
+choco install ffmpeg -y
+```
 
 ---
 
@@ -304,3 +347,4 @@ MIT License - see [LICENSE](LICENSE)
 - [Anthropic](https://anthropic.com) - Claude API
 - [OpenAI](https://openai.com) - GPT API
 - [Bubble Tea](https://github.com/charmbracelet/bubbletea) - TUI inspiration
+- [edge-tts-universal](https://github.com/jingfelix/edge-tts-universal) - Free Microsoft Edge TTS
