@@ -1,5 +1,7 @@
-// Beast CLI - Catppuccin Mocha Theme + Clean Icon System
-// Based on research: cohesive pastel dark theme, accessible colors
+// Beast CLI - Color System
+// Default: Claude warm editorial theme (inspired by claude.ai)
+// Available themes: catppuccin-mocha, catppuccin-frappe, catppuccin-latte,
+// tokyonight, dracula, gruvbox, monokai, nord, one-dark, claude, gemini
 
 // ANSI Reset
 export const reset = '\x1b[0m'
@@ -7,6 +9,47 @@ export const bold = '\x1b[1m'
 export const dim = '\x1b[2m'
 export const italic = '\x1b[3m'
 export const underline = '\x1b[4m'
+
+// ── Claude Warm Editorial Palette (Default) ──────────────────────────────────
+export const claudePalette = {
+  // Backgrounds (warm, light)
+  crust:    '\x1b[48;2;250;249;245m',  // ivory
+  mantle:   '\x1b[48;2;245;244;237m',  // parchment
+  base:     '\x1b[48;2;240;238;220m',   // sand
+  surface0: '\x1b[48;2;232;230;220m',  // warm surface
+  surface1: '\x1b[48;2;215;213;200m',  // lighter warm
+  surface2: '\x1b[48;2;180;178;170m',  // warm gray
+
+  // Text
+  text:     '\x1b[38;2;20;20;19m',     // near-black
+  subtext0: '\x1b[38;2;80;79;75m',     // dark gray
+  subtext1: '\x1b[38;2;50;49;46m',     // darker gray
+  overlay0: '\x1b[38;2;140;138;130m',   // muted gray
+
+  // Accent colors (Google-inspired vivid accents)
+  blue:     '\x1b[38;2;56;152;236m',    // focus blue
+  sapphire: '\x1b[38;2;56;152;236m',    // blue
+  sky:      '\x1b[38;2;100;170;210m',  // sky blue
+  teal:     '\x1b[38;2;23;146;153m',    // teal
+  green:    '\x1b[38;2;30;160;80m',     // success green
+  yellow:   '\x1b[38;2;200;140;0m',     // warm yellow
+  peach:    '\x1b[38;2;201;130;70m',   // warm orange
+  maroon:   '\x1b[38;2;160;100;90m',   // warm maroon
+  red:      '\x1b[38;2;200;60;60m',     // error red
+  mauve:    '\x1b[38;2;180;80;200m',    // purple/mauve
+  pink:     '\x1b[38;2;200;100;180m',  // pink
+  flamingo: '\x1b[38;2;220;150;130m',  // warm pink
+  lavender: '\x1b[38;2;139;92;246m',   // lavender purple
+  white:    '\x1b[38;2;255;255;250m',  // warm white
+
+  // Google brand (for accent use)
+  gpPurple: '\x1b[38;2;142;54;255m',   // Google Purple
+  gpBlue:   '\x1b[38;2;70;130;255m',  // Google Blue
+  gpCyan:   '\x1b[38;2;0;200;200m',    // Google Cyan
+  gpGreen:  '\x1b[38;2;0;200;100m',   // Google Green
+  gpYellow: '\x1b[38;2;255;200;0m',   // Google Yellow
+  gpRed:    '\x1b[38;2;255;100;100m', // Google Red
+}
 
 // ── Catppuccin Mocha Palette ──────────────────────────────────────────────────
 export const mocha = {
@@ -38,59 +81,65 @@ export const mocha = {
   white:    '\x1b[38;2;230;230;250m',
 }
 
-// ── Semantic Colors ───────────────────────────────────────────────────────────
+// ── Semantic Colors (Default: Claude warm editorial) ──────────────────────────
 export const fg = {
-  primary:   mocha.text,
-  secondary: mocha.subtext1,
-  muted:     mocha.overlay0,
-  overlay:   mocha.surface2,
+  // Text hierarchy
+  primary:   claudePalette.text,
+  secondary: claudePalette.subtext1,
+  muted:     claudePalette.overlay0,
+  overlay:   claudePalette.surface2,
 
-  success:   mocha.green,
-  warning:   mocha.yellow,
-  error:     mocha.red,
-  info:      mocha.blue,
+  // Status
+  success:   claudePalette.green,
+  warning:   claudePalette.yellow,
+  error:     claudePalette.red,
+  info:      claudePalette.blue,
 
-  user:      mocha.green,
-  assistant: mocha.mauve,
-  system:    mocha.sapphire,
-  tool:      mocha.peach,
+  // Message roles
+  user:      claudePalette.green,
+  assistant: claudePalette.mauve,
+  system:    claudePalette.sapphire,
+  tool:      claudePalette.peach,
 
-  code:      mocha.teal,
-  link:      mocha.sapphire,
-  keyword:   mocha.mauve,
-  function:  mocha.blue,
-  string:    mocha.green,
-  number:    mocha.peach,
+  // Code & syntax
+  code:      claudePalette.teal,
+  link:      claudePalette.sapphire,
+  keyword:   claudePalette.mauve,
+  function:  claudePalette.blue,
+  string:    claudePalette.green,
+  number:    claudePalette.peach,
 
-  accent:    mocha.mauve,
-  accent2:   mocha.pink,
-  accent3:   mocha.lavender,
-  peach:     mocha.peach,
-  mauve:     mocha.mauve,
-  cyan:      mocha.teal,
-  purple:    mocha.mauve,
+  // Branding accents
+  accent:    claudePalette.gpPurple,
+  accent2:   claudePalette.pink,
+  accent3:   claudePalette.lavender,
+  peach:     claudePalette.peach,
+  mauve:     claudePalette.mauve,
+  cyan:      claudePalette.teal,
+  purple:    claudePalette.gpPurple,
 
-  prompt:    mocha.green,
+  // Prompt
+  prompt:    claudePalette.gpPurple,
 
-  // Google-inspired vibrant accents (always available)
-  gpPurple:   '\x1b[38;2;142;54;255m',  // Google Purple
-  gpBlue:    '\x1b[38;2;70;130;255m',   // Google Blue
-  gpCyan:    '\x1b[38;2;0;200;200m',    // Google Cyan
-  gpGreen:   '\x1b[38;2;0;200;100m',   // Google Green
-  gpYellow:  '\x1b[38;2;255;200;0m',    // Google Yellow
-  gpRed:     '\x1b[38;2;255;100;100m', // Google Red
+  // Google-inspired (always available)
+  gpPurple:  claudePalette.gpPurple,
+  gpBlue:    claudePalette.gpBlue,
+  gpCyan:    claudePalette.gpCyan,
+  gpGreen:   claudePalette.gpGreen,
+  gpYellow:  claudePalette.gpYellow,
+  gpRed:     claudePalette.gpRed,
 }
 
 export const c = fg
 
 // Background colors
 export const bg = {
-  base:     mocha.base,
-  surface:  mocha.surface0,
-  elevated: mocha.surface1,
-  overlay:  mocha.surface2,
-  crust:    mocha.crust,
-  mantle:   mocha.mantle,
+  base:     claudePalette.base,
+  surface:  claudePalette.surface0,
+  elevated: claudePalette.surface1,
+  overlay:  claudePalette.surface2,
+  crust:    claudePalette.crust,
+  mantle:   claudePalette.mantle,
 }
 
 // ── Box Drawing Characters ────────────────────────────────────────────────────
@@ -105,29 +154,20 @@ export const box = {
 
 // ── Clean Spinner Frames ──────────────────────────────────────────────────────
 export const spinnerFrames = {
-  // Classic dot animation (fast, clean)
   dots:    ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'],
-  // Simple line spinner
   line:    ['-', '\\', '|', '/'],
-  // Block spinner
   blocks:  ['▖', '▘', '▝', '▗'],
-  // Arrow spinner
   arrow:   ['←', '↙', '↓', '↘', '→', '↗', '↑', '↖'],
-  // Star spinner
   star:    ['⋆', '✦', '✧', '⋆', '✧', '✦'],
 }
 
-// Default spinner (dots)
 export const DEFAULT_SPINNER = spinnerFrames.dots
 
 // ── Clean Icons (no emoji) ───────────────────────────────────────────────────
-// Following nodejs-cli-apps-best-practices: use Unicode symbols consistently
-
 export const icon = {
-  // Prompt / prefix (Gemini CLI style: ">" with accent color)
-  prompt:      '>',           // > — Google CLI style prompt
-  userPrefix:  '>',           // user input prefix
-  aiPrefix:   '◈',          // assistant prefix — distinctive diamond
+  prompt:      '›',
+  userPrefix:  '>',
+  aiPrefix:    '◈',
 
   // Status
   success:    '✓',
@@ -138,42 +178,7 @@ export const icon = {
   online:     '●',
   offline:    '○',
 
-  // Emoji accents (for strategic engagement moments)
-  emoji: {
-    beast:      '🐉',
-    spark:      '✨',
-    tool:       '🔧',
-    search:     '🔍',
-    code:       '⚡',
-    link:       '🔗',
-    star:       '⭐',
-    tip:        '💡',
-    rocket:     '🚀',
-    success:    '✅',
-    error:      '❌',
-    warning:    '⚠️',
-    info:       'ℹ️',
-    wave:       '👋',
-    chat:       '💬',
-    robot:      '🤖',
-    zap:        '⚡',
-    star2:      '🌟',
-    fire:       '🔥',
-    gear:       '⚙️',
-    key:        '🔑',
-    world:      '🌐',
-    bulb:       '💡',
-  },
-
-  // Google brand colors (used by gemini theme)
-  googlePurple:   '\x1b[38;2;142;54;255m',   // #8e36ff
-  googleBlue:     '\x1b[38;2;70;130;255m',   // #4682ff
-  googleCyan:     '\x1b[38;2;0;200;200m',    // #00c8c8
-  googleGreen:    '\x1b[38;2;0;200;100m',    // #00c864
-  googleYellow:   '\x1b[38;2;255;200;0m',   // #ffc800
-  googleRed:      '\x1b[38;2;255;100;100m',  // #ff6464
-
-  // Actions / indicators
+  // Actions
   tool:       '›',
   run:        '›',
   search:     '⌕',
@@ -202,7 +207,7 @@ export const icon = {
   context:    '◈',
   clock:      '⏰',
 
-  // File type badges
+  // File type
   ts:         'TS',
   js:         'JS',
   py:         'PY',
@@ -210,9 +215,9 @@ export const icon = {
   json:       '{}',
   git:        '⎇',
 
-  // Spinner states
-  thinking:    '◐',
-  loading:    '⠋',
+  // Spinner
+  thinking:   '◐',
+  loading:   '⠋',
 
   // Misc
   line:       '─',
@@ -221,7 +226,7 @@ export const icon = {
   space:      ' ',
 }
 
-// Progress bar characters
+// Progress bar
 export const progress = {
   filled:     '█',
   empty:      '░',
@@ -277,11 +282,21 @@ export const styled_ = {
   number:    (t: string) => s(t, fg.number),
 }
 
+// ── Emoji Accents ─────────────────────────────────────────────────────────────
+export const emoji = {
+  beast:   '🐉', spark: '✨', tool:   '🔧', search: '🔍',
+  code:   '⚡', link:   '🔗', star:   '⭐', tip:    '💡',
+  rocket: '🚀', success:'✅', error:  '❌', warning:'⚠️',
+  info:   'ℹ️', wave:   '👋', chat:   '💬', robot:  '🤖',
+  zap:   '⚡', star2:  '🌟', fire:   '🔥', gear:   '⚙️',
+  key:   '🔑', world:  '🌐', bulb:   '💡',
+}
+
 // ── Keyboard Shortcuts ───────────────────────────────────────────────────────
 export const shortcuts = {
   navigation: [
     { key: '↑ / ↓', desc: 'History' },
-    { key: 'Tab',    desc: 'Complete' },
+    { key: 'Tab',   desc: 'Complete' },
     { key: 'Ctrl+R', desc: 'Search' },
   ],
   actions: [
@@ -371,7 +386,7 @@ export const themes: Record<ThemeName, Theme> = {
   },
   monokai: {
     name: 'Monokai',
-    crust: '\x1b[48;2;39;40;34m', mantle: '\x1b[48;2;35;36;30m', base: '\x1b[48;2;40;40;34m',
+    crust: '\x1b[38;2;39;40;34m', mantle: '\x1b[48;2;35;36;30m', base: '\x1b[48;2;40;40;34m',
     surface0: '\x1b[48;2;72;72;64m', surface1: '\x1b[48;2;85;85;77m', surface2: '\x1b[48;2;102;102;94m',
     text: '\x1b[38;2;248;248;240m', subtext0: '\x1b[38;2;190;190;180m', subtext1: '\x1b[38;2;170;170;160m', overlay0: '\x1b[38;2;153;153;144m',
     blue: '\x1b[38;2;102;217;239m', sapphire: '\x1b[38;2;80;160;200m', sky: '\x1b[38;2;100;180;220m', teal: '\x1b[38;2;166;226;46m',
@@ -399,38 +414,24 @@ export const themes: Record<ThemeName, Theme> = {
   claude: {
     name: 'Claude',
     crust: '\x1b[48;2;250;249;245m', mantle: '\x1b[48;2;245;244;237m', base: '\x1b[48;2;240;238;220m',
-    surface0: '\x1b[48;2;232;230;220m', surface1: '\x1b[48;2;209;207;197m', surface2: '\x1b[48;2;135;134;127m',
-    text: '\x1b[38;2;20;20;19m', subtext0: '\x1b[38;2;94;93;89m', subtext1: '\x1b[38;2;61;61;56m', overlay0: '\x1b[38;2;135;134;127m',
+    surface0: '\x1b[48;2;232;230;220m', surface1: '\x1b[48;2;215;213;200m', surface2: '\x1b[48;2;180;178;170m',
+    text: '\x1b[38;2;20;20;19m', subtext0: '\x1b[38;2;80;79;75m', subtext1: '\x1b[38;2;50;49;46m', overlay0: '\x1b[38;2;140;138;130m',
     blue: '\x1b[38;2;56;152;236m', sapphire: '\x1b[38;2;56;152;236m', sky: '\x1b[38;2;100;170;210m', teal: '\x1b[38;2;23;146;153m',
-    green: '\x1b[38;2;100;200;100m', yellow: '\x1b[38;2;250;189;47m', peach: '\x1b[38;2;201;151;87m', maroon: '\x1b[38;2;180;120;120m',
-    red: '\x1b[38;2;181;51;51m', mauve: '\x1b[38;2;201;118;87m', pink: '\x1b[38;2;217;119;87m', flamingo: '\x1b[38;2;220;150;130m', lavender: '\x1b[38;2;139;92;246m', white: '\x1b[38;2;255;255;250m',
+    green: '\x1b[38;2;30;160;80m', yellow: '\x1b[38;2;200;140;0m', peach: '\x1b[38;2;201;130;70m', maroon: '\x1b[38;2;160;100;90m',
+    red: '\x1b[38;2;200;60;60m', mauve: '\x1b[38;2;180;80;200m', pink: '\x1b[38;2;200;100;180m', flamingo: '\x1b[38;2;220;150;130m', lavender: '\x1b[38;2;139;92;246m', white: '\x1b[38;2;255;255;250m',
   },
   gemini: {
     name: 'Gemini',
-    // Dark background with subtle blue tint
     crust: '\x1b[48;2;10;10;20m', mantle: '\x1b[48;2;15;15;30m', base: '\x1b[48;2;20;20;40m',
     surface0: '\x1b[48;2;35;35;60m', surface1: '\x1b[48;2;50;50;80m', surface2: '\x1b[48;2;70;70;100m',
-    // Text colors
     text: '\x1b[38;2;220;220;255m', subtext0: '\x1b[38;2;170;170;210m', subtext1: '\x1b[38;2;190;190;230m', overlay0: '\x1b[38;2;120;120;160m',
-    // Google brand gradient (purple → blue → cyan → green → yellow → red)
-    blue: '\x1b[38;2;70;130;255m',     // Google Blue
-    sapphire: '\x1b[38;2;60;110;220m', // deep blue
-    sky: '\x1b[38;2;0;200;200m',       // Google Cyan
-    teal: '\x1b[38;2;0;210;180m',      // teal
-    green: '\x1b[38;2;0;200;100m',    // Google Green
-    yellow: '\x1b[38;2;255;200;0m',     // Google Yellow
-    peach: '\x1b[38;2;255;150;50m',     // orange
-    maroon: '\x1b[38;2;200;80;80m',    // red-orange
-    red: '\x1b[38;2;255;100;100m',     // Google Red
-    mauve: '\x1b[38;2;142;54;255m',    // Google Purple
-    pink: '\x1b[38;2;200;100;255m',     // pink
-    flamingo: '\x1b[38;2;220;150;180m', // pinkish
-    lavender: '\x1b[38;2;150;100;255m', // light purple
-    white: '\x1b[38;2;255;255;255m',
+    blue: '\x1b[38;2;70;130;255m', sapphire: '\x1b[38;2;60;110;220m', sky: '\x1b[38;2;0;200;200m', teal: '\x1b[38;2;0;210;180m',
+    green: '\x1b[38;2;0;200;100m', yellow: '\x1b[38;2;255;200;0m', peach: '\x1b[38;2;255;150;50m', maroon: '\x1b[38;2;200;80;80m',
+    red: '\x1b[38;2;255;100;100m', mauve: '\x1b[38;2;142;54;255m', pink: '\x1b[38;2;200;100;255m', flamingo: '\x1b[38;2;220;150;180m', lavender: '\x1b[38;2;150;100;255m', white: '\x1b[38;2;255;255;255m',
   },
 }
 
-let currentTheme: ThemeName = 'catppuccin-mocha'
+let currentTheme: ThemeName = 'claude'
 
 export function getTheme(): Theme { return themes[currentTheme] }
 
