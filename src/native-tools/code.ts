@@ -5,9 +5,34 @@ import { spawn } from 'node:child_process'
 import { writeFileSync, unlinkSync, mkdirSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { randomUUID } from 'crypto'
+import { tmpdir } from 'node:os'
 
-const SANDBOX_DIR = '/tmp/beast-sandbox'
+const isWindows = process.platform === 'win32'
+const SANDBOX_DIR = isWindows
+  ? join(tmpdir(), 'beast-sandbox')
+  : '/tmp/beast-sandbox'
 const TIMEOUT_MS = 30000
+
+// Get platform-appropriate shell
+function getShell(): { command: string; args: string[] } {
+  if (isWindows) {
+    return { command: 'cmd.exe', args: ['/c'] }
+  }
+  return { command: '/bin/bash', args: ['-c'] }
+}
+
+// Get platform-appropriate PATH
+function getSandboxEnv(): NodeJS.ProcessEnv {
+  const baseEnv = { ...process.env }
+  if (isWindows) {
+    return baseEnv // Use system PATH on Windows
+  }
+  return {
+    ...baseEnv,
+    HOME: SANDBOX_DIR,
+    PATH: '/usr/bin:/bin:/usr/local/bin',
+  }
+}
 
 // Ensure sandbox directory exists
 if (!existsSync(SANDBOX_DIR)) {
@@ -109,12 +134,17 @@ async function runJavaScript(code: string, timeout: number, start: number): Prom
 
 async function runBash(code: string, timeout: number, start: number): Promise<CodeResult> {
   const id = randomUUID()
-  const filePath = join(SANDBOX_DIR, `${id}.sh`)
+  const filePath = join(SANDBOX_DIR, `${id}${isWindows ? '.bat' : '.sh'}`)
 
   try {
+    // Write script file
     writeFileSync(filePath, code, 'utf-8')
 
-    const result = await execProcess('/bin/bash', ['-c', code], timeout * 1000)
+    const shell = getShell()
+    const args = isWindows
+      ? ['/c', code] // Windows: execute directly
+      : ['-c', code]
+    const result = await execProcess(shell.command, args, timeout * 1000)
     const executionTime = Date.now() - start
 
     return {
@@ -138,12 +168,7 @@ function execProcess(
     const proc = spawn(command, args, {
       timeout: timeoutMs,
       cwd: SANDBOX_DIR,
-      env: {
-        ...process.env,
-        // Restrict environment
-        HOME: SANDBOX_DIR,
-        PATH: '/usr/bin:/bin:/usr/local/bin',
-      },
+      env: getSandboxEnv(),
     })
 
     let stdout = ''

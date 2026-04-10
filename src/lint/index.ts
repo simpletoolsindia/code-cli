@@ -66,8 +66,13 @@ async function runLintCommand(cmd: LintCommand, file: string): Promise<{
   // Replace {file} placeholder
   const command = cmd.command.replace('{file}', file)
 
+  // Platform-specific shell
+  const isWin = process.platform === 'win32'
+  const shellCmd = isWin ? 'cmd.exe' : 'sh'
+  const shellArgs = isWin ? ['/c', command] : ['-c', command]
+
   return new Promise((resolve) => {
-    const proc = spawn('sh', ['-c', command], {
+    const proc = spawn(shellCmd, shellArgs, {
       cwd: cmd.workingDirectory,
       timeout: 30000,
     })

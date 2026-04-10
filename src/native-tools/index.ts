@@ -539,8 +539,11 @@ const tools: NativeTool[] = [
       }
 
       try {
+        // Platform-specific shell
+        const isWin = process.platform === 'win32'
+
         // Handle background execution
-        if (runBackground || cmd.endsWith(' &')) {
+        if (runBackground || /\s+&$/.test(cmd)) {
           const cleanCmd = cmd.replace(/\s*&\s*$/, '').trim()
           spawn(cleanCmd, [], {
             shell: true,
@@ -551,13 +554,23 @@ const tools: NativeTool[] = [
           return { success: true, content: `Started in background: ${cleanCmd}` }
         }
 
-        // Normal execution with timeout via bash
-        const output = execSync(`/bin/bash -c ${JSON.stringify(cmd)}`, {
-          encoding: 'utf-8',
-          timeout: timeout * 1000,
-          cwd: workingDir,
-          maxBuffer: 10 * 1024 * 1024,
-        })
+        // Normal execution with timeout via platform-appropriate shell
+        let output: string
+        if (isWin) {
+          output = execSync(`cmd.exe /c ${cmd}`, {
+            encoding: 'utf-8',
+            timeout: timeout * 1000,
+            cwd: workingDir,
+            maxBuffer: 10 * 1024 * 1024,
+          })
+        } else {
+          output = execSync(`/bin/bash -c ${JSON.stringify(cmd)}`, {
+            encoding: 'utf-8',
+            timeout: timeout * 1000,
+            cwd: workingDir,
+            maxBuffer: 10 * 1024 * 1024,
+          })
+        }
         return { success: true, content: output }
       } catch (e: any) {
         if (e.killed) {
