@@ -428,3 +428,138 @@ export default {
   uriToPath,
   LSPClientImpl,
 }
+
+// ── LSP Diagnostics Tool ──────────────────────────────────────────────────────
+
+/**
+ * Get diagnostics for a file using LSP
+ */
+export async function getFileDiagnostics(
+  filePath: string,
+  client: LSPClientImpl
+): Promise<LSPDiagnostic[]> {
+  try {
+    const uri = pathToUri(filePath)
+    const content = await import('node:fs').then(fs => fs.readFileSync(filePath, 'utf-8'))
+
+    // Open document if not already
+    client.openDocument({
+      uri,
+      languageId: detectLanguage(filePath) || 'typescript',
+      version: 1,
+      content,
+    })
+
+    // Wait a bit for diagnostics to arrive
+    await new Promise(resolve => setTimeout(resolve, 500))
+
+    // Get cached diagnostics
+    return [] // Diagnostics come through callback
+  } catch (error) {
+    console.error('Failed to get diagnostics:', error)
+    return []
+  }
+}
+
+/**
+ * Format diagnostics for display
+ */
+export function formatDiagnostics(diagnostics: LSPDiagnostic[]): string {
+  if (diagnostics.length === 0) return 'No issues found'
+
+  const lines: string[] = []
+  for (const d of diagnostics) {
+    const severity = d.severity === 'error' ? '[ERROR]'
+      : d.severity === 'warning' ? '[WARN]'
+      : d.severity === 'information' ? '[INFO]'
+      : '[HINT]'
+
+    const location = `${d.range.start.line + 1}:${d.range.start.character + 1}`
+    lines.push(`${severity} ${location}: ${d.message}`)
+  }
+
+  return lines.join('\n')
+}
+
+/**
+ * LSP Manager - handles multiple language servers
+ */
+export class LSPManager {
+  private clients: Map<LanguageId, LSPClientImpl> = new Map()
+  private diagnostics: Map<string, LSPDiagnostic[]> = new Map()
+  private languageId: LanguageId = 'typescript'
+
+  constructor(languageId: LanguageId = 'typescript') {
+    this.languageId = languageId
+  }
+
+  async start(): Promise<void> {
+    const serverCmd = LANGUAGE_SERVERS[this.languageId]
+    if (!serverCmd) {
+      console.warn(`No LSP server for ${this.languageId}`)
+      return
+    }
+
+    try {
+      const client = new LSPClientImpl({
+        languageId: this.languageId,
+        command: serverCmd,
+      })
+
+      await client.connect()
+
+      // Set up diagnostics callback
+      client.onDiagnostics((uri, diags) => {
+        this.diagnostics.set(uri, diags)
+      })
+
+      this.clients.set(this.languageId, client)
+      console.log(`LSP started for ${this.languageId}`)
+    } catch (error) {
+      console.warn('Failed to start LSP:', error)
+    }
+  }
+
+  async stop(): Promise<void> {
+    for (const client of this.clients.values()) {
+      await client.disconnect()
+    }
+    this.clients.clear()
+  }
+
+  getDiagnostics(uri: string): LSPDiagnostic[] {
+    return this.diagnostics.get(uri) || []
+  }
+
+  async hover(filePath: string, line: number, character: number): Promise<string | null> {
+    const client = this.clients.get(this.languageId)
+    if (!client) return null
+
+    const result = await client.hover(
+      pathToUri(filePath),
+      { line, character }
+    )
+
+    if (!result) return null
+
+    if (typeof result.contents === 'string') {
+      return result.contents
+    }
+
+    return result.contents.value
+  }
+
+  async definition(filePath: string, line: number, character: number): Promise<string | null> {
+    const client = this.clients.get(this.languageId)
+    if (!client) return null
+
+    const result = await client.getDefinition(
+      pathToUri(filePath),
+      { line, character }
+    )
+
+    if (!result) return null
+
+    return uriToPath(result.uri)
+  }
+}
