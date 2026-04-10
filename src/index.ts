@@ -13,9 +13,10 @@ import { inlineList, helpPanel, panel, withProgress } from './ui/format.ts'
 import { renderToolResult } from './ui/tool-renderer.ts'
 import { beastSpinner } from './ui/beast-loader.ts'
 import { renderCleanBanner } from './ui/banner.ts'
-import { tipBanner, randomTip } from './ui/tips.ts'
+import { tipBanner, randomTip, contextualTip } from './ui/tips.ts'
 import { Spinner } from './ui/spinner.ts'
 import { getFormattedTools, executeTool, getAllTools } from './native-tools/index.ts'
+import { funSpinner, FunSpinner, randomFunFact, thinkingMessage, toolRunningMessage } from './ui/fun-animations.ts'
 import type { ToolCall } from './providers/index.ts'
 import {
   detectAllProviders,
@@ -94,36 +95,92 @@ async function numberedMenu(title: string, options: string[]): Promise<number> {
   }
 }
 
-// ── Spinner with single-line updates ────────────────────────────────────────
+// ── Fun Spinner (animated ASCII characters) ────────────────────────────────
 
-const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
-let spinnerHandle: ReturnType<typeof setInterval> | null = null
-let spinnerLabel = ''
+let currentSpinner: ReturnType<typeof setInterval> | null = null
 let spinnerStarted = false
+let spinnerFrame = 0
+let spinnerLabel = ''
+let spinnerAnimation: string[] = []
+let spinnerSpeed = 150
+
+// Different characters for different states
+const THINKING_ANIMS = ['(◕‿◕)🐕', '(=^・^=)', '(¨)🦊', '( @)🐸', '(*)',
+                        '(◕ω◕)🐕', '(=^・ω・^=)', '(◕‿◕)🦊', '(\\/)🐰', ' (=・)']
+const SEARCH_ANIMS = ['><(((º>', ' <(º)>', '><(((º>', '  ~(``)~', '><(((º>']
+const TOOL_ANIMS = ['(◕‿◕)🐕', '(=^・^=)', '(¨)🦊', '(*)', '=(・)']
+const THINKING_DOTS = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴']
+
+function startFunSpinner(state: 'thinking' | 'searching' | 'tool' | 'formatting' = 'thinking'): void {
+  if (currentSpinner) clearInterval(currentSpinner)
+  spinnerStarted = true
+  spinnerFrame = 0
+
+  // Select animation based on state
+  if (state === 'searching') {
+    spinnerAnimation = SEARCH_ANIMS
+    spinnerLabel = s('Searching', fg.info)
+    spinnerSpeed = 120
+  } else if (state === 'tool') {
+    spinnerAnimation = TOOL_ANIMS
+    spinnerLabel = s('Running', fg.tool)
+    spinnerSpeed = 150
+  } else if (state === 'formatting') {
+    spinnerAnimation = ['✨', '★', '✦', '✧', '★']
+    spinnerLabel = s('Formatting', fg.success)
+    spinnerSpeed = 200
+  } else {
+    spinnerAnimation = THINKING_ANIMS
+    spinnerLabel = s('Thinking', fg.accent)
+    spinnerSpeed = 150
+  }
+
+  // Write initial frame
+  const char = spinnerAnimation[0]
+  const dot = THINKING_DOTS[0]
+  process.stderr.write(`\r${spinnerLabel} ${char} ${dot}  `)
+
+  currentSpinner = setInterval(() => {
+    if (!spinnerStarted) return
+    spinnerFrame = (spinnerFrame + 1) % spinnerAnimation.length
+    const animChar = spinnerAnimation[spinnerFrame]
+    const dot = THINKING_DOTS[spinnerFrame % THINKING_DOTS.length]
+    process.stderr.write(`\r${spinnerLabel} ${animChar} ${dot}  `)
+  }, spinnerSpeed)
+}
+
+function stopFunSpinner(status: 'done' | 'error' | 'skip' = 'done'): void {
+  if (currentSpinner) {
+    clearInterval(currentSpinner)
+    currentSpinner = null
+  }
+  spinnerStarted = false
+
+  // Clear the line
+  process.stderr.write('\r' + ' '.repeat(60) + '\r')
+
+  if (status === 'done') {
+    process.stderr.write(s('✓ ', fg.success) + (spinnerLabel || 'Done') + '\n')
+  } else if (status === 'error') {
+    process.stderr.write(s('✗ ', fg.error) + 'Error\n')
+  }
+}
+
+// Legacy spinner functions (for compatibility)
+const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
+let legacySpinnerHandle: ReturnType<typeof setInterval> | null = null
+let legacySpinnerLabel = ''
+let legacySpinnerStarted = false
 
 function startSpinner(label: string): void {
-  if (spinnerHandle) clearInterval(spinnerHandle)
-  spinnerLabel = label
-  spinnerStarted = true
-  let frame = 0
-  // Write to stderr so stdout stays clean for actual output
-  process.stderr.write(`\r${label} ${SPINNER_FRAMES[frame]}  `)
-  spinnerHandle = setInterval(() => {
-    if (!spinnerStarted) return
-    frame = (frame + 1) % SPINNER_FRAMES.length
-    process.stderr.write(`\r${label} ${SPINNER_FRAMES[frame]}  `)
-  }, 80)
+  // Use fun spinner instead
+  startFunSpinner('thinking')
+  legacySpinnerLabel = label
 }
 
 function stopSpinner(done = false, label = ''): void {
-  if (spinnerHandle) {
-    clearInterval(spinnerHandle)
-    spinnerHandle = null
-  }
-  spinnerStarted = false
-  // Clear the line
-  process.stderr.write('\r' + ' '.repeat(60) + '\r')
-  if (done) {
+  stopFunSpinner(done ? 'done' : 'skip')
+  if (done && label) {
     process.stderr.write(`${label} ${s('✓', fg.success)}\n`)
   }
 }
@@ -592,7 +649,7 @@ Commands:
 
     agentMessages.push({ role: 'user' as const, content: trimmed })
 
-    startSpinner('Thinking')
+    startFunSpinner('thinking')
     try {
       const provider = await createProvider({
         provider: session.provider as any,
@@ -610,7 +667,7 @@ Commands:
           maxTokens: 16384,
         })
 
-        stopSpinner(true)
+        stopFunSpinner('done')
 
         if (toolCallCount === 0) {
           printUsage(response.usage)
@@ -640,13 +697,13 @@ Commands:
               content: `Search results for "${searchQuery}":\n${resultText}\n\nPlease provide a clear, concise answer based on these results.`,
             })
 
-            startSpinner('Formatting')
+            startFunSpinner('formatting')
             const formatted = await provider.create({
               messages: agentMessages,
               tools: undefined,
               maxTokens: 16384,
             })
-            stopSpinner(true)
+            stopFunSpinner('done')
 
             if (formatted.content) {
               streamText(formatted.content)
@@ -674,10 +731,10 @@ Commands:
           const argsDisplay = argsStr.length > 60 ? argsStr.slice(0, 60) + '...' : argsStr
           process.stdout.write(s('🔧 ' + toolName, fg.tool) + ' ' + s(argsDisplay, fg.muted) + '\n')
 
-          const toolResult = await withProgress(
-            `Running ${toolName}`,
-            executeTool(toolName, toolArgs),
-          )
+          // Start fun spinner for tool execution
+          startFunSpinner('tool')
+          const toolResult = await executeTool(toolName, toolArgs)
+          stopFunSpinner(toolResult.success ? 'done' : 'error')
 
           console.log(renderToolResult(toolName, toolResult))
 
@@ -709,7 +766,7 @@ Commands:
         process.stdout.write(contextBar({ used, max: session.contextMax }) + '\n')
       }
     } catch (e) {
-      stopSpinner(false)
+      stopFunSpinner('error')
       console.log(`\n${s('❌ Error:', fg.error)} ${e}`)
       if (session.messages.length > 0) session.messages.pop()
     }
