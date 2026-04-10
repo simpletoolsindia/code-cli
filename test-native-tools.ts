@@ -35,7 +35,7 @@ async function runTests() {
     'scrape_freedium': { url: 'https://medium.com/example' },
     'webclaw_extract_article': { url: 'https://example.com/article' },
     'webclaw_extract_product': { url: 'https://example.com/product' },
-    'webclaw_crawl': { url: 'https://example.com', max_pages: 2 },
+    'webclaw_crawl': { url: 'https://example.com', selectors: { title: 'h1', content: 'p' } },
     'searxng_search': { query: 'test search', limit: 3 },
     'search_images': { query: 'nature', limit: 2 },
     'search_news': { query: 'technology', limit: 2 },

@@ -423,10 +423,10 @@ async function createCodexProvider(config) {
       authUrl.searchParams.set("state", state);
       console.log("   \uD83C\uDF10 Opening browser for ChatGPT Plus/Pro login...");
       console.log("   \uD83D\uDCCB Auth URL:", authUrl.toString());
-      const { execSync } = __require("child_process");
+      const { execSync: execSync2 } = __require("child_process");
       try {
         const opener = process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
-        execSync(`${opener} "${authUrl.toString()}"`, { stdio: "ignore" });
+        execSync2(`${opener} "${authUrl.toString()}"`, { stdio: "ignore" });
       } catch {}
       const code = await waitForCallback({ verifier }, state);
       token = await exchangeCode(code, verifier);
@@ -1706,9 +1706,9 @@ function getHomeDir() {
   }
   return process.env.HOME || homedir();
 }
-var isWindows2, isMac, isLinux;
+var isWindows3, isMac, isLinux;
 var init_platform = __esm(() => {
-  isWindows2 = process.platform === "win32";
+  isWindows3 = process.platform === "win32";
   isMac = process.platform === "darwin";
   isLinux = process.platform === "linux";
 });
@@ -1765,7 +1765,7 @@ async function speak(text, options = {}) {
 async function playAudioFile(filePath) {
   return new Promise((resolve3) => {
     let player;
-    if (isWindows2) {
+    if (isWindows3) {
       const absPath = resolve3(filePath).replace(/\\/g, "\\\\").replace(/'/g, "''");
       player = spawn2("powershell", [
         "-NoProfile",
@@ -2334,17 +2334,17 @@ async function promptMode() {
     console.log();
     console.log(`  ${s("[1]", fg.accent)} ${s("Minimal REPL", fg.primary)}   ${dim}— fast, ASCII-safe, tab complete`);
     console.log(`  ${s("[2]", fg.accent)} ${s("Rich TUI", fg.primary)}       ${dim}— spinners, colors, mouse support`);
-    if (isWindows3) {
+    if (isWindows4) {
       console.log(`  ${s("[3]", fg.accent)} ${s("Terminal TUI", fg.primary)} ${dim}— cross-platform (Windows optimized)`);
     }
     console.log();
     console.log(`  ${s("Tip:", fg.warning)} ${s("Use", fg.muted)} ${s("--tui", fg.accent)} ${s("flag to skip this prompt", fg.muted)}`);
     console.log();
-    const prompt = isWindows3 ? "  Choose [1]" : "  Choose [1]";
+    const prompt = isWindows4 ? "  Choose [1]" : "  Choose [1]";
     rl.question(s(prompt, fg.muted) + " ", (answer) => {
       rl.close();
       const choice = answer.trim();
-      if (isWindows3 && choice === "3") {
+      if (isWindows4 && choice === "3") {
         resolve6("terminal");
       } else if (choice === "2") {
         resolve6("ink");
@@ -2356,7 +2356,7 @@ async function promptMode() {
 }
 async function launchUI(mode = "auto") {
   if (process.argv.includes("--tui")) {
-    if (isWindows3) {
+    if (isWindows4) {
       console.log(s(`
   Launching Terminal TUI (Windows)...`, fg.accent));
       await launchTerminal();
@@ -2372,7 +2372,7 @@ async function launchUI(mode = "auto") {
     return;
   }
   if (mode === "auto") {
-    if (isWindows3) {
+    if (isWindows4) {
       const readline = await import("readline");
       const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
       console.log(renderCleanBanner());
@@ -2411,11 +2411,11 @@ async function launchUI(mode = "auto") {
     await launchRepl();
   }
 }
-var isWindows3;
+var isWindows4;
 var init_router = __esm(() => {
   init_colors();
   init_banner();
-  isWindows3 = process.platform === "win32";
+  isWindows4 = process.platform === "win32";
 });
 
 // src/index.ts
@@ -2947,8 +2947,31 @@ function tipBanner() {
 }
 
 // src/native-tools/web.ts
+import { execSync as execSync2 } from "node:child_process";
 var DEFAULT_TIMEOUT = 15000;
+var isWindows = process.platform === "win32";
+async function fetchWithCurl(url, timeout) {
+  try {
+    const html = execSync2(`curl -sL --max-time ${timeout} -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" "${url.replace(/"/g, "\\\"")}"`, { encoding: "utf-8", timeout: (timeout + 5) * 1000, shell: "cmd.exe" });
+    const text = stripHtml(html);
+    const title = extractTitle(html);
+    return {
+      success: true,
+      content: text.slice(0, 16000),
+      title,
+      url
+    };
+  } catch (e) {
+    return { success: false, content: "", error: e.message };
+  }
+}
 async function fetchWebContent(url, maxTokens = 4000) {
+  if (isWindows) {
+    const result = await fetchWithCurl(url, 15);
+    if (result.success && result.content.length > 0) {
+      return { ...result, content: result.content.slice(0, maxTokens * 4) };
+    }
+  }
   try {
     const controller = new AbortController;
     const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT);
@@ -2974,9 +2997,6 @@ async function fetchWebContent(url, maxTokens = 4000) {
       url: response.url
     };
   } catch (e) {
-    if (e.message?.includes("unable to get local issuer certificate") && process.platform === "win32") {
-      return { success: false, content: "", error: "SSL certificate error. Your Windows certificate store may need updating. Try running: npm config set strict-ssl false" };
-    }
     return { success: false, content: "", error: e.message };
   }
 }
@@ -3067,6 +3087,9 @@ async function webclawExtractProduct(url) {
   };
 }
 async function webclawCrawl(url, selectors) {
+  if (!selectors || Object.keys(selectors).length === 0) {
+    return fetchWebContent(url, 4000);
+  }
   return fetchWithSelectors(url, selectors);
 }
 function stripHtml(html) {
@@ -3138,7 +3161,7 @@ function extractLinks(content, baseUrl) {
 // src/native-tools/files.ts
 import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { resolve, dirname, extname, join } from "node:path";
-import { execSync } from "node:child_process";
+import { execSync as execSync3 } from "node:child_process";
 import { glob } from "glob";
 var MAX_FILE_SIZE = 10 * 1024 * 1024;
 var ALLOWED_EXTENSIONS = new Set([
@@ -3287,7 +3310,7 @@ async function fileGrep(directory, query, maxResults = 50, filePattern = "*") {
     }
     const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const cmd = `grep -rn --include="${filePattern}" -E "${escaped}" "${resolved}" 2>/dev/null | head -${maxResults}`;
-    const output = execSync(cmd, { encoding: "utf-8", timeout: 1e4 });
+    const output = execSync3(cmd, { encoding: "utf-8", timeout: 1e4 });
     const files = [];
     for (const line of output.split(`
 `).filter(Boolean)) {
@@ -3343,17 +3366,17 @@ import { writeFileSync as writeFileSync2, unlinkSync, mkdirSync, existsSync as e
 import { join as join2 } from "node:path";
 import { randomUUID } from "crypto";
 import { tmpdir } from "node:os";
-var isWindows = process.platform === "win32";
-var SANDBOX_DIR = isWindows ? join2(tmpdir(), "beast-sandbox") : "/tmp/beast-sandbox";
+var isWindows2 = process.platform === "win32";
+var SANDBOX_DIR = isWindows2 ? join2(tmpdir(), "beast-sandbox") : "/tmp/beast-sandbox";
 function getShell() {
-  if (isWindows) {
-    return { command: "cmd.exe", args: ["/c"] };
+  if (isWindows2) {
+    return { command: "cmd.exe", args: ["//c"] };
   }
   return { command: "/bin/bash", args: ["-c"] };
 }
 function getSandboxEnv() {
   const baseEnv = { ...process.env };
-  if (isWindows) {
+  if (isWindows2) {
     return baseEnv;
   }
   return {
@@ -3396,32 +3419,104 @@ ${code}
 `;
   return runPython(fullCode, timeout, start);
 }
+async function ensurePythonInstalled() {
+  if (!isWindows2)
+    return null;
+  try {
+    console.log("[Python] Not found, attempting auto-install...");
+    try {
+      execSync("winget --version", { stdio: "ignore" });
+    } catch {
+      return "winget not available. Install Python manually: https://python.org";
+    }
+    try {
+      console.log("[Python] Installing via winget...");
+      execSync("winget install Python.Python.3.11 --accept-package-agreements --accept-source-agreements --silent", {
+        stdio: "pipe",
+        timeout: 180000
+      });
+      console.log("[Python] Installation complete, refreshing PATH...");
+      return "python";
+    } catch (installErr) {
+      try {
+        execSync("choco install python -y", { stdio: "pipe", timeout: 180000 });
+        return "python";
+      } catch {
+        return `Python installation failed. Download from: https://python.org/downloads`;
+      }
+    }
+  } catch (e) {
+    return `Failed to auto-install Python: ${e.message}`;
+  }
+}
 async function runPython(code, timeout, start) {
   const id = randomUUID();
   const filePath = join2(SANDBOX_DIR, `${id}.py`);
   try {
     writeFileSync2(filePath, code, "utf-8");
-    const pythonCommands = isWindows ? ["python", "py", "python3"] : ["python3", "python"];
-    let lastError = "";
-    for (const pythonCmd of pythonCommands) {
-      const result = await execProcess(pythonCmd, ["-u", filePath], timeout * 1000);
-      if (!result.error) {
-        const executionTime2 = Date.now() - start;
+    if (isWindows2) {
+      const result2 = await execProcess("python", ["-u", filePath], timeout * 1000);
+      const executionTime2 = Date.now() - start;
+      if (!result2.error && result2.stdout) {
         return {
           success: true,
-          output: result.stdout || result.stderr,
+          output: result2.stdout || result2.stderr,
           error: undefined,
           executionTime: executionTime2,
           language: "python"
         };
       }
-      lastError = result.error;
+      const alternatives = ["py", "-3"];
+      for (const alt of alternatives) {
+        const altResult = await execProcess(alt, ["-u", filePath], timeout * 1000);
+        if (!altResult.error && altResult.stdout) {
+          return {
+            success: true,
+            output: altResult.stdout || altResult.stderr,
+            error: undefined,
+            executionTime: executionTime2,
+            language: "python"
+          };
+        }
+      }
+      if (result2.error?.includes("not recognized") || result2.error?.includes("not found")) {
+        const installResult = await ensurePythonInstalled();
+        if (installResult && !installResult.includes("failed")) {
+          const retryResult = await execProcess("python", ["-u", filePath], timeout * 1000);
+          if (retryResult.success || retryResult.stdout) {
+            return {
+              success: true,
+              output: retryResult.stdout || retryResult.stderr,
+              error: undefined,
+              executionTime: executionTime2,
+              language: "python"
+            };
+          }
+        }
+      }
+      return {
+        success: false,
+        output: "",
+        error: result2.error || "Python execution failed",
+        executionTime: executionTime2,
+        language: "python"
+      };
     }
+    const result = await execProcess("python3", ["-u", "-c", code], timeout * 1000);
     const executionTime = Date.now() - start;
+    if (!result.error) {
+      return {
+        success: true,
+        output: result.stdout || result.stderr,
+        error: undefined,
+        executionTime,
+        language: "python"
+      };
+    }
     return {
       success: false,
       output: "",
-      error: lastError.includes("not found") || lastError.includes("not recognized") ? `Python not found. Install Python from https://python.org or use 'py -3' on Windows` : lastError,
+      error: result.error,
       executionTime,
       language: "python"
     };
@@ -3453,11 +3548,11 @@ async function runJavaScript(code, timeout, start) {
 }
 async function runBash(code, timeout, start) {
   const id = randomUUID();
-  const filePath = join2(SANDBOX_DIR, `${id}${isWindows ? ".bat" : ".sh"}`);
+  const filePath = join2(SANDBOX_DIR, `${id}${isWindows2 ? ".bat" : ".sh"}`);
   try {
     writeFileSync2(filePath, code, "utf-8");
     const shell = getShell();
-    const args = isWindows ? ["/c", code] : ["-c", code];
+    const args = isWindows2 ? ["/c", code] : ["-c", code];
     const result = await execProcess(shell.command, args, timeout * 1000);
     const executionTime = Date.now() - start;
     return {
@@ -3478,7 +3573,8 @@ function execProcess(command, args, timeoutMs) {
     const proc = spawn(command, args, {
       timeout: timeoutMs,
       cwd: SANDBOX_DIR,
-      env: getSandboxEnv()
+      env: getSandboxEnv(),
+      shell: isWindows2
     });
     let stdout = "";
     let stderr = "";
@@ -3811,13 +3907,13 @@ async function tryInvidiousFallback(videoId) {
 }
 async function tryYtdlpFallback(url) {
   try {
-    const { execSync: execSync2 } = await import("child_process");
+    const { execSync: execSync4 } = await import("child_process");
     try {
-      execSync2("which yt-dlp", { stdio: "ignore" });
+      execSync4("which yt-dlp", { stdio: "ignore" });
     } catch {
       return { success: false, output: "", error: "yt-dlp not installed" };
     }
-    const output = execSync2(`yt-dlp --skip-download --write-subs --write-auto-subs --sub-lang en --stdout --print "%(subtitles.en)s" "${url}"`, { encoding: "utf-8", timeout: 15000 });
+    const output = execSync4(`yt-dlp --skip-download --write-subs --write-auto-subs --sub-lang en --stdout --print "%(subtitles.en)s" "${url}"`, { encoding: "utf-8", timeout: 15000 });
     if (output && output.trim()) {
       return { success: true, output };
     }
@@ -5680,9 +5776,9 @@ var tools = [
         if (!url) {
           return { success: false, content: "", error: "Provide url or search parameter" };
         }
-        const { execSync: execSync2 } = await import("node:child_process");
+        const { execSync: execSync4 } = await import("node:child_process");
         const opener = process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
-        execSync2(`${opener} "${url}"`, { stdio: "ignore" });
+        execSync4(`${opener} "${url}"`, { stdio: "ignore" });
         return { success: true, content: `Opened in browser: ${url}` };
       } catch (e) {
         return { success: false, content: "", error: e.message };
@@ -6069,7 +6165,7 @@ var tools = [
       required: ["command"]
     },
     async execute(args) {
-      const { execSync: execSync2, spawn: spawn3 } = await import("node:child_process");
+      const { execSync: execSync4, spawn: spawn3 } = await import("node:child_process");
       const cmd = args.command;
       const workingDir = args.cwd || process.cwd();
       const timeout = args.timeout || 30;
@@ -6109,14 +6205,14 @@ To execute dangerous commands, run directly in your terminal.` };
         }
         let output;
         if (isWin) {
-          output = execSync2(`cmd.exe /c ${cmd}`, {
+          output = execSync4(`cmd.exe /c ${cmd}`, {
             encoding: "utf-8",
             timeout: timeout * 1000,
             cwd: workingDir,
             maxBuffer: 10485760
           });
         } else {
-          output = execSync2(`/bin/bash -c ${JSON.stringify(cmd)}`, {
+          output = execSync4(`/bin/bash -c ${JSON.stringify(cmd)}`, {
             encoding: "utf-8",
             timeout: timeout * 1000,
             cwd: workingDir,

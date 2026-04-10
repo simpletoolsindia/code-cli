@@ -1,7 +1,10 @@
 // Native Web Fetching Tools
 // Replaces MCP server calls with local implementations
 
+import { execSync } from 'node:child_process'
+
 const DEFAULT_TIMEOUT = 15000
+const isWindows = process.platform === 'win32'
 
 export interface FetchResult {
   success: boolean
@@ -11,7 +14,38 @@ export interface FetchResult {
   error?: string
 }
 
+// Windows using curl (built into Windows 10+)
+async function fetchWithCurl(url: string, timeout: number): Promise<FetchResult> {
+  try {
+    // Use curl on Windows - it handles SSL certs better via Windows cert store
+    const html = execSync(
+      `curl -sL --max-time ${timeout} -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" "${url.replace(/"/g, '\\"')}"`,
+      { encoding: 'utf-8', timeout: (timeout + 5) * 1000, shell: 'cmd.exe' }
+    )
+    const text = stripHtml(html)
+    const title = extractTitle(html)
+
+    return {
+      success: true,
+      content: text.slice(0, 16000),
+      title,
+      url,
+    }
+  } catch (e: any) {
+    return { success: false, content: '', error: e.message }
+  }
+}
+
 export async function fetchWebContent(url: string, maxTokens = 4000): Promise<FetchResult> {
+  // On Windows, prefer curl for better SSL handling
+  if (isWindows) {
+    const result = await fetchWithCurl(url, 15)
+    if (result.success && result.content.length > 0) {
+      return { ...result, content: result.content.slice(0, maxTokens * 4) }
+    }
+    // If curl failed, try native fetch as fallback
+  }
+
   try {
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT)
@@ -41,10 +75,6 @@ export async function fetchWebContent(url: string, maxTokens = 4000): Promise<Fe
       url: response.url,
     }
   } catch (e: any) {
-    // Provide helpful error messages for SSL issues on Windows
-    if (e.message?.includes('unable to get local issuer certificate') && process.platform === 'win32') {
-      return { success: false, content: '', error: 'SSL certificate error. Your Windows certificate store may need updating. Try running: npm config set strict-ssl false' }
-    }
     return { success: false, content: '', error: e.message }
   }
 }
@@ -150,7 +180,11 @@ export async function webclawExtractProduct(url: string): Promise<FetchResult> {
   }
 }
 
-export async function webclawCrawl(url: string, selectors: Record<string, string>): Promise<FetchResult> {
+export async function webclawCrawl(url: string, selectors?: Record<string, string>): Promise<FetchResult> {
+  // If no selectors provided, just fetch the page content
+  if (!selectors || Object.keys(selectors).length === 0) {
+    return fetchWebContent(url, 4000)
+  }
   return fetchWithSelectors(url, selectors)
 }
 

@@ -16,7 +16,8 @@ const TIMEOUT_MS = 30000
 // Get platform-appropriate shell
 function getShell(): { command: string; args: string[] } {
   if (isWindows) {
-    return { command: 'cmd.exe', args: ['/c'] }
+    // Use //c to properly handle commands on Windows
+    return { command: 'cmd.exe', args: ['//c'] }
   }
   return { command: '/bin/bash', args: ['-c'] }
 }
@@ -88,6 +89,46 @@ ${code}
   return runPython(fullCode, timeout, start)
 }
 
+// Auto-install Python on Windows if not found
+async function ensurePythonInstalled(): Promise<string | null> {
+  if (!isWindows) return null
+
+  // Try to install via winget or download
+  try {
+    console.log('[Python] Not found, attempting auto-install...')
+
+    // Check if winget is available
+    try {
+      execSync('winget --version', { stdio: 'ignore' })
+    } catch {
+      return 'winget not available. Install Python manually: https://python.org'
+    }
+
+    // Try winget install
+    try {
+      console.log('[Python] Installing via winget...')
+      execSync('winget install Python.Python.3.11 --accept-package-agreements --accept-source-agreements --silent', {
+        stdio: 'pipe',
+        timeout: 180000, // 3 min timeout
+      })
+      console.log('[Python] Installation complete, refreshing PATH...')
+
+      // Refresh PATH and return python
+      return 'python'
+    } catch (installErr: any) {
+      // If winget failed, try chocolatey
+      try {
+        execSync('choco install python -y', { stdio: 'pipe', timeout: 180000 })
+        return 'python'
+      } catch {
+        return `Python installation failed. Download from: https://python.org/downloads`
+      }
+    }
+  } catch (e: any) {
+    return `Failed to auto-install Python: ${e.message}`
+  }
+}
+
 async function runPython(code: string, timeout: number, start: number): Promise<CodeResult> {
   const id = randomUUID()
   const filePath = join(SANDBOX_DIR, `${id}.py`)
@@ -95,14 +136,13 @@ async function runPython(code: string, timeout: number, start: number): Promise<
   try {
     writeFileSync(filePath, code, 'utf-8')
 
-    // Try multiple Python commands for cross-platform compatibility
-    const pythonCommands = isWindows ? ['python', 'py', 'python3'] : ['python3', 'python']
-    let lastError = ''
+    // On Windows, use cmd.exe to run Python (more reliable)
+    if (isWindows) {
+      // Use python directly with shell: true (already set in execProcess)
+      const result = await execProcess('python', ['-u', filePath], timeout * 1000)
+      const executionTime = Date.now() - start
 
-    for (const pythonCmd of pythonCommands) {
-      const result = await execProcess(pythonCmd, ['-u', filePath], timeout * 1000)
-      if (!result.error) {
-        const executionTime = Date.now() - start
+      if (!result.error && result.stdout) {
         return {
           success: true,
           output: result.stdout || result.stderr,
@@ -111,17 +151,66 @@ async function runPython(code: string, timeout: number, start: number): Promise<
           language: 'python',
         }
       }
-      lastError = result.error
+
+      // Try alternative Python commands
+      const alternatives = ['py', '-3']
+      for (const alt of alternatives) {
+        const altResult = await execProcess(alt, ['-u', filePath], timeout * 1000)
+        if (!altResult.error && altResult.stdout) {
+          return {
+            success: true,
+            output: altResult.stdout || altResult.stderr,
+            error: undefined,
+            executionTime,
+            language: 'python',
+          }
+        }
+      }
+
+      // Python not found - try auto-install
+      if (result.error?.includes('not recognized') || result.error?.includes('not found')) {
+        const installResult = await ensurePythonInstalled()
+        if (installResult && !installResult.includes('failed')) {
+          const retryResult = await execProcess('python', ['-u', filePath], timeout * 1000)
+          if (retryResult.success || retryResult.stdout) {
+            return {
+              success: true,
+              output: retryResult.stdout || retryResult.stderr,
+              error: undefined,
+              executionTime,
+              language: 'python',
+            }
+          }
+        }
+      }
+
+      return {
+        success: false,
+        output: '',
+        error: result.error || 'Python execution failed',
+        executionTime,
+        language: 'python',
+      }
     }
 
-    // All Python commands failed
+    // Unix: use python3 directly
+    const result = await execProcess('python3', ['-u', '-c', code], timeout * 1000)
     const executionTime = Date.now() - start
+
+    if (!result.error) {
+      return {
+        success: true,
+        output: result.stdout || result.stderr,
+        error: undefined,
+        executionTime,
+        language: 'python',
+      }
+    }
+
     return {
       success: false,
       output: '',
-      error: lastError.includes('not found') || lastError.includes('not recognized')
-        ? `Python not found. Install Python from https://python.org or use 'py -3' on Windows`
-        : lastError,
+      error: result.error,
       executionTime,
       language: 'python',
     }
@@ -189,6 +278,7 @@ function execProcess(
       timeout: timeoutMs,
       cwd: SANDBOX_DIR,
       env: getSandboxEnv(),
+      shell: isWindows, // Use shell on Windows
     })
 
     let stdout = ''
