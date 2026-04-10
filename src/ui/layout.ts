@@ -1,7 +1,7 @@
 // Beast CLI - UI Layout Components (Clean)
 // Modern terminal UI — clean headers, footers, status bars
 
-import { s, fg, icon, box, bold, dim, progress, isColorEnabled } from './colors.ts'
+import { s, fg, icon, box, bold, dim, progress, isColorEnabled, getBoxChars } from './colors.ts'
 
 // ── Header ────────────────────────────────────────────────────────────────────
 export interface HeaderConfig {
@@ -19,27 +19,31 @@ export function renderHeader(config: HeaderConfig): string {
   }
 
   const { version, provider, model, toolsCount } = config
-  const b = box.round
+  // Use getBoxChars() which has Unicode fallback
+  const b = getBoxChars().round
+  const h = b?.h || '-' // Fallback horizontal line
+  const tl = b?.tl || '+'
+  const tr = b?.tr || '+'
   const gpPurple = '\x1b[38;2;142;54;255m'
   const gpBlue = '\x1b[38;2;70;130;255m'
 
   // Polished: Google brand gradient, consistent spacing, clear hierarchy
   const line = [
-    s(`${b.tl} `, gpPurple),
+    s(`${tl} `, gpPurple),
     s('🐉', gpPurple),
     s(' Beast ', gpPurple, bold),
     s('CLI', gpBlue, bold),
     s(` v${version}`, fg.muted),
-    s(` ${b.h} `, gpPurple),
+    s(` ${h} `, gpPurple),
     s(icon.check + ' ', fg.success),
     s(provider, fg.success),
-    s(` ${b.h} `, gpPurple),
+    s(` ${h} `, gpPurple),
     s(icon.code + ' ', gpBlue),
     s(model, gpBlue),
-    s(` ${b.h} `, gpPurple),
+    s(` ${h} `, gpPurple),
     s(icon.tool + ' ', fg.peach),
     s(`${toolsCount} tools`, fg.peach),
-    s(` ${b.h}${b.tr}`, gpPurple),
+    s(` ${h}${tr}`, gpPurple),
   ].join('')
 
   return line
@@ -211,12 +215,15 @@ export function toolPanel(content: string, opts: ToolPanelOptions = {}): string 
   if (!isColorEnabled()) return content
 
   const { width = 72 } = opts
-  const b = box.round
+  // Use getBoxChars() which has Unicode fallback
+  const b = getBoxChars().round
+  const h = b?.h || '-' // Fallback horizontal line
   const lines = content.split('\n')
   const padded = lines.map(l => l.padEnd(width - 4))
-  const top = s(`${b.tl} ${b.h.repeat(width - 2)} ${b.tr}`, fg.surface1)
-  const bottom = s(`${b.bl} ${b.h.repeat(width - 2)} ${b.br}`, fg.surface1)
-  const middle = padded.map(l => s(`${b.v} `, fg.surface1) + l + s(` ${b.v}`, fg.surface1)).join('\n')
+  const top = s(`${b?.tl || '+'} ${h.repeat(width - 2)} ${b?.tr || '+'}`, fg.surface1)
+  const bottom = s(`${b?.bl || '+'} ${h.repeat(width - 2)} ${b?.br || '+'}`, fg.surface1)
+  const v = b?.v || '|'
+  const middle = padded.map(l => s(`${v} `, fg.surface1) + l + s(` ${v}`, fg.surface1)).join('\n')
 
   return `${top}\n${middle}\n${bottom}`
 }

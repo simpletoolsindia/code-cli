@@ -50,23 +50,29 @@ export function panel(content: string, options: {
   // Use box drawing or ASCII based on terminal capability
   if (useBox) {
     const b = getBoxChars()
-    let result = `${b.tl}${b.h.repeat(w)}${b.tr}\n`
+    const h = b?.h || '-'
+    const v = b?.v || '|'
+    const tl = b?.tl || '+'
+    const tr = b?.tr || '+'
+    const bl = b?.bl || '+'
+    const br = b?.br || '+'
+    let result = `${tl}${h.repeat(w)}${tr}\n`
 
     if (title) {
       const titleLen = stripAnsi(title).length
       const pad1 = Math.floor((w - titleLen) / 2)
       const pad2 = w - titleLen - pad1
-      result += `${b.v}${' '.repeat(pad1)}${title}${' '.repeat(pad2)}${b.v}\n`
-      result += `${b.v}${b.h.repeat(w)}${b.v}\n`
+      result += `${v}${' '.repeat(pad1)}${title}${' '.repeat(pad2)}${v}\n`
+      result += `${v}${h.repeat(w)}${v}\n`
     }
 
     for (const ln of rawLines) {
       const len = stripAnsi(ln).length
       const pad = w - len
-      result += `${b.v} ${ln}${' '.repeat(Math.max(0, pad - 1))} ${b.v}\n`
+      result += `${v} ${ln}${' '.repeat(Math.max(0, pad - 1))} ${v}\n`
     }
 
-    result += `${b.bl}${b.h.repeat(w)}${b.br}`
+    result += `${bl}${h.repeat(w)}${br}`
     return s(result, titleColor)
   }
 

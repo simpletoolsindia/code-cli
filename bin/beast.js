@@ -22647,25 +22647,28 @@ function renderHeader(config) {
     return `BEAST CLI v${config.version} | ${config.provider} | ${config.model}`;
   }
   const { version, provider, model, toolsCount } = config;
-  const b = box.round;
+  const b = getBoxChars().round;
+  const h = b?.h || "-";
+  const tl = b?.tl || "+";
+  const tr = b?.tr || "+";
   const gpPurple = "\x1B[38;2;142;54;255m";
   const gpBlue = "\x1B[38;2;70;130;255m";
   const line = [
-    s2(`${b.tl} `, gpPurple),
+    s2(`${tl} `, gpPurple),
     s2("\uD83D\uDC09", gpPurple),
     s2(" Beast ", gpPurple, bold2),
     s2("CLI", gpBlue, bold2),
     s2(` v${version}`, fg2.muted),
-    s2(` ${b.h} `, gpPurple),
+    s2(` ${h} `, gpPurple),
     s2(icon2.check + " ", fg2.success),
     s2(provider, fg2.success),
-    s2(` ${b.h} `, gpPurple),
+    s2(` ${h} `, gpPurple),
     s2(icon2.code + " ", gpBlue),
     s2(model, gpBlue),
-    s2(` ${b.h} `, gpPurple),
+    s2(` ${h} `, gpPurple),
     s2(icon2.tool + " ", fg2.peach),
     s2(`${toolsCount} tools`, fg2.peach),
-    s2(` ${b.h}${b.tr}`, gpPurple)
+    s2(` ${h}${tr}`, gpPurple)
   ].join("");
   return line;
 }
@@ -22715,24 +22718,30 @@ function panel(content, options = {}) {
   const w = Math.max(width, maxLen + 4);
   if (useBox) {
     const b = getBoxChars();
-    let result2 = `${b.tl}${b.h.repeat(w)}${b.tr}
+    const h = b?.h || "-";
+    const v = b?.v || "|";
+    const tl = b?.tl || "+";
+    const tr = b?.tr || "+";
+    const bl = b?.bl || "+";
+    const br = b?.br || "+";
+    let result2 = `${tl}${h.repeat(w)}${tr}
 `;
     if (title) {
       const titleLen = stripAnsi(title).length;
       const pad1 = Math.floor((w - titleLen) / 2);
       const pad2 = w - titleLen - pad1;
-      result2 += `${b.v}${" ".repeat(pad1)}${title}${" ".repeat(pad2)}${b.v}
+      result2 += `${v}${" ".repeat(pad1)}${title}${" ".repeat(pad2)}${v}
 `;
-      result2 += `${b.v}${b.h.repeat(w)}${b.v}
+      result2 += `${v}${h.repeat(w)}${v}
 `;
     }
     for (const ln of rawLines) {
       const len = stripAnsi(ln).length;
       const pad = w - len;
-      result2 += `${b.v} ${ln}${" ".repeat(Math.max(0, pad - 1))} ${b.v}
+      result2 += `${v} ${ln}${" ".repeat(Math.max(0, pad - 1))} ${v}
 `;
     }
-    result2 += `${b.bl}${b.h.repeat(w)}${b.br}`;
+    result2 += `${bl}${h.repeat(w)}${br}`;
     return s2(result2, titleColor);
   }
   let result = `+${"-".repeat(w)}+

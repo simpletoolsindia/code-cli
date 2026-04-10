@@ -64,7 +64,10 @@ function drawHeader(provider: string, model: string, toolsCount: number) {
   term.blue(`${toolsCount} tools`)
   term('\n')
   term.eraseLine()
-  term.dim.gray('─'.repeat(term.width - 2))
+  // Fallback for width in case terminal doesn't report it
+  const termWidth = term.width || 80
+  const lineWidth = Math.max(0, termWidth - 2)
+  term.dim.gray('─'.repeat(lineWidth))
   term('\n')
 }
 
