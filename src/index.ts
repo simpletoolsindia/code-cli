@@ -17,7 +17,7 @@ import { tipBanner, randomTip, contextualTip } from './ui/tips.ts'
 import { Spinner } from './ui/spinner.ts'
 import { getFormattedTools, executeTool, getAllTools } from './native-tools/index.ts'
 import { funSpinner, FunSpinner, randomFunFact, thinkingMessage, toolRunningMessage } from './ui/fun-animations.ts'
-import { notifications, playBell, playAlertBeeps } from './utils/notifications.ts'
+import { notifications, playBell, playAlertBeeps, onResponseReady, onWaitingForInput, onError, onTaskComplete, onPermissionRequest } from './utils/notifications.ts'
 import type { ToolCall } from './providers/index.ts'
 import {
   detectAllProviders,
@@ -670,9 +670,9 @@ Commands:
 
         stopFunSpinner('done')
 
-        // Notify on completion
+        // Notify on completion (bell + notification)
         if (toolCallCount === 0 && response.content) {
-          playBell()
+          onResponseReady()
         }
 
         if (!response.toolCalls || response.toolCalls.length === 0) {

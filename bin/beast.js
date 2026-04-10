@@ -1419,7 +1419,7 @@ async function hackernewsComments(storyId, limit = 20) {
           url: story.url || `https://news.ycombinator.com/item?id=${storyId}`,
           snippet: `${story.score || 0} points | ${story.descendants || 0} comments`
         },
-        ...comments.map((c3) => ({ title: c3.title, url: c3.url, snippet: c3.snippet }))
+        ...comments.map((c2) => ({ title: c2.title, url: c2.url, snippet: c2.snippet }))
       ]
     };
   } catch (e) {
@@ -1463,107 +1463,134 @@ init_providers();
 var reset = "\x1B[0m";
 var bold = "\x1B[1m";
 var dim = "\x1B[2m";
-var mocha = {
-  crust: "\x1B[48;2;17;17;27m",
-  mantle: "\x1B[48;2;24;24;37m",
-  base: "\x1B[48;2;30;30;46m",
-  surface0: "\x1B[48;2;49;49;68m",
-  surface1: "\x1B[48;2;69;73;90m",
-  surface2: "\x1B[48;2;88;91;112m",
-  text: "\x1B[38;2;205;214;244m",
-  subtext0: "\x1B[38;2;166;173;200m",
-  subtext1: "\x1B[38;2;186;190;204m",
-  overlay0: "\x1B[38;2;108;112;134m",
-  blue: "\x1B[38;2;137;180;250m",
-  sapphire: "\x1B[38;2;62;142;204m",
-  sky: "\x1B[38;2;106;173;214m",
-  teal: "\x1B[38;2;148;226;213m",
-  green: "\x1B[38;2;166;227;161m",
-  yellow: "\x1B[38;2;249;226;175m",
-  peach: "\x1B[38;2;250;179;135m",
-  maroon: "\x1B[38;2;209;133;122m",
-  red: "\x1B[38;2;243;139;168m",
-  mauve: "\x1B[38;2;203;166;247m",
-  pink: "\x1B[38;2;245;194;231m",
-  flamingo: "\x1B[38;2;242;205;205m",
-  lavender: "\x1B[38;2;180;190;254m",
-  white: "\x1B[38;2;230;230;250m"
+var claudePalette = {
+  crust: "\x1B[48;2;250;249;245m",
+  mantle: "\x1B[48;2;245;244;237m",
+  base: "\x1B[48;2;240;238;220m",
+  surface0: "\x1B[48;2;232;230;220m",
+  surface1: "\x1B[48;2;215;213;200m",
+  surface2: "\x1B[48;2;180;178;170m",
+  text: "\x1B[38;2;20;20;19m",
+  subtext0: "\x1B[38;2;80;79;75m",
+  subtext1: "\x1B[38;2;50;49;46m",
+  overlay0: "\x1B[38;2;140;138;130m",
+  blue: "\x1B[38;2;56;152;236m",
+  sapphire: "\x1B[38;2;56;152;236m",
+  sky: "\x1B[38;2;100;170;210m",
+  teal: "\x1B[38;2;23;146;153m",
+  green: "\x1B[38;2;30;160;80m",
+  yellow: "\x1B[38;2;200;140;0m",
+  peach: "\x1B[38;2;201;130;70m",
+  maroon: "\x1B[38;2;160;100;90m",
+  red: "\x1B[38;2;200;60;60m",
+  mauve: "\x1B[38;2;180;80;200m",
+  pink: "\x1B[38;2;200;100;180m",
+  flamingo: "\x1B[38;2;220;150;130m",
+  lavender: "\x1B[38;2;139;92;246m",
+  white: "\x1B[38;2;255;255;250m",
+  gpPurple: "\x1B[38;2;142;54;255m",
+  gpBlue: "\x1B[38;2;70;130;255m",
+  gpCyan: "\x1B[38;2;0;200;200m",
+  gpGreen: "\x1B[38;2;0;200;100m",
+  gpYellow: "\x1B[38;2;255;200;0m",
+  gpRed: "\x1B[38;2;255;100;100m"
 };
 var fg = {
-  primary: mocha.text,
-  secondary: mocha.subtext1,
-  muted: mocha.subtext0,
-  overlay: mocha.overlay0,
-  inverse: "\x1B[7m",
-  success: mocha.green,
-  warning: mocha.yellow,
-  error: mocha.red,
-  info: mocha.blue,
-  user: mocha.green,
-  assistant: mocha.mauve,
-  system: mocha.sapphire,
-  tool: mocha.peach,
-  code: mocha.teal,
-  link: mocha.sapphire,
-  keyword: mocha.mauve,
-  function: mocha.blue,
-  string: mocha.green,
-  number: mocha.peach,
-  accent: mocha.mauve,
-  accent2: mocha.pink,
-  accent3: mocha.lavender,
-  prompt: mocha.green
+  primary: claudePalette.text,
+  secondary: claudePalette.subtext1,
+  muted: claudePalette.overlay0,
+  overlay: claudePalette.surface2,
+  success: claudePalette.green,
+  warning: claudePalette.yellow,
+  error: claudePalette.red,
+  info: claudePalette.blue,
+  user: claudePalette.green,
+  assistant: claudePalette.mauve,
+  system: claudePalette.sapphire,
+  tool: claudePalette.peach,
+  code: claudePalette.teal,
+  link: claudePalette.sapphire,
+  keyword: claudePalette.mauve,
+  function: claudePalette.blue,
+  string: claudePalette.green,
+  number: claudePalette.peach,
+  accent: claudePalette.gpPurple,
+  accent2: claudePalette.pink,
+  accent3: claudePalette.lavender,
+  peach: claudePalette.peach,
+  mauve: claudePalette.mauve,
+  cyan: claudePalette.teal,
+  purple: claudePalette.gpPurple,
+  prompt: claudePalette.gpPurple,
+  gpPurple: claudePalette.gpPurple,
+  gpBlue: claudePalette.gpBlue,
+  gpCyan: claudePalette.gpCyan,
+  gpGreen: claudePalette.gpGreen,
+  gpYellow: claudePalette.gpYellow,
+  gpRed: claudePalette.gpRed
 };
 var bg = {
-  base: mocha.base,
-  surface: mocha.surface0,
-  elevated: mocha.surface1,
-  overlay: mocha.surface2,
-  crust: mocha.crust,
-  mantle: mocha.mantle
+  base: claudePalette.base,
+  surface: claudePalette.surface0,
+  elevated: claudePalette.surface1,
+  overlay: claudePalette.surface2,
+  crust: claudePalette.crust,
+  mantle: claudePalette.mantle
 };
+var spinnerFrames = {
+  dots: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"],
+  line: ["-", "\\", "|", "/"],
+  blocks: ["▖", "▘", "▝", "▗"],
+  arrow: ["←", "↙", "↓", "↘", "→", "↗", "↑", "↖"],
+  star: ["⋆", "✦", "✧", "⋆", "✧", "✦"]
+};
+var DEFAULT_SPINNER = spinnerFrames.dots;
 var icon2 = {
-  prompt: "❯",
-  thinking: "⏳",
-  loading: "⠋",
+  prompt: "›",
+  userPrefix: ">",
+  aiPrefix: "◈",
   success: "✓",
   error: "✗",
-  warning: "⚠",
-  info: "ℹ",
+  warning: "!",
+  info: "i",
   check: "●",
-  tool: "⚙",
+  online: "●",
+  offline: "○",
+  tool: "›",
+  run: "›",
   search: "⌕",
   edit: "✎",
-  trash: "✂",
   plus: "+",
   minus: "−",
   arrow: "→",
+  arrowUp: "↑",
+  arrowDown: "↓",
+  bullet: "·",
+  separator: "│",
   folder: "▶",
   file: "▷",
-  code: "⚡",
+  code: "◈",
   link: "↗",
-  rocket: "»",
-  sparkles: "✧",
-  beast: "◈",
+  star: "★",
+  spark: "✦",
+  sparkles: "⁎",
+  tokens: "⚡",
+  messages: "≡",
+  time: "⏱",
+  context: "◈",
+  clock: "⏰",
   ts: "TS",
   js: "JS",
   py: "PY",
   md: "MD",
   json: "{}",
   git: "⎇",
-  online: "●",
-  offline: "○",
-  busy: "◐",
-  tokens: "⚡",
-  messages: "≡",
-  time: "⏱",
-  context: "◈",
-  clock: "⏰",
-  spark: "✦",
-  diamond: "◆",
-  bullet: "◆",
+  thinking: "◐",
+  loading: "⠋",
   line: "─",
-  star: "★"
+  dash: "–",
+  dot: "·",
+  space: " "
 };
 var NO_COLOR = process.env.NO_COLOR || process.env.NO_COLOUR;
 function isColorEnabled() {
@@ -1584,156 +1611,144 @@ function s(text, ...styles) {
 // src/ui/colors.ts
 var reset2 = "\x1B[0m";
 var bold2 = "\x1B[1m";
+var dim2 = "\x1B[2m";
 var italic = "\x1B[3m";
-var mocha2 = {
-  crust: "\x1B[48;2;17;17;27m",
-  mantle: "\x1B[48;2;24;24;37m",
-  base: "\x1B[48;2;30;30;46m",
-  surface0: "\x1B[48;2;49;49;68m",
-  surface1: "\x1B[48;2;69;73;90m",
-  surface2: "\x1B[48;2;88;91;112m",
-  text: "\x1B[38;2;205;214;244m",
-  subtext0: "\x1B[38;2;166;173;200m",
-  subtext1: "\x1B[38;2;186;190;204m",
-  overlay0: "\x1B[38;2;108;112;134m",
-  blue: "\x1B[38;2;137;180;250m",
-  sapphire: "\x1B[38;2;62;142;204m",
-  sky: "\x1B[38;2;106;173;214m",
-  teal: "\x1B[38;2;148;226;213m",
-  green: "\x1B[38;2;166;227;161m",
-  yellow: "\x1B[38;2;249;226;175m",
-  peach: "\x1B[38;2;250;179;135m",
-  maroon: "\x1B[38;2;209;133;122m",
-  red: "\x1B[38;2;243;139;168m",
-  mauve: "\x1B[38;2;203;166;247m",
-  pink: "\x1B[38;2;245;194;231m",
-  flamingo: "\x1B[38;2;242;205;205m",
-  lavender: "\x1B[38;2;180;190;254m",
-  white: "\x1B[38;2;230;230;250m"
+var claudePalette2 = {
+  crust: "\x1B[48;2;250;249;245m",
+  mantle: "\x1B[48;2;245;244;237m",
+  base: "\x1B[48;2;240;238;220m",
+  surface0: "\x1B[48;2;232;230;220m",
+  surface1: "\x1B[48;2;215;213;200m",
+  surface2: "\x1B[48;2;180;178;170m",
+  text: "\x1B[38;2;20;20;19m",
+  subtext0: "\x1B[38;2;80;79;75m",
+  subtext1: "\x1B[38;2;50;49;46m",
+  overlay0: "\x1B[38;2;140;138;130m",
+  blue: "\x1B[38;2;56;152;236m",
+  sapphire: "\x1B[38;2;56;152;236m",
+  sky: "\x1B[38;2;100;170;210m",
+  teal: "\x1B[38;2;23;146;153m",
+  green: "\x1B[38;2;30;160;80m",
+  yellow: "\x1B[38;2;200;140;0m",
+  peach: "\x1B[38;2;201;130;70m",
+  maroon: "\x1B[38;2;160;100;90m",
+  red: "\x1B[38;2;200;60;60m",
+  mauve: "\x1B[38;2;180;80;200m",
+  pink: "\x1B[38;2;200;100;180m",
+  flamingo: "\x1B[38;2;220;150;130m",
+  lavender: "\x1B[38;2;139;92;246m",
+  white: "\x1B[38;2;255;255;250m",
+  gpPurple: "\x1B[38;2;142;54;255m",
+  gpBlue: "\x1B[38;2;70;130;255m",
+  gpCyan: "\x1B[38;2;0;200;200m",
+  gpGreen: "\x1B[38;2;0;200;100m",
+  gpYellow: "\x1B[38;2;255;200;0m",
+  gpRed: "\x1B[38;2;255;100;100m"
 };
 var fg2 = {
-  primary: mocha2.text,
-  secondary: mocha2.subtext1,
-  muted: mocha2.subtext0,
-  overlay: mocha2.overlay0,
-  inverse: "\x1B[7m",
-  success: mocha2.green,
-  warning: mocha2.yellow,
-  error: mocha2.red,
-  info: mocha2.blue,
-  user: mocha2.green,
-  assistant: mocha2.mauve,
-  system: mocha2.sapphire,
-  tool: mocha2.peach,
-  code: mocha2.teal,
-  link: mocha2.sapphire,
-  keyword: mocha2.mauve,
-  function: mocha2.blue,
-  string: mocha2.green,
-  number: mocha2.peach,
-  accent: mocha2.mauve,
-  accent2: mocha2.pink,
-  accent3: mocha2.lavender,
-  prompt: mocha2.green
+  primary: claudePalette2.text,
+  secondary: claudePalette2.subtext1,
+  muted: claudePalette2.overlay0,
+  overlay: claudePalette2.surface2,
+  success: claudePalette2.green,
+  warning: claudePalette2.yellow,
+  error: claudePalette2.red,
+  info: claudePalette2.blue,
+  user: claudePalette2.green,
+  assistant: claudePalette2.mauve,
+  system: claudePalette2.sapphire,
+  tool: claudePalette2.peach,
+  code: claudePalette2.teal,
+  link: claudePalette2.sapphire,
+  keyword: claudePalette2.mauve,
+  function: claudePalette2.blue,
+  string: claudePalette2.green,
+  number: claudePalette2.peach,
+  accent: claudePalette2.gpPurple,
+  accent2: claudePalette2.pink,
+  accent3: claudePalette2.lavender,
+  peach: claudePalette2.peach,
+  mauve: claudePalette2.mauve,
+  cyan: claudePalette2.teal,
+  purple: claudePalette2.gpPurple,
+  prompt: claudePalette2.gpPurple,
+  gpPurple: claudePalette2.gpPurple,
+  gpBlue: claudePalette2.gpBlue,
+  gpCyan: claudePalette2.gpCyan,
+  gpGreen: claudePalette2.gpGreen,
+  gpYellow: claudePalette2.gpYellow,
+  gpRed: claudePalette2.gpRed
 };
 var bg2 = {
-  base: mocha2.base,
-  surface: mocha2.surface0,
-  elevated: mocha2.surface1,
-  overlay: mocha2.surface2,
-  crust: mocha2.crust,
-  mantle: mocha2.mantle
+  base: claudePalette2.base,
+  surface: claudePalette2.surface0,
+  elevated: claudePalette2.surface1,
+  overlay: claudePalette2.surface2,
+  crust: claudePalette2.crust,
+  mantle: claudePalette2.mantle
 };
 var box = {
-  single: {
-    tl: "┌",
-    tr: "┐",
-    bl: "└",
-    br: "┘",
-    h: "─",
-    v: "│"
-  },
-  round: {
-    tl: "╭",
-    tr: "╮",
-    bl: "╰",
-    br: "╯",
-    h: "─",
-    v: "│"
-  },
-  heavy: {
-    tl: "┏",
-    tr: "┓",
-    bl: "┗",
-    br: "┛",
-    h: "━",
-    v: "┃"
-  },
-  dashed: {
-    tl: "┌",
-    tr: "┐",
-    bl: "└",
-    br: "┘",
-    h: "─",
-    v: "│"
-  },
-  soft: {
-    tl: "╭",
-    tr: "╮",
-    bl: "╯",
-    br: "╰",
-    h: "─",
-    v: "│"
-  }
+  single: { tl: "┌", tr: "┐", bl: "└", br: "┘", h: "─", v: "│" },
+  round: { tl: "╭", tr: "╮", bl: "╰", br: "╯", h: "─", v: "│" },
+  heavy: { tl: "┏", tr: "┓", bl: "┗", br: "┛", h: "━", v: "┃" },
+  dashed: { tl: "┌", tr: "┐", bl: "└", br: "┘", h: "─", v: "│" },
+  soft: { tl: "╭", tr: "╮", bl: "╯", br: "╰", h: "─", v: "│" },
+  light: { tl: "┌", tr: "┐", bl: "└", br: "┘", h: "─", v: "│" }
 };
+var spinnerFrames2 = {
+  dots: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"],
+  line: ["-", "\\", "|", "/"],
+  blocks: ["▖", "▘", "▝", "▗"],
+  arrow: ["←", "↙", "↓", "↘", "→", "↗", "↑", "↖"],
+  star: ["⋆", "✦", "✧", "⋆", "✧", "✦"]
+};
+var DEFAULT_SPINNER2 = spinnerFrames2.dots;
 var icon3 = {
-  prompt: "❯",
-  thinking: "⏳",
-  loading: "⠋",
+  prompt: "›",
+  userPrefix: ">",
+  aiPrefix: "◈",
   success: "✓",
   error: "✗",
-  warning: "⚠",
-  info: "ℹ",
+  warning: "!",
+  info: "i",
   check: "●",
-  tool: "⚙",
+  online: "●",
+  offline: "○",
+  tool: "›",
+  run: "›",
   search: "⌕",
   edit: "✎",
-  trash: "✂",
   plus: "+",
   minus: "−",
   arrow: "→",
+  arrowUp: "↑",
+  arrowDown: "↓",
+  bullet: "·",
+  separator: "│",
   folder: "▶",
   file: "▷",
-  code: "⚡",
+  code: "◈",
   link: "↗",
-  rocket: "»",
-  sparkles: "✧",
-  beast: "◈",
+  star: "★",
+  spark: "✦",
+  sparkles: "⁎",
+  tokens: "⚡",
+  messages: "≡",
+  time: "⏱",
+  context: "◈",
+  clock: "⏰",
   ts: "TS",
   js: "JS",
   py: "PY",
   md: "MD",
   json: "{}",
   git: "⎇",
-  online: "●",
-  offline: "○",
-  busy: "◐",
-  tokens: "⚡",
-  messages: "≡",
-  time: "⏱",
-  context: "◈",
-  clock: "⏰",
-  spark: "✦",
-  diamond: "◆",
-  bullet: "◆",
+  thinking: "◐",
+  loading: "⠋",
   line: "─",
-  star: "★"
-};
-var progress = {
-  filled: "█",
-  empty: "░",
-  filledSmall: "▓",
-  emptySmall: "▒"
+  dash: "–",
+  dot: "·",
+  space: " "
 };
 var NO_COLOR2 = process.env.NO_COLOR || process.env.NO_COLOUR;
 function isColorEnabled2() {
@@ -1754,31 +1769,30 @@ function s2(text, ...styles) {
 // src/ui/layout.ts
 function renderHeader(config) {
   if (!isColorEnabled2()) {
-    return `Beast CLI v${config.version} | ${config.provider} | ${config.model}`;
+    return `BEAST CLI v${config.version} | ${config.provider} | ${config.model}`;
   }
   const { version, provider, model, toolsCount } = config;
   const b = box.round;
+  const gpPurple = "\x1B[38;2;142;54;255m";
+  const gpBlue = "\x1B[38;2;70;130;255m";
   const line = [
-    s2(`${b.tl} `, fg2.accent),
-    s2(icon3.spark, fg2.accent),
-    s2(" Beast CLI ", fg2.accent, bold2),
-    s2(`v${version}`, fg2.muted),
-    s2(` ${b.h} ${b.h} ${b.tr}`, fg2.accent),
-    s2(` ${b.v} `, fg2.muted),
+    s2(`${b.tl} `, gpPurple),
+    s2("\uD83D\uDC09", gpPurple),
+    s2(" Beast ", gpPurple, bold2),
+    s2("CLI", gpBlue, bold2),
+    s2(` v${version}`, fg2.muted),
+    s2(` ${b.h} `, gpPurple),
     s2(icon3.check + " ", fg2.success),
     s2(provider, fg2.success),
-    s2(` ${b.v} `, fg2.muted),
-    s2(icon3.code + " ", fg2.blue),
-    s2(model, fg2.blue),
-    s2(` ${b.v} `, fg2.muted),
+    s2(` ${b.h} `, gpPurple),
+    s2(icon3.code + " ", gpBlue),
+    s2(model, gpBlue),
+    s2(` ${b.h} `, gpPurple),
     s2(icon3.tool + " ", fg2.peach),
     s2(`${toolsCount} tools`, fg2.peach),
-    s2(` ${b.h} ${b.h}${b.tr}`, fg2.accent)
+    s2(` ${b.h}${b.tr}`, gpPurple)
   ].join("");
-  const width = Math.min(80, stripAnsi(line).length + 4);
-  const sep = s2(` ${b.h} `.repeat(Math.floor(width / 2)).slice(0, width), fg2.accent);
-  return `${line}
-${s2(b.bl, fg2.accent)}${sep}${s2(b.br, fg2.accent)}`;
+  return line;
 }
 function contextBar(stats) {
   const { used, max } = stats;
@@ -1791,7 +1805,7 @@ function contextBar(stats) {
     barColor = fg2.warning;
   if (pct > 0.9)
     barColor = fg2.error;
-  const bar = s2(progress.filled.repeat(filled), barColor) + s2(progress.empty.repeat(empty), fg2.overlay);
+  const bar = s2("█".repeat(filled), barColor) + s2("░".repeat(empty), fg2.overlay);
   const pctStr = s2(`${Math.round(pct * 100)}%`, barColor);
   const usedStr = s2(formatTokens(used), fg2.muted);
   const maxStr = s2(formatTokens(max), fg2.muted);
@@ -1808,27 +1822,26 @@ function contextBar(stats) {
   ].join("");
 }
 function formatTokens(n) {
-  if (n >= 1000) {
+  if (n >= 1000)
     return (n / 1000).toFixed(1) + "K";
-  }
   return String(n);
-}
-function stripAnsi(text) {
-  return text.replace(/\x1b\[[0-9;]*m/g, "");
 }
 
 // src/ui/format.ts
+function stripAnsi(text) {
+  return text.replace(/\x1b\[[0-9;]*m/g, "");
+}
 function panel(content, options = {}) {
   const { title, titleColor = fg2.accent, width = 70 } = options;
   const b = box.round;
   const rawLines = content.split(`
 `);
-  const maxLen = rawLines.reduce((m, l) => Math.max(m, stripAnsi2(l).length), 0);
+  const maxLen = rawLines.reduce((m, l) => Math.max(m, stripAnsi(l).length), 0);
   const w = Math.max(width, maxLen + 4);
   let result = b.tl + "─".repeat(w) + b.tr + `
 `;
   if (title) {
-    const titleLen = stripAnsi2(title).length;
+    const titleLen = stripAnsi(title).length;
     const pad1 = Math.floor((w - titleLen) / 2);
     const pad2 = w - titleLen - pad1;
     result += b.v + " ".repeat(pad1) + title + " ".repeat(pad2) + b.v + `
@@ -1837,7 +1850,7 @@ function panel(content, options = {}) {
 `;
   }
   for (const ln of rawLines) {
-    const len = stripAnsi2(ln).length;
+    const len = stripAnsi(ln).length;
     const pad = w - len - 2;
     result += b.v + " " + ln + " ".repeat(Math.max(0, pad)) + " " + b.v + `
 `;
@@ -1883,19 +1896,16 @@ async function withProgress(label, promise, onTick) {
   }
 }
 function helpPanel(commands) {
-  const maxCmd = Math.max(...commands.map((c2) => stripAnsi2(c2.cmd).length), 4);
+  const maxCmd = Math.max(...commands.map((c) => stripAnsi(c.cmd).length), 4);
   return commands.map(({ cmd, desc, shortcut }) => {
     const shortcutStr = shortcut ? s2(` (${shortcut})`, fg2.muted, italic) : "";
     return `  ${s2(cmd.padEnd(maxCmd + 2), fg2.accent)}${desc}${shortcutStr}`;
   }).join(`
 `);
 }
-function stripAnsi2(text) {
-  return text.replace(/\x1b\[[0-9;]*m/g, "");
-}
 
 // src/ui/format.ts
-function stripAnsi3(text) {
+function stripAnsi2(text) {
   return text.replace(/\x1b\[[0-9;]*m/g, "");
 }
 
@@ -1909,7 +1919,7 @@ function truncateResult(content, maxLines = MAX_RESULT_LINES) {
     return content;
   const visible = lines.slice(0, maxLines);
   const truncated = visible.map((l) => {
-    const stripped = stripAnsi3(l);
+    const stripped = stripAnsi2(l);
     if (stripped.length <= MAX_LINE_WIDTH)
       return l;
     return l.slice(0, MAX_LINE_WIDTH - 3) + "...";
@@ -2144,7 +2154,7 @@ function timeAgo(dateStr) {
   }
 }
 function truncate(text, maxLen) {
-  const stripped = stripAnsi3(text);
+  const stripped = stripAnsi2(text);
   if (stripped.length <= maxLen)
     return text;
   const plain = text.replace(/\x1b\[[0-9;]*m/g, "");
@@ -2157,78 +2167,87 @@ function truncate(text, maxLen) {
 }
 
 // src/ui/banner.ts
+function termWidth() {
+  try {
+    return process.stdout.columns || 80;
+  } catch {
+    return 80;
+  }
+}
+var googlePurple = "\x1B[38;2;142;54;255m";
+var googleBlue = "\x1B[38;2;70;130;255m";
+var FULL_LOGO = `
+ ${googlePurple}╔══════════════════════════════════════════════════════════════════╗${reset2}` + `
+ ${googlePurple}║${reset2}  \uD83D\uDC09  ${s2("BEAST", googlePurple, bold2)}   ${s2("CLI", googleBlue, bold2)}    ${dim2}AI Coding Agent · 45+ Providers · 51+ Tools     ${googlePurple}║${reset2}` + `
+ ${googlePurple}╚══════════════════════════════════════════════════════════════════╝${reset2}
+`;
+var COMPACT_LOGO = `
+ ${googlePurple}┌────────────────────────────────────────────┐${reset2}` + `
+ ${googlePurple}│${reset2}  \uD83D\uDC09  ${s2("BEAST", googlePurple, bold2)}  ${s2("CLI", googleBlue, bold2)}  ${dim2}AI Coding Agent                  ${googlePurple}│${reset2}` + `
+ ${googlePurple}└────────────────────────────────────────────┘${reset2}
+`;
+var TINY_LOGO = ` \uD83D\uDC09 ${s2("BEAST CLI", googlePurple, bold2)} ${dim2}~ 
+`;
+var googlePurple2 = "\x1B[38;2;142;54;255m";
+var googleBlue2 = "\x1B[38;2;70;130;255m";
+var TEXT_LOGO = ` ${s2("BEAST", googlePurple2, bold2)} ${s2("CLI", googleBlue2, bold2)} `;
+var TAGLINE = `${s2("·", fg2.overlay)} ${s2("45+ Providers", fg2.muted)} ${s2("·", fg2.overlay)} ${s2("51+ Tools", fg2.muted)} ${s2("·", fg2.overlay)} ${s2("Local AI Ready", fg2.muted)}`;
 function renderCleanBanner() {
-  return `${fg2.accent}
-   ██████╗ ██╗     ███████╗██╗  ██╗
-  ██╔════╝ ██║     ██╔════╝╚██╗██╔╝
-  ██║  ███╗██║     █████╗   ╚███╔╝
-  ██║   ██║██║     ██╔══╝   ██╔██╗
-  ╚██████╔╝███████╗███████╗██╔╝ ██╗
-   ╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝${reset2}
-
-${s2("AI Coding Agent", fg2.muted)} ${s2("·", fg2.overlay)} ${s2("45+ Providers", fg2.muted)} ${s2("·", fg2.overlay)} ${s2("39 Tools", fg2.muted)} ${s2("·", fg2.overlay)} ${s2("Local AI Ready", fg2.muted)}`;
+  if (!isColorEnabled2())
+    return "BEAST CLI - AI Coding Agent";
+  const width = termWidth();
+  let logo;
+  if (width >= 60) {
+    logo = FULL_LOGO;
+  } else if (width >= 40) {
+    logo = COMPACT_LOGO;
+  } else {
+    logo = TINY_LOGO;
+  }
+  if (width < 50) {
+    return logo;
+  }
+  return logo + TAGLINE + `
+`;
 }
 
 // src/ui/tips.ts
-var COMMAND_TIPS = [
+var TIPS = [
   { cmd: "/model <name>", tip: "Switch models mid-session without restarting", category: "command" },
   { cmd: "/provider <name>", tip: "Jump between Ollama, OpenRouter, Claude instantly", category: "command" },
   { cmd: "/tools", tip: "See all available MCP tools and their descriptions", category: "command" },
-  { cmd: "/clear", tip: "Wipes conversation history to reset context window", category: "command" },
+  { cmd: "/clear", tip: "Wipe conversation history to reset context window", category: "command" },
   { cmd: "/models", tip: "List all available models for your current provider", category: "command" },
-  { cmd: "/login", tip: "Authenticate with ChatGPT Plus via OAuth (free with subscription)", category: "command" },
-  { cmd: "/logout", tip: "Clear ChatGPT Plus OAuth tokens", category: "command" },
   { cmd: "Tab", tip: "Auto-complete tool names and common commands", category: "command" },
-  { cmd: "↑ / ↓", tip: "Navigate through your command history", category: "command" }
-];
-var TOOL_TIPS = [
-  { cmd: "file_read", tip: "Use file_read tool to read any file in the current directory", category: "tool" },
-  { cmd: "file_list", tip: "file_list shows directories, files with sizes and modification times", category: "tool" },
+  { cmd: "Up / Down", tip: "Navigate through your command history", category: "command" },
+  { cmd: "file_read", tip: "Read any file in the current directory", category: "tool" },
+  { cmd: "file_list", tip: "Show directories and files with sizes and times", category: "tool" },
   { cmd: "file_tree", tip: "View your entire project structure at a glance", category: "tool" },
-  { cmd: "run_code", tip: "run_code executes shell commands — git, npm, docker, anything", category: "tool" },
-  { cmd: "run_python", tip: "run_python runs Python code with a sandboxed interpreter", category: "tool" },
-  { cmd: "github_search_repos", tip: "Search GitHub repositories by keyword with stars and language info", category: "tool" },
-  { cmd: "searxng_search", tip: "Search the web without leaving the CLI — great for current events", category: "tool" },
-  { cmd: "fetch_web", tip: "Fetch full web page content from any URL for detailed research", category: "tool" },
-  { cmd: "web_search", tip: "Quick web search for fast answers", category: "tool" },
+  { cmd: "run_code", tip: "Execute shell commands — git, npm, docker, anything", category: "tool" },
+  { cmd: "run_python", tip: "Run Python code with a sandboxed interpreter", category: "tool" },
+  { cmd: "github_search_repos", tip: "Search GitHub by keyword with stars and language", category: "tool" },
+  { cmd: "searxng_search", tip: "Web search without leaving the CLI", category: "tool" },
+  { cmd: "fetch_web", tip: "Fetch full web page content from any URL", category: "tool" },
   { cmd: "hacker_news", tip: "Get top Hacker News stories and comments", category: "tool" },
-  { cmd: "youtube_transcript", tip: "Extract transcripts from YouTube videos for learning", category: "tool" },
-  { cmd: "real-time data", tip: "Beast auto-detects queries needing live data (news, weather, prices) and fetches them", category: "tool" }
-];
-var PROVIDER_TIPS = [
-  { cmd: "/provider codex", tip: "Use ChatGPT Plus OAuth — free with your $20/mo subscription!", category: "provider" },
-  { cmd: "/provider ollama", tip: "Ollama runs AI models locally on your machine — no internet needed", category: "provider" },
-  { cmd: "beast --defaults", tip: "Auto-selects best available provider — great for beginners!", category: "provider" },
-  { cmd: "45+ providers", tip: "Use any LLM provider — cloud (OpenRouter, Claude, GPT) or local (Ollama, LM Studio)", category: "provider" },
-  { cmd: "Claude", tip: "Anthropic Claude models offer excellent reasoning and long context", category: "provider" },
-  { cmd: "Groq", tip: "Groq provides ultra-fast inference with free tier available", category: "provider" }
-];
-var CONTEXT_TIPS = [
+  { cmd: "youtube_transcript", tip: "Extract transcripts from YouTube videos", category: "tool" },
+  { cmd: "/provider codex", tip: "Use ChatGPT Plus OAuth — free with your subscription", category: "provider" },
+  { cmd: "/provider ollama", tip: "Ollama runs AI models locally — no internet needed", category: "provider" },
+  { cmd: "beast --defaults", tip: "Auto-selects the best available provider", category: "provider" },
+  { cmd: "Claude", tip: "Anthropic Claude — excellent reasoning and long context", category: "provider" },
+  { cmd: "Groq", tip: "Ultra-fast inference with a free tier", category: "provider" },
   { cmd: "/compact", tip: "Manually trigger context compaction to free up space", category: "context" },
-  { cmd: "context", tip: "Chat history counts toward your context window — /clear to free it up", category: "context" },
-  { cmd: "auto-compact", tip: "Context auto-compacts at 95% usage — never lose your place!", category: "context" },
-  { cmd: "memory", tip: "Memory checkpoints save your task state between sessions", category: "context" }
-];
-var FUN_TIPS = [
-  { cmd: "CLI flags", tip: "Skip setup: beast --provider openrouter --model qwen/qwen3-14b", category: "fun" },
-  { cmd: "MCP tools", tip: "51+ native tools available: file ops, web, code, GitHub, YouTube, HN, and more", category: "fun" },
-  { cmd: "themes", tip: "Use --theme claude for warm editorial styling or --theme dracula for dark mode", category: "fun" },
-  { cmd: "code execution", tip: "Write and run code in any language — Python, JavaScript, Bash, and more", category: "fun" }
-];
-var ALL_TIPS = [
-  ...COMMAND_TIPS,
-  ...TOOL_TIPS,
-  ...PROVIDER_TIPS,
-  ...CONTEXT_TIPS,
-  ...FUN_TIPS
+  { cmd: "Context", tip: "History counts toward your context — /clear to free it", category: "context" },
+  { cmd: "auto-compact", tip: "Context auto-compacts at 95% — never lose your place", category: "context" },
+  { cmd: "--theme claude", tip: "Use --theme claude for warm editorial styling", category: "fun" },
+  { cmd: "--theme dracula", tip: "Use --theme dracula for dark mode", category: "fun" }
 ];
 function randomTip() {
-  const tip = ALL_TIPS[Math.floor(Math.random() * ALL_TIPS.length)];
-  return `${s2(icon3.sparkles + " Tip:", fg2.warning)} ${s2(tip.tip, fg2.secondary)} ${s2(`(${tip.cmd})`, fg2.muted)}`;
+  const tip = TIPS[Math.floor(Math.random() * TIPS.length)];
+  return `${s2("\uD83D\uDCA1", fg2.warning)} ${s2(tip.tip, fg2.secondary)} ${s2(`(${tip.cmd})`, fg2.muted)}`;
 }
 function tipBanner() {
   return `
-` + s2("─".repeat(60), fg2.muted) + `
+` + s2("─".repeat(50), fg2.muted) + `
 ` + randomTip() + `
 `;
 }
@@ -2942,13 +2961,13 @@ async function githubCommits(owner, repo, limit = 20) {
   if (!result.ok) {
     return { success: false, output: "", error: result.error };
   }
-  const commits = result.data.map((c3) => ({
-    sha: c3.sha?.slice(0, 7),
-    message: c3.commit?.message?.split(`
+  const commits = result.data.map((c2) => ({
+    sha: c2.sha?.slice(0, 7),
+    message: c2.commit?.message?.split(`
 `)[0],
-    author: c3.commit?.author?.name,
-    date: c3.commit?.author?.date,
-    url: c3.html_url
+    author: c2.commit?.author?.name,
+    date: c2.commit?.author?.date,
+    url: c2.html_url
   }));
   return { success: true, output: JSON.stringify(commits, null, 2) };
 }
@@ -3854,9 +3873,9 @@ class SummarizationEngine {
       topK: FLOW_MAX_SNIPPETS
     });
     const bestChunk = new Map;
-    for (const c3 of ragChunks) {
-      if (!bestChunk.has(c3.file))
-        bestChunk.set(c3.file, c3.snippet);
+    for (const c2 of ragChunks) {
+      if (!bestChunk.has(c2.file))
+        bestChunk.set(c2.file, c2.snippet);
     }
     for (let i = 0;i < files.length; i++) {
       const file = files[i];
@@ -3947,8 +3966,8 @@ class SummarizationEngine {
       topK: BUG_MAX_SNIPPETS
     });
     const seen = new Set;
-    const topRag = [...ragByLit, ...ragBySem].filter((c3) => {
-      const key = `${c3.file}:${c3.symbol}`;
+    const topRag = [...ragByLit, ...ragBySem].filter((c2) => {
+      const key = `${c2.file}:${c2.symbol}`;
       if (seen.has(key))
         return false;
       seen.add(key);
@@ -5511,6 +5530,11 @@ function getFormattedTools() {
   }));
 }
 
+// src/utils/notifications.ts
+function playBell() {
+  process.stdout.write("\x07");
+}
+
 // src/providers/discover.ts
 var CODEX_OAUTH = {
   CLIENT_ID: "app_EMoamEEZ73f0CkXaXp7hrann",
@@ -6079,7 +6103,7 @@ async function validateSavedConfig(session) {
 }
 async function interactiveSetup(saved) {
   console.log(`
-${s("\uD83D\uDC09 Beast CLI", fg.accent, bold)} ${s(`v${VERSION}`, fg.muted)} ${s("\xB7", fg.muted)} ${s("45+ Providers", fg.secondary)} ${s("\xB7", fg.muted)} ${s("39 Tools", fg.secondary)}`);
+\uD83D\uDC09 ${s("BEAST", fg.accent, bold)} ${s("CLI", fg.mauve, bold)} ${s(`v${VERSION}`, fg.muted)} ${s("\xB7", fg.muted)} ${s("45+ Providers", fg.secondary)} ${s("\xB7", fg.muted)} ${s("51+ Tools", fg.secondary)}`);
   const providers2 = await detectAllProviders();
   console.log(`${s("\u2713", fg.success)} MCP: ${nativeTools.length} tools | ${s("\u2713", fg.success)} Ollama: ${providers2.find((p) => p.id === "ollama")?.models.length || 0} models`);
   const provider = await selectProvider(providers2);
@@ -6087,7 +6111,7 @@ ${s("\uD83D\uDC09 Beast CLI", fg.accent, bold)} ${s(`v${VERSION}`, fg.muted)} ${
   if (isCloudProvider(provider)) {
     const key = await promptApiKey(provider);
     if (!key) {
-      console.log(`   ${s("\u26A0", fg.warning)} No API key`);
+      console.log(`   ${s("!", fg.warning)} No API key`);
       process.exit(1);
     }
     apiKey = key;
@@ -6144,7 +6168,7 @@ function printBanner(session) {
 async function repl(session) {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
   const promptUser = () => rl.question(`
-\u276F `, async (input) => {
+` + s("> ", fg.accent), async (input) => {
     const trimmed = input.trim();
     if (!trimmed) {
       promptUser();
@@ -6225,7 +6249,7 @@ Available models for ${session.provider}:`);
         const models = await fetchLocalModels(session.provider);
         if (models.length === 0) {
           console.log(`
-\u26A0\uFE0F  Could not fetch models. Is the server running?`);
+` + s("!", fg.warning) + " Could not fetch models. Is the server running?");
         } else {
           console.log(`
 Available models on ${session.provider}:`);
@@ -6266,7 +6290,7 @@ Available models on ${session.provider}:`);
         session.model = target;
       else {
         console.log(`
-\u26A0\uFE0F  Unknown model: ${target}`);
+${s("!", fg.warning)} Unknown model: ${target}`);
         console.log(`   Run /models to see available models.`);
         promptUser();
         return;
@@ -6285,7 +6309,7 @@ Available models on ${session.provider}:`);
         const key = await promptApiKey(newProvider);
         if (!key) {
           console.log(`
-\u26A0\uFE0F  Provider switch cancelled.`);
+` + s("!", fg.warning) + " Provider switch cancelled.");
           promptUser();
           return;
         }
@@ -6308,7 +6332,7 @@ Available models on ${session.provider}:`);
       const found = providers2.find((p) => p.id === target);
       if (!found) {
         console.log(`
-\u26A0\uFE0F  Unknown provider: ${target}`);
+${s("!", fg.warning)} Unknown provider: ${target}`);
         console.log("   Run /provider to see available providers.");
         promptUser();
         return;
@@ -6317,7 +6341,7 @@ Available models on ${session.provider}:`);
         const key = await promptApiKey(target);
         if (!key) {
           console.log(`
-\u26A0\uFE0F  Provider switch cancelled.`);
+` + s("!", fg.warning) + " Provider switch cancelled.");
           promptUser();
           return;
         }
@@ -6426,8 +6450,8 @@ Available models on ${session.provider}:`);
           maxTokens: 16384
         });
         stopFunSpinner("done");
-        if (toolCallCount === 0) {
-          printUsage(response.usage);
+        if (toolCallCount === 0 && response.content) {
+          playBell();
         }
         if (!response.toolCalls || response.toolCalls.length === 0) {
           const noNativeTools = !providerSupportsNativeTools(session.provider);
@@ -6513,7 +6537,7 @@ Please provide a clear, concise answer based on these results.`
     } catch (e) {
       stopFunSpinner("error");
       console.log(`
-${s("\u274C Error:", fg.error)} ${e}`);
+\u274C Error: ${e}`);
       if (session.messages.length > 0)
         session.messages.pop();
     }
@@ -6527,7 +6551,7 @@ ${s("\u274C Error:", fg.error)} ${e}`);
 function printHelp() {
   console.log(renderCleanBanner());
   console.log(`
-\uD83D\uDC09 Beast CLI v${VERSION} - AI Coding Agent
+\uD83D\uDC09 BEAST CLI v${VERSION} - AI Coding Agent
 
 USAGE:
   beast [options]
@@ -6616,12 +6640,12 @@ async function main() {
     const token = loadCodexToken();
     if (token && isCodexTokenValid(token)) {
       session = { provider: "codex", model: "gpt-5.2-codex", apiKey: undefined, baseUrl: "https://chatgpt.com/backend-api", messages: [], contextMax: 128 * 1024 };
-      console.log(`${s("\u2713", fg.success)} ChatGPT Plus (logged in)`);
+      console.log(`\u2705 ChatGPT Plus (logged in)`);
     } else {
       const ollamaModels = await fetchOllamaModels();
       if (ollamaModels.length > 0) {
         session = { provider: "ollama", model: ollamaModels[0], apiKey: undefined, baseUrl: "http://localhost:11434", messages: [], contextMax: 128 * 1024 };
-        console.log(`${s("\u2713", fg.success)} Ollama (${ollamaModels[0]}) \u2014 Free & offline`);
+        console.log(`\u2705 Ollama (${ollamaModels[0]}) \u2014 Free & offline`);
       } else {
         session = await interactiveSetup(saved || undefined);
       }
@@ -6629,7 +6653,7 @@ async function main() {
   } else if (saved && savedValid) {
     session = buildSessionFromSaved(saved);
     const ctxStr = saved.contextMax ? saved.contextMax >= 1024 ? Math.round(saved.contextMax / 1024) + "K" : String(saved.contextMax) : "32K";
-    console.log(`${s("\u2713", fg.success)} Using saved config: ${session.provider} / ${session.model} / ${ctxStr}`);
+    console.log(`\u2705 Using saved config: ${session.provider} / ${session.model} / ${ctxStr}`);
   } else {
     session = await interactiveSetup(saved || undefined);
   }
