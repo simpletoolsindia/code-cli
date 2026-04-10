@@ -184,5 +184,15 @@ if (!process.stdin.isTTY) {
   process.exit(1)
 }
 
+// Windows detection — Ink has known compatibility issues on Windows
+if (process.platform === 'win32') {
+  console.error('')
+  console.error('  ⚠️  Rich TUI (--tui) has limited support on Windows.')
+  console.error('  ℹ️  Recommended: Use `beast --defaults` or `beast` for REPL mode.')
+  console.error('  ℹ️  You can still try --tui, but if it fails, use REPL instead.')
+  console.error('')
+  // Continue anyway — user can still try
+}
+
 render(<BeastApp />)
 

@@ -3,7 +3,8 @@
 // Also supports user-defined agents invoked via @name in prompts
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { resolve, join } from 'node:path'
+import { getHomeDir } from '../utils/platform.ts'
 
 // ── User Agent Types ─────────────────────────────────────────────────────────
 
@@ -53,7 +54,7 @@ export interface AgentInstance {
 // ── User Agent Storage ───────────────────────────────────────────────────────
 
 function getAgentsDir(): string {
-  return resolve(process.env.HOME ?? '~', '.beast-cli', 'agents')
+  return join(getHomeDir(), '.beast-cli', 'agents')
 }
 
 function getAgentsPath(): string {

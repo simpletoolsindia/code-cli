@@ -113,6 +113,13 @@ install_nodejs() {
                 install_cmd="brew install node"
             fi
             ;;
+        windows)
+            if has_command choco; then
+                install_cmd="choco install nodejs -y"
+            elif has_command winget; then
+                install_cmd="winget install OpenJS.NodeJS.LTS"
+            fi
+            ;;
     esac
 
     if [[ -n "$install_cmd" ]]; then
@@ -125,6 +132,10 @@ install_nodejs() {
             sudo $install_cmd
         elif [[ "$install_cmd" == "brew"* ]]; then
             $install_cmd
+        elif [[ "$install_cmd" == "choco"* ]]; then
+            choco install nodejs -y
+        elif [[ "$install_cmd" == "winget"* ]]; then
+            winget install OpenJS.NodeJS.LTS --accept-package-agreements --accept-source-agreements
         fi
     fi
 
@@ -376,10 +387,20 @@ verify_installation() {
 
 # ─── Main ─────────────────────────────────────────────────────────────────────
 main() {
+    local os=$(detect_os)
+
     echo ""
     echo -e "${BOLD}${CYAN}    🐉 Beast CLI - Zero-Config Installer${NC}"
     echo -e "${DIM}    AI Coding Agent with TTS Support${NC}"
     echo ""
+
+    # Windows-specific notes
+    if [[ "$os" == "windows" ]]; then
+        echo -e "${YELLOW}  ⚠️  Windows detected${NC}"
+        echo -e "${DIM}  Note: Rich TUI (--tui) has limited support on Windows.${NC}"
+        echo -e "${DIM}  Use 'beast' or 'beast --defaults' for best experience.${NC}"
+        echo ""
+    fi
 
     # Parse arguments
     case "${1:-}" in

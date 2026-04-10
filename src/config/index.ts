@@ -1,7 +1,8 @@
 // Configuration System for Beast CLI
 
 import { readFileSync, existsSync, writeFileSync, mkdirSync } from 'node:fs'
-import { resolve, dirname } from 'node:path'
+import { resolve, dirname, join } from 'node:path'
+import { getHomeDir } from '../utils/platform.ts'
 
 export interface BeastSessionConfig {
   provider?: string
@@ -37,7 +38,7 @@ export interface BeastConfig extends BeastSessionConfig {
 // ── Config file paths ──────────────────────────────────────────────────────
 
 function getConfigDir(): string {
-  return resolve(process.env.HOME ?? '~', '.beast-cli')
+  return join(getHomeDir(), '.beast-cli')
 }
 
 function getConfigPath(): string {
@@ -126,7 +127,7 @@ function parseConfig(content: string): Partial<BeastConfig> {
 }
 
 export function saveConfig(updates: Partial<BeastConfig>, configPath?: string): void {
-  const filePath = configPath ?? resolve(process.env.HOME ?? '~', '.beast-cli.yml')
+  const filePath = configPath ?? join(getHomeDir(), '.beast-cli.yml')
   let existing: Partial<BeastConfig> = {}
   if (existsSync(filePath)) {
     try {
@@ -160,7 +161,7 @@ export function loadConfig(configPath?: string): BeastConfig {
   const paths = [
     configPath ?? '.beast-cli.yml',
     configPath ?? '.beast-cli.yaml',
-    resolve(process.env.HOME ?? '~', '.beast-cli.yml'),
+    join(getHomeDir(), '.beast-cli.yml'),
   ]
   for (const path of paths) {
     if (existsSync(path)) {

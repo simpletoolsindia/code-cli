@@ -5,7 +5,8 @@ import { Communicate } from 'edge-tts-universal'
 import { spawn } from 'node:child_process'
 import { writeFileSync, unlinkSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
+import { isWindows, getHomeDir } from '../utils/platform.ts'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -68,13 +69,27 @@ export async function speak(text: string, options: TTSOptions = {}): Promise<voi
   }
 }
 
-// ── Play audio file ────────────────────────────────────────────────────────────
+// ── Play audio file (cross-platform) ─────────────────────────────────────────
 
 export async function playAudioFile(filePath: string): Promise<void> {
   return new Promise((resolve) => {
-    const player = spawn('ffplay', [
-      '-nodisp', '-autoexit', '-loglevel', 'quiet', filePath,
-    ], { stdio: 'ignore' })
+    let player
+
+    if (isWindows) {
+      // Windows: Use PowerShell SoundPlayer
+      const absPath = resolve(filePath).replace(/\\/g, '\\\\').replace(/'/g, "''")
+      player = spawn('powershell', [
+        '-NoProfile',
+        '-Command',
+        `try { (New-Object System.Media.SoundPlayer '${absPath}').PlaySync() } catch { }`
+      ], { stdio: 'ignore', windowsHide: true })
+    } else {
+      // Unix/macOS: Use ffplay
+      player = spawn('ffplay', [
+        '-nodisp', '-autoexit', '-loglevel', 'quiet', filePath,
+      ], { stdio: 'ignore' })
+    }
+
     player.on('close', () => resolve())
     player.on('error', () => resolve())
   })
@@ -91,7 +106,7 @@ export interface TTSConfig {
 export function loadTTSConfig(): TTSConfig {
   try {
     const { existsSync, readFileSync } = require('node:fs')
-    const path = join(process.env.HOME || '', '.beast-cli', 'tts.json')
+    const path = join(getHomeDir(), '.beast-cli', 'tts.json')
     if (existsSync(path)) return JSON.parse(readFileSync(path, 'utf-8'))
   } catch {}
   return { enabled: false, defaultVoice: DEFAULT_VOICE, autoPlay: true }
@@ -100,7 +115,7 @@ export function loadTTSConfig(): TTSConfig {
 export function saveTTSConfig(config: TTSConfig): void {
   try {
     const { existsSync, mkdirSync, writeFileSync } = require('node:fs')
-    const dir = join(process.env.HOME || '', '.beast-cli')
+    const dir = join(getHomeDir(), '.beast-cli')
     if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
     writeFileSync(join(dir, 'tts.json'), JSON.stringify(config, null, 2))
   } catch {}

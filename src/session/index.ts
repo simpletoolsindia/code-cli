@@ -1,8 +1,9 @@
 // Session Storage - SQLite-based persistent sessions
 // Inspired by opencode's SQLite session management
 
-import { resolve, dirname } from 'node:path'
+import { resolve, dirname, join } from 'node:path'
 import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from 'node:fs'
+import { getHomeDir } from '../utils/platform.ts'
 
 export interface Session {
   id: string
@@ -51,7 +52,7 @@ export class JsonSessionStore implements SessionStore {
   private messages: Map<string, Message[]> = new Map() // sessionId -> messages
 
   constructor(baseDir?: string) {
-    this.baseDir = baseDir ?? resolve(process.env.HOME ?? '.', '.beast-cli', 'sessions')
+    this.baseDir = baseDir ?? join(getHomeDir(), '.beast-cli', 'sessions')
     this.ensureDir()
     this.load()
   }
@@ -255,7 +256,7 @@ export class SqliteSessionStore implements SessionStore {
   private baseDir: string
 
   constructor(baseDir?: string) {
-    this.baseDir = baseDir ?? resolve(process.env.HOME ?? '.', '.beast-cli', 'sessions')
+    this.baseDir = baseDir ?? join(getHomeDir(), '.beast-cli', 'sessions')
 
     // Try to load better-sqlite3
     try {

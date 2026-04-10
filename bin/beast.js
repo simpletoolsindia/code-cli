@@ -21710,6 +21710,21 @@ var init_dist = __esm(() => {
   BrowserDRM = _BrowserDRM;
 });
 
+// src/utils/platform.ts
+import { homedir } from "node:os";
+function getHomeDir() {
+  if (process.platform === "win32") {
+    return process.env.USERPROFILE || homedir();
+  }
+  return process.env.HOME || homedir();
+}
+var isWindows, isMac, isLinux;
+var init_platform2 = __esm(() => {
+  isWindows = process.platform === "win32";
+  isMac = process.platform === "darwin";
+  isLinux = process.platform === "linux";
+});
+
 // src/tts/index.ts
 var exports_tts = {};
 __export(exports_tts, {
@@ -21759,22 +21774,32 @@ async function speak(text, options = {}) {
   }
 }
 async function playAudioFile(filePath) {
-  return new Promise((resolve2) => {
-    const player = spawn2("ffplay", [
-      "-nodisp",
-      "-autoexit",
-      "-loglevel",
-      "quiet",
-      filePath
-    ], { stdio: "ignore" });
-    player.on("close", () => resolve2());
-    player.on("error", () => resolve2());
+  return new Promise((resolve3) => {
+    let player;
+    if (isWindows) {
+      const absPath = resolve3(filePath).replace(/\\/g, "\\\\").replace(/'/g, "''");
+      player = spawn2("powershell", [
+        "-NoProfile",
+        "-Command",
+        `try { (New-Object System.Media.SoundPlayer '${absPath}').PlaySync() } catch { }`
+      ], { stdio: "ignore", windowsHide: true });
+    } else {
+      player = spawn2("ffplay", [
+        "-nodisp",
+        "-autoexit",
+        "-loglevel",
+        "quiet",
+        filePath
+      ], { stdio: "ignore" });
+    }
+    player.on("close", () => resolve3());
+    player.on("error", () => resolve3());
   });
 }
 function loadTTSConfig() {
   try {
     const { existsSync: existsSync5, readFileSync: readFileSync4 } = __require("node:fs");
-    const path4 = join5(process.env.HOME || "", ".beast-cli", "tts.json");
+    const path4 = join5(getHomeDir(), ".beast-cli", "tts.json");
     if (existsSync5(path4))
       return JSON.parse(readFileSync4(path4, "utf-8"));
   } catch {}
@@ -21783,7 +21808,7 @@ function loadTTSConfig() {
 function saveTTSConfig(config) {
   try {
     const { existsSync: existsSync5, mkdirSync: mkdirSync2, writeFileSync: writeFileSync5 } = __require("node:fs");
-    const dir = join5(process.env.HOME || "", ".beast-cli");
+    const dir = join5(getHomeDir(), ".beast-cli");
     if (!existsSync5(dir))
       mkdirSync2(dir, { recursive: true });
     writeFileSync5(join5(dir, "tts.json"), JSON.stringify(config, null, 2));
@@ -21792,6 +21817,7 @@ function saveTTSConfig(config) {
 var DEFAULT_VOICE2 = "en-US-AriaNeural", DEFAULT_SPEED = "+0%", DEFAULT_PITCH = "+0Hz", DEFAULT_FORMAT = "audio-24khz-48kbitrate-mono-mp3";
 var init_tts = __esm(() => {
   init_dist();
+  init_platform2();
 });
 
 // src/agents/index.ts
@@ -21817,15 +21843,15 @@ __export(exports_agents, {
   AgentSession: () => AgentSession
 });
 import { existsSync as existsSync5, readFileSync as readFileSync4, writeFileSync as writeFileSync5, mkdirSync as mkdirSync2 } from "node:fs";
-import { resolve as resolve2 } from "node:path";
+import { resolve as resolve3, join as join6 } from "node:path";
 function getAgentsDir() {
-  return resolve2(process.env.HOME ?? "~", ".beast-cli", "agents");
+  return join6(getHomeDir(), ".beast-cli", "agents");
 }
 function getAgentsPath() {
-  return resolve2(getAgentsDir(), "agents.json");
+  return resolve3(getAgentsDir(), "agents.json");
 }
 function getMemoryPath() {
-  return resolve2(getAgentsDir(), "memory.json");
+  return resolve3(getAgentsDir(), "memory.json");
 }
 function ensureDir() {
   const dir = getAgentsDir();
@@ -22232,6 +22258,7 @@ function registerDefaultAgents() {
 }
 var AGENT_REF_REGEX, agentRegistry;
 var init_agents = __esm(() => {
+  init_platform2();
   AGENT_REF_REGEX = /@([\w-]+)/g;
   agentRegistry = new Map;
 });
@@ -22301,7 +22328,7 @@ __export(exports_router, {
   launchRepl: () => launchRepl,
   launchInk: () => launchInk
 });
-import { resolve as resolve4, dirname as dirname3 } from "node:path";
+import { resolve as resolve5, dirname as dirname3 } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawn as spawn3 } from "node:child_process";
 function isInteractive() {
@@ -22309,7 +22336,7 @@ function isInteractive() {
 }
 function getInkSourcePath() {
   const selfDir = dirname3(fileURLToPath(import.meta.url));
-  return resolve4(selfDir, "..", "src", "ui", "ink", "index.tsx");
+  return resolve5(selfDir, "..", "src", "ui", "ink", "index.tsx");
 }
 async function launchRepl() {
   try {
@@ -22350,7 +22377,7 @@ Failed to launch Ink TUI: ` + String(err), fg2.error));
 async function promptMode() {
   const readline = await import("readline");
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  return new Promise((resolve5) => {
+  return new Promise((resolve6) => {
     console.log(renderCleanBanner2());
     console.log();
     console.log(`  ${s2("[1]", fg2.accent)} ${s2("Minimal REPL", fg2.primary)}   ${dim2}— fast, ASCII-safe, tab complete`);
@@ -22360,7 +22387,7 @@ async function promptMode() {
     console.log();
     rl.question(s2("  Choose [1]", fg2.muted) + " ", (answer) => {
       rl.close();
-      resolve5(answer.trim() === "2" ? "ink" : "repl");
+      resolve6(answer.trim() === "2" ? "ink" : "repl");
     });
   });
 }
@@ -26868,13 +26895,14 @@ var CODEX_MODELS = [
 ];
 
 // src/config/index.ts
+init_platform2();
 import { readFileSync as readFileSync5, existsSync as existsSync6, writeFileSync as writeFileSync6, mkdirSync as mkdirSync3 } from "node:fs";
-import { resolve as resolve3, dirname as dirname2 } from "node:path";
+import { resolve as resolve4, dirname as dirname2, join as join7 } from "node:path";
 function getConfigDir() {
-  return resolve3(process.env.HOME ?? "~", ".beast-cli");
+  return join7(getHomeDir(), ".beast-cli");
 }
 function getConfigPath() {
-  return resolve3(getConfigDir(), "session.json");
+  return resolve4(getConfigDir(), "session.json");
 }
 function saveSession(config) {
   try {
@@ -26915,9 +26943,9 @@ import readline from "readline";
 var VERSION3 = "1.2.18";
 function question(prompt) {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  return new Promise((resolve5) => rl.question(prompt, (answer) => {
+  return new Promise((resolve6) => rl.question(prompt, (answer) => {
     rl.close();
-    resolve5(answer);
+    resolve6(answer);
   }));
 }
 async function numberedMenu(title, options) {
