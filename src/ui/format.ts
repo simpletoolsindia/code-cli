@@ -1,7 +1,7 @@
 // Beast CLI - Output Formatters (Clean)
 // Structured output: panels, tables, cards, badges
 
-import { s, fg, bg, bold, italic, isColorEnabled } from './colors.ts'
+import { s, fg, bg, bold, italic, isColorEnabled, supportsUnicode, getBoxChars } from './colors.ts'
 
 // ── ANSI Strip Utility ───────────────────────────────────────────────────────
 export function stripAnsi(text: string): string {
@@ -39,13 +39,38 @@ export function panel(content: string, options: {
   title?: string
   titleColor?: string
   width?: number
+  useBox?: boolean
 } = {}): string {
-  const { title, titleColor = fg.accent, width = 70 } = options
+  const { title, titleColor = fg.accent, width = 70, useBox = true } = options
 
   const rawLines = content.split('\n')
   const maxLen = rawLines.reduce((m, l) => Math.max(m, stripAnsi(l).length), 0)
   const w = Math.max(width, maxLen + 4)
 
+  // Use box drawing or ASCII based on terminal capability
+  if (useBox) {
+    const b = getBoxChars()
+    let result = `${b.tl}${b.h.repeat(w)}${b.tr}\n`
+
+    if (title) {
+      const titleLen = stripAnsi(title).length
+      const pad1 = Math.floor((w - titleLen) / 2)
+      const pad2 = w - titleLen - pad1
+      result += `${b.v}${' '.repeat(pad1)}${title}${' '.repeat(pad2)}${b.v}\n`
+      result += `${b.v}${b.h.repeat(w)}${b.v}\n`
+    }
+
+    for (const ln of rawLines) {
+      const len = stripAnsi(ln).length
+      const pad = w - len
+      result += `${b.v} ${ln}${' '.repeat(Math.max(0, pad - 1))} ${b.v}\n`
+    }
+
+    result += `${b.bl}${b.h.repeat(w)}${b.br}`
+    return s(result, titleColor)
+  }
+
+  // ASCII fallback
   let result = `+${'-'.repeat(w)}+\n`
 
   if (title) {
