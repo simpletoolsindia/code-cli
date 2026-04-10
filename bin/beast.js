@@ -1453,6 +1453,8 @@ init_providers();
 
 // src/ui/colors.ts
 var reset = "\x1B[0m";
+var bold = "\x1B[1m";
+var dim = "\x1B[2m";
 var mocha = {
   crust: "\x1B[48;2;17;17;27m",
   mantle: "\x1B[48;2;24;24;37m",
@@ -1573,7 +1575,7 @@ function s(text, ...styles) {
 
 // src/ui/colors.ts
 var reset2 = "\x1B[0m";
-var bold = "\x1B[1m";
+var bold2 = "\x1B[1m";
 var italic = "\x1B[3m";
 var mocha2 = {
   crust: "\x1B[48;2;17;17;27m",
@@ -1751,7 +1753,7 @@ function renderHeader(config) {
   const line = [
     s2(`${b.tl} `, fg2.accent),
     s2(icon3.spark, fg2.accent),
-    s2(" Beast CLI ", fg2.accent, bold),
+    s2(" Beast CLI ", fg2.accent, bold2),
     s2(`v${version}`, fg2.muted),
     s2(` ${b.h} ${b.h} ${b.tr}`, fg2.accent),
     s2(` ${b.v} `, fg2.muted),
@@ -1860,12 +1862,14 @@ async function withProgress(label, promise, onTick) {
   try {
     const result = await promise;
     clearInterval(ticker);
-    process.stderr.write(`\r  ${s2("✓", fg2.success)} ${s2(label, fg2.secondary)} ${s2("done", fg2.success)}` + " ".repeat(20) + `
+    process.stderr.write("\r" + " ".repeat(60) + "\r");
+    process.stderr.write(s2("✓ ", fg2.success) + s2(label, fg2.secondary) + `
 `);
     return result;
   } catch (e) {
     clearInterval(ticker);
-    process.stderr.write(`\r  ${s2("✗", fg2.error)} ${s2(label, fg2.secondary)} ${s2("failed", fg2.error)}` + `
+    process.stderr.write("\r" + " ".repeat(60) + "\r");
+    process.stderr.write(s2("✗ ", fg2.error) + s2(label, fg2.secondary) + `
 `);
     throw e;
   }
@@ -2144,119 +2148,17 @@ function truncate(text, maxLen) {
   return text.slice(0, maxLen - 3) + "...";
 }
 
-// src/ui/beast-loader.ts
-var BEAST_FRAMES = [
-  [
-    "      \uD83D\uDC09 ",
-    "     /    ",
-    "    /_____",
-    "   (  ●●  )",
-    "   |      |",
-    "   |  ▼▼  |",
-    "   |______|",
-    "    |    |",
-    "   /|    |\\"
-  ],
-  [
-    "       \uD83D\uDC09",
-    "      /   ",
-    "    _/____ ",
-    "   (  ●●  )",
-    "   |      |",
-    "   |  ▼▼  |",
-    "   |______|",
-    "    |    |",
-    "   /|    |\\"
-  ],
-  [
-    "   \uD83D\uDC09     ",
-    "     \\    ",
-    "   ____\\  ",
-    "   (  ●●  )",
-    "   |      |",
-    "   |  ▼▼  |",
-    "   |______|",
-    "    |    |",
-    "   /|    |\\"
-  ],
-  [
-    "  \uD83D\uDC09      ",
-    "   \\      ",
-    "   \\______",
-    "   (  ●●  )",
-    "   |      |",
-    "   |  ▼▼  |",
-    "   |______|",
-    "    |    |",
-    "   /|    |\\"
-  ]
-];
-var FRAME_DELAY_MS = 150;
-var PROGRESS_CHARS = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
-class BeastSpinner {
-  handle = null;
-  frame = 0;
-  started = false;
-  start(label = "Thinking with Beast") {
-    if (this.started)
-      this.stop();
-    this.started = true;
-    this.frame = 0;
-    this.handle = setInterval(() => {
-      if (!this.started)
-        return;
-      const f = BEAST_FRAMES[this.frame % BEAST_FRAMES.length];
-      process.stderr.write("\x1B[2K\r");
-      process.stderr.write(s2(f[0], fg2.accent) + s2(" " + label + " " + PROGRESS_CHARS[this.frame % PROGRESS_CHARS.length], fg2.secondary) + `
-`);
-      this.frame++;
-    }, FRAME_DELAY_MS);
-  }
-  stop(status = "done") {
-    if (!this.started)
-      return;
-    if (this.handle) {
-      clearInterval(this.handle);
-      this.handle = null;
-    }
-    process.stderr.write("\x1B[2K\r");
-    if (status === "done") {
-      process.stderr.write(s2("✓ ", fg2.success) + s2("Ready", fg2.secondary) + `
-`);
-    } else {
-      process.stderr.write(s2("✗ ", fg2.error) + s2("Error", fg2.secondary) + `
-`);
-    }
-    this.started = false;
-  }
-}
-var beastSpinner = new BeastSpinner;
-
 // src/ui/banner.ts
-import { execSync } from "child_process";
-import path from "node:path";
-var LION_IMAGE_PATH = path.join(process.cwd(), "lion.png");
-function renderLionBanner() {
-  try {
-    const output = execSync(`chafa --colors=16 --stretch --size=72x26 "${LION_IMAGE_PATH}" 2>/dev/null`, { encoding: "utf8", timeout: 5000 });
-    return output.replace(/\x1b\?25[hl]\n?/g, "").trim();
-  } catch {
-    return fallbackBanner();
-  }
-}
-function fallbackBanner() {
-  return `${fg2.accent}       ╱╲
-      ╱  ╲
-     ╱ ══ ╲
-    ╱  ══  ╲
-   ╱   ══   ╲
-  ╱    ══    ╲
-  ╲    ══    ╱
-   ╲   ══   ╱
-    ╲  ══  ╱
-     ╲ ══ ╱
-      ╲  ╱
-       ╲╱${reset2}`;
+function renderCleanBanner() {
+  return `${fg2.accent}
+   ██████╗ ██╗     ███████╗██╗  ██╗
+  ██╔════╝ ██║     ██╔════╝╚██╗██╔╝
+  ██║  ███╗██║     █████╗   ╚███╔╝
+  ██║   ██║██║     ██╔══╝   ██╔██╗
+  ╚██████╔╝███████╗███████╗██╔╝ ██╗
+   ╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝${reset2}
+
+${s2("AI Coding Agent", fg2.muted)} ${s2("·", fg2.overlay)} ${s2("45+ Providers", fg2.muted)} ${s2("·", fg2.overlay)} ${s2("39 Tools", fg2.muted)} ${s2("·", fg2.overlay)} ${s2("Local AI Ready", fg2.muted)}`;
 }
 
 // src/ui/tips.ts
@@ -2480,7 +2382,7 @@ function extractLinks(content, baseUrl) {
 // src/native-tools/files.ts
 import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { resolve, dirname, extname, join } from "node:path";
-import { execSync as execSync2 } from "node:child_process";
+import { execSync } from "node:child_process";
 var MAX_FILE_SIZE = 10 * 1024 * 1024;
 var ALLOWED_EXTENSIONS = new Set([
   ".ts",
@@ -2515,9 +2417,9 @@ var ALLOWED_EXTENSIONS = new Set([
   ".babelrc"
 ]);
 var RESTRICTED_PATHS = ["/Users/sridhar/.ssh", "/Users/sridhar/.npm", "/Users/sridhar/.aws"];
-async function fileRead(path2, maxSize = MAX_FILE_SIZE) {
+async function fileRead(path, maxSize = MAX_FILE_SIZE) {
   try {
-    const resolved = resolve(path2);
+    const resolved = resolve(path);
     for (const restricted of RESTRICTED_PATHS) {
       if (resolved.startsWith(restricted)) {
         return { success: false, error: `Access denied: ${restricted}` };
@@ -2543,12 +2445,12 @@ async function fileRead(path2, maxSize = MAX_FILE_SIZE) {
       lines
     };
   } catch (e) {
-    return { success: false, error: e.message, path: path2 };
+    return { success: false, error: e.message, path };
   }
 }
-async function fileWrite(path2, content) {
+async function fileWrite(path, content) {
   try {
-    const resolved = resolve(path2);
+    const resolved = resolve(path);
     for (const restricted of RESTRICTED_PATHS) {
       if (resolved.startsWith(restricted)) {
         return { success: false, error: `Access denied: ${restricted}` };
@@ -2566,7 +2468,7 @@ async function fileWrite(path2, content) {
       size: stats.size
     };
   } catch (e) {
-    return { success: false, error: e.message, path: path2 };
+    return { success: false, error: e.message, path };
   }
 }
 async function fileList(dir = ".", maxItems = 100) {
@@ -2607,7 +2509,7 @@ async function fileSearch(directory, pattern, maxResults = 50) {
     }
     const escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const cmd = `find "${resolved}" -type f \\( -path "*/node_modules" -o -path "*/.git" -o -path "*/dist" -o -path "*/build" \\) -prune -o -type f -name "*${pattern}*" -print 2>/dev/null | head -${maxResults}`;
-    const output = execSync2(cmd, { encoding: "utf-8", timeout: 1e4 });
+    const output = execSync(cmd, { encoding: "utf-8", timeout: 1e4 });
     const files = output.split(`
 `).filter(Boolean).map((f) => ({ path: f }));
     return { success: true, files };
@@ -2623,7 +2525,7 @@ async function fileGrep(directory, query, maxResults = 50, filePattern = "*") {
     }
     const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const cmd = `grep -rn --include="${filePattern}" -E "${escaped}" "${resolved}" 2>/dev/null | head -${maxResults}`;
-    const output = execSync2(cmd, { encoding: "utf-8", timeout: 1e4 });
+    const output = execSync(cmd, { encoding: "utf-8", timeout: 1e4 });
     const files = [];
     for (const line of output.split(`
 `).filter(Boolean)) {
@@ -2654,7 +2556,7 @@ async function fileGlob(directory, patterns, maxResults = 100) {
     const files = [];
     for (const pattern of patterns) {
       const cmd = `find "${resolved}" -type f \\( -path "*/node_modules" -o -path "*/.git" -o -path "*/dist" -o -path "*/build" \\) -prune -o -type f -name "${pattern}" -print 2>/dev/null | head -${maxResults}`;
-      const output = execSync2(cmd, { encoding: "utf-8", timeout: 1e4 });
+      const output = execSync(cmd, { encoding: "utf-8", timeout: 1e4 });
       for (const line of output.split(`
 `).filter(Boolean)) {
         if (!files.some((f) => f.path === line)) {
@@ -2923,7 +2825,7 @@ init_search();
 // src/native-tools/github.ts
 var GITHUB_API = "https://api.github.com";
 var GITHUB_TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || "";
-async function githubFetch(path2) {
+async function githubFetch(path) {
   try {
     const headers = {
       Accept: "application/vnd.github.v3+json",
@@ -2932,7 +2834,7 @@ async function githubFetch(path2) {
     if (GITHUB_TOKEN) {
       headers["Authorization"] = `Bearer ${GITHUB_TOKEN}`;
     }
-    const response = await fetch(`${GITHUB_API}${path2}`, {
+    const response = await fetch(`${GITHUB_API}${path}`, {
       headers,
       signal: AbortSignal.timeout(1e4)
     });
@@ -3111,7 +3013,7 @@ async function youtubeSearch(query, limit = 10) {
   }
 }
 async function youtubeSummarize(transcript, maxWords = 500) {
-  const sentences = transcript.split(/[.!?]+/).filter((s4) => s4.trim().length > 20);
+  const sentences = transcript.split(/[.!?]+/).filter((s3) => s3.trim().length > 20);
   const words = transcript.split(/\s+/);
   if (words.length <= maxWords) {
     return { success: true, output: transcript };
@@ -3139,7 +3041,7 @@ function extractVideoId(input) {
 // src/engi/indexer.ts
 import * as fs from "fs";
 import * as fsPromises from "fs/promises";
-import * as path2 from "path";
+import * as path from "path";
 var EXTENSION_LANGUAGE_MAP = {
   ".ts": "typescript",
   ".tsx": "typescript",
@@ -3238,10 +3140,10 @@ class RepoIndexer {
       const stats = await fsPromises.stat(filePath);
       if (!stats.isFile())
         return null;
-      const relativePath = path2.relative(rootPath, filePath);
-      const ext = path2.extname(filePath).toLowerCase();
+      const relativePath = path.relative(rootPath, filePath);
+      const ext = path.extname(filePath).toLowerCase();
       const language = EXTENSION_LANGUAGE_MAP[ext] || "unknown";
-      const baseName = path2.basename(filePath).toLowerCase();
+      const baseName = path.basename(filePath).toLowerCase();
       const type = this.classifyFile(baseName, ext);
       let content = "";
       const needsContent = (language === "typescript" || language === "javascript" || language === "python") && (type === "source" || type === "test");
@@ -3252,7 +3154,7 @@ class RepoIndexer {
       const fileSymbols = content ? this.extractSymbols(content, language, filePath) : [];
       const entry = {
         path: relativePath,
-        name: path2.basename(filePath, ext),
+        name: path.basename(filePath, ext),
         extension: ext,
         type,
         language,
@@ -3281,7 +3183,7 @@ class RepoIndexer {
       for (const entry of entries) {
         if (IGNORE_DIRS.has(entry.name) || entry.name.startsWith("."))
           continue;
-        const fullPath = path2.join(dirPath, entry.name);
+        const fullPath = path.join(dirPath, entry.name);
         if (entry.isDirectory()) {
           subdirs.push(this.scanDirectoryAsync(fullPath));
         } else {
@@ -3328,7 +3230,7 @@ class RepoIndexer {
         exports.push(match[1]);
       rx = new RegExp(TS_EXPORT_BLOCK.source, "g");
       while ((match = rx.exec(content)) !== null) {
-        exports.push(...match[1].split(",").map((s4) => s4.trim()).filter(Boolean));
+        exports.push(...match[1].split(",").map((s3) => s3.trim()).filter(Boolean));
       }
       rx = new RegExp(TS_IMPORT.source, "g");
       while ((match = rx.exec(content)) !== null) {
@@ -3390,7 +3292,7 @@ class RepoIndexer {
     return line;
   }
   createTestEntry(filePath, relativePath) {
-    const name = path2.basename(filePath);
+    const name = path.basename(filePath);
     let type = "unit";
     if (name.includes("integration"))
       type = "integration";
@@ -3399,7 +3301,7 @@ class RepoIndexer {
     return { path: relativePath, name, type, targetSymbols: [] };
   }
   createDocEntry(filePath, relativePath) {
-    const name = path2.basename(filePath).toLowerCase();
+    const name = path.basename(filePath).toLowerCase();
     let type = "other";
     if (name.startsWith("readme"))
       type = "readme";
@@ -3409,7 +3311,7 @@ class RepoIndexer {
       type = "api";
     else if (name.includes("guide") || name.includes("docs"))
       type = "guide";
-    return { path: relativePath, name: path2.basename(filePath), type, sections: [] };
+    return { path: relativePath, name: path.basename(filePath), type, sections: [] };
   }
 }
 var indexerInstance = null;
@@ -3639,7 +3541,7 @@ class RetrievalEngine {
   calculateConfidence(rankedFiles, keywords) {
     if (rankedFiles.length === 0 || keywords.length === 0)
       return 0;
-    const avgScore = rankedFiles.reduce((s4, r) => s4 + r.score, 0) / rankedFiles.length;
+    const avgScore = rankedFiles.reduce((s3, r) => s3 + r.score, 0) / rankedFiles.length;
     const maxPossible = keywords.length * 25;
     return Math.round(Math.min(avgScore / maxPossible, 1) * 100) / 100;
   }
@@ -3652,11 +3554,11 @@ function getRetrievalEngine() {
 }
 
 // src/engi/summarizer.ts
-import * as path4 from "path";
+import * as path3 from "path";
 
 // src/engi/rag.ts
 import * as fs2 from "fs";
-import * as path3 from "path";
+import * as path2 from "path";
 var MAX_CHUNK_LINES = 40;
 var MAX_SNIPPET_LINES = 12;
 var MAX_RESULTS = 5;
@@ -3777,7 +3679,7 @@ function buildChunkIndex(index) {
       continue;
     if (!["typescript", "javascript", "python", "go"].includes(file.language))
       continue;
-    const absPath = path3.join(index.rootPath, filePath);
+    const absPath = path2.join(index.rootPath, filePath);
     let content;
     try {
       content = fs2.readFileSync(absPath, "utf-8");
@@ -3906,7 +3808,7 @@ class SummarizationEngine {
     const steps = [];
     const keySymbols = [];
     const scopePaths = files.map((f) => f.path);
-    const scopeQuery = scopePaths.map((p) => path4.basename(p, path4.extname(p))).join(" ");
+    const scopeQuery = scopePaths.map((p) => path3.basename(p, path3.extname(p))).join(" ");
     const ragChunks = getRagEngine().retrieve(scopeQuery, index, {
       files: scopePaths,
       topK: FLOW_MAX_SNIPPETS
@@ -4062,7 +3964,7 @@ class SummarizationEngine {
         description: `${file.exports.length} exports: ${file.exports.slice(0, 4).join(", ")}`
       });
     }
-    const ragQuery = featureSummary + " " + (options.changedFiles ?? []).map((f) => path4.basename(f, path4.extname(f))).join(" ");
+    const ragQuery = featureSummary + " " + (options.changedFiles ?? []).map((f) => path3.basename(f, path3.extname(f))).join(" ");
     const scopePaths = targetFiles.map((f) => f.path);
     const ragChunks = getRagEngine().retrieve(ragQuery, index, {
       files: scopePaths,
@@ -4081,9 +3983,9 @@ class SummarizationEngine {
     const audienceNotes = {};
     const aud = options.audience ?? "developer";
     audienceNotes[aud] = this.generateAudienceNote(aud, codeReferences);
-    const totalExports = codeReferences.reduce((s4, r) => {
+    const totalExports = codeReferences.reduce((s3, r) => {
       const m = r.description.match(/\d+/);
-      return s4 + (m ? parseInt(m[0], 10) : 0);
+      return s3 + (m ? parseInt(m[0], 10) : 0);
     }, 0);
     return {
       featureSummary,
@@ -4108,13 +4010,13 @@ class SummarizationEngine {
       return `${steps.length} files in flow`;
     if (verbosity === "standard")
       return `Flow overview:
-${steps.map((s4) => `${s4.order}. ${s4.description}`).join(`
+${steps.map((s3) => `${s3.order}. ${s3.description}`).join(`
 `)}`;
     return `Code flow (${steps.length} files):
 
-${steps.map((s4) => `${s4.order}. ${s4.description}
-   ${s4.file}${s4.snippet ? `
-` + indent(s4.snippet, "   ") : ""}`).join(`
+${steps.map((s3) => `${s3.order}. ${s3.description}
+   ${s3.file}${s3.snippet ? `
+` + indent(s3.snippet, "   ") : ""}`).join(`
 
 `)}`;
   }
@@ -4422,7 +4324,7 @@ async function engiImplementationPlan(params) {
     description: "Create or update tests",
     file: scope[0] || "test file",
     action: "create",
-    dependencies: steps.map((s4) => s4.file)
+    dependencies: steps.map((s3) => s3.file)
   });
   requiredTests.push(`${scope[0] || "source"}.test.ts`);
   if (taskType === "feature") {
@@ -5336,7 +5238,7 @@ var tools = [
           return { success: false, content: "", error: `Directory not found: ${targetDir}` };
         }
       }
-      const { execSync: execSync3, spawn: spawn2 } = await import("node:child_process");
+      const { execSync: execSync2, spawn: spawn2 } = await import("node:child_process");
       try {
         let fullCommand = cmdArgs.length > 0 ? `${cmd} ${cmdArgs.join(" ")}` : cmd;
         if (runBackground || fullCommand.includes(" &")) {
@@ -5349,7 +5251,7 @@ var tools = [
           }).unref();
           return { success: true, content: `Started in background: ${fullCommand} (PID: process detached)` };
         }
-        const output = execSync3(fullCommand, {
+        const output = execSync2(fullCommand, {
           encoding: "utf-8",
           timeout: timeout * 1000,
           cwd: workingDir,
@@ -5615,7 +5517,7 @@ var CODEX_OAUTH = {
   API_BASE_URL: "https://chatgpt.com/backend-api",
   TOKEN_FILE: ".beast-cli/codex-auth.json"
 };
-async function fetchOllamaModels2(baseUrl = "http://localhost:11434") {
+async function fetchOllamaModels(baseUrl = "http://localhost:11434") {
   try {
     const res = await fetch(`${baseUrl}/api/tags`, { signal: AbortSignal.timeout(2000) });
     if (!res.ok)
@@ -5643,7 +5545,7 @@ async function fetchJanModels(baseUrl = "http://localhost:1337") {
 async function fetchLocalModels(provider) {
   switch (provider) {
     case "ollama":
-      return fetchOllamaModels2();
+      return fetchOllamaModels();
     case "lmstudio":
       return fetchLMStudioModels();
     case "jan":
@@ -5769,7 +5671,7 @@ var CLOUD_MODELS = {
 async function detectAllProviders() {
   const results = [];
   const [ollamaModels, lmModels, janModels] = await Promise.all([
-    fetchOllamaModels2(),
+    fetchOllamaModels(),
     fetchLMStudioModels(),
     fetchJanModels()
   ]);
@@ -5847,10 +5749,10 @@ function getCodexTokenPath() {
 }
 function loadCodexToken() {
   try {
-    const path5 = getCodexTokenPath();
+    const path4 = getCodexTokenPath();
     const fs4 = __require("node:fs");
-    if (fs4.existsSync(path5)) {
-      const data = JSON.parse(fs4.readFileSync(path5, "utf-8"));
+    if (fs4.existsSync(path4)) {
+      const data = JSON.parse(fs4.readFileSync(path4, "utf-8"));
       return data;
     }
   } catch {}
@@ -5858,10 +5760,10 @@ function loadCodexToken() {
 }
 function clearCodexToken() {
   try {
-    const path5 = getCodexTokenPath();
+    const path4 = getCodexTokenPath();
     const fs4 = __require("node:fs");
-    if (fs4.existsSync(path5)) {
-      fs4.unlinkSync(path5);
+    if (fs4.existsSync(path4)) {
+      fs4.unlinkSync(path4);
     }
   } catch {}
 }
@@ -5900,125 +5802,49 @@ var CODEX_MODELS = [
 // src/config/index.ts
 import { readFileSync as readFileSync4, existsSync as existsSync5, writeFileSync as writeFileSync4, mkdirSync as mkdirSync2 } from "node:fs";
 import { resolve as resolve2, dirname as dirname2 } from "node:path";
-function expandEnvVars(value) {
-  return value.replace(/\$\{(\w+)\}/g, (_, varName) => {
-    return process.env[varName] ?? "";
-  });
+function getConfigDir() {
+  return resolve2(process.env.HOME ?? "~", ".beast-cli");
 }
-function parseConfig(content) {
-  const config = {};
-  const lines = content.split(`
-`);
-  for (const line of lines) {
-    if (line.trim().startsWith("#") || !line.trim())
-      continue;
-    const match = line.match(/^(\w+):\s*(.+)$/);
-    if (match) {
-      const key = match[1];
-      let value = match[2].trim();
-      if (value.startsWith('"') && value.endsWith('"')) {
-        value = value.slice(1, -1);
-      } else if (value.startsWith("'") && value.endsWith("'")) {
-        value = value.slice(1, -1);
-      } else if (!isNaN(Number(value))) {
-        value = Number(value);
-      } else if (value === "true") {
-        value = true;
-      } else if (value === "false") {
-        value = false;
-      } else if (value.startsWith("{") && value.endsWith("}")) {
-        try {
-          value = JSON.parse(value);
-        } catch {}
-      }
-      if (typeof value === "string") {
-        value = expandEnvVars(value);
-      }
-      config[key] = value;
-    }
-  }
-  return config;
+function getConfigPath() {
+  return resolve2(getConfigDir(), "session.json");
 }
-function saveConfig(updates, configPath) {
-  const filePath = configPath ?? resolve2(process.env.HOME ?? "~", ".beast-cli.yml");
-  let existing = {};
-  if (existsSync5(filePath)) {
-    try {
-      const content = readFileSync4(filePath, "utf-8");
-      existing = parseConfig(content);
-    } catch {}
-  }
-  const merged = { ...existing, ...updates };
-  const lines = ["# Beast CLI configuration", ""];
-  for (const [key, value] of Object.entries(merged)) {
-    if (value !== undefined && value !== null) {
-      if (typeof value === "string") {
-        lines.push(`${key}: "${value}"`);
-      } else if (typeof value === "object") {
-        lines.push(`${key}: ${JSON.stringify(value)}`);
-      } else {
-        lines.push(`${key}: ${value}`);
-      }
-    }
-  }
+function saveSession(config) {
   try {
-    const dir = dirname2(filePath);
+    const dir = getConfigDir();
     if (!existsSync5(dir))
       mkdirSync2(dir, { recursive: true });
-    writeFileSync4(filePath, lines.join(`
-`) + `
-`, "utf-8");
+    writeFileSync4(getConfigPath(), JSON.stringify(config, null, 2), "utf-8");
   } catch (error) {
-    console.warn(`Failed to save config to ${filePath}:`, error);
+    console.warn("Failed to save session config:", error);
   }
 }
-function loadConfig(configPath) {
-  const paths = [
-    configPath ?? ".beast-cli.yml",
-    configPath ?? ".beast-cli.yaml",
-    resolve2(process.env.HOME ?? "~", ".beast-cli.yml")
-  ];
-  for (const path5 of paths) {
-    if (existsSync5(path5)) {
-      try {
-        const content = readFileSync4(path5, "utf-8");
-        const parsed = parseConfig(content);
-        return {
-          ...defaultConfig,
-          ...parsed
-        };
-      } catch (error) {
-        console.warn(`Failed to load config from ${path5}:`, error);
-      }
+function loadSession() {
+  try {
+    const path4 = getConfigPath();
+    if (!existsSync5(path4))
+      return null;
+    const data = JSON.parse(readFileSync4(path4, "utf-8"));
+    if (!data.provider || !data.model || !data.contextSize || !data.contextMax) {
+      return null;
     }
+    return data;
+  } catch {
+    return null;
   }
-  return defaultConfig;
 }
-var defaultConfig = {
-  model: "claude-3-5-sonnet-20241022",
-  defaultMode: "default",
-  temperature: 0.7,
-  maxTokens: 16384,
-  maxToolResultChars: 1e4,
-  toolTimeout: 30000,
-  theme: "dark",
-  showTimestamps: true,
-  verbose: false,
-  autoCommit: false
-};
+function parseContextSize(size) {
+  const num = parseInt(size.replace(/K|B$/i, ""));
+  if (size.toUpperCase().endsWith("K"))
+    return num * 1024;
+  if (size.toUpperCase().endsWith("B"))
+    return num * 1024 * 1024 * 1024;
+  return num;
+}
+var CONTEXT_SIZES = ["8K", "16K", "32K", "64K", "128K"];
 
 // src/index.ts
-import { execSync as execSync3 } from "child_process";
-import path5 from "path";
-import { statSync as statSync2 } from "fs";
 import readline from "readline";
-var VERSION = "1.2.4";
-var dim2 = "\x1B[2m";
-var reset3 = "\x1B[0m";
-var green = "\x1B[32m";
-var yellow = "\x1B[33m";
-var MCP_SERVER_HOST = process.env.MCP_HOST || "localhost";
-var MCP_SERVER_PORT = parseInt(process.env.MCP_PORT || "7710");
+var VERSION = "1.2.8";
 function question(prompt) {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
   return new Promise((resolve3) => rl.question(prompt, (answer) => {
@@ -6041,15 +5867,19 @@ ${title}`);
 var SPINNER_FRAMES = ["\u280B", "\u2819", "\u2839", "\u2838", "\u283C", "\u2834", "\u2826", "\u2827", "\u2807", "\u280F"];
 var spinnerHandle = null;
 var spinnerLabel = "";
+var spinnerStarted = false;
 function startSpinner(label) {
   if (spinnerHandle)
     clearInterval(spinnerHandle);
   spinnerLabel = label;
+  spinnerStarted = true;
   let frame = 0;
-  process.stdout.write(`\r${label} ${SPINNER_FRAMES[frame]}  `);
+  process.stderr.write(`\r${label} ${SPINNER_FRAMES[frame]}  `);
   spinnerHandle = setInterval(() => {
+    if (!spinnerStarted)
+      return;
     frame = (frame + 1) % SPINNER_FRAMES.length;
-    process.stdout.write(`\r${label} ${SPINNER_FRAMES[frame]}  `);
+    process.stderr.write(`\r${label} ${SPINNER_FRAMES[frame]}  `);
   }, 80);
 }
 function stopSpinner(done = false, label = "") {
@@ -6057,16 +5887,14 @@ function stopSpinner(done = false, label = "") {
     clearInterval(spinnerHandle);
     spinnerHandle = null;
   }
+  spinnerStarted = false;
+  process.stderr.write("\r" + " ".repeat(60) + "\r");
   if (done) {
-    process.stdout.write(`\r${label || spinnerLabel} ${s("\u2713", fg.success)}
+    process.stderr.write(`${label} ${s("\u2713", fg.success)}
 `);
-  } else {
-    process.stdout.write("\r" + " ".repeat(50) + "\r");
   }
 }
 function streamText(text) {
-  process.stdout.write(`
-`);
   process.stdout.write(panel(text, { title: "\uD83E\uDD16 Response", titleColor: fg.assistant, width: 70 }));
   process.stdout.write(`
 `);
@@ -6075,105 +5903,14 @@ function printUsage(usage) {
   if (!usage)
     return;
   const { promptTokens, completionTokens, totalTokens } = usage;
-  process.stdout.write(`
-${s("\u26A1 " + totalTokens.toLocaleString() + " tokens", fg.secondary)} `);
-  process.stdout.write(`(${s("p:" + promptTokens, fg.muted)} ${s("c:" + completionTokens, fg.muted)})
+  process.stdout.write(`${s("\u26A1 ", fg.secondary)}${s(totalTokens.toLocaleString(), fg.mauve)} tokens `);
+  process.stdout.write(`(${s("p:" + promptTokens, fg.blue)} ${s("c:" + completionTokens, fg.mauve)})
 `);
-}
-async function checkMCPServer() {
-  const nativeTools = getFormattedTools();
-  return { available: true, toolCount: nativeTools.length, tools: nativeTools };
-}
-async function startColima() {
-  console.log("   \uD83D\uDC0B Checking Docker runtime...");
-  try {
-    execSync3("docker info", { stdio: "pipe" });
-    console.log("   \u2705 Docker is running");
-    return true;
-  } catch {
-    console.log("   \uD83D\uDD04 Docker not running, trying to start Colima...");
-  }
-  try {
-    execSync3("colima --version", { stdio: "pipe" });
-  } catch {
-    console.log("   \u26A0\uFE0F  Colima not found. Install: brew install colima");
-    return false;
-  }
-  try {
-    execSync3("colima list", { stdio: "pipe" });
-    const status = execSync3("colima list 2>/dev/null", { encoding: "utf8" });
-    if (status.includes("Running")) {
-      console.log("   \u2705 Colima is already running");
-      return true;
-    }
-  } catch {}
-  try {
-    console.log("   \uD83D\uDE80 Starting Colima (this may take a minute)...");
-    execSync3("colima start --arch aarch64 --cpu 4 --memory 4 --disk 50", { stdio: "pipe", timeout: 180000 });
-    console.log("   \u2705 Colima started successfully!");
-    return true;
-  } catch (e) {
-    console.log(`   \u26A0\uFE0F  Failed to start Colima: ${e.message}`);
-    return false;
-  }
-}
-function findComposeFile() {
-  let dir = process.cwd();
-  const root = "/";
-  while (dir !== root) {
-    const composePath = path5.join(dir, "extra_skills_mcp_tools", "docker-compose.local.yml");
-    try {
-      if (statSync2(composePath).isFile())
-        return composePath;
-    } catch {}
-    dir = path5.dirname(dir);
-  }
-  const fallbacks = ["/Users/sridhar/code/extra_skills_mcp_tools/docker-compose.local.yml"];
-  for (const p of fallbacks) {
-    try {
-      if (statSync2(p).isFile())
-        return p;
-    } catch {}
-  }
-  return null;
-}
-async function autoStartMCP() {
-  console.log("   \uD83D\uDD27 MCP: Not found, checking Docker...");
-  const dockerReady = await startColima();
-  if (!dockerReady) {
-    console.log("   \u26A0\uFE0F  Docker unavailable. MCP tools will be limited.");
-    return false;
-  }
-  const composePath = findComposeFile();
-  if (!composePath) {
-    console.log("   \u26A0\uFE0F  MCP server not found.");
-    console.log("   \uD83D\uDCA1 Clone: git clone https://github.com/simpletoolsindia/extra_skills_mcp_tools");
-    return false;
-  }
-  try {
-    const status = execSync3('docker inspect -f "{{.State.Status}}" mcp-server 2>/dev/null', { encoding: "utf8" }).trim();
-    if (status === "running" || status === "healthy") {
-      console.log("   \u2705 MCP server already running");
-      return true;
-    }
-  } catch {}
-  try {
-    execSync3(`docker compose -f "${composePath}" up -d 2>/dev/null`, { stdio: "pipe", timeout: 120000 });
-    console.log("   \u2705 MCP server container started!");
-    await new Promise((r) => setTimeout(r, 3000));
-    return true;
-  } catch (e) {
-    console.log(`   \u26A0\uFE0F  Could not start MCP from ${composePath}: ${e.message}`);
-  }
-  return false;
 }
 var nativeTools = [];
 async function connectMCP() {
   nativeTools = getFormattedTools();
   return nativeTools;
-}
-function formatMCPTools() {
-  return nativeTools.length > 0 ? nativeTools : getFormattedTools();
 }
 async function selectProvider(providers2) {
   const online = providers2.filter((p) => p.status === "online");
@@ -6181,7 +5918,7 @@ async function selectProvider(providers2) {
   const choices = [];
   const byId = [];
   for (const p of online) {
-    const models = p.isCloud ? `${p.models.length} models` : `${p.models.length} models`;
+    const models = `${p.models.length} models`;
     const auth = p.id === "codex" ? " \xB7 OAuth" : "";
     choices.push(`\u25CF ${p.name} (${p.shortName}) \u2014 ${models}${auth}`);
     byId.push(p.id);
@@ -6197,7 +5934,7 @@ async function selectProvider(providers2) {
 async function selectModelForProvider(provider, defaultModel) {
   const isLocal = !isCloudProvider(provider);
   if (isLocal) {
-    console.log(dim2 + "Fetching models from " + provider + "..." + reset3);
+    console.log(dim + "Fetching models from " + provider + "..." + reset);
     const models = await fetchLocalModels(provider);
     if (models.length === 0) {
       console.log("   [WARN] No models found. Is Ollama running?");
@@ -6206,7 +5943,7 @@ async function selectModelForProvider(provider, defaultModel) {
     if (defaultModel) {
       const idx2 = models.indexOf(defaultModel);
       if (idx2 >= 0) {
-        console.log(`${dim2}Available models (default: ${defaultModel}):${reset3}`);
+        console.log(`${dim}Available models (default: ${defaultModel}):${reset}`);
         models.forEach((m, i) => console.log(`  ${i + 1}. ${m}${i === idx2 ? " \u2190" : ""}`));
         const choice = await question(`  Select model number [${idx2 + 1}] > `) || String(idx2 + 1);
         const n2 = parseInt(choice);
@@ -6215,7 +5952,7 @@ async function selectModelForProvider(provider, defaultModel) {
         return models[idx2];
       }
     }
-    console.log(`${dim2}Available models:${reset3}`);
+    console.log(`${dim}Available models:${reset}`);
     models.forEach((m, i) => console.log(`  ${i + 1}. ${m}`));
     const idx = await question("  Select model number > ");
     const n = parseInt(idx);
@@ -6223,11 +5960,11 @@ async function selectModelForProvider(provider, defaultModel) {
       return models[n - 1];
     return models[0];
   } else {
-    const models = CLOUD_MODELS[provider] ?? [];
+    const models = CLOUD_MODELS[provider] ?? CODEX_MODELS;
     if (defaultModel) {
       const idx2 = models.indexOf(defaultModel);
       if (idx2 >= 0) {
-        console.log(`${dim2}Available models (default: ${defaultModel}):${reset3}`);
+        console.log(`${dim}Available models (default: ${defaultModel}):${reset}`);
         models.forEach((m, i) => console.log(`  ${i + 1}. ${m}${i === idx2 ? " \u2190" : ""}`));
         const choice = await question(`  Select model number [${idx2 + 1}] > `) || String(idx2 + 1);
         const n2 = parseInt(choice);
@@ -6236,7 +5973,7 @@ async function selectModelForProvider(provider, defaultModel) {
         return models[idx2];
       }
     }
-    console.log(`${dim2}Available models:${reset3}`);
+    console.log(`${dim}Available models:${reset}`);
     models.forEach((m, i) => console.log(`  ${i + 1}. ${m}`));
     const idx = await question("  Select model number > ");
     const n = parseInt(idx);
@@ -6244,6 +5981,20 @@ async function selectModelForProvider(provider, defaultModel) {
       return models[n - 1];
     return models[0];
   }
+}
+async function selectContextSize(defaultSize) {
+  console.log(`${dim}Context window size:${reset}`);
+  CONTEXT_SIZES.forEach((size2, i) => {
+    const marker = defaultSize === size2 ? " \u2190" : "";
+    console.log(`  [${i + 1}] ${size2} tokens${marker}`);
+  });
+  let defaultIdx = defaultSize ? CONTEXT_SIZES.indexOf(defaultSize) : 2;
+  if (defaultIdx < 0)
+    defaultIdx = 2;
+  const ctxIdx = await question(`  > [${defaultIdx + 1}] `) || String(defaultIdx + 1);
+  const idx = parseInt(ctxIdx) - 1;
+  const size = CONTEXT_SIZES[idx] || "32K";
+  return { size, max: parseContextSize(size) };
 }
 async function promptApiKey(provider) {
   if (provider === "codex") {
@@ -6255,14 +6006,14 @@ async function promptApiKey(provider) {
   if (env)
     return env;
   const providerHelp = {
-    anthropic: "Sign up at https://console.anthropic.com/",
-    openai: "Sign up at https://platform.openai.com/",
-    groq: "Sign up at https://console.groq.com/",
-    deepseek: "Sign up at https://platform.deepseek.com/",
-    mistral: "Sign up at https://console.mistral.ai/",
-    openrouter: "Sign up at https://openrouter.ai/",
-    gemini: "Sign up at https://aistudio.google.com/",
-    qwen: "Sign up at https://dashscope.console.aliyun.com/"
+    anthropic: "https://console.anthropic.com/",
+    openai: "https://platform.openai.com/",
+    groq: "https://console.groq.com/",
+    deepseek: "https://platform.deepseek.com/",
+    mistral: "https://console.mistral.ai/",
+    openrouter: "https://openrouter.ai/",
+    gemini: "https://aistudio.google.com/",
+    qwen: "https://dashscope.console.aliyun.com/"
   };
   console.log(`
 \u26A0\uFE0F  To use ${provider}, you need a free API key.`);
@@ -6271,58 +6022,52 @@ async function promptApiKey(provider) {
   console.log(`    3. Set it with: export ${provider.toUpperCase()}_API_KEY=your-key-here`);
   return null;
 }
-async function interactiveSetup() {
-  const reset4 = "\x1B[0m";
-  const bold4 = "\x1B[1m";
-  const dim3 = "\x1B[2m";
-  const green2 = "\x1B[32m";
-  const cyan2 = "\x1B[36m";
-  const yellow2 = "\x1B[33m";
+async function validateSavedConfig(session) {
+  if (session.provider === "codex") {
+    const token = loadCodexToken();
+    return token !== null && isCodexTokenValid(token);
+  }
+  if (isCloudProvider(session.provider)) {
+    return getApiKeyFromEnv(session.provider) !== null;
+  }
+  const models = await fetchLocalModels(session.provider);
+  return models.includes(session.model);
+}
+async function interactiveSetup(saved) {
   console.log(`
-${s("\uD83D\uDC09 Beast CLI", fg.accent, bold4)} ${s(`v${VERSION}`, fg.muted)} ${s("\xB7", fg.muted)} ${s("45+ Providers", fg.secondary)} ${s("\xB7", fg.muted)} ${s("39 Tools", fg.secondary)} ${s("\xB7", fg.muted)} ${s("Local AI Ready", fg.secondary)}`);
-  console.log(`${dim3}\uD83D\uDCE1 Detecting services...${reset4}`);
+${s("\uD83D\uDC09 Beast CLI", fg.accent, bold)} ${s(`v${VERSION}`, fg.muted)} ${s("\xB7", fg.muted)} ${s("45+ Providers", fg.secondary)} ${s("\xB7", fg.muted)} ${s("39 Tools", fg.secondary)}`);
   const providers2 = await detectAllProviders();
-  const mcp = await checkMCPServer();
-  nativeTools = mcp.tools;
-  console.log(`${green2}\u2713${reset4} MCP: ${mcp.toolCount} tools | ${green2}\u2713${reset4} Ollama: ${providers2.find((p) => p.id === "ollama")?.models.length || 0} models`);
-  console.log("");
+  console.log(`${s("\u2713", fg.success)} MCP: ${nativeTools.length} tools | ${s("\u2713", fg.success)} Ollama: ${providers2.find((p) => p.id === "ollama")?.models.length || 0} models`);
   const provider = await selectProvider(providers2);
   let apiKey;
   if (isCloudProvider(provider)) {
     const key = await promptApiKey(provider);
     if (!key) {
-      console.log(`   ${yellow2}\u26A0${reset4} No API key`);
+      console.log(`   ${s("\u26A0", fg.warning)} No API key`);
       process.exit(1);
     }
     apiKey = key;
   }
-  console.log("");
-  const model = await selectModelForProvider(provider);
-  const baseUrl = getBaseUrl(provider);
-  console.log("");
-  const contextSizes = ["8K", "16K", "32K", "64K", "128K"];
-  console.log(`${dim3}Context window size:${reset4}`);
-  contextSizes.forEach((size, i) => console.log(`  ${dim3}[${i + 1}]${reset4} ${size} tokens`));
-  const ctxIdx = await question("  > ") || "3";
-  const contextSize = contextSizes[parseInt(ctxIdx) - 1] || "32K";
+  const model = await selectModelForProvider(provider, saved?.model);
+  const { size, max } = await selectContextSize(saved?.contextSize);
   console.log(`
-${green2}\u2713${reset4} Provider: ${bold4}${provider}${reset4}
-${green2}\u2713${reset4} Model: ${bold4}${model}${reset4}
-${green2}\u2713${reset4} Context: ${bold4}${contextSize} tokens${reset4}
+${s("\u2713", fg.success)} Provider: ${bold}${provider}${reset}
+${s("\u2713", fg.success)} Model: ${bold}${model}${reset}
+${s("\u2713", fg.success)} Context: ${bold}${size} tokens${reset}
 `);
-  return { provider, model, apiKey, baseUrl, messages: [], contextMax: parseContextSize(contextSize) };
+  return { provider, model, apiKey, baseUrl: getBaseUrl(provider), messages: [], contextMax: max };
 }
-function buildSession(provider, model) {
-  const apiKey = getApiKeyFromEnv(provider);
-  return { provider, model, apiKey, baseUrl: getBaseUrl(provider), messages: [], contextMax: 32768 };
-}
-function parseContextSize(size) {
-  const num = parseInt(size.replace(/K|B$/i, ""));
-  if (size.toUpperCase().endsWith("K"))
-    return num * 1024;
-  if (size.toUpperCase().endsWith("B"))
-    return num * 1024 * 1024 * 1024;
-  return num;
+function buildSessionFromSaved(saved) {
+  if (!saved)
+    return null;
+  return {
+    provider: saved.provider,
+    model: saved.model,
+    apiKey: getApiKeyFromEnv(saved.provider),
+    baseUrl: getBaseUrl(saved.provider),
+    messages: [],
+    contextMax: saved.contextMax
+  };
 }
 function estimateContextUsed(messages) {
   const avgTokensPerMsg = 50 / 4;
@@ -6345,9 +6090,8 @@ function printBanner(session) {
 ` + s("Commands:", fg.muted));
   console.log(helpPanel([
     { cmd: "/help", desc: "Show all commands" },
-    { cmd: "/tools", desc: "List available MCP tools" },
-    { cmd: "/model", desc: "Switch model" },
-    { cmd: "/provider", desc: "Change provider" },
+    { cmd: "/switch", desc: "Change provider/model/context" },
+    { cmd: "/tools", desc: "List available tools" },
     { cmd: "/clear", desc: "Clear chat history" },
     { cmd: "/exit", desc: "Quit Beast CLI" }
   ]));
@@ -6371,18 +6115,33 @@ async function repl(session) {
     if (trimmed === "/help") {
       console.log(`
 Commands:
-  /help         Show this help
-  /models       List available models for current provider
-  /model        Interactively switch model
-  /model <name> Switch to model by name or number
-  /provider     Interactively switch provider
+  /help           Show this help
+  /switch         Reconfigure provider/model/context
+  /models         List available models for current provider
+  /model          Interactively switch model
+  /model <name>   Switch to model by name or number
+  /provider       Interactively switch provider
   /provider <name>  Switch directly to provider
-  /login        Authenticate ChatGPT Plus (Codex OAuth)
-  /logout       Clear ChatGPT Plus authentication
-  /tools        List available MCP tools
-  /clear        Clear chat history
-  /exit         Exit
+  /login          Authenticate ChatGPT Plus (Codex OAuth)
+  /logout         Clear ChatGPT Plus authentication
+  /tools          List available tools
+  /clear          Clear chat history
+  /exit           Exit
 `);
+      promptUser();
+      return;
+    }
+    if (trimmed === "/switch") {
+      const newSession = await interactiveSetup();
+      Object.assign(session, newSession);
+      saveSession({
+        provider: session.provider,
+        model: session.model,
+        contextSize: session.contextMax ? session.contextMax >= 1024 ? Math.round(session.contextMax / 1024) + "K" : String(session.contextMax) : "32K",
+        contextMax: session.contextMax || 32768,
+        savedAt: Date.now()
+      });
+      printBanner(session);
       promptUser();
       return;
     }
@@ -6446,7 +6205,8 @@ Available models on ${session.provider}:`);
     if (trimmed === "/model") {
       const model = await selectModelForProvider(session.provider, session.model);
       session.model = model;
-      saveConfig({ provider: session.provider, model });
+      const ctxSize = session.contextMax ? session.contextMax >= 1024 ? Math.round(session.contextMax / 1024) + "K" : String(session.contextMax) : "32K";
+      saveSession({ provider: session.provider, model, contextSize: ctxSize, contextMax: session.contextMax || 32768, savedAt: Date.now() });
       console.log(`
 \u2705 Model switched to: ${model}`);
       promptUser();
@@ -6454,7 +6214,7 @@ Available models on ${session.provider}:`);
     }
     if (trimmed.startsWith("/model ")) {
       const target = trimmed.slice(7).trim();
-      const models = isCloudProvider(session.provider) ? CLOUD_MODELS[session.provider] ?? [] : await fetchLocalModels(session.provider);
+      const models = isCloudProvider(session.provider) ? CLOUD_MODELS[session.provider] ?? CODEX_MODELS : await fetchLocalModels(session.provider);
       const n = parseInt(target);
       if (n >= 1 && n <= models.length)
         session.model = models[n - 1];
@@ -6467,16 +6227,16 @@ Available models on ${session.provider}:`);
         promptUser();
         return;
       }
-      saveConfig({ provider: session.provider, model: session.model });
+      const ctxSize = session.contextMax ? session.contextMax >= 1024 ? Math.round(session.contextMax / 1024) + "K" : String(session.contextMax) : "32K";
+      saveSession({ provider: session.provider, model: session.model, contextSize: ctxSize, contextMax: session.contextMax || 32768, savedAt: Date.now() });
       console.log(`
 \u2705 Model switched to: ${session.model}`);
       promptUser();
       return;
     }
     if (trimmed === "/provider") {
-      const config = loadConfig();
       const providers2 = await detectAllProviders();
-      const newProvider = await selectProvider(providers2, config);
+      const newProvider = await selectProvider(providers2);
       if (isCloudProvider(newProvider)) {
         const key = await promptApiKey(newProvider);
         if (!key) {
@@ -6488,12 +6248,13 @@ Available models on ${session.provider}:`);
         session.apiKey = key;
       }
       const newModel = await selectModelForProvider(newProvider);
+      const { size, max } = await selectContextSize();
       session.provider = newProvider;
       session.model = newModel;
       session.baseUrl = getBaseUrl(newProvider);
-      saveConfig({ provider: newProvider, model: newModel });
-      console.log(`
-\u2713 Provider: ${newProvider} | Model: ${newModel}`);
+      session.contextMax = max;
+      saveSession({ provider: newProvider, model: newModel, contextSize: size, contextMax: max, savedAt: Date.now() });
+      printBanner(session);
       promptUser();
       return;
     }
@@ -6519,10 +6280,12 @@ Available models on ${session.provider}:`);
         session.apiKey = key;
       }
       const newModel = await selectModelForProvider(target);
+      const { size, max } = await selectContextSize();
       session.provider = target;
       session.model = newModel;
       session.baseUrl = getBaseUrl(target);
-      saveConfig({ provider: target, model: newModel });
+      session.contextMax = max;
+      saveSession({ provider: target, model: newModel, contextSize: size, contextMax: max, savedAt: Date.now() });
       printBanner(session);
       promptUser();
       return;
@@ -6585,10 +6348,7 @@ Available models on ${session.provider}:`);
         "no browsing ability",
         "only have knowledge",
         "training data",
-        "my knowledge",
-        "\u622A\u6B62",
-        "\u6211\u7684\u77E5\u8BC6",
-        "\u6211\u6CA1\u6709\u5B9E\u65F6"
+        "my knowledge"
       ];
       return noDataPhrases.some((phrase) => lower.includes(phrase));
     }
@@ -6606,7 +6366,7 @@ Available models on ${session.provider}:`);
       });
     }
     agentMessages.push({ role: "user", content: trimmed });
-    beastSpinner.start("Beast is thinking");
+    startSpinner("Thinking");
     try {
       const provider = await createProvider({
         provider: session.provider,
@@ -6615,13 +6375,13 @@ Available models on ${session.provider}:`);
         baseUrl: session.baseUrl || undefined
       });
       while (toolCallCount < MAX_TOOL_CALLS) {
-        const tools2 = nativeTools.length > 0 ? formatMCPTools() : undefined;
+        const tools2 = nativeTools.length > 0 ? nativeTools : undefined;
         const response = await provider.create({
           messages: agentMessages,
           tools: tools2,
           maxTokens: 16384
         });
-        beastSpinner.stop("done");
+        stopSpinner(true);
         if (toolCallCount === 0) {
           printUsage(response.usage);
         }
@@ -6646,13 +6406,13 @@ ${resultText}
 
 Please provide a clear, concise answer based on these results.`
             });
-            beastSpinner.start("Formatting response");
+            startSpinner("Formatting");
             const formatted = await provider.create({
               messages: agentMessages,
               tools: undefined,
               maxTokens: 16384
             });
-            beastSpinner.stop("done");
+            stopSpinner(true);
             if (formatted.content) {
               streamText(formatted.content);
             }
@@ -6705,7 +6465,7 @@ Please provide a clear, concise answer based on these results.`
 `);
       }
     } catch (e) {
-      beastSpinner.stop("error");
+      stopSpinner(false);
       console.log(`
 ${s("\u274C Error:", fg.error)} ${e}`);
       if (session.messages.length > 0)
@@ -6719,8 +6479,7 @@ ${s("\u274C Error:", fg.error)} ${e}`);
   promptUser();
 }
 function printHelp() {
-  console.log(`
-` + renderLionBanner());
+  console.log(renderCleanBanner());
   console.log(`
 \uD83D\uDC09 Beast CLI v${VERSION} - AI Coding Agent
 
@@ -6728,27 +6487,30 @@ USAGE:
   beast [options]
 
 OPTIONS:
-  --provider <name>  LLM provider (ollama, lmstudio, anthropic, openai, deepseek, etc.)
+  --provider <name>  LLM provider (ollama, codex, anthropic, openai, etc.)
   --model <name>     Model name
-  --defaults         Use default provider (no prompts) \u2014 great for beginners!
+  --defaults         Use saved config or auto-select best option
+  --switch           Reconfigure provider/model/context
   --setup            Auto-start MCP server
   --help             Show this help
 
 SESSION COMMANDS:
-  /provider       Switch provider (interactive)
+  /switch        Reconfigure everything (provider, model, context)
+  /provider      Switch provider (interactive)
   /provider <name>  Switch to provider by name
-  /model          Switch model (interactive)
-  /model <name>   Switch to model by name or number
-  /models         List available models
-  /tools          List available MCP tools
-  /clear          Clear chat history
-  /help           Show this help
-  /exit           Exit
+  /model         Switch model (interactive)
+  /model <name>  Switch to model by name or number
+  /models        List available models
+  /tools         List available tools
+  /clear         Clear chat history
+  /help          Show this help
+  /exit          Exit
 
 EXAMPLES:
-  beast                          # Interactive setup
-  beast --provider ollama         # Use Ollama with model picker
-  beast --provider openai --model gpt-4o  # Use OpenAI directly
+  beast                          # Use saved config or auto-select
+  beast --defaults               # Quick start with best option
+  beast --switch                 # Reconfigure from scratch
+  beast --provider ollama        # Use Ollama with model picker
 `);
 }
 async function main() {
@@ -6775,6 +6537,9 @@ async function main() {
       case "--defaults":
         options.defaults = true;
         break;
+      case "--switch":
+        options.switch = true;
+        break;
     }
   }
   if (options.help) {
@@ -6785,38 +6550,45 @@ async function main() {
     console.log("Running tests...");
     process.exit(0);
   }
-  if (options.setup) {
-    await autoStartMCP();
-    process.exit(0);
-  }
-  console.log(renderLionBanner());
-  startSpinner("\uD83D\uDD27 Connecting MCP");
   await connectMCP();
-  stopSpinner(nativeTools.length > 0, "\uD83D\uDD27 MCP");
-  console.log(renderLionBanner());
+  console.log(renderCleanBanner());
   let session;
-  if (options.defaults) {
+  const saved = loadSession();
+  const savedValid = saved ? await validateSavedConfig(buildSessionFromSaved(saved)) : false;
+  if (options.switch) {
+    session = await interactiveSetup(saved || undefined);
+  } else if (options.provider && options.model) {
+    session = {
+      provider: options.provider,
+      model: options.model,
+      apiKey: getApiKeyFromEnv(options.provider),
+      baseUrl: getBaseUrl(options.provider),
+      messages: [],
+      contextMax: 32768
+    };
+  } else if (options.defaults) {
     const token = loadCodexToken();
-    if (token) {
-      session = buildSession("codex", "gpt-5.2-codex");
-      console.log(`${green}\u2713${reset3} Using ChatGPT Plus (you're logged in!)`);
+    if (token && isCodexTokenValid(token)) {
+      session = { provider: "codex", model: "gpt-5.2-codex", apiKey: undefined, baseUrl: "https://chatgpt.com/backend-api", messages: [], contextMax: 128 * 1024 };
+      console.log(`${s("\u2713", fg.success)} ChatGPT Plus (logged in)`);
     } else {
-      console.log(`${dim2}\uD83D\uDCE1 Checking available AI...${reset3}`);
       const ollamaModels = await fetchOllamaModels();
       if (ollamaModels.length > 0) {
-        session = buildSession("ollama", ollamaModels[0]);
-        console.log(`${green}\u2713${reset3} Using Ollama (${ollamaModels[0]}) - Free & works offline!`);
+        session = { provider: "ollama", model: ollamaModels[0], apiKey: undefined, baseUrl: "http://localhost:11434", messages: [], contextMax: 128 * 1024 };
+        console.log(`${s("\u2713", fg.success)} Ollama (${ollamaModels[0]}) \u2014 Free & offline`);
       } else {
-        session = buildSession("codex", "gpt-5.2-codex");
-        console.log(`${yellow}\uD83D\uDCA1${reset3} Tip: ChatGPT Plus OAuth needs browser login first time.`);
-        console.log(`${dim2}   Or install Ollama for free offline AI: https://ollama.com${reset3}`);
+        session = await interactiveSetup(saved || undefined);
       }
     }
-  } else if (options.provider && options.model) {
-    session = buildSession(options.provider, options.model);
+  } else if (saved && savedValid) {
+    session = buildSessionFromSaved(saved);
+    const ctxStr = saved.contextMax ? saved.contextMax >= 1024 ? Math.round(saved.contextMax / 1024) + "K" : String(saved.contextMax) : "32K";
+    console.log(`${s("\u2713", fg.success)} Using saved config: ${session.provider} / ${session.model} / ${ctxStr}`);
   } else {
-    session = await interactiveSetup();
+    session = await interactiveSetup(saved || undefined);
   }
+  const ctxSize = session.contextMax ? session.contextMax >= 1024 ? Math.round(session.contextMax / 1024) + "K" : "32K" : "32K";
+  saveSession({ provider: session.provider, model: session.model, contextSize: ctxSize, contextMax: session.contextMax || 32768, savedAt: Date.now() });
   await repl(session);
 }
 main().catch(console.error);
