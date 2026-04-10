@@ -26,7 +26,7 @@ jobs:
           bun-version: ${{ env.BUN_VERSION }}
 
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: bun install
 
       - name: Build
         run: bun run build:bin
@@ -76,12 +76,10 @@ jobs:
       - name: Publish to NPM
         run: |
           if [[ "${{ github.ref }}" == "refs/tags/"* ]]; then
-            # Tagged release - publish with version from tag
             VERSION=${GITHUB_REF#refs/tags/v}
             npm version $VERSION --no-git-tag-version
             npm publish --access public
           else
-            # Main branch - publish canary
             npm publish --access public --tag canary --no-git-checks
           fi
         env:
