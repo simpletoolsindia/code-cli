@@ -264,6 +264,7 @@ export const styled_ = {
 export type ThemeName =
   | 'catppuccin-mocha' | 'catppuccin-frappe' | 'catppuccin-latte'
   | 'tokyonight' | 'dracula' | 'gruvbox' | 'monokai' | 'nord' | 'one-dark'
+  | 'claude'
 
 export interface Theme {
   name: string
@@ -557,6 +558,35 @@ export const themes: Record<ThemeName, Theme> = {
     flamingo: '\x1b[38;2;200;100;100m',
     lavender: '\x1b[38;2;100;100;220m',
     white: '\x1b[38;2;255;255;255m',
+  },
+
+  // Claude-inspired warm theme (light)
+  'claude': {
+    name: 'Claude',
+    crust: '\x1b[48;2;250;249;245m',   // ivory
+    mantle: '\x1b[48;2;245;244;237m', // parchment
+    base: '\x1b[48;2;240;238;220m',   // sand
+    surface0: '\x1b[48;2;232;230;220m', // warm surface
+    surface1: '\x1b[48;2;209;207;197m', // lighter warm
+    surface2: '\x1b[48;2;135;134;127m', // stone
+    text: '\x1b[38;2;20;20;19m',       // near black
+    subtext0: '\x1b[38;2;94;93;89m',  // olive gray
+    subtext1: '\x1b[38;2;61;61;56m',  // charcoal warm
+    overlay0: '\x1b[38;2;135;134;127m', // stone gray
+    blue: '\x1b[38;2;56;152;236m',    // focus blue
+    sapphire: '\x1b[38;2;56;152;236m', // blue variant
+    sky: '\x1b[38;2;100;170;210m',    // sky blue
+    teal: '\x1b[38;2;23;146;153m',    // teal
+    green: '\x1b[38;2;100;200;100m',   // success green
+    yellow: '\x1b[38;2;250;189;47m',  // warm yellow
+    peach: '\x1b[38;2;201;151;87m',   // warm peach
+    maroon: '\x1b[38;2;180;120;120m', // warm maroon
+    red: '\x1b[38;2;181;51;51m',      // error crimson
+    mauve: '\x1b[38;2;201;118;87m',   // terracotta variant
+    pink: '\x1b[38;2;217;119;87m',    // coral variant
+    flamingo: '\x1b[38;2;220;150;130m', // warm flamingo
+    lavender: '\x1b[38;2;139;92;246m', // purple
+    white: '\x1b[38;2;255;255;250m',  // warm white
   },
 }
 
