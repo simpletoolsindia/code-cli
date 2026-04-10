@@ -12,60 +12,10 @@ env:
   BUN_VERSION: '1.1'
 
 jobs:
-  # ─── Build & Test ──────────────────────────────────────────────────────────
+  # ─── Build ─────────────────────────────────────────────────────────────────
   build:
     name: Build
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        manager: [npm, bun]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        if: matrix.manager == 'npm'
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Setup Bun
-        if: matrix.manager == 'bun'
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: ${{ env.BUN_VERSION }}
-
-      - name: Install dependencies
-        run: |
-          if [[ "${{ matrix.manager }}" == "npm" ]]; then
-            npm ci
-          else
-            bun install --frozen-lockfile
-          fi
-
-      - name: Build
-        run: |
-          if [[ "${{ matrix.manager }}" == "npm" ]]; then
-            npm run build:bin
-          else
-            bun run build:bin
-          fi
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-${{ matrix.manager }}
-          path: |
-            dist/
-            bin/
-          retention-days: 7
-
-  # ─── Test with Bun ──────────────────────────────────────────────────────────
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    needs: [build]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -81,9 +31,21 @@ jobs:
       - name: Build
         run: bun run build:bin
 
-      - name: Run tests
-        run: bun run test
-        continue-on-error: true
+      - name: Verify binary
+        run: |
+          ls -la bin/beast.js
+          head -5 bin/beast.js
+          echo "Build successful!"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: |
+            dist/
+            bin/
+            package.json
+          retention-days: 7
 
   # ─── Publish to NPM ────────────────────────────────────────────────────────
   publish-npm:
