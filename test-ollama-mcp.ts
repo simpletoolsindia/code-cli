@@ -7,7 +7,7 @@ import { TCPTransport } from './src/mcp/index.ts'
 
 const MCP_HOST = 'localhost'
 const MCP_PORT = 7710
-const MODEL = 'qwen2.5-coder:14b-instruct'
+const MODEL = 'gemma4:latest'
 
 const tests: { name: string; passed: boolean; error?: string; notes?: string }[] = []
 

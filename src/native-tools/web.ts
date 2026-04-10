@@ -41,6 +41,10 @@ export async function fetchWebContent(url: string, maxTokens = 4000): Promise<Fe
       url: response.url,
     }
   } catch (e: any) {
+    // Provide helpful error messages for SSL issues on Windows
+    if (e.message?.includes('unable to get local issuer certificate') && process.platform === 'win32') {
+      return { success: false, content: '', error: 'SSL certificate error. Your Windows certificate store may need updating. Try running: npm config set strict-ssl false' }
+    }
     return { success: false, content: '', error: e.message }
   }
 }

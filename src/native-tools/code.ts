@@ -95,15 +95,33 @@ async function runPython(code: string, timeout: number, start: number): Promise<
   try {
     writeFileSync(filePath, code, 'utf-8')
 
-    // Use python on Windows, python3 on Unix
-    const pythonCmd = isWindows ? 'python' : 'python3'
-    const result = await execProcess(pythonCmd, ['-u', filePath], timeout * 1000)
-    const executionTime = Date.now() - start
+    // Try multiple Python commands for cross-platform compatibility
+    const pythonCommands = isWindows ? ['python', 'py', 'python3'] : ['python3', 'python']
+    let lastError = ''
 
+    for (const pythonCmd of pythonCommands) {
+      const result = await execProcess(pythonCmd, ['-u', filePath], timeout * 1000)
+      if (!result.error) {
+        const executionTime = Date.now() - start
+        return {
+          success: true,
+          output: result.stdout || result.stderr,
+          error: undefined,
+          executionTime,
+          language: 'python',
+        }
+      }
+      lastError = result.error
+    }
+
+    // All Python commands failed
+    const executionTime = Date.now() - start
     return {
-      success: !result.error,
-      output: result.stdout || result.stderr,
-      error: result.error,
+      success: false,
+      output: '',
+      error: lastError.includes('not found') || lastError.includes('not recognized')
+        ? `Python not found. Install Python from https://python.org or use 'py -3' on Windows`
+        : lastError,
       executionTime,
       language: 'python',
     }

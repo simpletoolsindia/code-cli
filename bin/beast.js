@@ -2974,6 +2974,9 @@ async function fetchWebContent(url, maxTokens = 4000) {
       url: response.url
     };
   } catch (e) {
+    if (e.message?.includes("unable to get local issuer certificate") && process.platform === "win32") {
+      return { success: false, content: "", error: "SSL certificate error. Your Windows certificate store may need updating. Try running: npm config set strict-ssl false" };
+    }
     return { success: false, content: "", error: e.message };
   }
 }
@@ -3398,13 +3401,27 @@ async function runPython(code, timeout, start) {
   const filePath = join2(SANDBOX_DIR, `${id}.py`);
   try {
     writeFileSync2(filePath, code, "utf-8");
-    const pythonCmd = isWindows ? "python" : "python3";
-    const result = await execProcess(pythonCmd, ["-u", filePath], timeout * 1000);
+    const pythonCommands = isWindows ? ["python", "py", "python3"] : ["python3", "python"];
+    let lastError = "";
+    for (const pythonCmd of pythonCommands) {
+      const result = await execProcess(pythonCmd, ["-u", filePath], timeout * 1000);
+      if (!result.error) {
+        const executionTime2 = Date.now() - start;
+        return {
+          success: true,
+          output: result.stdout || result.stderr,
+          error: undefined,
+          executionTime: executionTime2,
+          language: "python"
+        };
+      }
+      lastError = result.error;
+    }
     const executionTime = Date.now() - start;
     return {
-      success: !result.error,
-      output: result.stdout || result.stderr,
-      error: result.error,
+      success: false,
+      output: "",
+      error: lastError.includes("not found") || lastError.includes("not recognized") ? `Python not found. Install Python from https://python.org or use 'py -3' on Windows` : lastError,
       executionTime,
       language: "python"
     };
