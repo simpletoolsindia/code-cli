@@ -1,5 +1,5 @@
 // Input Component - Custom input with tab completion
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Text, Box } from 'ink'
 import { useInput } from 'ink'
 import { getTheme } from '../theme.ts'
@@ -7,7 +7,6 @@ import { listAgents } from '../../../agents/index.ts'
 
 interface InputProps {
   onSubmit: (value: string) => void
-  suggestions?: string[]
 }
 
 const SLASH_COMMANDS = [
@@ -21,20 +20,26 @@ export const Input: React.FC<InputProps> = ({ onSubmit }) => {
   const [suggestionIdx, setSuggestionIdx] = useState(-1)
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [agentSuggestions, setAgentSuggestions] = useState<string[]>([])
-  const inputRef = useRef<HTMLInputElement>(null)
   const theme = getTheme()
 
-  useEffect(() => {
-    // Load agent names for @ autocomplete
-    try {
-      const agents = listAgents()
+  // Load agent names for @ autocomplete (once)
+  try {
+    const agents = listAgents()
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const [loaded, setLoaded] = useState(false)
+    if (!loaded) {
       setAgentSuggestions(agents.map((a: any) => '@' + a.name))
-    } catch {
-      setAgentSuggestions([])
+      setLoaded(true)
     }
-  }, [])
+  } catch {
+    // agents not available — ignore
+  }
 
   useInput((input, key) => {
+    const allSuggestions = value.startsWith('@')
+      ? agentSuggestions.filter(s => s.startsWith(value))
+      : SLASH_COMMANDS.filter(s => s.startsWith(value))
+
     if (key.return) {
       if (value.trim()) {
         onSubmit(value)
@@ -43,35 +48,27 @@ export const Input: React.FC<InputProps> = ({ onSubmit }) => {
         setShowSuggestions(false)
       }
     } else if (key.tab) {
-      // Tab completion
-      const allSuggestions = value.startsWith('@')
-        ? agentSuggestions.filter(s => s.startsWith(value))
-        : SLASH_COMMANDS.filter(s => s.startsWith(value))
-
       if (allSuggestions.length === 1) {
         setValue(allSuggestions[0])
-      } else if (allSuggestions.length > 1 && suggestionIdx < allSuggestions.length - 1) {
-        setSuggestionIdx(prev => prev + 1)
-        setValue(allSuggestions[suggestionIdx + 1])
+      } else if (allSuggestions.length > 1) {
+        const next = (suggestionIdx + 1) % allSuggestions.length
+        setSuggestionIdx(next)
+        setValue(allSuggestions[next])
       }
       setShowSuggestions(allSuggestions.length > 0)
     } else if (key.upArrow) {
-      const allSuggestions = value.startsWith('@')
-        ? agentSuggestions.filter(s => s.startsWith(value))
-        : SLASH_COMMANDS.filter(s => s.startsWith(value))
-
       if (allSuggestions.length > 0) {
-        setSuggestionIdx(prev => (prev <= 0 ? allSuggestions.length - 1 : prev - 1))
-        setValue(allSuggestions[suggestionIdx] || value)
+        const next = suggestionIdx <= 0 ? allSuggestions.length - 1 : suggestionIdx - 1
+        setSuggestionIdx(next)
+        setValue(allSuggestions[next])
+        setShowSuggestions(true)
       }
     } else if (key.downArrow) {
-      const allSuggestions = value.startsWith('@')
-        ? agentSuggestions.filter(s => s.startsWith(value))
-        : SLASH_COMMANDS.filter(s => s.startsWith(value))
-
       if (allSuggestions.length > 0) {
-        setSuggestionIdx(prev => (prev >= allSuggestions.length - 1 ? 0 : prev + 1))
-        setValue(allSuggestions[suggestionIdx] || value)
+        const next = (suggestionIdx + 1) % allSuggestions.length
+        setSuggestionIdx(next)
+        setValue(allSuggestions[next])
+        setShowSuggestions(true)
       }
     } else if (key.ctrlC) {
       setValue('')
@@ -84,13 +81,12 @@ export const Input: React.FC<InputProps> = ({ onSubmit }) => {
     } else if (input && !key.ctrl && !key.meta) {
       setValue(prev => prev + input)
       setSuggestionIdx(-1)
-      // Show suggestions as user types /
-      if (input === '/') {
-        const matches = SLASH_COMMANDS.filter(s => s.startsWith('/'))
+      const newValue = value + input
+      if (newValue.startsWith('@')) {
+        const matches = agentSuggestions.filter(s => s.startsWith(newValue))
         setShowSuggestions(matches.length > 0)
-      } else if (value.startsWith('@')) {
-        const matches = agentSuggestions.filter(s => s.startsWith(value))
-        setShowSuggestions(matches.length > 0)
+      } else if (newValue === '/') {
+        setShowSuggestions(SLASH_COMMANDS.length > 0)
       }
     }
   })

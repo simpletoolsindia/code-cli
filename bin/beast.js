@@ -1319,155 +1319,6 @@ var init_providers = __esm(() => {
 });
 
 // src/ui/colors.ts
-function isColorEnabled() {
-  if (NO_COLOR)
-    return false;
-  if (process.env.FORCE_COLOR)
-    return true;
-  if (process.stdout && !process.stdout.isTTY)
-    return false;
-  return true;
-}
-function s(text, ...styles) {
-  if (!isColorEnabled())
-    return text;
-  return styles.join("") + text + reset;
-}
-var reset = "\x1B[0m", bold = "\x1B[1m", dim = "\x1B[2m", claudePalette, fg, bg, spinnerFrames, DEFAULT_SPINNER, icon, NO_COLOR;
-var init_colors = __esm(() => {
-  claudePalette = {
-    crust: "\x1B[48;2;250;249;245m",
-    mantle: "\x1B[48;2;245;244;237m",
-    base: "\x1B[48;2;240;238;220m",
-    surface0: "\x1B[48;2;232;230;220m",
-    surface1: "\x1B[48;2;215;213;200m",
-    surface2: "\x1B[48;2;180;178;170m",
-    text: "\x1B[38;2;20;20;19m",
-    subtext0: "\x1B[38;2;80;79;75m",
-    subtext1: "\x1B[38;2;50;49;46m",
-    overlay0: "\x1B[38;2;140;138;130m",
-    blue: "\x1B[38;2;56;152;236m",
-    sapphire: "\x1B[38;2;56;152;236m",
-    sky: "\x1B[38;2;100;170;210m",
-    teal: "\x1B[38;2;23;146;153m",
-    green: "\x1B[38;2;30;160;80m",
-    yellow: "\x1B[38;2;200;140;0m",
-    peach: "\x1B[38;2;201;130;70m",
-    maroon: "\x1B[38;2;160;100;90m",
-    red: "\x1B[38;2;200;60;60m",
-    mauve: "\x1B[38;2;180;80;200m",
-    pink: "\x1B[38;2;200;100;180m",
-    flamingo: "\x1B[38;2;220;150;130m",
-    lavender: "\x1B[38;2;139;92;246m",
-    white: "\x1B[38;2;255;255;250m",
-    gpPurple: "\x1B[38;2;142;54;255m",
-    gpBlue: "\x1B[38;2;70;130;255m",
-    gpCyan: "\x1B[38;2;0;200;200m",
-    gpGreen: "\x1B[38;2;0;200;100m",
-    gpYellow: "\x1B[38;2;255;200;0m",
-    gpRed: "\x1B[38;2;255;100;100m"
-  };
-  fg = {
-    primary: claudePalette.text,
-    secondary: claudePalette.subtext1,
-    muted: claudePalette.overlay0,
-    overlay: claudePalette.surface2,
-    success: claudePalette.green,
-    warning: claudePalette.yellow,
-    error: claudePalette.red,
-    info: claudePalette.blue,
-    user: claudePalette.green,
-    assistant: claudePalette.mauve,
-    system: claudePalette.sapphire,
-    tool: claudePalette.peach,
-    code: claudePalette.teal,
-    link: claudePalette.sapphire,
-    keyword: claudePalette.mauve,
-    function: claudePalette.blue,
-    string: claudePalette.green,
-    number: claudePalette.peach,
-    accent: claudePalette.gpPurple,
-    accent2: claudePalette.pink,
-    accent3: claudePalette.lavender,
-    peach: claudePalette.peach,
-    mauve: claudePalette.mauve,
-    cyan: claudePalette.teal,
-    purple: claudePalette.gpPurple,
-    prompt: claudePalette.gpPurple,
-    gpPurple: claudePalette.gpPurple,
-    gpBlue: claudePalette.gpBlue,
-    gpCyan: claudePalette.gpCyan,
-    gpGreen: claudePalette.gpGreen,
-    gpYellow: claudePalette.gpYellow,
-    gpRed: claudePalette.gpRed
-  };
-  bg = {
-    base: claudePalette.base,
-    surface: claudePalette.surface0,
-    elevated: claudePalette.surface1,
-    overlay: claudePalette.surface2,
-    crust: claudePalette.crust,
-    mantle: claudePalette.mantle
-  };
-  spinnerFrames = {
-    dots: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"],
-    line: ["-", "\\", "|", "/"],
-    blocks: ["▖", "▘", "▝", "▗"],
-    arrow: ["←", "↙", "↓", "↘", "→", "↗", "↑", "↖"],
-    star: ["⋆", "✦", "✧", "⋆", "✧", "✦"]
-  };
-  DEFAULT_SPINNER = spinnerFrames.dots;
-  icon = {
-    prompt: "›",
-    userPrefix: ">",
-    aiPrefix: "◈",
-    success: "✓",
-    error: "✗",
-    warning: "!",
-    info: "i",
-    check: "●",
-    online: "●",
-    offline: "○",
-    tool: "›",
-    run: "›",
-    search: "⌕",
-    edit: "✎",
-    plus: "+",
-    minus: "−",
-    arrow: "→",
-    arrowUp: "↑",
-    arrowDown: "↓",
-    bullet: "·",
-    separator: "│",
-    folder: "▶",
-    file: "▷",
-    code: "◈",
-    link: "↗",
-    star: "★",
-    spark: "✦",
-    sparkles: "⁎",
-    tokens: "⚡",
-    messages: "≡",
-    time: "⏱",
-    context: "◈",
-    clock: "⏰",
-    ts: "TS",
-    js: "JS",
-    py: "PY",
-    md: "MD",
-    json: "{}",
-    git: "⎇",
-    thinking: "◐",
-    loading: "⠋",
-    line: "─",
-    dash: "–",
-    dot: "·",
-    space: " "
-  };
-  NO_COLOR = process.env.NO_COLOR || process.env.NO_COLOUR;
-});
-
-// src/ui/colors.ts
 function isColorEnabled2() {
   if (NO_COLOR2)
     return false;
@@ -1483,7 +1334,7 @@ function s2(text, ...styles) {
   return styles.join("") + text + reset2;
 }
 var reset2 = "\x1B[0m", bold2 = "\x1B[1m", dim2 = "\x1B[2m", italic = "\x1B[3m", claudePalette2, fg2, bg2, box, spinnerFrames2, DEFAULT_SPINNER2, icon2, NO_COLOR2;
-var init_colors2 = __esm(() => {
+var init_colors = __esm(() => {
   claudePalette2 = {
     crust: "\x1B[48;2;250;249;245m",
     mantle: "\x1B[48;2;245;244;237m",
@@ -1625,1201 +1476,6 @@ var init_colors2 = __esm(() => {
   NO_COLOR2 = process.env.NO_COLOR || process.env.NO_COLOUR;
 });
 
-// src/ui/layout.ts
-function renderHeader(config) {
-  if (!isColorEnabled2()) {
-    return `BEAST CLI v${config.version} | ${config.provider} | ${config.model}`;
-  }
-  const { version, provider, model, toolsCount } = config;
-  const b = box.round;
-  const gpPurple = "\x1B[38;2;142;54;255m";
-  const gpBlue = "\x1B[38;2;70;130;255m";
-  const line = [
-    s2(`${b.tl} `, gpPurple),
-    s2("\uD83D\uDC09", gpPurple),
-    s2(" Beast ", gpPurple, bold2),
-    s2("CLI", gpBlue, bold2),
-    s2(` v${version}`, fg2.muted),
-    s2(` ${b.h} `, gpPurple),
-    s2(icon2.check + " ", fg2.success),
-    s2(provider, fg2.success),
-    s2(` ${b.h} `, gpPurple),
-    s2(icon2.code + " ", gpBlue),
-    s2(model, gpBlue),
-    s2(` ${b.h} `, gpPurple),
-    s2(icon2.tool + " ", fg2.peach),
-    s2(`${toolsCount} tools`, fg2.peach),
-    s2(` ${b.h}${b.tr}`, gpPurple)
-  ].join("");
-  return line;
-}
-function contextBar(stats) {
-  const { used, max } = stats;
-  const width = 16;
-  const pct = Math.min(1, used / max);
-  const filled = Math.round(pct * width);
-  const empty = width - filled;
-  let barColor = fg2.success;
-  if (pct > 0.75)
-    barColor = fg2.sapphire;
-  if (pct > 0.9)
-    barColor = fg2.warning;
-  const bar = s2("█".repeat(filled), barColor) + s2("░".repeat(empty), fg2.overlay);
-  const pctStr = s2(`${Math.round(pct * 100)}%`, barColor);
-  const usedStr = s2(formatTokens(used), fg2.muted);
-  const maxStr = s2(formatTokens(max), fg2.muted);
-  return [
-    s2(`  ${icon2.context} `, fg2.muted),
-    bar,
-    s2(" ", fg2.muted),
-    pctStr,
-    s2(" (", fg2.muted),
-    usedStr,
-    s2("/", fg2.muted),
-    maxStr,
-    s2(")", fg2.muted)
-  ].join("");
-}
-function formatTokens(n) {
-  if (n >= 1000)
-    return (n / 1000).toFixed(1) + "K";
-  return String(n);
-}
-var init_layout = __esm(() => {
-  init_colors2();
-});
-
-// src/ui/format.ts
-function stripAnsi(text) {
-  return text.replace(/\x1b\[[0-9;]*m/g, "");
-}
-function panel(content, options = {}) {
-  const { title, titleColor = fg2.accent, width = 70 } = options;
-  const rawLines = content.split(`
-`);
-  const maxLen = rawLines.reduce((m, l) => Math.max(m, stripAnsi(l).length), 0);
-  const w = Math.max(width, maxLen + 4);
-  let result = `+${"-".repeat(w)}+
-`;
-  if (title) {
-    const titleLen = stripAnsi(title).length;
-    const pad1 = Math.floor((w - titleLen) / 2);
-    const pad2 = w - titleLen - pad1;
-    result += `|${" ".repeat(pad1)}${title}${" ".repeat(pad2)}|
-`;
-    result += `|${"-".repeat(w)}|
-`;
-  }
-  for (const ln of rawLines) {
-    const len = stripAnsi(ln).length;
-    const pad = w - len - 2;
-    result += `| ${ln}${" ".repeat(Math.max(0, pad))} |
-`;
-  }
-  result += `+${"-".repeat(w)}+`;
-  return s2(result, titleColor);
-}
-function inlineList(items, options = {}) {
-  const { iconColor = fg2.accent, labelColor = fg2.muted, valueColor = fg2.primary, separator = "  " } = options;
-  return items.map((item) => {
-    const icon3 = item.icon ? s2(item.icon + " ", iconColor) : "";
-    return icon3 + s2(item.label, labelColor) + ": " + s2(item.value, valueColor);
-  }).join(separator);
-}
-async function withProgress(label, promise, onTick) {
-  const start = Date.now();
-  let ticks = 0;
-  const ticker = setInterval(() => {
-    const elapsed = Date.now() - start;
-    const estimated = Math.min(1, elapsed / 1e4);
-    ticks++;
-    const pct = Math.round(estimated * 100);
-    const filled = Math.round(estimated * 24);
-    const barColor = pct > 80 ? fg2.warning : pct > 50 ? fg2.accent : fg2.success;
-    const bar = s2("█".repeat(filled), barColor) + s2("░".repeat(24 - filled), fg2.muted);
-    process.stderr.write(`\r  ${s2(label, fg2.secondary)} ${bar} ${s2(pct + "%", barColor)}   `);
-    if (onTick)
-      onTick(elapsed);
-  }, 300);
-  try {
-    const result = await promise;
-    clearInterval(ticker);
-    process.stderr.write("\r" + " ".repeat(60) + "\r");
-    process.stderr.write(s2("✓ ", fg2.success) + s2(label, fg2.secondary) + `
-`);
-    return result;
-  } catch (e) {
-    clearInterval(ticker);
-    process.stderr.write("\r" + " ".repeat(60) + "\r");
-    process.stderr.write(s2("✗ ", fg2.error) + s2(label, fg2.secondary) + `
-`);
-    throw e;
-  }
-}
-function helpPanel(commands) {
-  const maxCmd = Math.max(...commands.map((c) => stripAnsi(c.cmd).length), 4);
-  return commands.map(({ cmd, desc, shortcut }) => {
-    const shortcutStr = shortcut ? s2(` (${shortcut})`, fg2.muted, italic) : "";
-    return `  ${s2(cmd.padEnd(maxCmd + 2), fg2.accent)}${s2(desc, fg2.primary)}${shortcutStr}`;
-  }).join(`
-`);
-}
-var init_format = __esm(() => {
-  init_colors2();
-});
-
-// src/ui/format.ts
-function stripAnsi2(text) {
-  return text.replace(/\x1b\[[0-9;]*m/g, "");
-}
-var init_format2 = __esm(() => {
-  init_colors2();
-});
-
-// src/ui/tool-renderer.ts
-function truncateResult(content, maxLines = MAX_RESULT_LINES) {
-  const lines = content.split(`
-`);
-  if (lines.length <= maxLines)
-    return content;
-  const visible = lines.slice(0, maxLines);
-  const truncated = visible.map((l) => {
-    const stripped = stripAnsi2(l);
-    if (stripped.length <= MAX_LINE_WIDTH)
-      return l;
-    return l.slice(0, MAX_LINE_WIDTH - 3) + "...";
-  });
-  const remaining = lines.length - maxLines;
-  return truncated.join(`
-`) + `
-` + s2(`... (${remaining} more lines)`, fg2.muted);
-}
-function renderToolResult(name, result) {
-  if (!result.success) {
-    return renderError(name, result.error || "Unknown error");
-  }
-  if (name.startsWith("file_list"))
-    return renderFileList(result.content);
-  if (name.startsWith("file_read"))
-    return renderFileRead(result.content);
-  if (name.startsWith("github_search") || name.startsWith("github_repo"))
-    return renderGithub(result.content);
-  if (name.startsWith("searxng_search"))
-    return renderSearch(result.content);
-  if (name.startsWith("run_code") || name.startsWith("run_python"))
-    return renderCodeOutput(result.content);
-  if (name.startsWith("hackernews"))
-    return renderHackerNews(result.content);
-  if (name.startsWith("youtube"))
-    return renderYouTube(result.content);
-  if (name.startsWith("fetch_web") || name.startsWith("quick_fetch"))
-    return renderWebContent(result.content);
-  return renderGeneric(result.content);
-}
-function renderFileList(content) {
-  try {
-    const items = JSON.parse(content);
-    if (!Array.isArray(items) || items.length === 0) {
-      return s2("(empty directory)", fg2.muted);
-    }
-    const dirs = items.filter((i) => i.type === "directory");
-    const files = items.filter((i) => i.type !== "directory");
-    const lines = [];
-    if (dirs.length > 0) {
-      lines.push(s2("\uD83D\uDCC1 Directories", fg2.accent));
-      lines.push(dirs.map((d) => `  ${s2("\uD83D\uDCC1", fg2.warning)} ${s2(d.name, fg2.primary)}`).join(`
-`));
-      lines.push("");
-    }
-    if (files.length > 0) {
-      lines.push(s2("\uD83D\uDCC4 Files", fg2.accent));
-      lines.push(files.map((f) => {
-        const size = f.size ? formatSize(f.size) : "";
-        const modified = f.modified ? timeAgo(f.modified) : "";
-        return `  ${s2("\uD83D\uDCC4", fg2.cyan)} ${s2(f.name, fg2.primary)} ${s2(size, fg2.muted)} ${s2(modified, fg2.muted)}`;
-      }).join(`
-`));
-    }
-    return lines.join(`
-`) + `
-${s2("(" + items.length + " items)", fg2.muted)}`;
-  } catch {
-    return renderGeneric(content);
-  }
-}
-function renderFileRead(content) {
-  return truncateResult(content, MAX_RESULT_LINES);
-}
-function renderCodeOutput(content) {
-  return truncateResult(content, MAX_RESULT_LINES);
-}
-function renderSearch(content) {
-  try {
-    const data = JSON.parse(content);
-    const results = data.results || [];
-    if (results.length === 0) {
-      return s2("No results found", fg2.muted);
-    }
-    const shown = results.slice(0, MAX_RESULT_LINES);
-    const remaining = results.length - shown.length;
-    const items = shown.map((r, i) => {
-      const title = r.title || s2("(no title)", fg2.muted);
-      const url = r.url || "";
-      const snippet = r.snippet || "";
-      return [
-        s2(`${i + 1}. `, fg2.accent) + s2(truncate(title, 60), fg2.bold, fg2.primary),
-        `   ${s2(truncate(snippet, 80), fg2.secondary)}`,
-        `   ${s2(truncate(url, 70), fg2.link)}`
-      ].join(`
-`);
-    });
-    if (remaining > 0) {
-      items.push(s2(`... and ${remaining} more results — use fetch_web for full content`, fg2.muted));
-    }
-    return items.join(`
-
-`);
-  } catch {
-    return renderGeneric(content);
-  }
-}
-function renderGithub(content) {
-  try {
-    const data = JSON.parse(content);
-    if (data.name) {
-      const lines = [
-        s2(data.name, fg2.bold, fg2.accent),
-        data.description ? s2(data.description, fg2.primary) : "",
-        "",
-        s2("⭐ " + formatNumber(data.stars || data.stargazers_count || 0), fg2.warning) + "  " + s2("\uD83C\uDF74 " + formatNumber(data.forks_count || 0), fg2.cyan) + "  " + s2(data.language || "", fg2.success),
-        "",
-        s2(data.url || data.html_url || "", fg2.link)
-      ];
-      return lines.filter(Boolean).join(`
-`);
-    }
-    if (Array.isArray(data)) {
-      const shown = data.slice(0, MAX_RESULT_LINES);
-      const remaining = data.length - shown.length;
-      const items = shown.map((r, i) => {
-        return [
-          s2(`${i + 1}. `, fg2.accent) + s2(r.name || r.full_name, fg2.bold, fg2.primary),
-          r.description ? `   ${s2(truncate(r.description, 60), fg2.secondary)}` : "",
-          `   ${s2("⭐ " + formatNumber(r.stars || r.stargazers_count || 0), fg2.warning)} ${r.language ? s2(r.language, fg2.success) : ""}`
-        ].filter(Boolean).join(`
-`);
-      });
-      if (remaining > 0) {
-        items.push(s2(`... and ${remaining} more repos`, fg2.muted));
-      }
-      return items.join(`
-
-`);
-    }
-    return renderGeneric(content);
-  } catch {
-    return renderGeneric(content);
-  }
-}
-function renderHackerNews(content) {
-  try {
-    const data = JSON.parse(content);
-    const results = data.results || [];
-    const shown = results.slice(0, MAX_RESULT_LINES);
-    const remaining = results.length - shown.length;
-    const items = shown.map((r, i) => {
-      const title = r.title || s2("(no title)", fg2.muted);
-      const score = r.score || r.snippet?.match(/(\d+) points/)?.[1] || "0";
-      const comments = r.descendants || r.snippet?.match(/(\d+) comments/)?.[1] || "0";
-      return [
-        s2(`${i + 1}. `, fg2.accent) + s2(truncate(title, 60), fg2.bold, fg2.primary),
-        `   ${s2("⭐ " + score, fg2.warning)} ${s2("\uD83D\uDCAC " + comments, fg2.cyan)} ${r.url ? s2(truncate(r.url, 50), fg2.link) : ""}`
-      ].join(`
-`);
-    });
-    if (remaining > 0) {
-      items.push(s2(`... and ${remaining} more stories`, fg2.muted));
-    }
-    return items.join(`
-
-`);
-  } catch {
-    return renderGeneric(content);
-  }
-}
-function renderYouTube(content) {
-  try {
-    const data = JSON.parse(content);
-    const results = Array.isArray(data) ? data : data.results || [];
-    const shown = results.slice(0, MAX_RESULT_LINES);
-    const remaining = results.length - shown.length;
-    const items = shown.map((r, i) => {
-      return [
-        s2(`${i + 1}. `, fg2.accent) + s2(r.name || r.full_name || s2("(no name)", fg2.muted), fg2.bold, fg2.primary),
-        r.description ? `   ${s2(truncate(r.description, 60), fg2.secondary)}` : "",
-        `   ${s2("⭐ " + formatNumber(r.stars || r.stargazers_count || 0), fg2.warning)} ${r.language ? s2(r.language, fg2.success) : ""}`
-      ].filter(Boolean).join(`
-`);
-    });
-    if (remaining > 0) {
-      items.push(s2(`... and ${remaining} more videos`, fg2.muted));
-    }
-    return items.join(`
-
-`);
-  } catch {
-    return renderGeneric(content);
-  }
-}
-function renderWebContent(content) {
-  return truncateResult(content, MAX_RESULT_LINES);
-}
-function renderGeneric(content) {
-  try {
-    const parsed = JSON.parse(content);
-    const formatted = JSON.stringify(parsed, null, 2);
-    return truncateResult(formatted, MAX_RESULT_LINES);
-  } catch {
-    return truncateResult(content, MAX_RESULT_LINES);
-  }
-}
-function renderError(toolName, error) {
-  return s2(`${icon2.error} ${toolName}: ${error}`, fg2.error);
-}
-function formatSize(bytes) {
-  if (bytes < 1024)
-    return bytes + " B";
-  if (bytes < 1024 * 1024)
-    return (bytes / 1024).toFixed(1) + " KB";
-  return (bytes / (1024 * 1024)).toFixed(1) + " MB";
-}
-function formatNumber(n) {
-  if (n >= 1e6)
-    return (n / 1e6).toFixed(1) + "M";
-  if (n >= 1000)
-    return (n / 1000).toFixed(1) + "K";
-  return String(n);
-}
-function timeAgo(dateStr) {
-  try {
-    const date = new Date(dateStr);
-    const diff = Date.now() - date.getTime();
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
-    if (days > 0)
-      return days + "d ago";
-    if (hours > 0)
-      return hours + "h ago";
-    if (minutes > 0)
-      return minutes + "m ago";
-    return "just now";
-  } catch {
-    return "";
-  }
-}
-function truncate(text, maxLen) {
-  const stripped = stripAnsi2(text);
-  if (stripped.length <= maxLen)
-    return text;
-  const plain = text.replace(/\x1b\[[0-9;]*m/g, "");
-  const truncated = plain.slice(0, maxLen - 3);
-  const lastSpace = truncated.lastIndexOf(" ");
-  if (lastSpace > maxLen * 0.7) {
-    return text.slice(0, text.indexOf(" ", lastSpace)) + "...";
-  }
-  return text.slice(0, maxLen - 3) + "...";
-}
-var MAX_RESULT_LINES = 2, MAX_LINE_WIDTH = 120;
-var init_tool_renderer = __esm(() => {
-  init_colors2();
-  init_format2();
-});
-
-// src/ui/banner.ts
-function termWidth() {
-  try {
-    return process.stdout.columns || 80;
-  } catch {
-    return 80;
-  }
-}
-function renderCleanBanner() {
-  if (!isColorEnabled2())
-    return "BEAST CLI - AI Coding Agent";
-  const width = termWidth();
-  let logo;
-  if (width >= 60) {
-    logo = FULL_LOGO;
-  } else if (width >= 40) {
-    logo = COMPACT_LOGO;
-  } else {
-    logo = TINY_LOGO;
-  }
-  if (width < 50) {
-    return logo;
-  }
-  const tagline = REVEAL_TAGLINE + `
-`;
-  const cardSep = "  ";
-  const cardLines = FEATURE_CARDS.map((card) => {
-    return s2(card.label, card.color);
-  }).join(s2(cardSep, fg2.overlay));
-  return logo + tagline + `
-` + cardLines + `
-`;
-}
-var googlePurple = "\x1B[38;2;142;54;255m", googleBlue = "\x1B[38;2;70;130;255m", FULL_LOGO, COMPACT_LOGO, TINY_LOGO, googlePurple2 = "\x1B[38;2;142;54;255m", googleBlue2 = "\x1B[38;2;70;130;255m", TEXT_LOGO, FEATURE_CARDS, REVEAL_TAGLINE;
-var init_banner = __esm(() => {
-  init_colors2();
-  FULL_LOGO = `
- ${googlePurple}+==================================================================+${reset2}` + `
- ${googlePurple}|${reset2}  \uD83D\uDC09  ${s2("BEAST", googlePurple, bold2)}   ${s2("CLI", googleBlue, bold2)}    ${dim2}AI Coding Agent · 45+ Providers · 51+ Tools     ${googlePurple}|${reset2}` + `
- ${googlePurple}+==================================================================+${reset2}
-`;
-  COMPACT_LOGO = `
- ${googlePurple}+----------------------------------------------+${reset2}` + `
- ${googlePurple}|${reset2}  \uD83D\uDC09  ${s2("BEAST", googlePurple, bold2)}  ${s2("CLI", googleBlue, bold2)}  ${dim2}AI Coding Agent                  ${googlePurple}|${reset2}` + `
- ${googlePurple}+----------------------------------------------+${reset2}
-`;
-  TINY_LOGO = ` \uD83D\uDC09 ${s2("BEAST CLI", googlePurple, bold2)} ${dim2}~ 
-`;
-  TEXT_LOGO = ` ${s2("BEAST", googlePurple2, bold2)} ${s2("CLI", googleBlue2, bold2)} `;
-  FEATURE_CARDS = [
-    { label: "Blazing Fast", color: fg2.warning },
-    { label: "Private & Local", color: fg2.success },
-    { label: "45+ Providers", color: fg2.sapphire },
-    { label: "51+ Tools", color: fg2.tool }
-  ];
-  REVEAL_TAGLINE = `${s2("·", fg2.overlay)} ${s2("45+ Providers", fg2.muted)} ` + `${s2("·", fg2.overlay)} ${s2("51+ Tools", fg2.muted)} ` + `${s2("·", fg2.overlay)} ${s2("Local AI Ready", fg2.muted)}`;
-});
-
-// src/ui/tips.ts
-function shuffleTips() {
-  tipShuffle = [...ALL_TIPS];
-  for (let i = tipShuffle.length - 1;i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [tipShuffle[i], tipShuffle[j]] = [tipShuffle[j], tipShuffle[i]];
-  }
-  tipIndex = 0;
-}
-function randomTip() {
-  if (tipShuffle.length === 0)
-    shuffleTips();
-  if (tipIndex >= tipShuffle.length)
-    shuffleTips();
-  const tip = tipShuffle[tipIndex++];
-  return `${s2("*", fg2.warning)} ${s2(tip.tip, fg2.secondary)} ${s2(`(${tip.cmd})`, fg2.muted)}`;
-}
-function tipBanner() {
-  return `
-` + s2("─".repeat(50), fg2.muted) + `
-` + randomTip() + `
-`;
-}
-var ALL_TIPS, tipShuffle, tipIndex = 0;
-var init_tips = __esm(() => {
-  init_colors2();
-  ALL_TIPS = [
-    { cmd: "/model <name>", tip: "Switch models mid-session without restarting", category: "command" },
-    { cmd: "/provider <name>", tip: "Jump between Ollama, OpenRouter, Claude instantly", category: "command" },
-    { cmd: "/tools", tip: "See all available MCP tools and their descriptions", category: "command" },
-    { cmd: "/clear", tip: "Wipe conversation history to reset context window", category: "command" },
-    { cmd: "/clean", tip: "Nuke everything — history, memory, and agents for a fresh start", category: "command" },
-    { cmd: "/init", tip: "Set up project context, known facts, and custom agents", category: "command" },
-    { cmd: "/agents", tip: "Manage custom agents — create, use, delete, or info", category: "command" },
-    { cmd: "/models", tip: "List all available models for your current provider", category: "command" },
-    { cmd: "/switch", tip: "Reconfigure provider, model, and context size interactively", category: "command" },
-    { cmd: "/login", tip: "Authenticate with ChatGPT Plus OAuth for free access", category: "command" },
-    { cmd: "/logout", tip: "Clear ChatGPT Plus authentication", category: "command" },
-    { cmd: "/provider", tip: "Switch to a different LLM provider interactively", category: "command" },
-    { cmd: "Tab", tip: "Auto-complete slash commands and agent names", category: "command" },
-    { cmd: "Up / Down", tip: "Navigate through your command history", category: "command" },
-    { cmd: "/agents create", tip: "Create a reusable agent with custom instructions", category: "command" },
-    { cmd: "/agents use <name>", tip: "Set an agent as always-on — prepended to every prompt", category: "command" },
-    { cmd: "@agentname", tip: "Activate a custom agent for a single prompt", category: "command" },
-    { cmd: "searxng_search", tip: "Web search without leaving the CLI — multiple engines", category: "tool" },
-    { cmd: "fetch_web", tip: "Fetch full web page content from any URL", category: "tool" },
-    { cmd: "run_code", tip: "Execute shell commands — git, npm, docker, anything", category: "tool" },
-    { cmd: "run_python", tip: "Run Python code with a sandboxed interpreter", category: "tool" },
-    { cmd: "github_search_repos", tip: "Search GitHub by keyword with stars and language", category: "tool" },
-    { cmd: "github_issues", tip: "View, create, and manage GitHub issues", category: "tool" },
-    { cmd: "github_commits", tip: "Browse commit history for any repository", category: "tool" },
-    { cmd: "hacker_news", tip: "Get top Hacker News stories and comments", category: "tool" },
-    { cmd: "youtube_transcript", tip: "Extract transcripts from YouTube videos", category: "tool" },
-    { cmd: "youtube_search", tip: "Search YouTube videos and get metadata", category: "tool" },
-    { cmd: "webclaw_crawl", tip: "Crawl an entire website for structured data", category: "tool" },
-    { cmd: "scrapling_extract", tip: "Extract structured data from web pages using CSS selectors", category: "tool" },
-    { cmd: "file_read", tip: "Read any file in the current directory", category: "tool" },
-    { cmd: "file_write", tip: "Write or overwrite files with content", category: "tool" },
-    { cmd: "file_list", tip: "Show directories and files with sizes and times", category: "tool" },
-    { cmd: "file_search", tip: "Full-text search across all files in a directory", category: "tool" },
-    { cmd: "file_grep", tip: "Search for patterns in files with context", category: "tool" },
-    { cmd: "file_glob", tip: "Find files by pattern — great for project exploration", category: "tool" },
-    { cmd: "pandas_create", tip: "Create pandas DataFrames for data analysis", category: "tool" },
-    { cmd: "pandas_filter", tip: "Filter DataFrames by column conditions", category: "tool" },
-    { cmd: "pandas_aggregate", tip: "Group and aggregate data — sum, mean, count", category: "tool" },
-    { cmd: "/provider codex", tip: "Use ChatGPT Plus OAuth — free with your subscription", category: "provider" },
-    { cmd: "/provider ollama", tip: "Ollama runs AI models locally — no internet needed", category: "provider" },
-    { cmd: "beast --defaults", tip: "Auto-selects the best available provider", category: "provider" },
-    { cmd: "/model gpt-4o", tip: "Use GPT-4o for the latest capabilities", category: "provider" },
-    { cmd: "/model claude-3-5-sonnet", tip: "Anthropic Claude — best reasoning and analysis", category: "provider" },
-    { cmd: "/model qwen3.5:35b", tip: "Qwen 35B — strong coding abilities, runs locally", category: "provider" },
-    { cmd: "/provider groq", tip: "Groq — ultra-fast inference with a free tier", category: "provider" },
-    { cmd: "/provider deepseek", tip: "DeepSeek — cost-effective reasoning models", category: "provider" },
-    { cmd: "/provider gemini", tip: "Google Gemini — huge context window and multimodal", category: "provider" },
-    { cmd: "/provider anthropic", tip: "Direct Anthropic API — full Claude access", category: "provider" },
-    { cmd: "/provider openai", tip: "Direct OpenAI API — GPT models with your key", category: "provider" },
-    { cmd: "/provider lmstudio", tip: "LM Studio — run any GGUF model locally", category: "provider" },
-    { cmd: "/init", tip: "Store project context and facts — remember across sessions", category: "context" },
-    { cmd: "Memory", tip: "Context and facts are stored in ~/.beast-cli/agents/", category: "context" },
-    { cmd: "auto-compact", tip: "Context auto-compacts at 95% — never lose your place", category: "context" },
-    { cmd: "Context", tip: "History counts toward your context — /clear to free it", category: "context" },
-    { cmd: "@agentname", tip: "Custom agents get injected as system context in prompts", category: "context" },
-    { cmd: "--theme claude", tip: "Warm editorial styling like claude.ai", category: "fun" },
-    { cmd: "--theme dracula", tip: "Classic dark theme with vibrant colors", category: "fun" },
-    { cmd: "--theme catppuccin-mocha", tip: "Subtle dark theme with pastel accents", category: "fun" },
-    { cmd: "--theme nord", tip: "Arctic color palette — clean and calming", category: "fun" },
-    { cmd: "--theme tokyonight", tip: "Japanese-inspired night theme", category: "fun" },
-    { cmd: "--theme gruvbox", tip: "Retro warmth — perfect for long sessions", category: "fun" },
-    { cmd: "beast --help", tip: "Full command reference and examples", category: "fun" },
-    { cmd: "beast --setup", tip: "Auto-start MCP server with sensible defaults", category: "fun" },
-    { cmd: "51+ tools", tip: "Web search, file ops, GitHub, YouTube, code exec, and more", category: "fun" }
-  ];
-  tipShuffle = [];
-});
-
-// src/native-tools/web.ts
-async function fetchWebContent(url, maxTokens = 4000) {
-  try {
-    const controller = new AbortController;
-    const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT);
-    const response = await fetch(url, {
-      signal: controller.signal,
-      headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; BeastCLI/1.0)",
-        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-      }
-    });
-    clearTimeout(timeout);
-    if (!response.ok) {
-      return { success: false, content: "", error: `HTTP ${response.status}` };
-    }
-    const html = await response.text();
-    const text = stripHtml(html);
-    const title = extractTitle(html);
-    const truncated = text.slice(0, maxTokens * 4);
-    return {
-      success: true,
-      content: truncated,
-      title,
-      url: response.url
-    };
-  } catch (e) {
-    return { success: false, content: "", error: e.message };
-  }
-}
-async function quickFetch(url) {
-  const result = await fetchWebContent(url, 1500);
-  if (result.success && result.content) {
-    const lines = result.content.split(`
-`).filter((l) => l.trim().length > 30);
-    return { ...result, content: lines.slice(0, 3).join(`
-
-`) };
-  }
-  return result;
-}
-async function fetchStructured(url, extractionType, maxTokens = 2000) {
-  const result = await fetchWebContent(url, maxTokens);
-  if (!result.success)
-    return result;
-  switch (extractionType) {
-    case "article":
-      return extractArticle(result.content, url);
-    case "product":
-      return extractProduct(result.content, url);
-    case "table":
-      return extractTable(result.content);
-    case "links":
-      return extractLinks(result.content, url);
-    default:
-      return result;
-  }
-}
-async function fetchWithSelectors(url, selectors, maxTokens = 2000) {
-  const result = await fetchWebContent(url, maxTokens);
-  if (!result.success)
-    return result;
-  const extracted = {};
-  for (const [field, selector] of Object.entries(selectors)) {
-    if (selector.includes("title"))
-      extracted[field] = result.title ?? "";
-    if (selector.includes("price")) {
-      const priceMatch = result.content.match(/[\₹$]?[\d,]+\.?\d*/);
-      if (priceMatch)
-        extracted[field] = priceMatch[0];
-    }
-    if (selector.includes("description") || selector.includes("content")) {
-      extracted[field] = result.content.slice(0, 500);
-    }
-  }
-  return {
-    success: true,
-    content: JSON.stringify(extracted, null, 2),
-    url
-  };
-}
-async function scrapeFreedium(url, maxTokens = 4000) {
-  const freediumUrl = url.includes("freedium.cfd") ? url : `https://freedium.cfd/${url}`;
-  const result = await fetchWebContent(freediumUrl, maxTokens);
-  if (!result.success)
-    return result;
-  return {
-    success: true,
-    content: result.content,
-    title: result.title,
-    url: freediumUrl
-  };
-}
-async function webclawExtractArticle(url) {
-  return fetchWebContent(url, 4000);
-}
-async function webclawExtractProduct(url) {
-  const result = await fetchWebContent(url, 2000);
-  if (!result.success)
-    return result;
-  const product = {};
-  const titleMatch = result.content.match(/<title>([^<]+)<\/title>/i);
-  if (titleMatch)
-    product.title = titleMatch[1];
-  const priceMatch = result.content.match(/price["\s:>]+["\s]*([₹$]?[\d,]+\.?\d*)/i);
-  if (priceMatch)
-    product.price = priceMatch[1];
-  const descMatch = result.content.match(/description["\s:>]+["']([^"']+)["']/i);
-  if (descMatch)
-    product.description = descMatch[1];
-  return {
-    success: true,
-    content: JSON.stringify(product, null, 2),
-    url
-  };
-}
-async function webclawCrawl(url, selectors) {
-  return fetchWithSelectors(url, selectors);
-}
-function stripHtml(html) {
-  return html.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "").replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "").replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, "").replace(/<header[^>]*>[\s\S]*?<\/header>/gi, "").replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, "").replace(/<!--[\s\S]*?-->/g, "").replace(/<br\s*\/?>/gi, `
-`).replace(/<\/p>/gi, `
-
-`).replace(/<\/div>/gi, `
-`).replace(/<\/li>/gi, `
-`).replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&[a-z]+;/gi, "").replace(/\n{3,}/g, `
-
-`).replace(/[ \t]+/g, " ").trim();
-}
-function extractTitle(html) {
-  const match = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-  return match ? match[1].trim() : "";
-}
-function extractArticle(content, url) {
-  const paragraphs = content.split(`
-
-`).filter((p) => p.length > 100);
-  return {
-    success: true,
-    content: paragraphs.slice(0, 5).join(`
-
-`),
-    url
-  };
-}
-function extractProduct(content, url) {
-  const product = {};
-  const lines = content.split(`
-`).filter((l) => l.trim());
-  for (const line of lines.slice(0, 20)) {
-    if (line.includes(":")) {
-      const [key, ...vals] = line.split(":");
-      if (key && vals.length)
-        product[key.trim()] = vals.join(":").trim().slice(0, 200);
-    }
-  }
-  return {
-    success: true,
-    content: JSON.stringify(product, null, 2),
-    url
-  };
-}
-function extractTable(content) {
-  const lines = content.split(`
-`).filter((l) => l.includes("|"));
-  return {
-    success: true,
-    content: lines.join(`
-`)
-  };
-}
-function extractLinks(content, baseUrl) {
-  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
-  const links = [];
-  let match;
-  while ((match = linkRegex.exec(content)) !== null) {
-    links.push({ text: match[1], url: match[2] });
-  }
-  return {
-    success: true,
-    content: JSON.stringify(links.slice(0, 20), null, 2),
-    url: baseUrl
-  };
-}
-var DEFAULT_TIMEOUT = 15000;
-
-// src/native-tools/files.ts
-import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from "node:fs";
-import { resolve, dirname, extname, join } from "node:path";
-import { execSync } from "node:child_process";
-async function fileRead(path, maxSize = MAX_FILE_SIZE) {
-  try {
-    const resolved = resolve(path);
-    for (const restricted of RESTRICTED_PATHS) {
-      if (resolved.startsWith(restricted)) {
-        return { success: false, error: `Access denied: ${restricted}` };
-      }
-    }
-    const stats = statSync(resolved);
-    if (stats.size > maxSize) {
-      return {
-        success: true,
-        content: `[File too large: ${stats.size} bytes. Max: ${maxSize}]`,
-        path: resolved,
-        size: stats.size
-      };
-    }
-    const content = readFileSync(resolved, "utf-8");
-    const lines = content.split(`
-`).length;
-    return {
-      success: true,
-      content,
-      path: resolved,
-      size: stats.size,
-      lines
-    };
-  } catch (e) {
-    return { success: false, error: e.message, path };
-  }
-}
-async function fileWrite(path, content) {
-  try {
-    const resolved = resolve(path);
-    for (const restricted of RESTRICTED_PATHS) {
-      if (resolved.startsWith(restricted)) {
-        return { success: false, error: `Access denied: ${restricted}` };
-      }
-    }
-    const dir = dirname(resolved);
-    if (!existsSync(dir)) {
-      return { success: false, error: `Directory does not exist: ${dir}`, path: resolved };
-    }
-    writeFileSync(resolved, content, "utf-8");
-    const stats = statSync(resolved);
-    return {
-      success: true,
-      path: resolved,
-      size: stats.size
-    };
-  } catch (e) {
-    return { success: false, error: e.message, path };
-  }
-}
-async function fileList(dir = ".", maxItems = 100) {
-  try {
-    const resolved = resolve(dir);
-    if (!existsSync(resolved)) {
-      return { success: false, items: [], path: resolved, error: "Directory not found" };
-    }
-    const entries = readdirSync(resolved);
-    const items = [];
-    for (const entry of entries.slice(0, maxItems)) {
-      try {
-        const fullPath = join(resolved, entry);
-        const stats = statSync(fullPath);
-        items.push({
-          name: entry,
-          type: stats.isDirectory() ? "directory" : "file",
-          size: stats.isFile() ? stats.size : undefined,
-          modified: stats.mtime.toISOString()
-        });
-      } catch {}
-    }
-    items.sort((a, b) => {
-      if (a.type !== b.type)
-        return a.type === "directory" ? -1 : 1;
-      return a.name.localeCompare(b.name);
-    });
-    return { success: true, items, path: resolved };
-  } catch (e) {
-    return { success: false, items: [], path: dir, error: e.message };
-  }
-}
-async function fileSearch(directory, pattern, maxResults = 50) {
-  try {
-    const resolved = resolve(directory);
-    if (!existsSync(resolved)) {
-      return { success: false, files: [], error: "Directory not found" };
-    }
-    const escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const cmd = `find "${resolved}" -type f \\( -path "*/node_modules" -o -path "*/.git" -o -path "*/dist" -o -path "*/build" \\) -prune -o -type f -name "*${pattern}*" -print 2>/dev/null | head -${maxResults}`;
-    const output = execSync(cmd, { encoding: "utf-8", timeout: 1e4 });
-    const files = output.split(`
-`).filter(Boolean).map((f) => ({ path: f }));
-    return { success: true, files };
-  } catch (e) {
-    return { success: false, files: [], error: e.message };
-  }
-}
-async function fileGrep(directory, query, maxResults = 50, filePattern = "*") {
-  try {
-    const resolved = resolve(directory);
-    if (!existsSync(resolved)) {
-      return { success: false, files: [], error: "Directory not found" };
-    }
-    const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const cmd = `grep -rn --include="${filePattern}" -E "${escaped}" "${resolved}" 2>/dev/null | head -${maxResults}`;
-    const output = execSync(cmd, { encoding: "utf-8", timeout: 1e4 });
-    const files = [];
-    for (const line of output.split(`
-`).filter(Boolean)) {
-      const colonIdx = line.indexOf(":");
-      if (colonIdx > 0) {
-        const pathPart = line.slice(0, colonIdx);
-        const rest = line.slice(colonIdx + 1);
-        const secondColonIdx = rest.indexOf(":");
-        if (secondColonIdx > 0) {
-          const lineNum = parseInt(rest.slice(0, secondColonIdx));
-          const match = rest.slice(secondColonIdx + 1).trim();
-          files.push({
-            path: join(resolved, pathPart),
-            line: lineNum,
-            match: match.slice(0, 200)
-          });
-        }
-      }
-    }
-    return { success: true, files };
-  } catch (e) {
-    return { success: true, files: [] };
-  }
-}
-async function fileGlob(directory, patterns, maxResults = 100) {
-  try {
-    const resolved = resolve(directory);
-    const files = [];
-    for (const pattern of patterns) {
-      const cmd = `find "${resolved}" -type f \\( -path "*/node_modules" -o -path "*/.git" -o -path "*/dist" -o -path "*/build" \\) -prune -o -type f -name "${pattern}" -print 2>/dev/null | head -${maxResults}`;
-      const output = execSync(cmd, { encoding: "utf-8", timeout: 1e4 });
-      for (const line of output.split(`
-`).filter(Boolean)) {
-        if (!files.some((f) => f.path === line)) {
-          files.push({ path: line });
-        }
-      }
-      if (files.length >= maxResults)
-        break;
-    }
-    return { success: true, files: files.slice(0, maxResults) };
-  } catch (e) {
-    return { success: false, files: [], error: e.message };
-  }
-}
-var MAX_FILE_SIZE, ALLOWED_EXTENSIONS, RESTRICTED_PATHS;
-var init_files = __esm(() => {
-  MAX_FILE_SIZE = 10 * 1024 * 1024;
-  ALLOWED_EXTENSIONS = new Set([
-    ".ts",
-    ".js",
-    ".json",
-    ".md",
-    ".txt",
-    ".yml",
-    ".yaml",
-    ".xml",
-    ".html",
-    ".css",
-    ".scss",
-    ".py",
-    ".rs",
-    ".go",
-    ".java",
-    ".c",
-    ".cpp",
-    ".h",
-    ".hpp",
-    ".sh",
-    ".bash",
-    ".zsh",
-    ".sql",
-    ".csv",
-    ".log",
-    ".gitignore",
-    ".env",
-    ".prettierrc",
-    ".eslintrc",
-    ".babelrc"
-  ]);
-  RESTRICTED_PATHS = ["/Users/sridhar/.ssh", "/Users/sridhar/.npm", "/Users/sridhar/.aws"];
-});
-
-// src/native-tools/code.ts
-import { spawn } from "node:child_process";
-import { writeFileSync as writeFileSync2, unlinkSync, mkdirSync, existsSync as existsSync2 } from "node:fs";
-import { join as join2 } from "node:path";
-import { randomUUID } from "crypto";
-async function runCode(code, language, timeout = 30) {
-  const start = Date.now();
-  try {
-    switch (language) {
-      case "python":
-        return runPython(code, timeout, start);
-      case "javascript":
-        return runJavaScript(code, timeout, start);
-      case "bash":
-        return runBash(code, timeout, start);
-      default:
-        return { success: false, output: "", error: `Unsupported language: ${language}` };
-    }
-  } catch (e) {
-    return { success: false, output: "", error: e.message, executionTime: Date.now() - start };
-  }
-}
-async function runPythonSnippet(code, timeout = 30) {
-  const start = Date.now();
-  const fullCode = `
-import json
-import math
-import re
-import datetime
-import itertools
-from collections import Counter, defaultdict
-
-${code}
-`;
-  return runPython(fullCode, timeout, start);
-}
-async function runPython(code, timeout, start) {
-  const id = randomUUID();
-  const filePath = join2(SANDBOX_DIR, `${id}.py`);
-  try {
-    writeFileSync2(filePath, code, "utf-8");
-    const result = await execProcess("python3", ["-u", filePath], timeout * 1000);
-    const executionTime = Date.now() - start;
-    return {
-      success: !result.error,
-      output: result.stdout || result.stderr,
-      error: result.error,
-      executionTime,
-      language: "python"
-    };
-  } finally {
-    try {
-      unlinkSync(filePath);
-    } catch {}
-  }
-}
-async function runJavaScript(code, timeout, start) {
-  const id = randomUUID();
-  const filePath = join2(SANDBOX_DIR, `${id}.js`);
-  try {
-    writeFileSync2(filePath, code, "utf-8");
-    const result = await execProcess("node", ["--input-type=module", filePath], timeout * 1000);
-    const executionTime = Date.now() - start;
-    return {
-      success: !result.error,
-      output: result.stdout || result.stderr,
-      error: result.error,
-      executionTime,
-      language: "javascript"
-    };
-  } finally {
-    try {
-      unlinkSync(filePath);
-    } catch {}
-  }
-}
-async function runBash(code, timeout, start) {
-  const id = randomUUID();
-  const filePath = join2(SANDBOX_DIR, `${id}.sh`);
-  try {
-    writeFileSync2(filePath, code, "utf-8");
-    const result = await execProcess("/bin/bash", ["-c", code], timeout * 1000);
-    const executionTime = Date.now() - start;
-    return {
-      success: !result.error,
-      output: result.stdout || result.stderr,
-      error: result.error,
-      executionTime,
-      language: "bash"
-    };
-  } finally {
-    try {
-      unlinkSync(filePath);
-    } catch {}
-  }
-}
-function execProcess(command, args, timeoutMs) {
-  return new Promise((resolve2) => {
-    const proc = spawn(command, args, {
-      timeout: timeoutMs,
-      cwd: SANDBOX_DIR,
-      env: {
-        ...process.env,
-        HOME: SANDBOX_DIR,
-        PATH: "/usr/bin:/bin:/usr/local/bin"
-      }
-    });
-    let stdout = "";
-    let stderr = "";
-    proc.stdout?.on("data", (d) => {
-      stdout += d.toString();
-    });
-    proc.stderr?.on("data", (d) => {
-      stderr += d.toString();
-    });
-    proc.on("error", (e) => resolve2({ stdout, stderr, error: e.message }));
-    proc.on("close", (code) => {
-      if (code !== 0 && !stderr) {
-        resolve2({ stdout, stderr, error: `Exit code: ${code}` });
-      } else {
-        resolve2({ stdout, stderr, error: code !== 0 ? `Exit code: ${code}` : undefined });
-      }
-    });
-  });
-}
-async function pandasCreate(data, name = "df") {
-  try {
-    const parsed = JSON.parse(data);
-    const rows = Array.isArray(parsed) ? parsed : [parsed];
-    const keys = Object.keys(rows[0] || {});
-    const summary = {
-      name,
-      rowCount: rows.length,
-      columns: keys,
-      preview: rows.slice(0, 5)
-    };
-    return {
-      success: true,
-      output: JSON.stringify(summary, null, 2)
-    };
-  } catch (e) {
-    return { success: false, output: "", error: `Invalid JSON: ${e.message}` };
-  }
-}
-async function pandasFilter(data, conditions) {
-  try {
-    const parsedConditions = JSON.parse(conditions);
-    const filtered = data.filter((row) => {
-      for (const [key, op] of Object.entries(parsedConditions)) {
-        const rowVal = row[key];
-        if (typeof op === "object") {
-          for (const [cmp, val] of Object.entries(op)) {
-            switch (cmp) {
-              case "$eq":
-                if (rowVal !== val)
-                  return false;
-                break;
-              case "$ne":
-                if (rowVal === val)
-                  return false;
-                break;
-              case "$gt":
-                if (rowVal <= val)
-                  return false;
-                break;
-              case "$gte":
-                if (rowVal < val)
-                  return false;
-                break;
-              case "$lt":
-                if (rowVal >= val)
-                  return false;
-                break;
-              case "$lte":
-                if (rowVal > val)
-                  return false;
-                break;
-              case "$contains":
-                if (!String(rowVal).includes(String(val)))
-                  return false;
-                break;
-            }
-          }
-        } else {
-          if (rowVal !== op)
-            return false;
-        }
-      }
-      return true;
-    });
-    return {
-      success: true,
-      output: JSON.stringify(filtered, null, 2)
-    };
-  } catch (e) {
-    return { success: false, output: "", error: e.message };
-  }
-}
-async function pandasAggregate(data, groupBy, aggregations) {
-  try {
-    const rows = data;
-    const groups = new Map;
-    for (const row of rows) {
-      const key = groupBy.map((k) => String(row[k])).join("|");
-      if (!groups.has(key))
-        groups.set(key, []);
-      groups.get(key).push(row);
-    }
-    const results = [];
-    for (const [key, groupRows] of groups) {
-      const result = {};
-      const keyParts = key.split("|");
-      groupBy.forEach((k, i) => {
-        result[k] = keyParts[i];
-      });
-      for (const [col, fn] of Object.entries(aggregations)) {
-        const values = groupRows.map((r) => Number(r[col])).filter((v) => !isNaN(v));
-        switch (fn) {
-          case "sum":
-            result[`${col}_sum`] = values.reduce((a, b) => a + b, 0);
-            break;
-          case "avg":
-            result[`${col}_avg`] = values.length ? values.reduce((a, b) => a + b, 0) / values.length : 0;
-            break;
-          case "count":
-            result[`${col}_count`] = values.length;
-            break;
-          case "min":
-            result[`${col}_min`] = Math.min(...values);
-            break;
-          case "max":
-            result[`${col}_max`] = Math.max(...values);
-            break;
-        }
-      }
-      results.push(result);
-    }
-    return { success: true, output: JSON.stringify(results, null, 2) };
-  } catch (e) {
-    return { success: false, output: "", error: e.message };
-  }
-}
-var SANDBOX_DIR = "/tmp/beast-sandbox";
-var init_code = __esm(() => {
-  if (!existsSync2(SANDBOX_DIR)) {
-    mkdirSync(SANDBOX_DIR, { recursive: true });
-  }
-});
-
 // src/native-tools/search.ts
 var exports_search = {};
 __export(exports_search, {
@@ -2956,2687 +1612,6 @@ async function hackernewsFetch(endpoint, limit) {
 var SEARX_URL;
 var init_search = __esm(() => {
   SEARX_URL = process.env.SEARX_URL || "https://search.sridharhomelab.in";
-});
-
-// src/native-tools/github.ts
-async function githubFetch(path) {
-  try {
-    const headers = {
-      Accept: "application/vnd.github.v3+json",
-      "User-Agent": "BeastCLI/1.0"
-    };
-    if (GITHUB_TOKEN) {
-      headers["Authorization"] = `Bearer ${GITHUB_TOKEN}`;
-    }
-    const response = await fetch(`${GITHUB_API}${path}`, {
-      headers,
-      signal: AbortSignal.timeout(1e4)
-    });
-    if (!response.ok) {
-      const error = await response.text();
-      return { ok: false, data: null, error: `GitHub API ${response.status}: ${error}` };
-    }
-    const data = await response.json();
-    return { ok: true, data };
-  } catch (e) {
-    return { ok: false, data: null, error: e.message };
-  }
-}
-async function githubRepo(owner, repo) {
-  const result = await githubFetch(`/repos/${owner}/${repo}`);
-  if (!result.ok) {
-    return { success: false, output: "", error: result.error };
-  }
-  const r = result.data;
-  const repoData = {
-    repo_name: r.name,
-    full_name: r.full_name,
-    description: r.description,
-    stars: r.stargazers_count,
-    forks: r.forks_count,
-    language: r.language,
-    license: r.license?.name || r.license?.spdx_id || null,
-    topics: r.topics || [],
-    open_issues: r.open_issues_count,
-    watchers: r.watchers_count,
-    default_branch: r.default_branch,
-    created_at: r.created_at,
-    updated_at: r.updated_at,
-    homepage: r.homepage
-  };
-  return { success: true, output: JSON.stringify(repoData, null, 2) };
-}
-async function githubReadme(owner, repo) {
-  const result = await githubFetch(`/repos/${owner}/${repo}/readme`);
-  if (!result.ok) {
-    return { success: false, output: "", error: result.error };
-  }
-  const r = result.data;
-  const content = Buffer.from(r.content, "base64").toString("utf-8");
-  return { success: true, output: content };
-}
-async function githubIssues(owner, repo, state = "open", limit = 20) {
-  const result = await githubFetch(`/repos/${owner}/${repo}/issues?state=${state}&per_page=${limit}`);
-  if (!result.ok) {
-    return { success: false, output: "", error: result.error };
-  }
-  const issues = result.data.map((i) => ({
-    number: i.number,
-    title: i.title,
-    state: i.state,
-    labels: i.labels?.map((l) => l.name) || [],
-    author: i.user?.login,
-    created_at: i.created_at,
-    url: i.html_url
-  }));
-  return { success: true, output: JSON.stringify(issues, null, 2) };
-}
-async function githubCommits(owner, repo, limit = 20) {
-  const result = await githubFetch(`/repos/${owner}/${repo}/commits?per_page=${limit}`);
-  if (!result.ok) {
-    return { success: false, output: "", error: result.error };
-  }
-  const commits = result.data.map((c2) => ({
-    sha: c2.sha?.slice(0, 7),
-    message: c2.commit?.message?.split(`
-`)[0],
-    author: c2.commit?.author?.name,
-    date: c2.commit?.author?.date,
-    url: c2.html_url
-  }));
-  return { success: true, output: JSON.stringify(commits, null, 2) };
-}
-async function githubSearchRepos(query, limit = 10) {
-  const result = await githubFetch(`/search/repositories?q=${encodeURIComponent(query)}&per_page=${limit}`);
-  if (!result.ok) {
-    return { success: false, output: "", error: result.error };
-  }
-  const data = result.data;
-  const repos = (data.items || []).map((r) => ({
-    name: r.name,
-    owner: r.owner?.login,
-    description: r.description,
-    stars: r.stargazers_count,
-    language: r.language,
-    url: r.html_url
-  }));
-  return { success: true, output: JSON.stringify(repos, null, 2) };
-}
-var GITHUB_API = "https://api.github.com", GITHUB_TOKEN;
-var init_github = __esm(() => {
-  GITHUB_TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || "";
-});
-
-// src/native-tools/youtube.ts
-async function youtubeTranscript(url) {
-  try {
-    const videoId = extractVideoId(url);
-    if (!videoId) {
-      return { success: false, output: "", error: "Invalid YouTube URL" };
-    }
-    const transcriptUrl = `https://youtubetranscript.com/?video=${videoId}`;
-    const response = await fetch(transcriptUrl, {
-      signal: AbortSignal.timeout(1e4)
-    });
-    if (response.ok) {
-      const text = await response.text();
-      return {
-        success: true,
-        output: text.slice(0, 5000)
-      };
-    }
-    const pageRes = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
-      headers: { "User-Agent": "Mozilla/5.0" },
-      signal: AbortSignal.timeout(1e4)
-    });
-    if (pageRes.ok) {
-      const html = await pageRes.text();
-      const captionMatch = html.match(/"captionTracks":\[([^\]]+)\]/);
-      if (captionMatch) {
-        return { success: true, output: "Captions available. Use youtube_video_info for details." };
-      }
-    }
-    return {
-      success: false,
-      output: "",
-      error: "Transcript not available. Video may not have captions."
-    };
-  } catch (e) {
-    return { success: false, output: "", error: e.message };
-  }
-}
-async function youtubeVideoInfo(videoId, url) {
-  try {
-    const id = videoId || (url ? extractVideoId(url) : null);
-    if (!id) {
-      return { success: false, output: "", error: "Invalid video ID or URL" };
-    }
-    const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${id}&format=json`;
-    const response = await fetch(oembedUrl, {
-      signal: AbortSignal.timeout(1e4)
-    });
-    if (response.ok) {
-      const data = await response.json();
-      return {
-        success: true,
-        output: JSON.stringify({
-          title: data.title,
-          author_name: data.author_name,
-          author_url: data.author_name,
-          thumbnail_url: data.thumbnail_url,
-          video_url: `https://www.youtube.com/watch?v=${id}`
-        }, null, 2)
-      };
-    }
-    return { success: false, output: "", error: "Could not fetch video info" };
-  } catch (e) {
-    return { success: false, output: "", error: e.message };
-  }
-}
-async function youtubeSearch(query, limit = 10) {
-  try {
-    const { searxngSearch: searxngSearch2 } = await Promise.resolve().then(() => (init_search(), exports_search));
-    const result = await searxngSearch2(`${query} site:youtube.com`, limit);
-    if (result.success && result.results) {
-      const videos = result.results.map((r) => ({
-        title: r.title,
-        url: r.url,
-        snippet: r.snippet
-      }));
-      return { success: true, output: JSON.stringify(videos, null, 2) };
-    }
-    return { success: false, output: "", error: result.error };
-  } catch (e) {
-    return { success: false, output: "", error: e.message };
-  }
-}
-async function youtubeSummarize(transcript, maxWords = 500) {
-  const sentences = transcript.split(/[.!?]+/).filter((s3) => s3.trim().length > 20);
-  const words = transcript.split(/\s+/);
-  if (words.length <= maxWords) {
-    return { success: true, output: transcript };
-  }
-  const summaryCount = Math.ceil(sentences.length * 0.3);
-  const summary = sentences.slice(0, summaryCount).join(". ").trim();
-  return {
-    success: true,
-    output: summary || transcript.slice(0, maxWords * 5)
-  };
-}
-function extractVideoId(input) {
-  const patterns = [
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
-    /^([a-zA-Z0-9_-]{11})$/
-  ];
-  for (const pattern of patterns) {
-    const match = input.match(pattern);
-    if (match)
-      return match[1];
-  }
-  return null;
-}
-
-// src/engi/indexer.ts
-import * as fs from "fs";
-import * as fsPromises from "fs/promises";
-import * as path from "path";
-
-class RepoIndexer {
-  index = null;
-  indexing = null;
-  async indexRepository(rootPath) {
-    if (this.indexing)
-      return this.indexing;
-    this.indexing = this._doIndex(rootPath).finally(() => {
-      this.indexing = null;
-    });
-    return this.indexing;
-  }
-  getIndex() {
-    return this.index;
-  }
-  clearIndex() {
-    this.index = null;
-    this.indexing = null;
-  }
-  async _doIndex(rootPath) {
-    if (!fs.existsSync(rootPath)) {
-      throw new Error(`Path does not exist: ${rootPath}`);
-    }
-    const allFiles = await this.scanDirectoryAsync(rootPath);
-    const results = await Promise.all(allFiles.map((filePath) => this.processFile(filePath, rootPath)));
-    const files = new Map;
-    const symbols = new Map;
-    const imports = [];
-    const tests = [];
-    const docs = [];
-    for (const result of results) {
-      if (!result)
-        continue;
-      files.set(result.entry.path, result.entry);
-      if (result.symbols.length > 0)
-        symbols.set(result.entry.path, result.symbols);
-      imports.push(...result.imports);
-      if (result.test)
-        tests.push(result.test);
-      if (result.doc)
-        docs.push(result.doc);
-    }
-    this.index = { files, symbols, imports, tests, docs, rootPath, lastIndexed: Date.now() };
-    return this.index;
-  }
-  async processFile(filePath, rootPath) {
-    try {
-      const stats = await fsPromises.stat(filePath);
-      if (!stats.isFile())
-        return null;
-      const relativePath = path.relative(rootPath, filePath);
-      const ext = path.extname(filePath).toLowerCase();
-      const language = EXTENSION_LANGUAGE_MAP[ext] || "unknown";
-      const baseName = path.basename(filePath).toLowerCase();
-      const type = this.classifyFile(baseName, ext);
-      let content = "";
-      const needsContent = (language === "typescript" || language === "javascript" || language === "python") && (type === "source" || type === "test");
-      if (needsContent) {
-        content = await fsPromises.readFile(filePath, "utf-8");
-      }
-      const { exports: fileExports, imports: fileImports } = content ? this.extractExportsImports(content, language) : { exports: [], imports: [] };
-      const fileSymbols = content ? this.extractSymbols(content, language, filePath) : [];
-      const entry = {
-        path: relativePath,
-        name: path.basename(filePath, ext),
-        extension: ext,
-        type,
-        language,
-        size: stats.size,
-        lastModified: stats.mtimeMs,
-        exports: fileExports,
-        imports: fileImports
-      };
-      const importEdges = fileImports.map((imp) => ({
-        from: relativePath,
-        to: imp,
-        types: ["import"]
-      }));
-      const test = type === "test" ? this.createTestEntry(filePath, relativePath) : undefined;
-      const doc = type === "doc" ? this.createDocEntry(filePath, relativePath) : undefined;
-      return { entry, symbols: fileSymbols, imports: importEdges, test, doc };
-    } catch {
-      return null;
-    }
-  }
-  async scanDirectoryAsync(dirPath) {
-    const results = [];
-    try {
-      const entries = await fsPromises.readdir(dirPath, { withFileTypes: true });
-      const subdirs = [];
-      for (const entry of entries) {
-        if (IGNORE_DIRS.has(entry.name) || entry.name.startsWith("."))
-          continue;
-        const fullPath = path.join(dirPath, entry.name);
-        if (entry.isDirectory()) {
-          subdirs.push(this.scanDirectoryAsync(fullPath));
-        } else {
-          results.push(fullPath);
-        }
-      }
-      const nested = await Promise.all(subdirs);
-      for (const sub of nested)
-        results.push(...sub);
-    } catch {}
-    return results;
-  }
-  classifyFile(baseName, ext) {
-    for (const p of TEST_PATTERNS) {
-      if (baseName.includes(p))
-        return "test";
-    }
-    for (const p of TEST_EXTS) {
-      if (baseName.includes(p))
-        return "test";
-    }
-    if (CONFIG_EXTS.has(ext))
-      return "config";
-    if (DOC_EXTS.has(ext))
-      return "doc";
-    for (const p of DOC_PATTERNS) {
-      if (baseName.includes(p))
-        return "doc";
-    }
-    if (SOURCE_EXTS.has(ext))
-      return "source";
-    return "other";
-  }
-  extractExportsImports(content, language) {
-    const exports = [];
-    const imports = [];
-    if (language === "typescript" || language === "javascript") {
-      let rx, match;
-      rx = new RegExp(TS_EXPORT_NAMED.source, "g");
-      while ((match = rx.exec(content)) !== null)
-        exports.push(match[1]);
-      rx = new RegExp(TS_EXPORT_DEFAULT.source, "g");
-      while ((match = rx.exec(content)) !== null)
-        exports.push(match[1]);
-      rx = new RegExp(TS_EXPORT_BLOCK.source, "g");
-      while ((match = rx.exec(content)) !== null) {
-        exports.push(...match[1].split(",").map((s3) => s3.trim()).filter(Boolean));
-      }
-      rx = new RegExp(TS_IMPORT.source, "g");
-      while ((match = rx.exec(content)) !== null) {
-        if (match[1])
-          imports.push(match[1]);
-      }
-      rx = new RegExp(TS_REQUIRE.source, "g");
-      while ((match = rx.exec(content)) !== null) {
-        if (match[1])
-          imports.push(match[1]);
-      }
-    } else if (language === "python") {
-      let rx, match;
-      rx = new RegExp(PY_DEF.source, "gm");
-      while ((match = rx.exec(content)) !== null)
-        exports.push(match[1]);
-      rx = new RegExp(PY_IMPORT.source, "gm");
-      while ((match = rx.exec(content)) !== null) {
-        const m = match[1] || match[2];
-        if (m)
-          imports.push(m);
-      }
-    }
-    return { exports, imports };
-  }
-  extractSymbols(content, language, filePath) {
-    const symbols = [];
-    if (language !== "typescript" && language !== "javascript")
-      return symbols;
-    const push = (name, type, idx, exported) => {
-      symbols.push({ name, type, file: filePath, line: this.lineAt(content, idx), exported });
-    };
-    let rx, match;
-    rx = new RegExp(TS_FUNC.source, "g");
-    while ((match = rx.exec(content)) !== null) {
-      push(match[1], "function", match.index, content.slice(Math.max(0, match.index - 20), match.index).includes("export"));
-    }
-    rx = new RegExp(TS_CLASS.source, "g");
-    while ((match = rx.exec(content)) !== null) {
-      push(match[1], "class", match.index, content.slice(Math.max(0, match.index - 20), match.index).includes("export"));
-    }
-    rx = new RegExp(TS_INTERFACE.source, "g");
-    while ((match = rx.exec(content)) !== null) {
-      push(match[1], "interface", match.index, content.slice(Math.max(0, match.index - 20), match.index).includes("export"));
-    }
-    rx = new RegExp(TS_CONST.source, "g");
-    while ((match = rx.exec(content)) !== null) {
-      push(match[1], "constant", match.index, content.slice(Math.max(0, match.index - 20), match.index).includes("export"));
-    }
-    return symbols;
-  }
-  lineAt(content, index) {
-    let line = 0;
-    for (let i = 0;i < index; i++) {
-      if (content[i] === `
-`)
-        line++;
-    }
-    return line;
-  }
-  createTestEntry(filePath, relativePath) {
-    const name = path.basename(filePath);
-    let type = "unit";
-    if (name.includes("integration"))
-      type = "integration";
-    else if (name.includes("e2e") || name.includes("end-to-end"))
-      type = "e2e";
-    return { path: relativePath, name, type, targetSymbols: [] };
-  }
-  createDocEntry(filePath, relativePath) {
-    const name = path.basename(filePath).toLowerCase();
-    let type = "other";
-    if (name.startsWith("readme"))
-      type = "readme";
-    else if (name.includes("changelog") || name.includes("history"))
-      type = "changelog";
-    else if (name.includes("api"))
-      type = "api";
-    else if (name.includes("guide") || name.includes("docs"))
-      type = "guide";
-    return { path: relativePath, name: path.basename(filePath), type, sections: [] };
-  }
-}
-function getIndexer() {
-  if (!indexerInstance)
-    indexerInstance = new RepoIndexer;
-  return indexerInstance;
-}
-async function indexRepository(rootPath) {
-  return getIndexer().indexRepository(rootPath);
-}
-var EXTENSION_LANGUAGE_MAP, IGNORE_DIRS, TEST_PATTERNS, TEST_EXTS, CONFIG_EXTS, DOC_PATTERNS, DOC_EXTS, SOURCE_EXTS, TS_EXPORT_NAMED, TS_EXPORT_DEFAULT, TS_EXPORT_BLOCK, TS_IMPORT, TS_REQUIRE, TS_FUNC, TS_CLASS, TS_INTERFACE, TS_CONST, PY_DEF, PY_IMPORT, indexerInstance = null;
-var init_indexer = __esm(() => {
-  EXTENSION_LANGUAGE_MAP = {
-    ".ts": "typescript",
-    ".tsx": "typescript",
-    ".js": "javascript",
-    ".jsx": "javascript",
-    ".py": "python",
-    ".java": "java",
-    ".go": "go",
-    ".rs": "rust",
-    ".rb": "ruby",
-    ".php": "php",
-    ".cs": "csharp",
-    ".cpp": "cpp",
-    ".c": "c",
-    ".swift": "swift",
-    ".kt": "kotlin",
-    ".scala": "scala"
-  };
-  IGNORE_DIRS = new Set([
-    "node_modules",
-    ".git",
-    "dist",
-    "build",
-    "coverage",
-    ".venv",
-    "vendor",
-    "__pycache__",
-    ".next",
-    ".nuxt",
-    "out"
-  ]);
-  TEST_PATTERNS = new Set(["test", "spec", "__tests__", "tests"]);
-  TEST_EXTS = new Set([".test.", ".spec."]);
-  CONFIG_EXTS = new Set([".json", ".yaml", ".yml", ".toml", ".ini", ".conf"]);
-  DOC_PATTERNS = new Set(["readme", "changelog", "contributing", "license", "api", "guide", "docs"]);
-  DOC_EXTS = new Set([".md", ".rst", ".adoc"]);
-  SOURCE_EXTS = new Set([".ts", ".tsx", ".js", ".jsx", ".py", ".java", ".go", ".rs"]);
-  TS_EXPORT_NAMED = /export\s+(?:const|function|class|interface|type|let|var)\s+(\w+)/g;
-  TS_EXPORT_DEFAULT = /export\s+default\s+(\w+)/g;
-  TS_EXPORT_BLOCK = /export\s*\{\s*([^}]+)\s*\}/g;
-  TS_IMPORT = /import\s+(?:\{\s*[^}]+\s*\}|\*\s+as\s+\w+|\w+)\s+from\s+['"]([^'"]+)['"]/g;
-  TS_REQUIRE = /require\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
-  TS_FUNC = /(?:export\s+)?(?:async\s+)?function\s+(\w+)/g;
-  TS_CLASS = /(?:export\s+)?class\s+(\w+)/g;
-  TS_INTERFACE = /(?:export\s+)?interface\s+(\w+)/g;
-  TS_CONST = /(?:export\s+)?(?:const|let|var)\s+(\w+)\s*=/g;
-  PY_DEF = /(?:^|\n)\s*(?:def|class)\s+(\w+)/gm;
-  PY_IMPORT = /(?:^|\n)\s*import\s+([^\n]+)|(?:^|\n)\s*from\s+([^\n]+)\s+import/gm;
-});
-
-// src/engi/retrieval.ts
-class RetrievalEngine {
-  async findScope(query) {
-    const index = getIndexer().getIndex();
-    if (!index)
-      return { files: [], modules: [], symbols: [], tests: [], docs: [], confidence: 0 };
-    const limit = query.limit || 10;
-    const keywords = this.normalizeKeywords(query.task, query.keywords || []);
-    const rankedFiles = this.rankFiles(index.files, keywords, query.taskType);
-    const topFiles = rankedFiles.slice(0, limit).map((r) => r.file);
-    const topFilePathSet = new Set(topFiles.map((f) => f.path));
-    const topModules = new Set(topFiles.map((f) => f.path.split("/")[0] ?? "root"));
-    const [symbols, tests, docs] = [
-      this.findRelevantSymbols(index.symbols, keywords, topFilePathSet),
-      this.findRelevantTests(index.tests, topFiles, topModules),
-      this.findRelevantDocs(index.docs, keywords, topModules)
-    ];
-    return {
-      files: topFiles,
-      modules: [...topModules],
-      symbols,
-      tests,
-      docs,
-      confidence: this.calculateConfidence(rankedFiles.slice(0, limit), keywords)
-    };
-  }
-  async findByImport(importPath) {
-    const index = getIndexer().getIndex();
-    if (!index)
-      return null;
-    for (const [p, file] of index.files) {
-      if (p === importPath || p.endsWith(importPath))
-        return file;
-    }
-    const importName = importPath.split("/").pop() || "";
-    for (const [, file] of index.files) {
-      if (file.name === importName)
-        return file;
-    }
-    return null;
-  }
-  async findRelatedTests(filePath) {
-    const index = getIndexer().getIndex();
-    if (!index)
-      return [];
-    const baseName = filePath.split("/").pop()?.replace(/\.[^.]+$/, "") ?? "";
-    const dir = filePath.substring(0, filePath.lastIndexOf("/"));
-    const seen = new Set;
-    const results = [];
-    for (const t of index.tests) {
-      if (seen.has(t.path))
-        continue;
-      if (t.targetFile === filePath || t.name.includes(baseName)) {
-        results.push(t);
-        seen.add(t.path);
-      }
-    }
-    for (const t of index.tests) {
-      if (!seen.has(t.path) && t.path.startsWith(dir)) {
-        results.push(t);
-        seen.add(t.path);
-      }
-    }
-    return results;
-  }
-  async findDependents(filePath) {
-    const index = getIndexer().getIndex();
-    if (!index)
-      return [];
-    const dependents = [];
-    for (const [, file] of index.files) {
-      if (file.imports.some((imp) => imp === filePath || imp.endsWith(filePath))) {
-        dependents.push(file);
-      }
-    }
-    return dependents;
-  }
-  normalizeKeywords(task, extra) {
-    const words = task.toLowerCase().replace(/[^\w\s]/g, " ").split(/\s+/);
-    const combined = new Set;
-    for (const w of words) {
-      if (w.length > 2 && !STOP_WORDS.has(w))
-        combined.add(w);
-    }
-    for (const k of extra) {
-      const kl = k.toLowerCase();
-      if (!STOP_WORDS.has(kl))
-        combined.add(kl);
-    }
-    return [...combined];
-  }
-  rankFiles(files, keywords, taskType) {
-    const scored = [];
-    const isDocTask = taskType === "documentation";
-    const isBugOrFeature = taskType === "bug" || taskType === "feature";
-    for (const [filePath, file] of files) {
-      if (!isDocTask && file.type !== "source" && file.type !== "test")
-        continue;
-      let score = 0;
-      const reasons = [];
-      const lowerPath = filePath.toLowerCase();
-      const lowerName = file.name.toLowerCase();
-      const lowerExports = file.exports.map((e) => e.toLowerCase());
-      for (const kw of keywords) {
-        if (lowerPath.includes(kw) || lowerName.includes(kw)) {
-          score += 10;
-          reasons.push(`path:${kw}`);
-        }
-        for (const exp of lowerExports) {
-          if (exp.includes(kw)) {
-            score += 15;
-            reasons.push(`export:${kw}`);
-            break;
-          }
-        }
-      }
-      if (isBugOrFeature && file.type === "source") {
-        score += 5;
-        reasons.push("source");
-      }
-      if (taskType === "bug" && file.type === "test") {
-        score += 8;
-        reasons.push("test");
-      }
-      if (isDocTask && file.type === "doc") {
-        score += 20;
-        reasons.push("doc");
-      }
-      if (score > 0)
-        scored.push({ file, score, reason: reasons.join(",") });
-    }
-    return scored.sort((a, b) => b.score - a.score);
-  }
-  findRelevantSymbols(symbols, keywords, topFilePathSet) {
-    const relevant = [];
-    for (const [, fileSymbols] of symbols) {
-      for (const sym of fileSymbols) {
-        if (!topFilePathSet.has(sym.file))
-          continue;
-        const lname = sym.name.toLowerCase();
-        for (const kw of keywords) {
-          if (lname.includes(kw)) {
-            relevant.push(sym);
-            break;
-          }
-        }
-        if (relevant.length >= 20)
-          return relevant;
-      }
-    }
-    return relevant;
-  }
-  findRelevantTests(tests, topFiles, topModules) {
-    const topFilePaths = new Set(topFiles.map((f) => f.path));
-    const relevant = [];
-    const seen = new Set;
-    for (const test of tests) {
-      if (seen.has(test.path))
-        continue;
-      const inScope = test.targetFile && topFilePaths.has(test.targetFile) || topModules.has(test.path.split("/")[0] ?? "");
-      if (inScope) {
-        relevant.push(test);
-        seen.add(test.path);
-      }
-      if (relevant.length >= 10)
-        break;
-    }
-    return relevant;
-  }
-  findRelevantDocs(docs, keywords, topModules) {
-    const relevant = [];
-    const seen = new Set;
-    for (const doc of docs) {
-      if (seen.has(doc.path))
-        continue;
-      const lname = doc.name.toLowerCase();
-      const lpath = doc.path.toLowerCase();
-      const keyMatch = keywords.some((kw) => lname.includes(kw) || lpath.includes(kw));
-      const modMatch = topModules.has(doc.path.split("/")[0] ?? "");
-      if (keyMatch || modMatch) {
-        relevant.push(doc);
-        seen.add(doc.path);
-      }
-      if (relevant.length >= 5)
-        break;
-    }
-    return relevant;
-  }
-  calculateConfidence(rankedFiles, keywords) {
-    if (rankedFiles.length === 0 || keywords.length === 0)
-      return 0;
-    const avgScore = rankedFiles.reduce((s3, r) => s3 + r.score, 0) / rankedFiles.length;
-    const maxPossible = keywords.length * 25;
-    return Math.round(Math.min(avgScore / maxPossible, 1) * 100) / 100;
-  }
-}
-function getRetrievalEngine() {
-  if (!retrievalInstance)
-    retrievalInstance = new RetrievalEngine;
-  return retrievalInstance;
-}
-var STOP_WORDS, retrievalInstance = null;
-var init_retrieval = __esm(() => {
-  init_indexer();
-  STOP_WORDS = new Set([
-    "function",
-    "class",
-    "method",
-    "variable",
-    "const",
-    "let",
-    "var",
-    "return",
-    "import",
-    "export",
-    "async",
-    "await",
-    "the",
-    "and",
-    "for",
-    "with",
-    "this",
-    "that",
-    "from",
-    "type",
-    "interface",
-    "new",
-    "not"
-  ]);
-});
-
-// src/engi/rag.ts
-import * as fs2 from "fs";
-import * as path2 from "path";
-
-class RagEngine {
-  retrieve(query, index, options = {}) {
-    const chunks = this.getChunks(index);
-    const topK = options.topK ?? MAX_RESULTS;
-    const fileSet = options.files ? new Set(options.files) : null;
-    const queryTerms = extractTerms(query);
-    if (queryTerms.size === 0)
-      return [];
-    const scored = [];
-    for (const chunk of chunks) {
-      if (fileSet && !fileSet.has(chunk.file))
-        continue;
-      const { score, reason } = scoreChunk(queryTerms, chunk.terms, chunk.symbol);
-      if (score >= MIN_SCORE)
-        scored.push({ chunk, score, reason });
-    }
-    scored.sort((a, b) => b.score - a.score);
-    return scored.slice(0, topK).map(({ chunk, score, reason }) => ({
-      file: chunk.file,
-      symbol: chunk.symbol,
-      snippet: trimSnippet(chunk.content, MAX_SNIPPET_LINES),
-      score: Math.round(score * 100) / 100,
-      reason
-    }));
-  }
-  retrieveByLiteral(literals, index, options = {}) {
-    const chunks = this.getChunks(index);
-    const topK = options.topK ?? MAX_RESULTS;
-    const fileSet = options.files ? new Set(options.files) : null;
-    const lits = literals.map((l) => l.toLowerCase());
-    const scored = [];
-    for (const chunk of chunks) {
-      if (fileSet && !fileSet.has(chunk.file))
-        continue;
-      const lower = chunk.content.toLowerCase();
-      const hits = lits.filter((l) => lower.includes(l));
-      if (hits.length > 0) {
-        const score = hits.length / lits.length;
-        scored.push({ chunk, score, reason: `literal:${hits.slice(0, 3).join(",")}` });
-      }
-    }
-    scored.sort((a, b) => b.score - a.score);
-    return scored.slice(0, topK).map(({ chunk, score, reason }) => ({
-      file: chunk.file,
-      symbol: chunk.symbol,
-      snippet: trimSnippet(chunk.content, MAX_SNIPPET_LINES),
-      score: Math.round(score * 100) / 100,
-      reason
-    }));
-  }
-  getChunks(index) {
-    if (chunkCache && chunkCache.indexedAt === index.lastIndexed) {
-      return chunkCache.chunks;
-    }
-    const chunks = buildChunkIndex(index);
-    chunkCache = { chunks, indexedAt: index.lastIndexed };
-    return chunks;
-  }
-}
-function buildChunkIndex(index) {
-  const chunks = [];
-  for (const [filePath, file] of index.files) {
-    if (file.type !== "source" && file.type !== "test")
-      continue;
-    if (!["typescript", "javascript", "python", "go"].includes(file.language))
-      continue;
-    const absPath = path2.join(index.rootPath, filePath);
-    let content;
-    try {
-      content = fs2.readFileSync(absPath, "utf-8");
-    } catch {
-      continue;
-    }
-    const fileChunks = extractChunks(content, filePath, file.language);
-    chunks.push(...fileChunks);
-  }
-  return chunks;
-}
-function extractChunks(content, filePath, language) {
-  const lines = content.split(`
-`);
-  const chunks = [];
-  for (let i = 0;i < lines.length; i++) {
-    const line = lines[i];
-    const match = CHUNK_START_RE.exec(line);
-    if (!match)
-      continue;
-    const symbol = match[1] || match[2] || match[3] || match[4];
-    if (!symbol || symbol.length < 2)
-      continue;
-    const type = line.includes("class ") ? "class" : match[4] ? "method" : line.includes("function") || line.includes("=>") || line.includes("= (") ? "function" : "block";
-    const bodyLines = extractBody(lines, i, MAX_CHUNK_LINES);
-    if (bodyLines.length < 2)
-      continue;
-    const chunkContent = bodyLines.join(`
-`);
-    chunks.push({
-      file: filePath,
-      symbol,
-      type,
-      startLine: i + 1,
-      content: chunkContent,
-      tokens: estimateChunkTokens(chunkContent),
-      terms: extractTerms(chunkContent + " " + symbol)
-    });
-  }
-  return chunks;
-}
-function extractBody(lines, startIdx, maxLines) {
-  const body = [lines[startIdx]];
-  let depth = 0;
-  let started = false;
-  for (let i = startIdx;i < Math.min(lines.length, startIdx + maxLines); i++) {
-    const line = lines[i];
-    for (const ch of line) {
-      if (ch === "{" || ch === "(") {
-        depth++;
-        started = true;
-      } else if (ch === "}" || ch === ")")
-        depth--;
-    }
-    if (i > startIdx)
-      body.push(line);
-    if (started && depth <= 0)
-      break;
-  }
-  return body;
-}
-function scoreChunk(queryTerms, chunkTerms, symbol) {
-  let score = 0;
-  const hits = [];
-  const symbolLower = symbol.toLowerCase();
-  for (const [term, qFreq] of queryTerms) {
-    const cFreq = chunkTerms.get(term) ?? 0;
-    if (cFreq > 0) {
-      const idfBoost = term.length > 5 ? 1.5 : 1;
-      score += Math.min(qFreq, cFreq) * idfBoost;
-      hits.push(term);
-    }
-    if (symbolLower.includes(term) || term.includes(symbolLower)) {
-      score += 3;
-      if (!hits.includes(term))
-        hits.push(`sym:${term}`);
-    }
-  }
-  const normalized = score / Math.max(queryTerms.size, 1);
-  return { score: normalized, reason: hits.slice(0, 4).join(",") };
-}
-function extractTerms(text) {
-  const freq = new Map;
-  const words = text.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase().split(/[^\w]+/);
-  for (const w of words) {
-    if (w.length > 2 && !STOP.has(w) && !/^\d+$/.test(w)) {
-      freq.set(w, (freq.get(w) ?? 0) + 1);
-    }
-  }
-  return freq;
-}
-function trimSnippet(content, maxLines) {
-  const lines = content.split(`
-`);
-  if (lines.length <= maxLines)
-    return content;
-  return lines.slice(0, maxLines).join(`
-`) + `
-  // ...`;
-}
-function estimateChunkTokens(content) {
-  return Math.ceil(content.length / 4);
-}
-function getRagEngine() {
-  if (!ragInstance)
-    ragInstance = new RagEngine;
-  return ragInstance;
-}
-var MAX_CHUNK_LINES = 40, MAX_SNIPPET_LINES = 12, MAX_RESULTS = 5, MIN_SCORE = 0.05, STOP, CHUNK_START_RE, chunkCache = null, ragInstance = null;
-var init_rag = __esm(() => {
-  STOP = new Set([
-    "function",
-    "class",
-    "method",
-    "const",
-    "let",
-    "var",
-    "return",
-    "import",
-    "export",
-    "async",
-    "await",
-    "the",
-    "and",
-    "for",
-    "with",
-    "this",
-    "that",
-    "from",
-    "type",
-    "interface",
-    "new",
-    "not",
-    "if",
-    "else",
-    "try",
-    "catch",
-    "throw",
-    "get",
-    "set",
-    "public",
-    "private",
-    "protected",
-    "readonly",
-    "static",
-    "void",
-    "any",
-    "true",
-    "false",
-    "null",
-    "undefined",
-    "string",
-    "number",
-    "boolean",
-    "object",
-    "array"
-  ]);
-  CHUNK_START_RE = /^(?:export\s+)?(?:async\s+)?(?:function\s+(\w+)|class\s+(\w+)|(?:const|let)\s+(\w+)\s*=\s*(?:async\s+)?\(|(?:  |\t)(?:async\s+)?(\w+)\s*\()/;
-});
-
-// src/engi/summarizer.ts
-import * as path3 from "path";
-
-class SummarizationEngine {
-  async generateFlowSummary(options) {
-    const index = getIndexer().getIndex();
-    if (!index)
-      return this.emptyFlowSummary();
-    const files = options.scope ? options.scope.map((p) => index.files.get(p)).filter(Boolean) : Array.from(index.files.values()).filter((f) => f.type === "source").slice(0, 10);
-    if (files.length === 0)
-      return this.emptyFlowSummary();
-    const verbosity = options.verbosity ?? "standard";
-    const steps = [];
-    const keySymbols = [];
-    const scopePaths = files.map((f) => f.path);
-    const scopeQuery = scopePaths.map((p) => path3.basename(p, path3.extname(p))).join(" ");
-    const ragChunks = getRagEngine().retrieve(scopeQuery, index, {
-      files: scopePaths,
-      topK: FLOW_MAX_SNIPPETS
-    });
-    const bestChunk = new Map;
-    for (const c2 of ragChunks) {
-      if (!bestChunk.has(c2.file))
-        bestChunk.set(c2.file, c2.snippet);
-    }
-    for (let i = 0;i < files.length; i++) {
-      const file = files[i];
-      const importedBy = this.getFilesImporting(file.path, index);
-      const topExports = file.exports.slice(0, 3).join(", ");
-      let description;
-      if (i === 0) {
-        description = `Entry: ${file.name}` + (topExports ? ` — exports ${topExports}` : "");
-      } else if (importedBy.length > 0) {
-        description = `${file.name} used by ${importedBy.length} file(s)` + (topExports ? ` · exports ${topExports}` : "");
-      } else {
-        description = `${file.name}` + (topExports ? ` — exports ${topExports}` : "");
-      }
-      const step = {
-        order: i + 1,
-        description,
-        file: file.path,
-        symbol: file.exports[0]
-      };
-      if (verbosity !== "minimal" && bestChunk.has(file.path)) {
-        step.snippet = limitLines(bestChunk.get(file.path), SNIPPET_MAX_LINES);
-      }
-      steps.push(step);
-      const symbols = index.symbols.get(file.path) ?? [];
-      for (const sym of symbols.slice(0, 3))
-        keySymbols.push(`${sym.name} (${sym.type})`);
-    }
-    return {
-      summary: this.generateSummaryText(steps, verbosity),
-      steps,
-      keyFiles: files.map((f) => f.path),
-      keySymbols: keySymbols.slice(0, 12),
-      entryPoint: options.entryPoint ?? files[0]?.path,
-      handle: this.generateHandle("flow", scopePaths.join(","))
-    };
-  }
-  async traceBug(symptom, scope) {
-    const index = getIndexer().getIndex();
-    if (!index)
-      return this.emptyBugTrace();
-    const symptomLower = symptom.toLowerCase();
-    const likelyCauses = [];
-    const suspectFiles = new Set;
-    const suspectSymbols = [];
-    if (symptomLower.match(/null|undefined|cannot read|is not a function/)) {
-      likelyCauses.push({
-        type: "null_undefined",
-        likelihood: 0.85,
-        description: "Null/undefined access — check for missing null guards before dereferencing"
-      });
-    }
-    if (symptomLower.match(/race|timing|async|concurrent|await/)) {
-      likelyCauses.push({
-        type: "race_condition",
-        likelihood: 0.75,
-        description: "Race condition or unresolved async — ensure all async paths are awaited"
-      });
-    }
-    if (symptomLower.match(/type|cast|instanceof|assign/)) {
-      likelyCauses.push({
-        type: "type_mismatch",
-        likelihood: 0.65,
-        description: "Type mismatch — verify type assertions and interface contracts"
-      });
-    }
-    if (symptomLower.match(/loop|infinite|timeout|hang/)) {
-      likelyCauses.push({
-        type: "logic_error",
-        likelihood: 0.7,
-        description: "Logic error in loop or termination condition"
-      });
-    }
-    if (symptomLower.match(/state|stale|cache|invalidat/)) {
-      likelyCauses.push({
-        type: "unsafe_state",
-        likelihood: 0.7,
-        description: "Stale or incorrectly invalidated state — check cache write-through and eviction"
-      });
-    }
-    const scopePaths = scope ?? [];
-    const keywords = extractKeywords(symptom);
-    const ragByLit = getRagEngine().retrieveByLiteral(keywords, index, {
-      files: scopePaths.length > 0 ? scopePaths : undefined,
-      topK: BUG_MAX_SNIPPETS
-    });
-    const ragBySem = getRagEngine().retrieve(symptom, index, {
-      files: scopePaths.length > 0 ? scopePaths : undefined,
-      topK: BUG_MAX_SNIPPETS
-    });
-    const seen = new Set;
-    const topRag = [...ragByLit, ...ragBySem].filter((c2) => {
-      const key = `${c2.file}:${c2.symbol}`;
-      if (seen.has(key))
-        return false;
-      seen.add(key);
-      return true;
-    }).slice(0, BUG_MAX_SNIPPETS);
-    for (let i = 0;i < topRag.length; i++) {
-      const chunk = topRag[i];
-      suspectFiles.add(chunk.file);
-      suspectSymbols.push(`${chunk.symbol} in ${chunk.file}`);
-      if (i < likelyCauses.length) {
-        likelyCauses[i].file = chunk.file;
-        likelyCauses[i].symbol = chunk.symbol;
-        likelyCauses[i].snippet = limitLines(chunk.snippet, SNIPPET_MAX_LINES);
-      } else {
-        likelyCauses.push({
-          type: "other",
-          likelihood: Math.max(0.3, chunk.score),
-          description: `Relevant code in ${chunk.symbol} (${chunk.file}) — ${chunk.reason}`,
-          file: chunk.file,
-          symbol: chunk.symbol,
-          snippet: limitLines(chunk.snippet, SNIPPET_MAX_LINES)
-        });
-      }
-    }
-    if (suspectFiles.size === 0) {
-      const targetFiles = scope ? scope.map((p) => index.files.get(p)).filter(Boolean) : Array.from(index.files.values()).filter((f) => f.type === "source").slice(0, 20);
-      for (const file of targetFiles) {
-        if (file.imports.length > 10 || file.exports.length > 10)
-          suspectFiles.add(file.path);
-      }
-    }
-    const confidence = Math.min(likelyCauses.length * 0.2 + (topRag.length > 0 ? 0.25 : 0.1), 0.95);
-    return {
-      likelyCauses,
-      suspectFiles: [...suspectFiles].slice(0, 10),
-      suspectSymbols: suspectSymbols.slice(0, 10),
-      confidence,
-      handle: this.generateHandle("bug", symptom)
-    };
-  }
-  async buildDocContext(options) {
-    const index = getIndexer().getIndex();
-    if (!index)
-      return this.emptyDocContext();
-    const featureSummary = options.feature ?? "Codebase overview";
-    const codeReferences = [];
-    const examples = [];
-    const targetFiles = options.changedFiles ? options.changedFiles.map((p) => index.files.get(p)).filter(Boolean) : Array.from(index.files.values()).filter((f) => f.type === "source").slice(0, 5);
-    for (const file of targetFiles) {
-      codeReferences.push({
-        file: file.path,
-        symbol: file.exports[0],
-        description: `${file.exports.length} exports: ${file.exports.slice(0, 4).join(", ")}`
-      });
-    }
-    const ragQuery = featureSummary + " " + (options.changedFiles ?? []).map((f) => path3.basename(f, path3.extname(f))).join(" ");
-    const scopePaths = targetFiles.map((f) => f.path);
-    const ragChunks = getRagEngine().retrieve(ragQuery, index, {
-      files: scopePaths,
-      topK: DOC_MAX_EXAMPLES
-    });
-    for (const chunk of ragChunks) {
-      const fileEntry = index.files.get(chunk.file);
-      if (!fileEntry)
-        continue;
-      examples.push({
-        title: `${chunk.symbol} — ${chunk.file}`,
-        code: limitLines(chunk.snippet, SNIPPET_MAX_LINES),
-        language: fileEntry.language
-      });
-    }
-    const audienceNotes = {};
-    const aud = options.audience ?? "developer";
-    audienceNotes[aud] = this.generateAudienceNote(aud, codeReferences);
-    const totalExports = codeReferences.reduce((s3, r) => {
-      const m = r.description.match(/\d+/);
-      return s3 + (m ? parseInt(m[0], 10) : 0);
-    }, 0);
-    return {
-      featureSummary,
-      currentBehavior: `${targetFiles.length} files · ${totalExports} total exports${ragChunks.length > 0 ? ` · ${ragChunks.length} code snippet(s) attached` : ""}`,
-      codeReferences,
-      examples: examples.slice(0, DOC_MAX_EXAMPLES),
-      audienceNotes,
-      handle: this.generateHandle("doc", options.feature ?? "overview")
-    };
-  }
-  emptyFlowSummary() {
-    return { summary: "No codebase indexed. Use repo_scope_find to index a repository first.", steps: [], keyFiles: [], keySymbols: [], handle: undefined };
-  }
-  emptyBugTrace() {
-    return { likelyCauses: [], suspectFiles: [], suspectSymbols: [], confidence: 0, handle: undefined };
-  }
-  emptyDocContext() {
-    return { featureSummary: "", currentBehavior: "", codeReferences: [], examples: [], audienceNotes: {}, handle: undefined };
-  }
-  generateSummaryText(steps, verbosity) {
-    if (verbosity === "minimal" || steps.length === 0)
-      return `${steps.length} files in flow`;
-    if (verbosity === "standard")
-      return `Flow overview:
-${steps.map((s3) => `${s3.order}. ${s3.description}`).join(`
-`)}`;
-    return `Code flow (${steps.length} files):
-
-${steps.map((s3) => `${s3.order}. ${s3.description}
-   ${s3.file}${s3.snippet ? `
-` + indent(s3.snippet, "   ") : ""}`).join(`
-
-`)}`;
-  }
-  getFilesImporting(filePath, index) {
-    const importers = [];
-    for (const [p, file] of index.files) {
-      if (file.imports.some((imp) => imp === filePath || p.endsWith(imp)))
-        importers.push(p);
-    }
-    return importers;
-  }
-  generateHandle(prefix, data) {
-    const hash = data.split("").reduce((acc, ch) => (acc << 5) - acc + ch.charCodeAt(0), 0);
-    return `${prefix}_${Math.abs(hash).toString(36)}`;
-  }
-  generateAudienceNote(audience, refs) {
-    switch (audience) {
-      case "junior":
-        return `Start with: ${refs.slice(0, 2).map((r) => r.file).join(", ")}. Focus on the exported functions.`;
-      case "senior":
-        return `Key files: ${refs.map((r) => r.file).join(", ")}. Review architecture and side-effects.`;
-      case "api":
-        return `Public surface: ${refs.flatMap((r) => r.description.replace(/^\d+ exports: /, "").split(", ")).slice(0, 8).join(", ")}`;
-      case "pm":
-        return `${refs.length} components changed. Each exposes: ${refs.map((r) => r.file.split("/").pop()).join(", ")}`;
-      case "qa":
-        return `Test entry points: ${refs.map((r) => r.symbol ?? r.file).join(", ")}`;
-      default:
-        return `${refs.length} main files to review.`;
-    }
-  }
-}
-function limitLines(text, max) {
-  const lines = text.split(`
-`);
-  return lines.length <= max ? text : lines.slice(0, max).join(`
-`) + `
-  // ...`;
-}
-function indent(text, prefix) {
-  return text.split(`
-`).map((l) => prefix + l).join(`
-`);
-}
-function extractKeywords(text) {
-  const quoted = [...text.matchAll(/'([^']+)'|"([^"]+)"/g)].map((m) => m[1] ?? m[2]);
-  const errCodes = text.match(/[A-Z][A-Z0-9_]{3,}/g) ?? [];
-  const words = text.toLowerCase().replace(/[^\w\s]/g, " ").split(/\s+/).filter((w) => w.length > 5);
-  return [...new Set([...quoted, ...errCodes, ...words])].slice(0, 12);
-}
-function getSummarizationEngine() {
-  if (!summarizationInstance)
-    summarizationInstance = new SummarizationEngine;
-  return summarizationInstance;
-}
-var FLOW_MAX_SNIPPETS = 4, BUG_MAX_SNIPPETS = 3, DOC_MAX_EXAMPLES = 3, SNIPPET_MAX_LINES = 10, summarizationInstance = null;
-var init_summarizer = __esm(() => {
-  init_indexer();
-  init_rag();
-});
-
-// src/engi/memory.ts
-import * as fs3 from "fs";
-
-class MemoryStore {
-  checkpoints = new Map;
-  taskIndex = new Map;
-  storagePath = null;
-  initialize(options) {
-    if (options?.storagePath) {
-      this.storagePath = options.storagePath;
-      this.load();
-    }
-  }
-  saveCheckpoint(checkpoint) {
-    const full = { ...checkpoint, id: this.generateId(), timestamp: Date.now() };
-    this.checkpoints.set(full.id, full);
-    const ids = this.taskIndex.get(full.taskId) ?? [];
-    ids.push(full.id);
-    this.taskIndex.set(full.taskId, ids);
-    this.persist();
-    return full;
-  }
-  getCheckpoint(id) {
-    return this.checkpoints.get(id) ?? null;
-  }
-  getAllCheckpoints() {
-    return [...this.checkpoints.values()];
-  }
-  getLatestForTask(taskId) {
-    const ids = this.taskIndex.get(taskId);
-    if (!ids || ids.length === 0)
-      return null;
-    return this.checkpoints.get(ids[ids.length - 1]) ?? null;
-  }
-  deleteCheckpoint(id) {
-    const cp = this.checkpoints.get(id);
-    if (!cp)
-      return false;
-    this.checkpoints.delete(id);
-    const ids = this.taskIndex.get(cp.taskId);
-    if (ids) {
-      const idx = ids.indexOf(id);
-      if (idx !== -1)
-        ids.splice(idx, 1);
-      if (ids.length === 0)
-        this.taskIndex.delete(cp.taskId);
-    }
-    this.persist();
-    return true;
-  }
-  restore(id) {
-    const checkpoint = this.getCheckpoint(id);
-    if (!checkpoint)
-      return null;
-    return {
-      checkpoint,
-      currentScope: checkpoint.scope,
-      progressSummary: this.buildProgressSummary(checkpoint),
-      unresolvedItems: [...checkpoint.pendingValidations, ...checkpoint.pendingDocs]
-    };
-  }
-  updateCheckpoint(id, updates) {
-    const existing = this.checkpoints.get(id);
-    if (!existing)
-      return false;
-    this.checkpoints.set(id, { ...existing, ...updates });
-    this.persist();
-    return true;
-  }
-  clear() {
-    this.checkpoints.clear();
-    this.taskIndex.clear();
-    this.persist();
-  }
-  generateId() {
-    return `cp_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-  }
-  buildProgressSummary(cp) {
-    const parts = [
-      `Task: ${cp.taskType}`,
-      `Files in scope: ${cp.scope.files.length}`,
-      `Decisions made: ${cp.decisions.length}`,
-      `Risks identified: ${cp.risks.length}`
-    ];
-    if (cp.pendingValidations.length > 0)
-      parts.push(`Pending validations: ${cp.pendingValidations.length}`);
-    if (cp.pendingDocs.length > 0)
-      parts.push(`Pending docs: ${cp.pendingDocs.length}`);
-    return parts.join(" | ");
-  }
-  persist() {
-    if (!this.storagePath)
-      return;
-    try {
-      fs3.writeFileSync(this.storagePath, JSON.stringify([...this.checkpoints.entries()], null, 2), "utf-8");
-    } catch (err) {
-      console.error("Failed to persist memory:", err);
-    }
-  }
-  load() {
-    if (!this.storagePath || !fs3.existsSync(this.storagePath))
-      return;
-    try {
-      const entries = JSON.parse(fs3.readFileSync(this.storagePath, "utf-8"));
-      this.checkpoints = new Map(entries);
-      this.taskIndex.clear();
-      for (const [id, cp] of this.checkpoints) {
-        const ids = this.taskIndex.get(cp.taskId) ?? [];
-        ids.push(id);
-        this.taskIndex.set(cp.taskId, ids);
-      }
-    } catch (err) {
-      console.error("Failed to load memory:", err);
-    }
-  }
-}
-function createCheckpoint(options) {
-  return {
-    taskId: options.taskId,
-    taskType: options.taskType,
-    scope: options.scope,
-    decisions: options.decisions ?? [],
-    risks: options.risks ?? [],
-    pendingValidations: options.pendingValidations ?? [],
-    pendingDocs: options.pendingDocs ?? [],
-    notes: options.notes ?? ""
-  };
-}
-function getMemoryStore() {
-  if (!memoryStoreInstance)
-    memoryStoreInstance = new MemoryStore;
-  return memoryStoreInstance;
-}
-var memoryStoreInstance = null;
-var init_memory = () => {};
-
-// src/engi/tools.ts
-async function engiTaskClassify(params) {
-  const { task, keywords = [] } = params;
-  const taskLower = task.toLowerCase();
-  const detectedTypes = [];
-  let confidence = 0;
-  if (taskLower.includes("bug") || taskLower.includes("fix") || taskLower.includes("error") || taskLower.includes("crash") || taskLower.includes("fail") || taskLower.includes("issue")) {
-    detectedTypes.push("bug");
-    confidence += 0.8;
-  }
-  if (taskLower.includes("implement") || taskLower.includes("add") || taskLower.includes("new") || taskLower.includes("feature") || taskLower.includes("create")) {
-    detectedTypes.push("feature");
-    confidence += 0.7;
-  }
-  if (taskLower.includes("poc") || taskLower.includes("proof of concept") || taskLower.includes("prototype") || taskLower.includes("mockup")) {
-    detectedTypes.push("poc");
-    confidence += 0.9;
-  }
-  if (taskLower.includes("doc") || taskLower.includes("readme") || taskLower.includes("comment") || taskLower.includes("explain") || taskLower.includes("guide")) {
-    detectedTypes.push("documentation");
-    confidence += 0.8;
-  }
-  if (taskLower.includes("analyze") || taskLower.includes("understand") || taskLower.includes("how does") || taskLower.includes("what is")) {
-    detectedTypes.push("analysis");
-    confidence += 0.6;
-  }
-  if (detectedTypes.length === 0) {
-    detectedTypes.push("analysis");
-    confidence = 0.5;
-  }
-  let suggestedMode = "analysis";
-  if (detectedTypes.includes("bug") || detectedTypes.includes("feature")) {
-    suggestedMode = "planning";
-  } else if (detectedTypes.includes("documentation")) {
-    suggestedMode = "documentation";
-  }
-  const nextTools = [];
-  if (suggestedMode === "analysis") {
-    nextTools.push("engi_repo_scope_find", "engi_flow_summarize");
-  } else if (suggestedMode === "planning") {
-    nextTools.push("engi_repo_scope_find", "engi_implementation_plan");
-  } else if (suggestedMode === "documentation") {
-    nextTools.push("engi_doc_context_build", "engi_doc_update_plan");
-  }
-  confidence = Math.min(confidence, 1);
-  return { types: detectedTypes, confidence, suggestedMode, nextTools };
-}
-async function engiRepoScopeFind(params) {
-  const { task, taskType, keywords = [], limit = 10, repoPath } = params;
-  if (repoPath) {
-    await indexRepository(repoPath);
-  }
-  const retrieval = getRetrievalEngine();
-  return retrieval.findScope({ task, taskType, keywords, limit });
-}
-async function engiFlowSummarize(params) {
-  const summarizer = getSummarizationEngine();
-  return summarizer.generateFlowSummary({
-    scope: params.scope,
-    entryPoint: params.entryPoint,
-    verbosity: params.verbosity
-  });
-}
-async function engiBugTraceCompact(params) {
-  const summarizer = getSummarizationEngine();
-  return summarizer.traceBug(params.symptom, params.scope);
-}
-async function engiImplementationPlan(params) {
-  const { task, taskType, scope, existingPatterns = [] } = params;
-  const steps = [];
-  const editTargets = [];
-  const requiredTests = [];
-  const requiredDocs = [];
-  const riskNotes = [];
-  for (let i = 0;i < scope.length; i++) {
-    const file = scope[i];
-    if (taskType === "feature") {
-      steps.push({ order: i + 1, description: `Implement in ${file}`, file, action: "modify" });
-      editTargets.push({ file, description: `Add new functionality for: ${task}` });
-    } else {
-      steps.push({ order: i + 1, description: `Fix bug in ${file}`, file, action: "modify" });
-      editTargets.push({ file, description: `Address the bug: ${task}` });
-      riskNotes.push(`Potential regression risk in ${file}`);
-    }
-  }
-  steps.push({
-    order: steps.length + 1,
-    description: "Create or update tests",
-    file: scope[0] || "test file",
-    action: "create",
-    dependencies: steps.map((s3) => s3.file)
-  });
-  requiredTests.push(`${scope[0] || "source"}.test.ts`);
-  if (taskType === "feature") {
-    steps.push({ order: steps.length + 1, description: "Update documentation", file: "docs", action: "modify" });
-    requiredDocs.push("README.md");
-  }
-  return {
-    steps,
-    editTargets,
-    requiredTests,
-    requiredDocs,
-    riskNotes,
-    handle: `plan_${Date.now()}`
-  };
-}
-async function engiPOCPlan(params) {
-  const { goal, constraints = [], existingCode = [] } = params;
-  let minimalArchitecture = "Simple Node.js module";
-  const filesToCreate = [];
-  const shortcutsAllowed = [];
-  const excludedScope = [];
-  const goalLower = goal.toLowerCase();
-  if (goalLower.includes("api") || goalLower.includes("endpoint")) {
-    minimalArchitecture = "Simple Express/HTTP handler with minimal routing";
-    filesToCreate.push("src/poc/handler.ts");
-    shortcutsAllowed.push("Use in-memory storage", "Skip authentication");
-    excludedScope.push("Database integration", "Complex validation");
-  } else if (goalLower.includes("database") || goalLower.includes("storage")) {
-    minimalArchitecture = "In-memory or file-based storage";
-    filesToCreate.push("src/poc/storage.ts");
-    shortcutsAllowed.push("Skip connection pooling");
-    excludedScope.push("Production database");
-  } else if (goalLower.includes("ui") || goalLower.includes("interface")) {
-    minimalArchitecture = "Minimal UI component";
-    filesToCreate.push("src/poc/Component.tsx");
-    shortcutsAllowed.push("Skip styling", "Use mock data");
-  } else {
-    minimalArchitecture = "Simple module with core logic";
-    filesToCreate.push("src/poc/index.ts");
-    shortcutsAllowed.push("Skip error handling", "Skip logging");
-  }
-  for (const constraint of constraints) {
-    const cLower = constraint.toLowerCase();
-    if (cLower.includes("no auth"))
-      excludedScope.push("Authentication");
-    if (cLower.includes("simple"))
-      excludedScope.push("Advanced features");
-  }
-  return {
-    goal,
-    minimalArchitecture,
-    filesToCreate,
-    shortcutsAllowed,
-    excludedScope,
-    mockStrategy: "Use hardcoded test data and in-memory implementations",
-    handle: `poc_${Date.now()}`
-  };
-}
-async function engiImpactAnalyze(params) {
-  const { scope, changeType } = params;
-  const indexer = getIndexer();
-  const index = indexer.getIndex();
-  const affectedFiles = [];
-  const affectedModules = [];
-  const affectedSymbols = [];
-  const regressionNotes = [];
-  const riskyPoints = [];
-  const relatedTests = [];
-  const docsImpact = [];
-  if (!index) {
-    return { affectedFiles: [], affectedModules: [], affectedSymbols: [], regressionNotes: ["No repository indexed"], riskyPoints: [], relatedTests: [], docsImpact: [] };
-  }
-  const retrieval = getRetrievalEngine();
-  for (const filePath of scope) {
-    const dependents = await retrieval.findDependents(filePath);
-    for (const dep of dependents) {
-      if (!affectedFiles.includes(dep.path))
-        affectedFiles.push(dep.path);
-    }
-    const tests = await retrieval.findRelatedTests(filePath);
-    for (const test of tests) {
-      if (!relatedTests.includes(test.path))
-        relatedTests.push(test.path);
-    }
-    const module = filePath.split("/")[0];
-    if (!affectedModules.includes(module))
-      affectedModules.push(module);
-  }
-  for (const file of affectedFiles) {
-    const fileType = index.files.get(file)?.type;
-    if (fileType === "source")
-      regressionNotes.push(`Potential regression in: ${file}`);
-  }
-  if (changeType === "delete") {
-    riskyPoints.push("Removing files may break dependent code", "Check for exposed APIs that depend on deleted code");
-  } else if (changeType === "modify") {
-    riskyPoints.push("Existing function signatures may affect callers", "Check for breaking changes in public exports");
-  }
-  for (const file of scope) {
-    const module = file.split("/")[0];
-    const moduleDocs = index.docs.filter((d) => d.path.startsWith(module) || d.path.includes(module));
-    for (const doc of moduleDocs) {
-      if (!docsImpact.includes(doc.path))
-        docsImpact.push(doc.path);
-    }
-  }
-  return { affectedFiles, affectedModules, affectedSymbols, regressionNotes, riskyPoints, relatedTests, docsImpact };
-}
-async function engiTestSelect(params) {
-  const { scope, changeType = "modify" } = params;
-  const retrieval = getRetrievalEngine();
-  const requiredTests = [];
-  const optionalTests = [];
-  for (const filePath of scope) {
-    const tests = await retrieval.findRelatedTests(filePath);
-    for (const test of tests) {
-      const testInfo = {
-        path: test.path,
-        type: test.type === "other" ? "unit" : test.type,
-        targetCoverage: [filePath]
-      };
-      if (changeType !== "add") {
-        if (!requiredTests.some((t) => t.path === test.path))
-          requiredTests.push(testInfo);
-      } else {
-        if (!optionalTests.some((t) => t.path === test.path))
-          optionalTests.push(testInfo);
-      }
-    }
-  }
-  let reason = `Found ${requiredTests.length} required and ${optionalTests.length} optional tests`;
-  if (requiredTests.length === 0 && optionalTests.length === 0) {
-    reason = "No direct tests found - consider writing new tests for changes";
-  }
-  return { requiredTests, optionalTests, reason };
-}
-async function engiDocContextBuild(params) {
-  const summarizer = getSummarizationEngine();
-  return summarizer.buildDocContext({
-    feature: params.feature,
-    changedFiles: params.changedFiles,
-    audience: params.audience
-  });
-}
-async function engiDocUpdatePlan(params) {
-  const { changedFiles, existingDocs = [] } = params;
-  const indexer = getIndexer();
-  const index = indexer.getIndex();
-  const docsToUpdate = [];
-  const docsToCreate = [];
-  const sectionsToUpdate = [];
-  const examplesNeeded = [];
-  if (!index) {
-    return { docsToUpdate, docsToCreate, sectionsToUpdate, examplesNeeded };
-  }
-  const changedModules = new Set(changedFiles.map((f) => f.split("/")[0]));
-  for (const doc of index.docs) {
-    const docModule = doc.path.split("/")[0];
-    if (changedModules.has(docModule) || changedFiles.some((f) => doc.path.includes(f))) {
-      docsToUpdate.push({ path: doc.path, reason: `References changed module: ${docModule}` });
-      sectionsToUpdate.push(`${doc.name} - ${docModule} section`);
-    }
-  }
-  if (changedFiles.length > 0 && docsToUpdate.length === 0) {
-    docsToCreate.push({ path: "docs/CHANGES.md", purpose: "Document changes in changed files" });
-  }
-  for (const file of changedFiles.slice(0, 3)) {
-    const fileName = file.split("/").pop() || "";
-    if (fileName && !fileName.includes("test")) {
-      examplesNeeded.push(`Example usage of ${fileName.replace(/\.[^.]+$/, "")}`);
-    }
-  }
-  return { docsToUpdate, docsToCreate, sectionsToUpdate, examplesNeeded };
-}
-async function engiMemoryCheckpoint(params) {
-  const memory = getMemoryStore();
-  const checkpointData = createCheckpoint({
-    taskId: params.taskId,
-    taskType: params.taskType,
-    scope: {
-      files: params.files,
-      symbols: params.symbols || [],
-      modules: params.modules || []
-    },
-    decisions: params.decisions?.map((d) => ({ ...d, timestamp: Date.now() })) || [],
-    risks: params.risks || [],
-    pendingValidations: params.pendingValidations || [],
-    pendingDocs: params.pendingDocs || [],
-    notes: params.notes || ""
-  });
-  return memory.saveCheckpoint(checkpointData);
-}
-async function engiMemoryRestore(params) {
-  const memory = getMemoryStore();
-  if (params.id) {
-    return memory.restore(params.id);
-  } else if (params.taskId) {
-    const checkpoint = memory.getLatestForTask(params.taskId);
-    if (checkpoint)
-      return memory.restore(checkpoint.id);
-  }
-  return null;
-}
-var STOP_WORDS2, engiTools;
-var init_tools = __esm(() => {
-  init_indexer();
-  init_retrieval();
-  init_summarizer();
-  init_memory();
-  STOP_WORDS2 = new Set([
-    "function",
-    "class",
-    "method",
-    "variable",
-    "const",
-    "let",
-    "var",
-    "return",
-    "import",
-    "export",
-    "async",
-    "await",
-    "the",
-    "and",
-    "for",
-    "with",
-    "this",
-    "that",
-    "from",
-    "type",
-    "interface",
-    "new",
-    "not"
-  ]);
-  engiTools = [
-    {
-      name: "engi_task_classify",
-      description: "Classify an engineering task to determine its type and suggest next steps",
-      inputSchema: {
-        type: "object",
-        properties: {
-          task: { type: "string", description: "The engineering task description to classify" },
-          keywords: { type: "array", items: { type: "string" }, description: "Optional keywords for context" }
-        },
-        required: ["task"]
-      },
-      execute: async (args) => {
-        const result = await engiTaskClassify(args);
-        return { success: true, content: JSON.stringify(result, null, 2) };
-      }
-    },
-    {
-      name: "engi_repo_scope_find",
-      description: "Identify minimum relevant repository scope for a task",
-      inputSchema: {
-        type: "object",
-        properties: {
-          task: { type: "string", description: "The task description" },
-          taskType: { type: "string", enum: ["analysis", "feature", "bug", "poc", "documentation", "mixed"], description: "Type of task" },
-          keywords: { type: "array", items: { type: "string" }, description: "Additional keywords" },
-          limit: { type: "number", description: "Maximum results to return" },
-          repoPath: { type: "string", description: "Repository path to index" }
-        },
-        required: ["task", "taskType"]
-      },
-      execute: async (args) => {
-        const result = await engiRepoScopeFind(args);
-        return { success: true, content: JSON.stringify(result, null, 2) };
-      }
-    },
-    {
-      name: "engi_flow_summarize",
-      description: "Explain existing implementation flow",
-      inputSchema: {
-        type: "object",
-        properties: {
-          scope: { type: "array", items: { type: "string" }, description: "File paths to include" },
-          entryPoint: { type: "string", description: "Entry point file" },
-          verbosity: { type: "string", enum: ["minimal", "standard", "detailed"], description: "Verbosity level" }
-        }
-      },
-      execute: async (args) => {
-        const result = await engiFlowSummarize(args);
-        return { success: true, content: JSON.stringify(result, null, 2) };
-      }
-    },
-    {
-      name: "engi_bug_trace_compact",
-      description: "Trace likely bug causes from symptom description",
-      inputSchema: {
-        type: "object",
-        properties: {
-          symptom: { type: "string", description: "Bug symptom description" },
-          scope: { type: "array", items: { type: "string" }, description: "Files to investigate" }
-        },
-        required: ["symptom"]
-      },
-      execute: async (args) => {
-        const result = await engiBugTraceCompact(args);
-        return { success: true, content: JSON.stringify(result, null, 2) };
-      }
-    },
-    {
-      name: "engi_implementation_plan",
-      description: "Build implementation plan for new feature or fix",
-      inputSchema: {
-        type: "object",
-        properties: {
-          task: { type: "string", description: "Feature or fix description" },
-          taskType: { type: "string", enum: ["feature", "bug"], description: "Type of task" },
-          scope: { type: "array", items: { type: "string" }, description: "Files in scope" },
-          existingPatterns: { type: "array", items: { type: "string" }, description: "Existing patterns to follow" }
-        },
-        required: ["task", "taskType", "scope"]
-      },
-      execute: async (args) => {
-        const result = await engiImplementationPlan(args);
-        return { success: true, content: JSON.stringify(result, null, 2) };
-      }
-    },
-    {
-      name: "engi_poc_plan",
-      description: "Define minimum viable POC implementation",
-      inputSchema: {
-        type: "object",
-        properties: {
-          goal: { type: "string", description: "POC goal description" },
-          constraints: { type: "array", items: { type: "string" }, description: "Known constraints" },
-          existingCode: { type: "array", items: { type: "string" }, description: "Existing code to leverage" }
-        },
-        required: ["goal"]
-      },
-      execute: async (args) => {
-        const result = await engiPOCPlan(args);
-        return { success: true, content: JSON.stringify(result, null, 2) };
-      }
-    },
-    {
-      name: "engi_impact_analyze",
-      description: "Estimate blast radius of change",
-      inputSchema: {
-        type: "object",
-        properties: {
-          scope: { type: "array", items: { type: "string" }, description: "Files being changed" },
-          changeType: { type: "string", enum: ["add", "modify", "delete"], description: "Type of change" }
-        },
-        required: ["scope", "changeType"]
-      },
-      execute: async (args) => {
-        const result = await engiImpactAnalyze(args);
-        return { success: true, content: JSON.stringify(result, null, 2) };
-      }
-    },
-    {
-      name: "engi_test_select",
-      description: "Choose minimum useful test set",
-      inputSchema: {
-        type: "object",
-        properties: {
-          scope: { type: "array", items: { type: "string" }, description: "Files being changed" },
-          changeType: { type: "string", enum: ["add", "modify", "delete"], description: "Type of change" }
-        },
-        required: ["scope"]
-      },
-      execute: async (args) => {
-        const result = await engiTestSelect(args);
-        return { success: true, content: JSON.stringify(result, null, 2) };
-      }
-    },
-    {
-      name: "engi_doc_context_build",
-      description: "Build compact context for docs generation",
-      inputSchema: {
-        type: "object",
-        properties: {
-          feature: { type: "string", description: "Feature or change to document" },
-          changedFiles: { type: "array", items: { type: "string" }, description: "Files that changed" },
-          audience: { type: "string", enum: ["junior", "senior", "pm", "qa", "api"], description: "Target audience" }
-        }
-      },
-      execute: async (args) => {
-        const result = await engiDocContextBuild(args);
-        return { success: true, content: JSON.stringify(result, null, 2) };
-      }
-    },
-    {
-      name: "engi_doc_update_plan",
-      description: "Identify which docs must change",
-      inputSchema: {
-        type: "object",
-        properties: {
-          changedFiles: { type: "array", items: { type: "string" }, description: "Files that changed" },
-          existingDocs: { type: "array", items: { type: "string" }, description: "Existing docs" }
-        },
-        required: ["changedFiles"]
-      },
-      execute: async (args) => {
-        const result = await engiDocUpdatePlan(args);
-        return { success: true, content: JSON.stringify(result, null, 2) };
-      }
-    },
-    {
-      name: "engi_memory_checkpoint",
-      description: "Store compact task state outside conversation context",
-      inputSchema: {
-        type: "object",
-        properties: {
-          taskId: { type: "string", description: "Unique task identifier" },
-          taskType: { type: "string", enum: ["analysis", "feature", "bug", "poc", "documentation", "mixed"], description: "Type of task" },
-          files: { type: "array", items: { type: "string" }, description: "Files in scope" },
-          symbols: { type: "array", items: { type: "string" }, description: "Symbols in scope" },
-          modules: { type: "array", items: { type: "string" }, description: "Modules in scope" },
-          decisions: { type: "array", items: { type: "object", properties: { description: { type: "string" }, rationale: { type: "string" } } }, description: "Decisions made" },
-          risks: { type: "array", items: { type: "string" }, description: "Identified risks" },
-          pendingValidations: { type: "array", items: { type: "string" }, description: "Pending validations" },
-          pendingDocs: { type: "array", items: { type: "string" }, description: "Pending docs" },
-          notes: { type: "string", description: "Additional notes" }
-        },
-        required: ["taskId", "taskType", "files"]
-      },
-      execute: async (args) => {
-        const result = await engiMemoryCheckpoint(args);
-        return { success: true, content: JSON.stringify(result, null, 2) };
-      }
-    },
-    {
-      name: "engi_memory_restore",
-      description: "Restore compact previously saved task state",
-      inputSchema: {
-        type: "object",
-        properties: {
-          id: { type: "string", description: "Checkpoint ID to restore" },
-          taskId: { type: "string", description: "Task ID to restore latest checkpoint" }
-        }
-      },
-      execute: async (args) => {
-        const result = await engiMemoryRestore(args);
-        return { success: true, content: JSON.stringify(result, null, 2) };
-      }
-    }
-  ];
-});
-
-// src/native-tools/index.ts
-function getTool(name) {
-  return tools.find((t) => t.name === name);
-}
-async function executeTool(name, args) {
-  const tool = getTool(name);
-  if (!tool) {
-    return { success: false, content: "", error: `Unknown tool: ${name}` };
-  }
-  try {
-    return await tool.execute(args);
-  } catch (e) {
-    return { success: false, content: "", error: e.message };
-  }
-}
-function getFormattedTools() {
-  return tools.map((t) => ({
-    name: t.name,
-    description: t.description,
-    inputSchema: t.inputSchema
-  }));
-}
-var tools;
-var init_native_tools = __esm(() => {
-  init_files();
-  init_code();
-  init_search();
-  init_github();
-  init_tools();
-  tools = [
-    {
-      name: "fetch_web_content",
-      description: "Fetch URL and extract clean content. Optimized for LLM (strips nav/ads, converts to markdown).",
-      inputSchema: {
-        type: "object",
-        properties: {
-          url: { type: "string", description: "URL to fetch" },
-          max_tokens: { type: "integer", description: "Max tokens output (default: 4000)" }
-        },
-        required: ["url"]
-      },
-      async execute(args) {
-        const result = await fetchWebContent(args.url, args.max_tokens || 4000);
-        return { success: result.success, content: result.content, error: result.error };
-      }
-    },
-    {
-      name: "quick_fetch",
-      description: "Ultra-fast fetch for quick lookups. Returns title + summary only.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          url: { type: "string", description: "URL to fetch" }
-        },
-        required: ["url"]
-      },
-      async execute(args) {
-        const result = await quickFetch(args.url);
-        return { success: result.success, content: result.content, error: result.error };
-      }
-    },
-    {
-      name: "open_in_browser",
-      description: "Open URL in default browser. Use when user wants to see results visually or needs interactive web content.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          url: { type: "string", description: "URL to open in browser" },
-          search: { type: "string", description: "Search query to open in Google (alternative to url)" }
-        },
-        required: []
-      },
-      async execute(args) {
-        try {
-          let url = args.url;
-          if (!url && args.search) {
-            url = `https://www.google.com/search?q=${encodeURIComponent(args.search)}`;
-          }
-          if (!url) {
-            return { success: false, content: "", error: "Provide url or search parameter" };
-          }
-          const { execSync: execSync2 } = await import("node:child_process");
-          const opener = process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
-          execSync2(`${opener} "${url}"`, { stdio: "ignore" });
-          return { success: true, content: `Opened in browser: ${url}` };
-        } catch (e) {
-          return { success: false, content: "", error: e.message };
-        }
-      }
-    },
-    {
-      name: "fetch_structured",
-      description: "Fetch and extract structured data (article metadata, product info, tables, links).",
-      inputSchema: {
-        type: "object",
-        properties: {
-          url: { type: "string" },
-          extraction_type: { type: "string", enum: ["article", "product", "table", "links"] },
-          max_tokens: { type: "integer" }
-        },
-        required: ["url", "extraction_type"]
-      },
-      async execute(args) {
-        const result = await fetchStructured(args.url, args.extraction_type, args.max_tokens);
-        return { success: result.success, content: result.content, error: result.error };
-      }
-    },
-    {
-      name: "fetch_with_selectors",
-      description: "Fetch URL and extract using CSS selectors.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          url: { type: "string" },
-          selectors: { type: "object" },
-          max_tokens: { type: "integer" }
-        },
-        required: ["url", "selectors"]
-      },
-      async execute(args) {
-        const result = await fetchWithSelectors(args.url, args.selectors, args.max_tokens);
-        return { success: result.success, content: result.content, error: result.error };
-      }
-    },
-    {
-      name: "scrape_freedium",
-      description: "Scrape Medium via Freedium.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          url: { type: "string" },
-          max_tokens: { type: "integer" }
-        },
-        required: ["url"]
-      },
-      async execute(args) {
-        const result = await scrapeFreedium(args.url, args.max_tokens);
-        return { success: result.success, content: result.content, error: result.error };
-      }
-    },
-    {
-      name: "webclaw_extract_article",
-      description: "Extract article content.",
-      inputSchema: { type: "object", properties: { url: { type: "string" } }, required: ["url"] },
-      async execute(args) {
-        const result = await webclawExtractArticle(args.url);
-        return { success: result.success, content: result.content, error: result.error };
-      }
-    },
-    {
-      name: "webclaw_extract_product",
-      description: "Extract e-commerce product info.",
-      inputSchema: { type: "object", properties: { url: { type: "string" } }, required: ["url"] },
-      async execute(args) {
-        const result = await webclawExtractProduct(args.url);
-        return { success: result.success, content: result.content, error: result.error };
-      }
-    },
-    {
-      name: "webclaw_crawl",
-      description: "Crawl with CSS selectors.",
-      inputSchema: {
-        type: "object",
-        properties: { url: { type: "string" }, selectors: { type: "object" } },
-        required: ["url", "selectors"]
-      },
-      async execute(args) {
-        const result = await webclawCrawl(args.url, args.selectors);
-        return { success: result.success, content: result.content, error: result.error };
-      }
-    },
-    {
-      name: "searxng_search",
-      description: "Web search via SearXNG. Supports categories, engines, time range.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          query: { type: "string", description: "Search query" },
-          limit: { type: "integer", description: "Max results (default: 10)" }
-        },
-        required: ["query"]
-      },
-      async execute(args) {
-        const result = await searxngSearch(args.query, args.limit || 10);
-        if (result.success && result.results) {
-          return {
-            success: true,
-            content: JSON.stringify({ results: result.results })
-          };
-        }
-        return { success: false, content: "", error: result.error };
-      }
-    },
-    {
-      name: "search_images",
-      description: "Image search via SearXNG.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          query: { type: "string" },
-          limit: { type: "integer" }
-        },
-        required: ["query"]
-      },
-      async execute(args) {
-        const result = await searchImages(args.query, args.limit || 10);
-        if (result.success && result.results) {
-          return { success: true, content: JSON.stringify({ results: result.results }) };
-        }
-        return { success: false, content: "", error: result.error };
-      }
-    },
-    {
-      name: "search_news",
-      description: "News search via SearXNG.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          query: { type: "string" },
-          time_range: { type: "string", enum: ["day", "week", "month", "year"] }
-        },
-        required: ["query"]
-      },
-      async execute(args) {
-        const result = await searchNews(args.query, args.time_range);
-        if (result.success && result.results) {
-          return { success: true, content: JSON.stringify({ results: result.results }) };
-        }
-        return { success: false, content: "", error: result.error };
-      }
-    },
-    {
-      name: "searxng_health",
-      description: "Check SearXNG health.",
-      inputSchema: { type: "object", properties: {} },
-      async execute() {
-        const result = await searxngHealth();
-        return { success: result.success, content: result.success ? "OK" : "DOWN", error: result.error };
-      }
-    },
-    {
-      name: "hackernews_top",
-      description: "Top HN stories.",
-      inputSchema: { type: "object", properties: { limit: { type: "integer" } } },
-      async execute(args) {
-        const result = await hackernewsTop(args.limit || 10);
-        if (result.success && result.results) {
-          return { success: true, content: JSON.stringify({ results: result.results }) };
-        }
-        return { success: false, content: "", error: result.error };
-      }
-    },
-    {
-      name: "hackernews_new",
-      description: "Newest HN stories.",
-      inputSchema: { type: "object", properties: { limit: { type: "integer" } } },
-      async execute(args) {
-        const result = await hackernewsNew(args.limit || 10);
-        if (result.success && result.results) {
-          return { success: true, content: JSON.stringify({ results: result.results }) };
-        }
-        return { success: false, content: "", error: result.error };
-      }
-    },
-    {
-      name: "hackernews_best",
-      description: "Best HN stories.",
-      inputSchema: { type: "object", properties: { limit: { type: "integer" } } },
-      async execute(args) {
-        const result = await hackernewsBest(args.limit || 10);
-        if (result.success && result.results) {
-          return { success: true, content: JSON.stringify({ results: result.results }) };
-        }
-        return { success: false, content: "", error: result.error };
-      }
-    },
-    {
-      name: "hackernews_get_comments",
-      description: "Get story comments.",
-      inputSchema: {
-        type: "object",
-        properties: { story_id: { type: "integer" }, limit: { type: "integer" } },
-        required: ["story_id"]
-      },
-      async execute(args) {
-        const result = await hackernewsComments(args.story_id, args.limit || 20);
-        if (result.success && result.results) {
-          return { success: true, content: JSON.stringify({ results: result.results }) };
-        }
-        return { success: false, content: "", error: result.error };
-      }
-    },
-    {
-      name: "file_read",
-      description: "Read file contents.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          path: { type: "string", description: "File path" },
-          max_size: { type: "integer", description: "Max bytes (default: 10MB)" }
-        },
-        required: ["path"]
-      },
-      async execute(args) {
-        const result = await fileRead(args.path, args.max_size);
-        return {
-          success: result.success,
-          content: result.content || "",
-          error: result.error
-        };
-      }
-    },
-    {
-      name: "file_write",
-      description: "Write content to a file.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          path: { type: "string", description: "File path" },
-          content: { type: "string", description: "Content to write" }
-        },
-        required: ["path", "content"]
-      },
-      async execute(args) {
-        const result = await fileWrite(args.path, args.content);
-        return {
-          success: result.success,
-          content: result.path || "",
-          error: result.error
-        };
-      }
-    },
-    {
-      name: "file_list",
-      description: "List directory contents.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          path: { type: "string", description: "Directory path (default: .)" },
-          max_items: { type: "integer" }
-        }
-      },
-      async execute(args) {
-        const result = await fileList(args.path || ".", args.max_items);
-        return {
-          success: result.success,
-          content: JSON.stringify(result.items),
-          error: result.error
-        };
-      }
-    },
-    {
-      name: "file_search",
-      description: "Search files by name pattern.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          directory: { type: "string" },
-          pattern: { type: "string" },
-          max_results: { type: "integer" }
-        },
-        required: ["directory", "pattern"]
-      },
-      async execute(args) {
-        const result = await fileSearch(args.directory, args.pattern, args.max_results);
-        return {
-          success: result.success,
-          content: JSON.stringify(result.files),
-          error: result.error
-        };
-      }
-    },
-    {
-      name: "file_grep",
-      description: "Search within files using grep.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          directory: { type: "string" },
-          query: { type: "string", description: "Search pattern" },
-          max_results: { type: "integer" },
-          file_pattern: { type: "string" }
-        },
-        required: ["directory", "query"]
-      },
-      async execute(args) {
-        const result = await fileGrep(args.directory, args.query, args.max_results, args.file_pattern || "*");
-        return {
-          success: result.success,
-          content: JSON.stringify(result.files),
-          error: result.error
-        };
-      }
-    },
-    {
-      name: "file_glob",
-      description: "Find files matching glob patterns.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          directory: { type: "string" },
-          patterns: { type: "array", items: { type: "string" } },
-          max_results: { type: "integer" }
-        },
-        required: ["directory", "patterns"]
-      },
-      async execute(args) {
-        const result = await fileGlob(args.directory, args.patterns, args.max_results);
-        return {
-          success: result.success,
-          content: JSON.stringify(result.files),
-          error: result.error
-        };
-      }
-    },
-    {
-      name: "run_code",
-      description: "Run code sandbox (Python, JS, Bash).",
-      inputSchema: {
-        type: "object",
-        properties: {
-          code: { type: "string" },
-          language: { type: "string", enum: ["python", "javascript", "bash"] },
-          timeout: { type: "integer" }
-        },
-        required: ["code", "language"]
-      },
-      async execute(args) {
-        const result = await runCode(args.code, args.language, args.timeout || 30);
-        return {
-          success: result.success,
-          content: result.output,
-          error: result.error
-        };
-      }
-    },
-    {
-      name: "run_python_snippet",
-      description: "Run Python with common imports.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          code: { type: "string" },
-          timeout: { type: "integer" }
-        },
-        required: ["code"]
-      },
-      async execute(args) {
-        const result = await runPythonSnippet(args.code, args.timeout);
-        return {
-          success: result.success,
-          content: result.output,
-          error: result.error
-        };
-      }
-    },
-    {
-      name: "run_command",
-      description: "Execute shell command. Supports any command with bash shell. Use for file ops, servers, scripts, etc.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          command: { type: "string", description: "Shell command to execute (full command with args)" },
-          cwd: { type: "string", description: "Working directory (optional, defaults to current)" },
-          background: { type: "boolean", description: "Run in background with nohup (default: false)" },
-          timeout: { type: "integer", description: "Timeout in seconds (default: 30)" }
-        },
-        required: ["command"]
-      },
-      async execute(args) {
-        const { execSync: execSync2, spawn: spawn2 } = await import("node:child_process");
-        const cmd = args.command;
-        const workingDir = args.cwd || process.cwd();
-        const timeout = args.timeout || 30;
-        const runBackground = args.background || false;
-        const dangerous = ["rm -rf", "dd", "mkfs", ":(){", "fork bomb", "> /dev/", "curl | bash", "wget -O- |"];
-        const isDangerous = dangerous.some((d) => cmd.toLowerCase().includes(d));
-        if (isDangerous) {
-          return { success: false, content: "", error: `⚠️  Dangerous command detected: "${cmd.slice(0, 50)}..."
-
-To execute dangerous commands, run directly in your terminal.` };
-        }
-        let fullCmd = cmd;
-        if (cmd.startsWith("cd ") && !cmd.includes("&&")) {
-          const match = cmd.match(/^cd\s+(.+)$/);
-          if (match) {
-            const targetDir = match[1].replace(/^~/, process.env.HOME || "~");
-            try {
-              const { statSync: statSync2 } = await import("node:fs");
-              statSync2(targetDir);
-              return { success: true, content: `Directory changed to: ${targetDir}` };
-            } catch {
-              return { success: false, content: "", error: `Directory not found: ${targetDir}` };
-            }
-          }
-        }
-        try {
-          if (runBackground || cmd.endsWith(" &")) {
-            const cleanCmd = cmd.replace(/\s*&\s*$/, "").trim();
-            spawn2(cleanCmd, [], {
-              shell: true,
-              cwd: workingDir,
-              detached: true,
-              stdio: "ignore"
-            }).unref();
-            return { success: true, content: `Started in background: ${cleanCmd}` };
-          }
-          const output = execSync2(`/bin/bash -c ${JSON.stringify(cmd)}`, {
-            encoding: "utf-8",
-            timeout: timeout * 1000,
-            cwd: workingDir,
-            maxBuffer: 10485760
-          });
-          return { success: true, content: output };
-        } catch (e) {
-          if (e.killed) {
-            return { success: false, content: "", error: `Command timed out after ${timeout}s` };
-          }
-          return { success: false, content: "", error: e.message };
-        }
-      }
-    },
-    {
-      name: "github_repo",
-      description: "Get repo info.",
-      inputSchema: {
-        type: "object",
-        properties: { owner: { type: "string" }, repo: { type: "string" } },
-        required: ["owner", "repo"]
-      },
-      async execute(args) {
-        const result = await githubRepo(args.owner, args.repo);
-        return { success: result.success, content: result.output, error: result.error };
-      }
-    },
-    {
-      name: "github_readme",
-      description: "Get repo README.",
-      inputSchema: {
-        type: "object",
-        properties: { owner: { type: "string" }, repo: { type: "string" } },
-        required: ["owner", "repo"]
-      },
-      async execute(args) {
-        const result = await githubReadme(args.owner, args.repo);
-        return { success: result.success, content: result.output, error: result.error };
-      }
-    },
-    {
-      name: "github_issues",
-      description: "List repo issues.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          owner: { type: "string" },
-          repo: { type: "string" },
-          state: { type: "string", enum: ["open", "closed", "all"] }
-        },
-        required: ["owner", "repo"]
-      },
-      async execute(args) {
-        const result = await githubIssues(args.owner, args.repo, args.state || "open");
-        return { success: result.success, content: result.output, error: result.error };
-      }
-    },
-    {
-      name: "github_commits",
-      description: "List recent commits.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          owner: { type: "string" },
-          repo: { type: "string" },
-          limit: { type: "integer" }
-        },
-        required: ["owner", "repo"]
-      },
-      async execute(args) {
-        const result = await githubCommits(args.owner, args.repo, args.limit || 20);
-        return { success: result.success, content: result.output, error: result.error };
-      }
-    },
-    {
-      name: "github_search_repos",
-      description: "Search repos.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          query: { type: "string" },
-          limit: { type: "integer" }
-        },
-        required: ["query"]
-      },
-      async execute(args) {
-        const result = await githubSearchRepos(args.query, args.limit || 10);
-        return { success: result.success, content: result.output, error: result.error };
-      }
-    },
-    {
-      name: "youtube_transcript",
-      description: "Get transcript from video.",
-      inputSchema: { type: "object", properties: { url: { type: "string" } }, required: ["url"] },
-      async execute(args) {
-        const result = await youtubeTranscript(args.url);
-        return { success: result.success, content: result.output, error: result.error };
-      }
-    },
-    {
-      name: "youtube_video_info",
-      description: "Get video metadata.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          video_id: { type: "string" },
-          url: { type: "string" }
-        }
-      },
-      async execute(args) {
-        const result = await youtubeVideoInfo(args.video_id, args.url);
-        return { success: result.success, content: result.output, error: result.error };
-      }
-    },
-    {
-      name: "youtube_search",
-      description: "Search videos.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          query: { type: "string" },
-          limit: { type: "integer" }
-        },
-        required: ["query"]
-      },
-      async execute(args) {
-        const result = await youtubeSearch(args.query, args.limit || 10);
-        return { success: result.success, content: result.output, error: result.error };
-      }
-    },
-    {
-      name: "youtube_summarize",
-      description: "Summarize transcript.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          transcript: { type: "string" },
-          max_words: { type: "integer" }
-        },
-        required: ["transcript"]
-      },
-      async execute(args) {
-        const result = await youtubeSummarize(args.transcript, args.max_words || 500);
-        return { success: result.success, content: result.output, error: result.error };
-      }
-    },
-    {
-      name: "pandas_create",
-      description: "Create DataFrame from data.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          data: { type: "string", description: "JSON data" },
-          name: { type: "string" }
-        },
-        required: ["data"]
-      },
-      async execute(args) {
-        const result = await pandasCreate(args.data, args.name);
-        return { success: result.success, content: result.output, error: result.error };
-      }
-    },
-    {
-      name: "pandas_filter",
-      description: "Filter data.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          data: { type: "array" },
-          conditions: { type: "string" }
-        },
-        required: ["data", "conditions"]
-      },
-      async execute(args) {
-        const result = await pandasFilter(args.data, args.conditions);
-        return { success: result.success, content: result.output, error: result.error };
-      }
-    },
-    {
-      name: "pandas_aggregate",
-      description: "Aggregate/group data.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          data: { type: "array" },
-          group_by: { type: "array", items: { type: "string" } },
-          aggregations: { type: "object" }
-        },
-        required: ["data", "group_by", "aggregations"]
-      },
-      async execute(args) {
-        const result = await pandasAggregate(args.data, args.group_by, args.aggregations);
-        return { success: result.success, content: result.output, error: result.error };
-      }
-    },
-    {
-      name: "plot_line",
-      description: "Generate line plot.",
-      inputSchema: {
-        type: "object",
-        properties: { x: { type: "array" }, y: { type: "array" }, title: { type: "string" } },
-        required: ["x", "y"]
-      },
-      async execute(args) {
-        return {
-          success: true,
-          content: `Line chart: ${args.title || "Plot"}
-X: ${args.x.slice(0, 5)}
-Y: ${args.y.slice(0, 5)}
-(Use run_code with matplotlib to render)`
-        };
-      }
-    },
-    {
-      name: "plot_bar",
-      description: "Generate bar chart.",
-      inputSchema: {
-        type: "object",
-        properties: { categories: { type: "array" }, values: { type: "array" }, title: { type: "string" } },
-        required: ["categories", "values"]
-      },
-      async execute(args) {
-        return {
-          success: true,
-          content: `Bar chart: ${args.title || "Plot"}
-Categories: ${args.categories.slice(0, 5)}
-Values: ${args.values.slice(0, 5)}
-(Use run_code with matplotlib to render)`
-        };
-      }
-    },
-    ...engiTools
-  ];
-});
-
-// src/utils/notifications.ts
-function playBell() {
-  if (NOTIFY_ENABLED && NOTIFY_SOUND) {
-    process.stdout.write("\x07");
-  }
-}
-function onResponseReady() {
-  playBell();
-}
-var NOTIFY_ENABLED, NOTIFY_SOUND;
-var init_notifications = __esm(() => {
-  NOTIFY_ENABLED = process.env.BEAST_NOTIFY !== "false";
-  NOTIFY_SOUND = process.env.BEAST_NOTIFY_SOUND !== "false";
 });
 
 // src/agents/index.ts
@@ -6081,7 +2056,4173 @@ var init_agents = __esm(() => {
   agentRegistry = new Map;
 });
 
+// src/ui/banner.ts
+function termWidth2() {
+  try {
+    return process.stdout.columns || 80;
+  } catch {
+    return 80;
+  }
+}
+function renderCleanBanner2() {
+  if (!isColorEnabled2())
+    return "BEAST CLI - AI Coding Agent";
+  const width = termWidth2();
+  let logo;
+  if (width >= 60) {
+    logo = FULL_LOGO2;
+  } else if (width >= 40) {
+    logo = COMPACT_LOGO2;
+  } else {
+    logo = TINY_LOGO2;
+  }
+  if (width < 50) {
+    return logo;
+  }
+  const tagline = REVEAL_TAGLINE2 + `
+`;
+  const cardSep = "  ";
+  const cardLines = FEATURE_CARDS2.map((card) => {
+    return s2(card.label, card.color);
+  }).join(s2(cardSep, fg2.overlay));
+  return logo + tagline + `
+` + cardLines + `
+`;
+}
+var googlePurple3 = "\x1B[38;2;142;54;255m", googleBlue3 = "\x1B[38;2;70;130;255m", FULL_LOGO2, COMPACT_LOGO2, TINY_LOGO2, googlePurple22 = "\x1B[38;2;142;54;255m", googleBlue22 = "\x1B[38;2;70;130;255m", TEXT_LOGO2, FEATURE_CARDS2, REVEAL_TAGLINE2;
+var init_banner = __esm(() => {
+  init_colors();
+  FULL_LOGO2 = `
+ ${googlePurple3}+==================================================================+${reset2}` + `
+ ${googlePurple3}|${reset2}  \uD83D\uDC09  ${s2("BEAST", googlePurple3, bold2)}   ${s2("CLI", googleBlue3, bold2)}    ${dim2}AI Coding Agent · 45+ Providers · 51+ Tools     ${googlePurple3}|${reset2}` + `
+ ${googlePurple3}+==================================================================+${reset2}
+`;
+  COMPACT_LOGO2 = `
+ ${googlePurple3}+----------------------------------------------+${reset2}` + `
+ ${googlePurple3}|${reset2}  \uD83D\uDC09  ${s2("BEAST", googlePurple3, bold2)}  ${s2("CLI", googleBlue3, bold2)}  ${dim2}AI Coding Agent                  ${googlePurple3}|${reset2}` + `
+ ${googlePurple3}+----------------------------------------------+${reset2}
+`;
+  TINY_LOGO2 = ` \uD83D\uDC09 ${s2("BEAST CLI", googlePurple3, bold2)} ${dim2}~ 
+`;
+  TEXT_LOGO2 = ` ${s2("BEAST", googlePurple22, bold2)} ${s2("CLI", googleBlue22, bold2)} `;
+  FEATURE_CARDS2 = [
+    { label: "Blazing Fast", color: fg2.warning },
+    { label: "Private & Local", color: fg2.success },
+    { label: "45+ Providers", color: fg2.sapphire },
+    { label: "51+ Tools", color: fg2.tool }
+  ];
+  REVEAL_TAGLINE2 = `${s2("·", fg2.overlay)} ${s2("45+ Providers", fg2.muted)} ` + `${s2("·", fg2.overlay)} ${s2("51+ Tools", fg2.muted)} ` + `${s2("·", fg2.overlay)} ${s2("Local AI Ready", fg2.muted)}`;
+});
+
+// src/ui/router.ts
+var exports_router = {};
+__export(exports_router, {
+  launchUI: () => launchUI,
+  launchRepl: () => launchRepl,
+  launchInk: () => launchInk
+});
+import { resolve as resolve4, dirname as dirname3 } from "node:path";
+import { fileURLToPath } from "node:url";
+import { spawn as spawn2 } from "node:child_process";
+function isInteractive() {
+  return process.stdin.isTTY === true;
+}
+function getInkSourcePath() {
+  const selfDir = dirname3(fileURLToPath(import.meta.url));
+  return resolve4(selfDir, "..", "src", "ui", "ink", "index.tsx");
+}
+async function launchRepl() {
+  try {
+    const { dirname: dirname4 } = await import("node:path");
+    const { fileURLToPath: fileURLToPath2 } = await import("node:url");
+    const { spawn: spawn3 } = await import("node:child_process");
+    const selfDir = dirname4(fileURLToPath2(import.meta.url));
+    const srcEntry = selfDir + "/../index.ts";
+    const bunPath = process.env.BUN_INSTALL ? process.env.BUN_INSTALL + "/bin/bun" : "bun";
+    const child = spawn3(bunPath, ["--bun", "run", srcEntry, "--defaults"], {
+      stdio: "inherit",
+      env: { ...process.env, FORCE_COLOR: "1" }
+    });
+    child.on("exit", (code) => process.exit(code ?? 0));
+  } catch (err) {
+    console.error(s2(`
+Failed to launch REPL: ` + String(err), fg2.error));
+    process.exit(1);
+  }
+}
+async function launchInk() {
+  try {
+    const inkSource = getInkSourcePath();
+    const bunPath = process.env.BUN_INSTALL ? process.env.BUN_INSTALL + "/bin/bun" : "bun";
+    const child = spawn2(bunPath, ["--bun", "run", inkSource], {
+      stdio: "inherit",
+      env: { ...process.env, FORCE_COLOR: "1" }
+    });
+    child.on("exit", (code) => process.exit(code ?? 0));
+  } catch (err) {
+    console.error(s2(`
+Failed to launch Ink TUI: ` + String(err), fg2.error));
+    console.error(s2(`Falling back to REPL mode...
+`, fg2.warning));
+    await launchRepl();
+  }
+}
+async function promptMode() {
+  const readline = await import("readline");
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  return new Promise((resolve5) => {
+    console.log(renderCleanBanner2());
+    console.log();
+    console.log(`  ${s2("[1]", fg2.accent)} ${s2("Minimal REPL", fg2.primary)}   ${dim2}— fast, ASCII-safe, tab complete`);
+    console.log(`  ${s2("[2]", fg2.accent)} ${s2("Rich TUI", fg2.primary)}       ${dim2}— modern React/Ink with spinners & panels`);
+    console.log();
+    console.log(`  ${s2("Tip:", fg2.warning)} ${s2("Use", fg2.muted)} ${s2("--tui", fg2.accent)} ${s2("flag to skip this prompt", fg2.muted)}`);
+    console.log();
+    rl.question(s2("  Choose [1]", fg2.muted) + " ", (answer) => {
+      rl.close();
+      resolve5(answer.trim() === "2" ? "ink" : "repl");
+    });
+  });
+}
+async function launchUI(mode = "auto") {
+  if (process.argv.includes("--tui")) {
+    console.log(s2(`
+  Launching Rich TUI...`, fg2.accent));
+    await launchInk();
+    return;
+  }
+  if (!isInteractive()) {
+    await launchRepl();
+    return;
+  }
+  if (mode === "auto") {
+    const chosen = await promptMode();
+    if (chosen === "ink") {
+      await launchInk();
+    } else {
+      await launchRepl();
+    }
+    return;
+  }
+  mode === "ink" ? await launchInk() : await launchRepl();
+}
+var init_router = __esm(() => {
+  init_colors();
+  init_banner();
+});
+
+// src/index.ts
+init_providers();
+
+// src/ui/colors.ts
+var reset = "\x1B[0m";
+var bold = "\x1B[1m";
+var dim = "\x1B[2m";
+var claudePalette = {
+  crust: "\x1B[48;2;250;249;245m",
+  mantle: "\x1B[48;2;245;244;237m",
+  base: "\x1B[48;2;240;238;220m",
+  surface0: "\x1B[48;2;232;230;220m",
+  surface1: "\x1B[48;2;215;213;200m",
+  surface2: "\x1B[48;2;180;178;170m",
+  text: "\x1B[38;2;20;20;19m",
+  subtext0: "\x1B[38;2;80;79;75m",
+  subtext1: "\x1B[38;2;50;49;46m",
+  overlay0: "\x1B[38;2;140;138;130m",
+  blue: "\x1B[38;2;56;152;236m",
+  sapphire: "\x1B[38;2;56;152;236m",
+  sky: "\x1B[38;2;100;170;210m",
+  teal: "\x1B[38;2;23;146;153m",
+  green: "\x1B[38;2;30;160;80m",
+  yellow: "\x1B[38;2;200;140;0m",
+  peach: "\x1B[38;2;201;130;70m",
+  maroon: "\x1B[38;2;160;100;90m",
+  red: "\x1B[38;2;200;60;60m",
+  mauve: "\x1B[38;2;180;80;200m",
+  pink: "\x1B[38;2;200;100;180m",
+  flamingo: "\x1B[38;2;220;150;130m",
+  lavender: "\x1B[38;2;139;92;246m",
+  white: "\x1B[38;2;255;255;250m",
+  gpPurple: "\x1B[38;2;142;54;255m",
+  gpBlue: "\x1B[38;2;70;130;255m",
+  gpCyan: "\x1B[38;2;0;200;200m",
+  gpGreen: "\x1B[38;2;0;200;100m",
+  gpYellow: "\x1B[38;2;255;200;0m",
+  gpRed: "\x1B[38;2;255;100;100m"
+};
+var fg = {
+  primary: claudePalette.text,
+  secondary: claudePalette.subtext1,
+  muted: claudePalette.overlay0,
+  overlay: claudePalette.surface2,
+  success: claudePalette.green,
+  warning: claudePalette.yellow,
+  error: claudePalette.red,
+  info: claudePalette.blue,
+  user: claudePalette.green,
+  assistant: claudePalette.mauve,
+  system: claudePalette.sapphire,
+  tool: claudePalette.peach,
+  code: claudePalette.teal,
+  link: claudePalette.sapphire,
+  keyword: claudePalette.mauve,
+  function: claudePalette.blue,
+  string: claudePalette.green,
+  number: claudePalette.peach,
+  accent: claudePalette.gpPurple,
+  accent2: claudePalette.pink,
+  accent3: claudePalette.lavender,
+  peach: claudePalette.peach,
+  mauve: claudePalette.mauve,
+  cyan: claudePalette.teal,
+  purple: claudePalette.gpPurple,
+  prompt: claudePalette.gpPurple,
+  gpPurple: claudePalette.gpPurple,
+  gpBlue: claudePalette.gpBlue,
+  gpCyan: claudePalette.gpCyan,
+  gpGreen: claudePalette.gpGreen,
+  gpYellow: claudePalette.gpYellow,
+  gpRed: claudePalette.gpRed
+};
+var bg = {
+  base: claudePalette.base,
+  surface: claudePalette.surface0,
+  elevated: claudePalette.surface1,
+  overlay: claudePalette.surface2,
+  crust: claudePalette.crust,
+  mantle: claudePalette.mantle
+};
+var spinnerFrames = {
+  dots: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"],
+  line: ["-", "\\", "|", "/"],
+  blocks: ["▖", "▘", "▝", "▗"],
+  arrow: ["←", "↙", "↓", "↘", "→", "↗", "↑", "↖"],
+  star: ["⋆", "✦", "✧", "⋆", "✧", "✦"]
+};
+var DEFAULT_SPINNER = spinnerFrames.dots;
+var icon = {
+  prompt: "›",
+  userPrefix: ">",
+  aiPrefix: "◈",
+  success: "✓",
+  error: "✗",
+  warning: "!",
+  info: "i",
+  check: "●",
+  online: "●",
+  offline: "○",
+  tool: "›",
+  run: "›",
+  search: "⌕",
+  edit: "✎",
+  plus: "+",
+  minus: "−",
+  arrow: "→",
+  arrowUp: "↑",
+  arrowDown: "↓",
+  bullet: "·",
+  separator: "│",
+  folder: "▶",
+  file: "▷",
+  code: "◈",
+  link: "↗",
+  star: "★",
+  spark: "✦",
+  sparkles: "⁎",
+  tokens: "⚡",
+  messages: "≡",
+  time: "⏱",
+  context: "◈",
+  clock: "⏰",
+  ts: "TS",
+  js: "JS",
+  py: "PY",
+  md: "MD",
+  json: "{}",
+  git: "⎇",
+  thinking: "◐",
+  loading: "⠋",
+  line: "─",
+  dash: "–",
+  dot: "·",
+  space: " "
+};
+var NO_COLOR = process.env.NO_COLOR || process.env.NO_COLOUR;
+function isColorEnabled() {
+  if (NO_COLOR)
+    return false;
+  if (process.env.FORCE_COLOR)
+    return true;
+  if (process.stdout && !process.stdout.isTTY)
+    return false;
+  return true;
+}
+function s(text, ...styles) {
+  if (!isColorEnabled())
+    return text;
+  return styles.join("") + text + reset;
+}
+
+// src/ui/layout.ts
+init_colors();
+function renderHeader(config) {
+  if (!isColorEnabled2()) {
+    return `BEAST CLI v${config.version} | ${config.provider} | ${config.model}`;
+  }
+  const { version, provider, model, toolsCount } = config;
+  const b = box.round;
+  const gpPurple = "\x1B[38;2;142;54;255m";
+  const gpBlue = "\x1B[38;2;70;130;255m";
+  const line = [
+    s2(`${b.tl} `, gpPurple),
+    s2("\uD83D\uDC09", gpPurple),
+    s2(" Beast ", gpPurple, bold2),
+    s2("CLI", gpBlue, bold2),
+    s2(` v${version}`, fg2.muted),
+    s2(` ${b.h} `, gpPurple),
+    s2(icon2.check + " ", fg2.success),
+    s2(provider, fg2.success),
+    s2(` ${b.h} `, gpPurple),
+    s2(icon2.code + " ", gpBlue),
+    s2(model, gpBlue),
+    s2(` ${b.h} `, gpPurple),
+    s2(icon2.tool + " ", fg2.peach),
+    s2(`${toolsCount} tools`, fg2.peach),
+    s2(` ${b.h}${b.tr}`, gpPurple)
+  ].join("");
+  return line;
+}
+function contextBar(stats) {
+  const { used, max } = stats;
+  const width = 16;
+  const pct = Math.min(1, used / max);
+  const filled = Math.round(pct * width);
+  const empty = width - filled;
+  let barColor = fg2.success;
+  if (pct > 0.75)
+    barColor = fg2.sapphire;
+  if (pct > 0.9)
+    barColor = fg2.warning;
+  const bar = s2("█".repeat(filled), barColor) + s2("░".repeat(empty), fg2.overlay);
+  const pctStr = s2(`${Math.round(pct * 100)}%`, barColor);
+  const usedStr = s2(formatTokens(used), fg2.muted);
+  const maxStr = s2(formatTokens(max), fg2.muted);
+  return [
+    s2(`  ${icon2.context} `, fg2.muted),
+    bar,
+    s2(" ", fg2.muted),
+    pctStr,
+    s2(" (", fg2.muted),
+    usedStr,
+    s2("/", fg2.muted),
+    maxStr,
+    s2(")", fg2.muted)
+  ].join("");
+}
+function formatTokens(n) {
+  if (n >= 1000)
+    return (n / 1000).toFixed(1) + "K";
+  return String(n);
+}
+
+// src/ui/format.ts
+init_colors();
+function stripAnsi(text) {
+  return text.replace(/\x1b\[[0-9;]*m/g, "");
+}
+function panel(content, options = {}) {
+  const { title, titleColor = fg2.accent, width = 70 } = options;
+  const rawLines = content.split(`
+`);
+  const maxLen = rawLines.reduce((m, l) => Math.max(m, stripAnsi(l).length), 0);
+  const w = Math.max(width, maxLen + 4);
+  let result = `+${"-".repeat(w)}+
+`;
+  if (title) {
+    const titleLen = stripAnsi(title).length;
+    const pad1 = Math.floor((w - titleLen) / 2);
+    const pad2 = w - titleLen - pad1;
+    result += `|${" ".repeat(pad1)}${title}${" ".repeat(pad2)}|
+`;
+    result += `|${"-".repeat(w)}|
+`;
+  }
+  for (const ln of rawLines) {
+    const len = stripAnsi(ln).length;
+    const pad = w - len - 2;
+    result += `| ${ln}${" ".repeat(Math.max(0, pad))} |
+`;
+  }
+  result += `+${"-".repeat(w)}+`;
+  return s2(result, titleColor);
+}
+function inlineList(items, options = {}) {
+  const { iconColor = fg2.accent, labelColor = fg2.muted, valueColor = fg2.primary, separator = "  " } = options;
+  return items.map((item) => {
+    const icon3 = item.icon ? s2(item.icon + " ", iconColor) : "";
+    return icon3 + s2(item.label, labelColor) + ": " + s2(item.value, valueColor);
+  }).join(separator);
+}
+async function withProgress(label, promise, onTick) {
+  const start = Date.now();
+  let ticks = 0;
+  const ticker = setInterval(() => {
+    const elapsed = Date.now() - start;
+    const estimated = Math.min(1, elapsed / 1e4);
+    ticks++;
+    const pct = Math.round(estimated * 100);
+    const filled = Math.round(estimated * 24);
+    const barColor = pct > 80 ? fg2.warning : pct > 50 ? fg2.accent : fg2.success;
+    const bar = s2("█".repeat(filled), barColor) + s2("░".repeat(24 - filled), fg2.muted);
+    process.stderr.write(`\r  ${s2(label, fg2.secondary)} ${bar} ${s2(pct + "%", barColor)}   `);
+    if (onTick)
+      onTick(elapsed);
+  }, 300);
+  try {
+    const result = await promise;
+    clearInterval(ticker);
+    process.stderr.write("\r" + " ".repeat(60) + "\r");
+    process.stderr.write(s2("✓ ", fg2.success) + s2(label, fg2.secondary) + `
+`);
+    return result;
+  } catch (e) {
+    clearInterval(ticker);
+    process.stderr.write("\r" + " ".repeat(60) + "\r");
+    process.stderr.write(s2("✗ ", fg2.error) + s2(label, fg2.secondary) + `
+`);
+    throw e;
+  }
+}
+function helpPanel(commands) {
+  const maxCmd = Math.max(...commands.map((c) => stripAnsi(c.cmd).length), 4);
+  return commands.map(({ cmd, desc, shortcut }) => {
+    const shortcutStr = shortcut ? s2(` (${shortcut})`, fg2.muted, italic) : "";
+    return `  ${s2(cmd.padEnd(maxCmd + 2), fg2.accent)}${s2(desc, fg2.primary)}${shortcutStr}`;
+  }).join(`
+`);
+}
+
+// src/ui/tool-renderer.ts
+init_colors();
+
+// src/ui/format.ts
+init_colors();
+function stripAnsi2(text) {
+  return text.replace(/\x1b\[[0-9;]*m/g, "");
+}
+
+// src/ui/tool-renderer.ts
+var MAX_RESULT_LINES = 2;
+var MAX_LINE_WIDTH = 120;
+function truncateResult(content, maxLines = MAX_RESULT_LINES) {
+  const lines = content.split(`
+`);
+  if (lines.length <= maxLines)
+    return content;
+  const visible = lines.slice(0, maxLines);
+  const truncated = visible.map((l) => {
+    const stripped = stripAnsi2(l);
+    if (stripped.length <= MAX_LINE_WIDTH)
+      return l;
+    return l.slice(0, MAX_LINE_WIDTH - 3) + "...";
+  });
+  const remaining = lines.length - maxLines;
+  return truncated.join(`
+`) + `
+` + s2(`... (${remaining} more lines)`, fg2.muted);
+}
+function renderToolResult(name, result) {
+  if (!result.success) {
+    return renderError(name, result.error || "Unknown error");
+  }
+  if (name.startsWith("file_list"))
+    return renderFileList(result.content);
+  if (name.startsWith("file_read"))
+    return renderFileRead(result.content);
+  if (name.startsWith("github_search") || name.startsWith("github_repo"))
+    return renderGithub(result.content);
+  if (name.startsWith("searxng_search"))
+    return renderSearch(result.content);
+  if (name.startsWith("run_code") || name.startsWith("run_python"))
+    return renderCodeOutput(result.content);
+  if (name.startsWith("hackernews"))
+    return renderHackerNews(result.content);
+  if (name.startsWith("youtube"))
+    return renderYouTube(result.content);
+  if (name.startsWith("fetch_web") || name.startsWith("quick_fetch"))
+    return renderWebContent(result.content);
+  return renderGeneric(result.content);
+}
+function renderFileList(content) {
+  try {
+    const items = JSON.parse(content);
+    if (!Array.isArray(items) || items.length === 0) {
+      return s2("(empty directory)", fg2.muted);
+    }
+    const dirs = items.filter((i) => i.type === "directory");
+    const files = items.filter((i) => i.type !== "directory");
+    const lines = [];
+    if (dirs.length > 0) {
+      lines.push(s2("\uD83D\uDCC1 Directories", fg2.accent));
+      lines.push(dirs.map((d) => `  ${s2("\uD83D\uDCC1", fg2.warning)} ${s2(d.name, fg2.primary)}`).join(`
+`));
+      lines.push("");
+    }
+    if (files.length > 0) {
+      lines.push(s2("\uD83D\uDCC4 Files", fg2.accent));
+      lines.push(files.map((f) => {
+        const size = f.size ? formatSize(f.size) : "";
+        const modified = f.modified ? timeAgo(f.modified) : "";
+        return `  ${s2("\uD83D\uDCC4", fg2.cyan)} ${s2(f.name, fg2.primary)} ${s2(size, fg2.muted)} ${s2(modified, fg2.muted)}`;
+      }).join(`
+`));
+    }
+    return lines.join(`
+`) + `
+${s2("(" + items.length + " items)", fg2.muted)}`;
+  } catch {
+    return renderGeneric(content);
+  }
+}
+function renderFileRead(content) {
+  return truncateResult(content, MAX_RESULT_LINES);
+}
+function renderCodeOutput(content) {
+  return truncateResult(content, MAX_RESULT_LINES);
+}
+function renderSearch(content) {
+  try {
+    const data = JSON.parse(content);
+    const results = data.results || [];
+    if (results.length === 0) {
+      return s2("No results found", fg2.muted);
+    }
+    const shown = results.slice(0, MAX_RESULT_LINES);
+    const remaining = results.length - shown.length;
+    const items = shown.map((r, i) => {
+      const title = r.title || s2("(no title)", fg2.muted);
+      const url = r.url || "";
+      const snippet = r.snippet || "";
+      return [
+        s2(`${i + 1}. `, fg2.accent) + s2(truncate(title, 60), fg2.bold, fg2.primary),
+        `   ${s2(truncate(snippet, 80), fg2.secondary)}`,
+        `   ${s2(truncate(url, 70), fg2.link)}`
+      ].join(`
+`);
+    });
+    if (remaining > 0) {
+      items.push(s2(`... and ${remaining} more results — use fetch_web for full content`, fg2.muted));
+    }
+    return items.join(`
+
+`);
+  } catch {
+    return renderGeneric(content);
+  }
+}
+function renderGithub(content) {
+  try {
+    const data = JSON.parse(content);
+    if (data.name) {
+      const lines = [
+        s2(data.name, fg2.bold, fg2.accent),
+        data.description ? s2(data.description, fg2.primary) : "",
+        "",
+        s2("⭐ " + formatNumber(data.stars || data.stargazers_count || 0), fg2.warning) + "  " + s2("\uD83C\uDF74 " + formatNumber(data.forks_count || 0), fg2.cyan) + "  " + s2(data.language || "", fg2.success),
+        "",
+        s2(data.url || data.html_url || "", fg2.link)
+      ];
+      return lines.filter(Boolean).join(`
+`);
+    }
+    if (Array.isArray(data)) {
+      const shown = data.slice(0, MAX_RESULT_LINES);
+      const remaining = data.length - shown.length;
+      const items = shown.map((r, i) => {
+        return [
+          s2(`${i + 1}. `, fg2.accent) + s2(r.name || r.full_name, fg2.bold, fg2.primary),
+          r.description ? `   ${s2(truncate(r.description, 60), fg2.secondary)}` : "",
+          `   ${s2("⭐ " + formatNumber(r.stars || r.stargazers_count || 0), fg2.warning)} ${r.language ? s2(r.language, fg2.success) : ""}`
+        ].filter(Boolean).join(`
+`);
+      });
+      if (remaining > 0) {
+        items.push(s2(`... and ${remaining} more repos`, fg2.muted));
+      }
+      return items.join(`
+
+`);
+    }
+    return renderGeneric(content);
+  } catch {
+    return renderGeneric(content);
+  }
+}
+function renderHackerNews(content) {
+  try {
+    const data = JSON.parse(content);
+    const results = data.results || [];
+    const shown = results.slice(0, MAX_RESULT_LINES);
+    const remaining = results.length - shown.length;
+    const items = shown.map((r, i) => {
+      const title = r.title || s2("(no title)", fg2.muted);
+      const score = r.score || r.snippet?.match(/(\d+) points/)?.[1] || "0";
+      const comments = r.descendants || r.snippet?.match(/(\d+) comments/)?.[1] || "0";
+      return [
+        s2(`${i + 1}. `, fg2.accent) + s2(truncate(title, 60), fg2.bold, fg2.primary),
+        `   ${s2("⭐ " + score, fg2.warning)} ${s2("\uD83D\uDCAC " + comments, fg2.cyan)} ${r.url ? s2(truncate(r.url, 50), fg2.link) : ""}`
+      ].join(`
+`);
+    });
+    if (remaining > 0) {
+      items.push(s2(`... and ${remaining} more stories`, fg2.muted));
+    }
+    return items.join(`
+
+`);
+  } catch {
+    return renderGeneric(content);
+  }
+}
+function renderYouTube(content) {
+  try {
+    const data = JSON.parse(content);
+    const results = Array.isArray(data) ? data : data.results || [];
+    const shown = results.slice(0, MAX_RESULT_LINES);
+    const remaining = results.length - shown.length;
+    const items = shown.map((r, i) => {
+      return [
+        s2(`${i + 1}. `, fg2.accent) + s2(r.name || r.full_name || s2("(no name)", fg2.muted), fg2.bold, fg2.primary),
+        r.description ? `   ${s2(truncate(r.description, 60), fg2.secondary)}` : "",
+        `   ${s2("⭐ " + formatNumber(r.stars || r.stargazers_count || 0), fg2.warning)} ${r.language ? s2(r.language, fg2.success) : ""}`
+      ].filter(Boolean).join(`
+`);
+    });
+    if (remaining > 0) {
+      items.push(s2(`... and ${remaining} more videos`, fg2.muted));
+    }
+    return items.join(`
+
+`);
+  } catch {
+    return renderGeneric(content);
+  }
+}
+function renderWebContent(content) {
+  return truncateResult(content, MAX_RESULT_LINES);
+}
+function renderGeneric(content) {
+  try {
+    const parsed = JSON.parse(content);
+    const formatted = JSON.stringify(parsed, null, 2);
+    return truncateResult(formatted, MAX_RESULT_LINES);
+  } catch {
+    return truncateResult(content, MAX_RESULT_LINES);
+  }
+}
+function renderError(toolName, error) {
+  return s2(`${icon2.error} ${toolName}: ${error}`, fg2.error);
+}
+function formatSize(bytes) {
+  if (bytes < 1024)
+    return bytes + " B";
+  if (bytes < 1024 * 1024)
+    return (bytes / 1024).toFixed(1) + " KB";
+  return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+}
+function formatNumber(n) {
+  if (n >= 1e6)
+    return (n / 1e6).toFixed(1) + "M";
+  if (n >= 1000)
+    return (n / 1000).toFixed(1) + "K";
+  return String(n);
+}
+function timeAgo(dateStr) {
+  try {
+    const date = new Date(dateStr);
+    const diff = Date.now() - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    if (days > 0)
+      return days + "d ago";
+    if (hours > 0)
+      return hours + "h ago";
+    if (minutes > 0)
+      return minutes + "m ago";
+    return "just now";
+  } catch {
+    return "";
+  }
+}
+function truncate(text, maxLen) {
+  const stripped = stripAnsi2(text);
+  if (stripped.length <= maxLen)
+    return text;
+  const plain = text.replace(/\x1b\[[0-9;]*m/g, "");
+  const truncated = plain.slice(0, maxLen - 3);
+  const lastSpace = truncated.lastIndexOf(" ");
+  if (lastSpace > maxLen * 0.7) {
+    return text.slice(0, text.indexOf(" ", lastSpace)) + "...";
+  }
+  return text.slice(0, maxLen - 3) + "...";
+}
+
+// src/ui/banner.ts
+init_colors();
+function termWidth() {
+  try {
+    return process.stdout.columns || 80;
+  } catch {
+    return 80;
+  }
+}
+var googlePurple = "\x1B[38;2;142;54;255m";
+var googleBlue = "\x1B[38;2;70;130;255m";
+var FULL_LOGO = `
+ ${googlePurple}+==================================================================+${reset2}` + `
+ ${googlePurple}|${reset2}  \uD83D\uDC09  ${s2("BEAST", googlePurple, bold2)}   ${s2("CLI", googleBlue, bold2)}    ${dim2}AI Coding Agent · 45+ Providers · 51+ Tools     ${googlePurple}|${reset2}` + `
+ ${googlePurple}+==================================================================+${reset2}
+`;
+var COMPACT_LOGO = `
+ ${googlePurple}+----------------------------------------------+${reset2}` + `
+ ${googlePurple}|${reset2}  \uD83D\uDC09  ${s2("BEAST", googlePurple, bold2)}  ${s2("CLI", googleBlue, bold2)}  ${dim2}AI Coding Agent                  ${googlePurple}|${reset2}` + `
+ ${googlePurple}+----------------------------------------------+${reset2}
+`;
+var TINY_LOGO = ` \uD83D\uDC09 ${s2("BEAST CLI", googlePurple, bold2)} ${dim2}~ 
+`;
+var googlePurple2 = "\x1B[38;2;142;54;255m";
+var googleBlue2 = "\x1B[38;2;70;130;255m";
+var TEXT_LOGO = ` ${s2("BEAST", googlePurple2, bold2)} ${s2("CLI", googleBlue2, bold2)} `;
+var FEATURE_CARDS = [
+  { label: "Blazing Fast", color: fg2.warning },
+  { label: "Private & Local", color: fg2.success },
+  { label: "45+ Providers", color: fg2.sapphire },
+  { label: "51+ Tools", color: fg2.tool }
+];
+var REVEAL_TAGLINE = `${s2("·", fg2.overlay)} ${s2("45+ Providers", fg2.muted)} ` + `${s2("·", fg2.overlay)} ${s2("51+ Tools", fg2.muted)} ` + `${s2("·", fg2.overlay)} ${s2("Local AI Ready", fg2.muted)}`;
+function renderCleanBanner() {
+  if (!isColorEnabled2())
+    return "BEAST CLI - AI Coding Agent";
+  const width = termWidth();
+  let logo;
+  if (width >= 60) {
+    logo = FULL_LOGO;
+  } else if (width >= 40) {
+    logo = COMPACT_LOGO;
+  } else {
+    logo = TINY_LOGO;
+  }
+  if (width < 50) {
+    return logo;
+  }
+  const tagline = REVEAL_TAGLINE + `
+`;
+  const cardSep = "  ";
+  const cardLines = FEATURE_CARDS.map((card) => {
+    return s2(card.label, card.color);
+  }).join(s2(cardSep, fg2.overlay));
+  return logo + tagline + `
+` + cardLines + `
+`;
+}
+
+// src/ui/tips.ts
+init_colors();
+var ALL_TIPS = [
+  { cmd: "/model <name>", tip: "Switch models mid-session without restarting", category: "command" },
+  { cmd: "/provider <name>", tip: "Jump between Ollama, OpenRouter, Claude instantly", category: "command" },
+  { cmd: "/tools", tip: "See all available MCP tools and their descriptions", category: "command" },
+  { cmd: "/clear", tip: "Wipe conversation history to reset context window", category: "command" },
+  { cmd: "/clean", tip: "Nuke everything — history, memory, and agents for a fresh start", category: "command" },
+  { cmd: "/init", tip: "Set up project context, known facts, and custom agents", category: "command" },
+  { cmd: "/agents", tip: "Manage custom agents — create, use, delete, or info", category: "command" },
+  { cmd: "/models", tip: "List all available models for your current provider", category: "command" },
+  { cmd: "/switch", tip: "Reconfigure provider, model, and context size interactively", category: "command" },
+  { cmd: "/login", tip: "Authenticate with ChatGPT Plus OAuth for free access", category: "command" },
+  { cmd: "/logout", tip: "Clear ChatGPT Plus authentication", category: "command" },
+  { cmd: "/provider", tip: "Switch to a different LLM provider interactively", category: "command" },
+  { cmd: "Tab", tip: "Auto-complete slash commands and agent names", category: "command" },
+  { cmd: "Up / Down", tip: "Navigate through your command history", category: "command" },
+  { cmd: "/agents create", tip: "Create a reusable agent with custom instructions", category: "command" },
+  { cmd: "/agents use <name>", tip: "Set an agent as always-on — prepended to every prompt", category: "command" },
+  { cmd: "@agentname", tip: "Activate a custom agent for a single prompt", category: "command" },
+  { cmd: "searxng_search", tip: "Web search without leaving the CLI — multiple engines", category: "tool" },
+  { cmd: "fetch_web", tip: "Fetch full web page content from any URL", category: "tool" },
+  { cmd: "run_code", tip: "Execute shell commands — git, npm, docker, anything", category: "tool" },
+  { cmd: "run_python", tip: "Run Python code with a sandboxed interpreter", category: "tool" },
+  { cmd: "github_search_repos", tip: "Search GitHub by keyword with stars and language", category: "tool" },
+  { cmd: "github_issues", tip: "View, create, and manage GitHub issues", category: "tool" },
+  { cmd: "github_commits", tip: "Browse commit history for any repository", category: "tool" },
+  { cmd: "hacker_news", tip: "Get top Hacker News stories and comments", category: "tool" },
+  { cmd: "youtube_transcript", tip: "Extract transcripts from YouTube videos", category: "tool" },
+  { cmd: "youtube_search", tip: "Search YouTube videos and get metadata", category: "tool" },
+  { cmd: "webclaw_crawl", tip: "Crawl an entire website for structured data", category: "tool" },
+  { cmd: "scrapling_extract", tip: "Extract structured data from web pages using CSS selectors", category: "tool" },
+  { cmd: "file_read", tip: "Read any file in the current directory", category: "tool" },
+  { cmd: "file_write", tip: "Write or overwrite files with content", category: "tool" },
+  { cmd: "file_list", tip: "Show directories and files with sizes and times", category: "tool" },
+  { cmd: "file_search", tip: "Full-text search across all files in a directory", category: "tool" },
+  { cmd: "file_grep", tip: "Search for patterns in files with context", category: "tool" },
+  { cmd: "file_glob", tip: "Find files by pattern — great for project exploration", category: "tool" },
+  { cmd: "pandas_create", tip: "Create pandas DataFrames for data analysis", category: "tool" },
+  { cmd: "pandas_filter", tip: "Filter DataFrames by column conditions", category: "tool" },
+  { cmd: "pandas_aggregate", tip: "Group and aggregate data — sum, mean, count", category: "tool" },
+  { cmd: "/provider codex", tip: "Use ChatGPT Plus OAuth — free with your subscription", category: "provider" },
+  { cmd: "/provider ollama", tip: "Ollama runs AI models locally — no internet needed", category: "provider" },
+  { cmd: "beast --defaults", tip: "Auto-selects the best available provider", category: "provider" },
+  { cmd: "/model gpt-4o", tip: "Use GPT-4o for the latest capabilities", category: "provider" },
+  { cmd: "/model claude-3-5-sonnet", tip: "Anthropic Claude — best reasoning and analysis", category: "provider" },
+  { cmd: "/model qwen3.5:35b", tip: "Qwen 35B — strong coding abilities, runs locally", category: "provider" },
+  { cmd: "/provider groq", tip: "Groq — ultra-fast inference with a free tier", category: "provider" },
+  { cmd: "/provider deepseek", tip: "DeepSeek — cost-effective reasoning models", category: "provider" },
+  { cmd: "/provider gemini", tip: "Google Gemini — huge context window and multimodal", category: "provider" },
+  { cmd: "/provider anthropic", tip: "Direct Anthropic API — full Claude access", category: "provider" },
+  { cmd: "/provider openai", tip: "Direct OpenAI API — GPT models with your key", category: "provider" },
+  { cmd: "/provider lmstudio", tip: "LM Studio — run any GGUF model locally", category: "provider" },
+  { cmd: "/init", tip: "Store project context and facts — remember across sessions", category: "context" },
+  { cmd: "Memory", tip: "Context and facts are stored in ~/.beast-cli/agents/", category: "context" },
+  { cmd: "auto-compact", tip: "Context auto-compacts at 95% — never lose your place", category: "context" },
+  { cmd: "Context", tip: "History counts toward your context — /clear to free it", category: "context" },
+  { cmd: "@agentname", tip: "Custom agents get injected as system context in prompts", category: "context" },
+  { cmd: "--theme claude", tip: "Warm editorial styling like claude.ai", category: "fun" },
+  { cmd: "--theme dracula", tip: "Classic dark theme with vibrant colors", category: "fun" },
+  { cmd: "--theme catppuccin-mocha", tip: "Subtle dark theme with pastel accents", category: "fun" },
+  { cmd: "--theme nord", tip: "Arctic color palette — clean and calming", category: "fun" },
+  { cmd: "--theme tokyonight", tip: "Japanese-inspired night theme", category: "fun" },
+  { cmd: "--theme gruvbox", tip: "Retro warmth — perfect for long sessions", category: "fun" },
+  { cmd: "beast --help", tip: "Full command reference and examples", category: "fun" },
+  { cmd: "beast --setup", tip: "Auto-start MCP server with sensible defaults", category: "fun" },
+  { cmd: "51+ tools", tip: "Web search, file ops, GitHub, YouTube, code exec, and more", category: "fun" }
+];
+var tipShuffle = [];
+var tipIndex = 0;
+function shuffleTips() {
+  tipShuffle = [...ALL_TIPS];
+  for (let i = tipShuffle.length - 1;i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [tipShuffle[i], tipShuffle[j]] = [tipShuffle[j], tipShuffle[i]];
+  }
+  tipIndex = 0;
+}
+function randomTip() {
+  if (tipShuffle.length === 0)
+    shuffleTips();
+  if (tipIndex >= tipShuffle.length)
+    shuffleTips();
+  const tip = tipShuffle[tipIndex++];
+  return `${s2("*", fg2.warning)} ${s2(tip.tip, fg2.secondary)} ${s2(`(${tip.cmd})`, fg2.muted)}`;
+}
+function tipBanner() {
+  return `
+` + s2("─".repeat(50), fg2.muted) + `
+` + randomTip() + `
+`;
+}
+
+// src/native-tools/web.ts
+var DEFAULT_TIMEOUT = 15000;
+async function fetchWebContent(url, maxTokens = 4000) {
+  try {
+    const controller = new AbortController;
+    const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT);
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; BeastCLI/1.0)",
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+      }
+    });
+    clearTimeout(timeout);
+    if (!response.ok) {
+      return { success: false, content: "", error: `HTTP ${response.status}` };
+    }
+    const html = await response.text();
+    const text = stripHtml(html);
+    const title = extractTitle(html);
+    const truncated = text.slice(0, maxTokens * 4);
+    return {
+      success: true,
+      content: truncated,
+      title,
+      url: response.url
+    };
+  } catch (e) {
+    return { success: false, content: "", error: e.message };
+  }
+}
+async function quickFetch(url) {
+  const result = await fetchWebContent(url, 1500);
+  if (result.success && result.content) {
+    const lines = result.content.split(`
+`).filter((l) => l.trim().length > 30);
+    return { ...result, content: lines.slice(0, 3).join(`
+
+`) };
+  }
+  return result;
+}
+async function fetchStructured(url, extractionType, maxTokens = 2000) {
+  const result = await fetchWebContent(url, maxTokens);
+  if (!result.success)
+    return result;
+  switch (extractionType) {
+    case "article":
+      return extractArticle(result.content, url);
+    case "product":
+      return extractProduct(result.content, url);
+    case "table":
+      return extractTable(result.content);
+    case "links":
+      return extractLinks(result.content, url);
+    default:
+      return result;
+  }
+}
+async function fetchWithSelectors(url, selectors, maxTokens = 2000) {
+  const result = await fetchWebContent(url, maxTokens);
+  if (!result.success)
+    return result;
+  const extracted = {};
+  for (const [field, selector] of Object.entries(selectors)) {
+    if (selector.includes("title"))
+      extracted[field] = result.title ?? "";
+    if (selector.includes("price")) {
+      const priceMatch = result.content.match(/[\₹$]?[\d,]+\.?\d*/);
+      if (priceMatch)
+        extracted[field] = priceMatch[0];
+    }
+    if (selector.includes("description") || selector.includes("content")) {
+      extracted[field] = result.content.slice(0, 500);
+    }
+  }
+  return {
+    success: true,
+    content: JSON.stringify(extracted, null, 2),
+    url
+  };
+}
+async function scrapeFreedium(url, maxTokens = 4000) {
+  const freediumUrl = url.includes("freedium.cfd") ? url : `https://freedium.cfd/${url}`;
+  const result = await fetchWebContent(freediumUrl, maxTokens);
+  if (!result.success)
+    return result;
+  return {
+    success: true,
+    content: result.content,
+    title: result.title,
+    url: freediumUrl
+  };
+}
+async function webclawExtractArticle(url) {
+  return fetchWebContent(url, 4000);
+}
+async function webclawExtractProduct(url) {
+  const result = await fetchWebContent(url, 2000);
+  if (!result.success)
+    return result;
+  const product = {};
+  const titleMatch = result.content.match(/<title>([^<]+)<\/title>/i);
+  if (titleMatch)
+    product.title = titleMatch[1];
+  const priceMatch = result.content.match(/price["\s:>]+["\s]*([₹$]?[\d,]+\.?\d*)/i);
+  if (priceMatch)
+    product.price = priceMatch[1];
+  const descMatch = result.content.match(/description["\s:>]+["']([^"']+)["']/i);
+  if (descMatch)
+    product.description = descMatch[1];
+  return {
+    success: true,
+    content: JSON.stringify(product, null, 2),
+    url
+  };
+}
+async function webclawCrawl(url, selectors) {
+  return fetchWithSelectors(url, selectors);
+}
+function stripHtml(html) {
+  return html.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "").replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "").replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, "").replace(/<header[^>]*>[\s\S]*?<\/header>/gi, "").replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, "").replace(/<!--[\s\S]*?-->/g, "").replace(/<br\s*\/?>/gi, `
+`).replace(/<\/p>/gi, `
+
+`).replace(/<\/div>/gi, `
+`).replace(/<\/li>/gi, `
+`).replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&[a-z]+;/gi, "").replace(/\n{3,}/g, `
+
+`).replace(/[ \t]+/g, " ").trim();
+}
+function extractTitle(html) {
+  const match = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+  return match ? match[1].trim() : "";
+}
+function extractArticle(content, url) {
+  const paragraphs = content.split(`
+
+`).filter((p) => p.length > 100);
+  return {
+    success: true,
+    content: paragraphs.slice(0, 5).join(`
+
+`),
+    url
+  };
+}
+function extractProduct(content, url) {
+  const product = {};
+  const lines = content.split(`
+`).filter((l) => l.trim());
+  for (const line of lines.slice(0, 20)) {
+    if (line.includes(":")) {
+      const [key, ...vals] = line.split(":");
+      if (key && vals.length)
+        product[key.trim()] = vals.join(":").trim().slice(0, 200);
+    }
+  }
+  return {
+    success: true,
+    content: JSON.stringify(product, null, 2),
+    url
+  };
+}
+function extractTable(content) {
+  const lines = content.split(`
+`).filter((l) => l.includes("|"));
+  return {
+    success: true,
+    content: lines.join(`
+`)
+  };
+}
+function extractLinks(content, baseUrl) {
+  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+  const links = [];
+  let match;
+  while ((match = linkRegex.exec(content)) !== null) {
+    links.push({ text: match[1], url: match[2] });
+  }
+  return {
+    success: true,
+    content: JSON.stringify(links.slice(0, 20), null, 2),
+    url: baseUrl
+  };
+}
+
+// src/native-tools/files.ts
+import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from "node:fs";
+import { resolve, dirname, extname, join } from "node:path";
+import { execSync } from "node:child_process";
+var MAX_FILE_SIZE = 10 * 1024 * 1024;
+var ALLOWED_EXTENSIONS = new Set([
+  ".ts",
+  ".js",
+  ".json",
+  ".md",
+  ".txt",
+  ".yml",
+  ".yaml",
+  ".xml",
+  ".html",
+  ".css",
+  ".scss",
+  ".py",
+  ".rs",
+  ".go",
+  ".java",
+  ".c",
+  ".cpp",
+  ".h",
+  ".hpp",
+  ".sh",
+  ".bash",
+  ".zsh",
+  ".sql",
+  ".csv",
+  ".log",
+  ".gitignore",
+  ".env",
+  ".prettierrc",
+  ".eslintrc",
+  ".babelrc"
+]);
+var RESTRICTED_PATHS = ["/Users/sridhar/.ssh", "/Users/sridhar/.npm", "/Users/sridhar/.aws"];
+async function fileRead(path, maxSize = MAX_FILE_SIZE) {
+  try {
+    const resolved = resolve(path);
+    for (const restricted of RESTRICTED_PATHS) {
+      if (resolved.startsWith(restricted)) {
+        return { success: false, error: `Access denied: ${restricted}` };
+      }
+    }
+    const stats = statSync(resolved);
+    if (stats.size > maxSize) {
+      return {
+        success: true,
+        content: `[File too large: ${stats.size} bytes. Max: ${maxSize}]`,
+        path: resolved,
+        size: stats.size
+      };
+    }
+    const content = readFileSync(resolved, "utf-8");
+    const lines = content.split(`
+`).length;
+    return {
+      success: true,
+      content,
+      path: resolved,
+      size: stats.size,
+      lines
+    };
+  } catch (e) {
+    return { success: false, error: e.message, path };
+  }
+}
+async function fileWrite(path, content) {
+  try {
+    const resolved = resolve(path);
+    for (const restricted of RESTRICTED_PATHS) {
+      if (resolved.startsWith(restricted)) {
+        return { success: false, error: `Access denied: ${restricted}` };
+      }
+    }
+    const dir = dirname(resolved);
+    if (!existsSync(dir)) {
+      return { success: false, error: `Directory does not exist: ${dir}`, path: resolved };
+    }
+    writeFileSync(resolved, content, "utf-8");
+    const stats = statSync(resolved);
+    return {
+      success: true,
+      path: resolved,
+      size: stats.size
+    };
+  } catch (e) {
+    return { success: false, error: e.message, path };
+  }
+}
+async function fileList(dir = ".", maxItems = 100) {
+  try {
+    const resolved = resolve(dir);
+    if (!existsSync(resolved)) {
+      return { success: false, items: [], path: resolved, error: "Directory not found" };
+    }
+    const entries = readdirSync(resolved);
+    const items = [];
+    for (const entry of entries.slice(0, maxItems)) {
+      try {
+        const fullPath = join(resolved, entry);
+        const stats = statSync(fullPath);
+        items.push({
+          name: entry,
+          type: stats.isDirectory() ? "directory" : "file",
+          size: stats.isFile() ? stats.size : undefined,
+          modified: stats.mtime.toISOString()
+        });
+      } catch {}
+    }
+    items.sort((a, b) => {
+      if (a.type !== b.type)
+        return a.type === "directory" ? -1 : 1;
+      return a.name.localeCompare(b.name);
+    });
+    return { success: true, items, path: resolved };
+  } catch (e) {
+    return { success: false, items: [], path: dir, error: e.message };
+  }
+}
+async function fileSearch(directory, pattern, maxResults = 50) {
+  try {
+    const resolved = resolve(directory);
+    if (!existsSync(resolved)) {
+      return { success: false, files: [], error: "Directory not found" };
+    }
+    const escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const cmd = `find "${resolved}" -type f \\( -path "*/node_modules" -o -path "*/.git" -o -path "*/dist" -o -path "*/build" \\) -prune -o -type f -name "*${pattern}*" -print 2>/dev/null | head -${maxResults}`;
+    const output = execSync(cmd, { encoding: "utf-8", timeout: 1e4 });
+    const files = output.split(`
+`).filter(Boolean).map((f) => ({ path: f }));
+    return { success: true, files };
+  } catch (e) {
+    return { success: false, files: [], error: e.message };
+  }
+}
+async function fileGrep(directory, query, maxResults = 50, filePattern = "*") {
+  try {
+    const resolved = resolve(directory);
+    if (!existsSync(resolved)) {
+      return { success: false, files: [], error: "Directory not found" };
+    }
+    const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const cmd = `grep -rn --include="${filePattern}" -E "${escaped}" "${resolved}" 2>/dev/null | head -${maxResults}`;
+    const output = execSync(cmd, { encoding: "utf-8", timeout: 1e4 });
+    const files = [];
+    for (const line of output.split(`
+`).filter(Boolean)) {
+      const colonIdx = line.indexOf(":");
+      if (colonIdx > 0) {
+        const pathPart = line.slice(0, colonIdx);
+        const rest = line.slice(colonIdx + 1);
+        const secondColonIdx = rest.indexOf(":");
+        if (secondColonIdx > 0) {
+          const lineNum = parseInt(rest.slice(0, secondColonIdx));
+          const match = rest.slice(secondColonIdx + 1).trim();
+          files.push({
+            path: join(resolved, pathPart),
+            line: lineNum,
+            match: match.slice(0, 200)
+          });
+        }
+      }
+    }
+    return { success: true, files };
+  } catch (e) {
+    return { success: true, files: [] };
+  }
+}
+async function fileGlob(directory, patterns, maxResults = 100) {
+  try {
+    const resolved = resolve(directory);
+    const files = [];
+    for (const pattern of patterns) {
+      const cmd = `find "${resolved}" -type f \\( -path "*/node_modules" -o -path "*/.git" -o -path "*/dist" -o -path "*/build" \\) -prune -o -type f -name "${pattern}" -print 2>/dev/null | head -${maxResults}`;
+      const output = execSync(cmd, { encoding: "utf-8", timeout: 1e4 });
+      for (const line of output.split(`
+`).filter(Boolean)) {
+        if (!files.some((f) => f.path === line)) {
+          files.push({ path: line });
+        }
+      }
+      if (files.length >= maxResults)
+        break;
+    }
+    return { success: true, files: files.slice(0, maxResults) };
+  } catch (e) {
+    return { success: false, files: [], error: e.message };
+  }
+}
+
+// src/native-tools/code.ts
+import { spawn } from "node:child_process";
+import { writeFileSync as writeFileSync2, unlinkSync, mkdirSync, existsSync as existsSync2 } from "node:fs";
+import { join as join2 } from "node:path";
+import { randomUUID } from "crypto";
+var SANDBOX_DIR = "/tmp/beast-sandbox";
+if (!existsSync2(SANDBOX_DIR)) {
+  mkdirSync(SANDBOX_DIR, { recursive: true });
+}
+async function runCode(code, language, timeout = 30) {
+  const start = Date.now();
+  try {
+    switch (language) {
+      case "python":
+        return runPython(code, timeout, start);
+      case "javascript":
+        return runJavaScript(code, timeout, start);
+      case "bash":
+        return runBash(code, timeout, start);
+      default:
+        return { success: false, output: "", error: `Unsupported language: ${language}` };
+    }
+  } catch (e) {
+    return { success: false, output: "", error: e.message, executionTime: Date.now() - start };
+  }
+}
+async function runPythonSnippet(code, timeout = 30) {
+  const start = Date.now();
+  const fullCode = `
+import json
+import math
+import re
+import datetime
+import itertools
+from collections import Counter, defaultdict
+
+${code}
+`;
+  return runPython(fullCode, timeout, start);
+}
+async function runPython(code, timeout, start) {
+  const id = randomUUID();
+  const filePath = join2(SANDBOX_DIR, `${id}.py`);
+  try {
+    writeFileSync2(filePath, code, "utf-8");
+    const result = await execProcess("python3", ["-u", filePath], timeout * 1000);
+    const executionTime = Date.now() - start;
+    return {
+      success: !result.error,
+      output: result.stdout || result.stderr,
+      error: result.error,
+      executionTime,
+      language: "python"
+    };
+  } finally {
+    try {
+      unlinkSync(filePath);
+    } catch {}
+  }
+}
+async function runJavaScript(code, timeout, start) {
+  const id = randomUUID();
+  const filePath = join2(SANDBOX_DIR, `${id}.js`);
+  try {
+    writeFileSync2(filePath, code, "utf-8");
+    const result = await execProcess("node", ["--input-type=module", filePath], timeout * 1000);
+    const executionTime = Date.now() - start;
+    return {
+      success: !result.error,
+      output: result.stdout || result.stderr,
+      error: result.error,
+      executionTime,
+      language: "javascript"
+    };
+  } finally {
+    try {
+      unlinkSync(filePath);
+    } catch {}
+  }
+}
+async function runBash(code, timeout, start) {
+  const id = randomUUID();
+  const filePath = join2(SANDBOX_DIR, `${id}.sh`);
+  try {
+    writeFileSync2(filePath, code, "utf-8");
+    const result = await execProcess("/bin/bash", ["-c", code], timeout * 1000);
+    const executionTime = Date.now() - start;
+    return {
+      success: !result.error,
+      output: result.stdout || result.stderr,
+      error: result.error,
+      executionTime,
+      language: "bash"
+    };
+  } finally {
+    try {
+      unlinkSync(filePath);
+    } catch {}
+  }
+}
+function execProcess(command, args, timeoutMs) {
+  return new Promise((resolve2) => {
+    const proc = spawn(command, args, {
+      timeout: timeoutMs,
+      cwd: SANDBOX_DIR,
+      env: {
+        ...process.env,
+        HOME: SANDBOX_DIR,
+        PATH: "/usr/bin:/bin:/usr/local/bin"
+      }
+    });
+    let stdout = "";
+    let stderr = "";
+    proc.stdout?.on("data", (d) => {
+      stdout += d.toString();
+    });
+    proc.stderr?.on("data", (d) => {
+      stderr += d.toString();
+    });
+    proc.on("error", (e) => resolve2({ stdout, stderr, error: e.message }));
+    proc.on("close", (code) => {
+      if (code !== 0 && !stderr) {
+        resolve2({ stdout, stderr, error: `Exit code: ${code}` });
+      } else {
+        resolve2({ stdout, stderr, error: code !== 0 ? `Exit code: ${code}` : undefined });
+      }
+    });
+  });
+}
+async function pandasCreate(data, name = "df") {
+  try {
+    const parsed = JSON.parse(data);
+    const rows = Array.isArray(parsed) ? parsed : [parsed];
+    const keys = Object.keys(rows[0] || {});
+    const summary = {
+      name,
+      rowCount: rows.length,
+      columns: keys,
+      preview: rows.slice(0, 5)
+    };
+    return {
+      success: true,
+      output: JSON.stringify(summary, null, 2)
+    };
+  } catch (e) {
+    return { success: false, output: "", error: `Invalid JSON: ${e.message}` };
+  }
+}
+async function pandasFilter(data, conditions) {
+  try {
+    const parsedConditions = JSON.parse(conditions);
+    const filtered = data.filter((row) => {
+      for (const [key, op] of Object.entries(parsedConditions)) {
+        const rowVal = row[key];
+        if (typeof op === "object") {
+          for (const [cmp, val] of Object.entries(op)) {
+            switch (cmp) {
+              case "$eq":
+                if (rowVal !== val)
+                  return false;
+                break;
+              case "$ne":
+                if (rowVal === val)
+                  return false;
+                break;
+              case "$gt":
+                if (rowVal <= val)
+                  return false;
+                break;
+              case "$gte":
+                if (rowVal < val)
+                  return false;
+                break;
+              case "$lt":
+                if (rowVal >= val)
+                  return false;
+                break;
+              case "$lte":
+                if (rowVal > val)
+                  return false;
+                break;
+              case "$contains":
+                if (!String(rowVal).includes(String(val)))
+                  return false;
+                break;
+            }
+          }
+        } else {
+          if (rowVal !== op)
+            return false;
+        }
+      }
+      return true;
+    });
+    return {
+      success: true,
+      output: JSON.stringify(filtered, null, 2)
+    };
+  } catch (e) {
+    return { success: false, output: "", error: e.message };
+  }
+}
+async function pandasAggregate(data, groupBy, aggregations) {
+  try {
+    const rows = data;
+    const groups = new Map;
+    for (const row of rows) {
+      const key = groupBy.map((k) => String(row[k])).join("|");
+      if (!groups.has(key))
+        groups.set(key, []);
+      groups.get(key).push(row);
+    }
+    const results = [];
+    for (const [key, groupRows] of groups) {
+      const result = {};
+      const keyParts = key.split("|");
+      groupBy.forEach((k, i) => {
+        result[k] = keyParts[i];
+      });
+      for (const [col, fn] of Object.entries(aggregations)) {
+        const values = groupRows.map((r) => Number(r[col])).filter((v) => !isNaN(v));
+        switch (fn) {
+          case "sum":
+            result[`${col}_sum`] = values.reduce((a, b) => a + b, 0);
+            break;
+          case "avg":
+            result[`${col}_avg`] = values.length ? values.reduce((a, b) => a + b, 0) / values.length : 0;
+            break;
+          case "count":
+            result[`${col}_count`] = values.length;
+            break;
+          case "min":
+            result[`${col}_min`] = Math.min(...values);
+            break;
+          case "max":
+            result[`${col}_max`] = Math.max(...values);
+            break;
+        }
+      }
+      results.push(result);
+    }
+    return { success: true, output: JSON.stringify(results, null, 2) };
+  } catch (e) {
+    return { success: false, output: "", error: e.message };
+  }
+}
+
+// src/native-tools/index.ts
+init_search();
+
+// src/native-tools/github.ts
+var GITHUB_API = "https://api.github.com";
+var GITHUB_TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || "";
+async function githubFetch(path) {
+  try {
+    const headers = {
+      Accept: "application/vnd.github.v3+json",
+      "User-Agent": "BeastCLI/1.0"
+    };
+    if (GITHUB_TOKEN) {
+      headers["Authorization"] = `Bearer ${GITHUB_TOKEN}`;
+    }
+    const response = await fetch(`${GITHUB_API}${path}`, {
+      headers,
+      signal: AbortSignal.timeout(1e4)
+    });
+    if (!response.ok) {
+      const error = await response.text();
+      return { ok: false, data: null, error: `GitHub API ${response.status}: ${error}` };
+    }
+    const data = await response.json();
+    return { ok: true, data };
+  } catch (e) {
+    return { ok: false, data: null, error: e.message };
+  }
+}
+async function githubRepo(owner, repo) {
+  const result = await githubFetch(`/repos/${owner}/${repo}`);
+  if (!result.ok) {
+    return { success: false, output: "", error: result.error };
+  }
+  const r = result.data;
+  const repoData = {
+    repo_name: r.name,
+    full_name: r.full_name,
+    description: r.description,
+    stars: r.stargazers_count,
+    forks: r.forks_count,
+    language: r.language,
+    license: r.license?.name || r.license?.spdx_id || null,
+    topics: r.topics || [],
+    open_issues: r.open_issues_count,
+    watchers: r.watchers_count,
+    default_branch: r.default_branch,
+    created_at: r.created_at,
+    updated_at: r.updated_at,
+    homepage: r.homepage
+  };
+  return { success: true, output: JSON.stringify(repoData, null, 2) };
+}
+async function githubReadme(owner, repo) {
+  const result = await githubFetch(`/repos/${owner}/${repo}/readme`);
+  if (!result.ok) {
+    return { success: false, output: "", error: result.error };
+  }
+  const r = result.data;
+  const content = Buffer.from(r.content, "base64").toString("utf-8");
+  return { success: true, output: content };
+}
+async function githubIssues(owner, repo, state = "open", limit = 20) {
+  const result = await githubFetch(`/repos/${owner}/${repo}/issues?state=${state}&per_page=${limit}`);
+  if (!result.ok) {
+    return { success: false, output: "", error: result.error };
+  }
+  const issues = result.data.map((i) => ({
+    number: i.number,
+    title: i.title,
+    state: i.state,
+    labels: i.labels?.map((l) => l.name) || [],
+    author: i.user?.login,
+    created_at: i.created_at,
+    url: i.html_url
+  }));
+  return { success: true, output: JSON.stringify(issues, null, 2) };
+}
+async function githubCommits(owner, repo, limit = 20) {
+  const result = await githubFetch(`/repos/${owner}/${repo}/commits?per_page=${limit}`);
+  if (!result.ok) {
+    return { success: false, output: "", error: result.error };
+  }
+  const commits = result.data.map((c2) => ({
+    sha: c2.sha?.slice(0, 7),
+    message: c2.commit?.message?.split(`
+`)[0],
+    author: c2.commit?.author?.name,
+    date: c2.commit?.author?.date,
+    url: c2.html_url
+  }));
+  return { success: true, output: JSON.stringify(commits, null, 2) };
+}
+async function githubSearchRepos(query, limit = 10) {
+  const result = await githubFetch(`/search/repositories?q=${encodeURIComponent(query)}&per_page=${limit}`);
+  if (!result.ok) {
+    return { success: false, output: "", error: result.error };
+  }
+  const data = result.data;
+  const repos = (data.items || []).map((r) => ({
+    name: r.name,
+    owner: r.owner?.login,
+    description: r.description,
+    stars: r.stargazers_count,
+    language: r.language,
+    url: r.html_url
+  }));
+  return { success: true, output: JSON.stringify(repos, null, 2) };
+}
+
+// src/native-tools/youtube.ts
+async function youtubeTranscript(url) {
+  try {
+    const videoId = extractVideoId(url);
+    if (!videoId) {
+      return { success: false, output: "", error: "Invalid YouTube URL" };
+    }
+    const transcriptUrl = `https://youtubetranscript.com/?video=${videoId}`;
+    const response = await fetch(transcriptUrl, {
+      signal: AbortSignal.timeout(1e4)
+    });
+    if (response.ok) {
+      const text = await response.text();
+      return {
+        success: true,
+        output: text.slice(0, 5000)
+      };
+    }
+    const pageRes = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
+      headers: { "User-Agent": "Mozilla/5.0" },
+      signal: AbortSignal.timeout(1e4)
+    });
+    if (pageRes.ok) {
+      const html = await pageRes.text();
+      const captionMatch = html.match(/"captionTracks":\[([^\]]+)\]/);
+      if (captionMatch) {
+        return { success: true, output: "Captions available. Use youtube_video_info for details." };
+      }
+    }
+    return {
+      success: false,
+      output: "",
+      error: "Transcript not available. Video may not have captions."
+    };
+  } catch (e) {
+    return { success: false, output: "", error: e.message };
+  }
+}
+async function youtubeVideoInfo(videoId, url) {
+  try {
+    const id = videoId || (url ? extractVideoId(url) : null);
+    if (!id) {
+      return { success: false, output: "", error: "Invalid video ID or URL" };
+    }
+    const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${id}&format=json`;
+    const response = await fetch(oembedUrl, {
+      signal: AbortSignal.timeout(1e4)
+    });
+    if (response.ok) {
+      const data = await response.json();
+      return {
+        success: true,
+        output: JSON.stringify({
+          title: data.title,
+          author_name: data.author_name,
+          author_url: data.author_name,
+          thumbnail_url: data.thumbnail_url,
+          video_url: `https://www.youtube.com/watch?v=${id}`
+        }, null, 2)
+      };
+    }
+    return { success: false, output: "", error: "Could not fetch video info" };
+  } catch (e) {
+    return { success: false, output: "", error: e.message };
+  }
+}
+async function youtubeSearch(query, limit = 10) {
+  try {
+    const { searxngSearch: searxngSearch2 } = await Promise.resolve().then(() => (init_search(), exports_search));
+    const result = await searxngSearch2(`${query} site:youtube.com`, limit);
+    if (result.success && result.results) {
+      const videos = result.results.map((r) => ({
+        title: r.title,
+        url: r.url,
+        snippet: r.snippet
+      }));
+      return { success: true, output: JSON.stringify(videos, null, 2) };
+    }
+    return { success: false, output: "", error: result.error };
+  } catch (e) {
+    return { success: false, output: "", error: e.message };
+  }
+}
+async function youtubeSummarize(transcript, maxWords = 500) {
+  const sentences = transcript.split(/[.!?]+/).filter((s3) => s3.trim().length > 20);
+  const words = transcript.split(/\s+/);
+  if (words.length <= maxWords) {
+    return { success: true, output: transcript };
+  }
+  const summaryCount = Math.ceil(sentences.length * 0.3);
+  const summary = sentences.slice(0, summaryCount).join(". ").trim();
+  return {
+    success: true,
+    output: summary || transcript.slice(0, maxWords * 5)
+  };
+}
+function extractVideoId(input) {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+    /^([a-zA-Z0-9_-]{11})$/
+  ];
+  for (const pattern of patterns) {
+    const match = input.match(pattern);
+    if (match)
+      return match[1];
+  }
+  return null;
+}
+
+// src/engi/indexer.ts
+import * as fs from "fs";
+import * as fsPromises from "fs/promises";
+import * as path from "path";
+var EXTENSION_LANGUAGE_MAP = {
+  ".ts": "typescript",
+  ".tsx": "typescript",
+  ".js": "javascript",
+  ".jsx": "javascript",
+  ".py": "python",
+  ".java": "java",
+  ".go": "go",
+  ".rs": "rust",
+  ".rb": "ruby",
+  ".php": "php",
+  ".cs": "csharp",
+  ".cpp": "cpp",
+  ".c": "c",
+  ".swift": "swift",
+  ".kt": "kotlin",
+  ".scala": "scala"
+};
+var IGNORE_DIRS = new Set([
+  "node_modules",
+  ".git",
+  "dist",
+  "build",
+  "coverage",
+  ".venv",
+  "vendor",
+  "__pycache__",
+  ".next",
+  ".nuxt",
+  "out"
+]);
+var TEST_PATTERNS = new Set(["test", "spec", "__tests__", "tests"]);
+var TEST_EXTS = new Set([".test.", ".spec."]);
+var CONFIG_EXTS = new Set([".json", ".yaml", ".yml", ".toml", ".ini", ".conf"]);
+var DOC_PATTERNS = new Set(["readme", "changelog", "contributing", "license", "api", "guide", "docs"]);
+var DOC_EXTS = new Set([".md", ".rst", ".adoc"]);
+var SOURCE_EXTS = new Set([".ts", ".tsx", ".js", ".jsx", ".py", ".java", ".go", ".rs"]);
+var TS_EXPORT_NAMED = /export\s+(?:const|function|class|interface|type|let|var)\s+(\w+)/g;
+var TS_EXPORT_DEFAULT = /export\s+default\s+(\w+)/g;
+var TS_EXPORT_BLOCK = /export\s*\{\s*([^}]+)\s*\}/g;
+var TS_IMPORT = /import\s+(?:\{\s*[^}]+\s*\}|\*\s+as\s+\w+|\w+)\s+from\s+['"]([^'"]+)['"]/g;
+var TS_REQUIRE = /require\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
+var TS_FUNC = /(?:export\s+)?(?:async\s+)?function\s+(\w+)/g;
+var TS_CLASS = /(?:export\s+)?class\s+(\w+)/g;
+var TS_INTERFACE = /(?:export\s+)?interface\s+(\w+)/g;
+var TS_CONST = /(?:export\s+)?(?:const|let|var)\s+(\w+)\s*=/g;
+var PY_DEF = /(?:^|\n)\s*(?:def|class)\s+(\w+)/gm;
+var PY_IMPORT = /(?:^|\n)\s*import\s+([^\n]+)|(?:^|\n)\s*from\s+([^\n]+)\s+import/gm;
+
+class RepoIndexer {
+  index = null;
+  indexing = null;
+  async indexRepository(rootPath) {
+    if (this.indexing)
+      return this.indexing;
+    this.indexing = this._doIndex(rootPath).finally(() => {
+      this.indexing = null;
+    });
+    return this.indexing;
+  }
+  getIndex() {
+    return this.index;
+  }
+  clearIndex() {
+    this.index = null;
+    this.indexing = null;
+  }
+  async _doIndex(rootPath) {
+    if (!fs.existsSync(rootPath)) {
+      throw new Error(`Path does not exist: ${rootPath}`);
+    }
+    const allFiles = await this.scanDirectoryAsync(rootPath);
+    const results = await Promise.all(allFiles.map((filePath) => this.processFile(filePath, rootPath)));
+    const files = new Map;
+    const symbols = new Map;
+    const imports = [];
+    const tests = [];
+    const docs = [];
+    for (const result of results) {
+      if (!result)
+        continue;
+      files.set(result.entry.path, result.entry);
+      if (result.symbols.length > 0)
+        symbols.set(result.entry.path, result.symbols);
+      imports.push(...result.imports);
+      if (result.test)
+        tests.push(result.test);
+      if (result.doc)
+        docs.push(result.doc);
+    }
+    this.index = { files, symbols, imports, tests, docs, rootPath, lastIndexed: Date.now() };
+    return this.index;
+  }
+  async processFile(filePath, rootPath) {
+    try {
+      const stats = await fsPromises.stat(filePath);
+      if (!stats.isFile())
+        return null;
+      const relativePath = path.relative(rootPath, filePath);
+      const ext = path.extname(filePath).toLowerCase();
+      const language = EXTENSION_LANGUAGE_MAP[ext] || "unknown";
+      const baseName = path.basename(filePath).toLowerCase();
+      const type = this.classifyFile(baseName, ext);
+      let content = "";
+      const needsContent = (language === "typescript" || language === "javascript" || language === "python") && (type === "source" || type === "test");
+      if (needsContent) {
+        content = await fsPromises.readFile(filePath, "utf-8");
+      }
+      const { exports: fileExports, imports: fileImports } = content ? this.extractExportsImports(content, language) : { exports: [], imports: [] };
+      const fileSymbols = content ? this.extractSymbols(content, language, filePath) : [];
+      const entry = {
+        path: relativePath,
+        name: path.basename(filePath, ext),
+        extension: ext,
+        type,
+        language,
+        size: stats.size,
+        lastModified: stats.mtimeMs,
+        exports: fileExports,
+        imports: fileImports
+      };
+      const importEdges = fileImports.map((imp) => ({
+        from: relativePath,
+        to: imp,
+        types: ["import"]
+      }));
+      const test = type === "test" ? this.createTestEntry(filePath, relativePath) : undefined;
+      const doc = type === "doc" ? this.createDocEntry(filePath, relativePath) : undefined;
+      return { entry, symbols: fileSymbols, imports: importEdges, test, doc };
+    } catch {
+      return null;
+    }
+  }
+  async scanDirectoryAsync(dirPath) {
+    const results = [];
+    try {
+      const entries = await fsPromises.readdir(dirPath, { withFileTypes: true });
+      const subdirs = [];
+      for (const entry of entries) {
+        if (IGNORE_DIRS.has(entry.name) || entry.name.startsWith("."))
+          continue;
+        const fullPath = path.join(dirPath, entry.name);
+        if (entry.isDirectory()) {
+          subdirs.push(this.scanDirectoryAsync(fullPath));
+        } else {
+          results.push(fullPath);
+        }
+      }
+      const nested = await Promise.all(subdirs);
+      for (const sub of nested)
+        results.push(...sub);
+    } catch {}
+    return results;
+  }
+  classifyFile(baseName, ext) {
+    for (const p of TEST_PATTERNS) {
+      if (baseName.includes(p))
+        return "test";
+    }
+    for (const p of TEST_EXTS) {
+      if (baseName.includes(p))
+        return "test";
+    }
+    if (CONFIG_EXTS.has(ext))
+      return "config";
+    if (DOC_EXTS.has(ext))
+      return "doc";
+    for (const p of DOC_PATTERNS) {
+      if (baseName.includes(p))
+        return "doc";
+    }
+    if (SOURCE_EXTS.has(ext))
+      return "source";
+    return "other";
+  }
+  extractExportsImports(content, language) {
+    const exports = [];
+    const imports = [];
+    if (language === "typescript" || language === "javascript") {
+      let rx, match;
+      rx = new RegExp(TS_EXPORT_NAMED.source, "g");
+      while ((match = rx.exec(content)) !== null)
+        exports.push(match[1]);
+      rx = new RegExp(TS_EXPORT_DEFAULT.source, "g");
+      while ((match = rx.exec(content)) !== null)
+        exports.push(match[1]);
+      rx = new RegExp(TS_EXPORT_BLOCK.source, "g");
+      while ((match = rx.exec(content)) !== null) {
+        exports.push(...match[1].split(",").map((s3) => s3.trim()).filter(Boolean));
+      }
+      rx = new RegExp(TS_IMPORT.source, "g");
+      while ((match = rx.exec(content)) !== null) {
+        if (match[1])
+          imports.push(match[1]);
+      }
+      rx = new RegExp(TS_REQUIRE.source, "g");
+      while ((match = rx.exec(content)) !== null) {
+        if (match[1])
+          imports.push(match[1]);
+      }
+    } else if (language === "python") {
+      let rx, match;
+      rx = new RegExp(PY_DEF.source, "gm");
+      while ((match = rx.exec(content)) !== null)
+        exports.push(match[1]);
+      rx = new RegExp(PY_IMPORT.source, "gm");
+      while ((match = rx.exec(content)) !== null) {
+        const m = match[1] || match[2];
+        if (m)
+          imports.push(m);
+      }
+    }
+    return { exports, imports };
+  }
+  extractSymbols(content, language, filePath) {
+    const symbols = [];
+    if (language !== "typescript" && language !== "javascript")
+      return symbols;
+    const push = (name, type, idx, exported) => {
+      symbols.push({ name, type, file: filePath, line: this.lineAt(content, idx), exported });
+    };
+    let rx, match;
+    rx = new RegExp(TS_FUNC.source, "g");
+    while ((match = rx.exec(content)) !== null) {
+      push(match[1], "function", match.index, content.slice(Math.max(0, match.index - 20), match.index).includes("export"));
+    }
+    rx = new RegExp(TS_CLASS.source, "g");
+    while ((match = rx.exec(content)) !== null) {
+      push(match[1], "class", match.index, content.slice(Math.max(0, match.index - 20), match.index).includes("export"));
+    }
+    rx = new RegExp(TS_INTERFACE.source, "g");
+    while ((match = rx.exec(content)) !== null) {
+      push(match[1], "interface", match.index, content.slice(Math.max(0, match.index - 20), match.index).includes("export"));
+    }
+    rx = new RegExp(TS_CONST.source, "g");
+    while ((match = rx.exec(content)) !== null) {
+      push(match[1], "constant", match.index, content.slice(Math.max(0, match.index - 20), match.index).includes("export"));
+    }
+    return symbols;
+  }
+  lineAt(content, index) {
+    let line = 0;
+    for (let i = 0;i < index; i++) {
+      if (content[i] === `
+`)
+        line++;
+    }
+    return line;
+  }
+  createTestEntry(filePath, relativePath) {
+    const name = path.basename(filePath);
+    let type = "unit";
+    if (name.includes("integration"))
+      type = "integration";
+    else if (name.includes("e2e") || name.includes("end-to-end"))
+      type = "e2e";
+    return { path: relativePath, name, type, targetSymbols: [] };
+  }
+  createDocEntry(filePath, relativePath) {
+    const name = path.basename(filePath).toLowerCase();
+    let type = "other";
+    if (name.startsWith("readme"))
+      type = "readme";
+    else if (name.includes("changelog") || name.includes("history"))
+      type = "changelog";
+    else if (name.includes("api"))
+      type = "api";
+    else if (name.includes("guide") || name.includes("docs"))
+      type = "guide";
+    return { path: relativePath, name: path.basename(filePath), type, sections: [] };
+  }
+}
+var indexerInstance = null;
+function getIndexer() {
+  if (!indexerInstance)
+    indexerInstance = new RepoIndexer;
+  return indexerInstance;
+}
+async function indexRepository(rootPath) {
+  return getIndexer().indexRepository(rootPath);
+}
+
+// src/engi/retrieval.ts
+var STOP_WORDS = new Set([
+  "function",
+  "class",
+  "method",
+  "variable",
+  "const",
+  "let",
+  "var",
+  "return",
+  "import",
+  "export",
+  "async",
+  "await",
+  "the",
+  "and",
+  "for",
+  "with",
+  "this",
+  "that",
+  "from",
+  "type",
+  "interface",
+  "new",
+  "not"
+]);
+
+class RetrievalEngine {
+  async findScope(query) {
+    const index = getIndexer().getIndex();
+    if (!index)
+      return { files: [], modules: [], symbols: [], tests: [], docs: [], confidence: 0 };
+    const limit = query.limit || 10;
+    const keywords = this.normalizeKeywords(query.task, query.keywords || []);
+    const rankedFiles = this.rankFiles(index.files, keywords, query.taskType);
+    const topFiles = rankedFiles.slice(0, limit).map((r) => r.file);
+    const topFilePathSet = new Set(topFiles.map((f) => f.path));
+    const topModules = new Set(topFiles.map((f) => f.path.split("/")[0] ?? "root"));
+    const [symbols, tests, docs] = [
+      this.findRelevantSymbols(index.symbols, keywords, topFilePathSet),
+      this.findRelevantTests(index.tests, topFiles, topModules),
+      this.findRelevantDocs(index.docs, keywords, topModules)
+    ];
+    return {
+      files: topFiles,
+      modules: [...topModules],
+      symbols,
+      tests,
+      docs,
+      confidence: this.calculateConfidence(rankedFiles.slice(0, limit), keywords)
+    };
+  }
+  async findByImport(importPath) {
+    const index = getIndexer().getIndex();
+    if (!index)
+      return null;
+    for (const [p, file] of index.files) {
+      if (p === importPath || p.endsWith(importPath))
+        return file;
+    }
+    const importName = importPath.split("/").pop() || "";
+    for (const [, file] of index.files) {
+      if (file.name === importName)
+        return file;
+    }
+    return null;
+  }
+  async findRelatedTests(filePath) {
+    const index = getIndexer().getIndex();
+    if (!index)
+      return [];
+    const baseName = filePath.split("/").pop()?.replace(/\.[^.]+$/, "") ?? "";
+    const dir = filePath.substring(0, filePath.lastIndexOf("/"));
+    const seen = new Set;
+    const results = [];
+    for (const t of index.tests) {
+      if (seen.has(t.path))
+        continue;
+      if (t.targetFile === filePath || t.name.includes(baseName)) {
+        results.push(t);
+        seen.add(t.path);
+      }
+    }
+    for (const t of index.tests) {
+      if (!seen.has(t.path) && t.path.startsWith(dir)) {
+        results.push(t);
+        seen.add(t.path);
+      }
+    }
+    return results;
+  }
+  async findDependents(filePath) {
+    const index = getIndexer().getIndex();
+    if (!index)
+      return [];
+    const dependents = [];
+    for (const [, file] of index.files) {
+      if (file.imports.some((imp) => imp === filePath || imp.endsWith(filePath))) {
+        dependents.push(file);
+      }
+    }
+    return dependents;
+  }
+  normalizeKeywords(task, extra) {
+    const words = task.toLowerCase().replace(/[^\w\s]/g, " ").split(/\s+/);
+    const combined = new Set;
+    for (const w of words) {
+      if (w.length > 2 && !STOP_WORDS.has(w))
+        combined.add(w);
+    }
+    for (const k of extra) {
+      const kl = k.toLowerCase();
+      if (!STOP_WORDS.has(kl))
+        combined.add(kl);
+    }
+    return [...combined];
+  }
+  rankFiles(files, keywords, taskType) {
+    const scored = [];
+    const isDocTask = taskType === "documentation";
+    const isBugOrFeature = taskType === "bug" || taskType === "feature";
+    for (const [filePath, file] of files) {
+      if (!isDocTask && file.type !== "source" && file.type !== "test")
+        continue;
+      let score = 0;
+      const reasons = [];
+      const lowerPath = filePath.toLowerCase();
+      const lowerName = file.name.toLowerCase();
+      const lowerExports = file.exports.map((e) => e.toLowerCase());
+      for (const kw of keywords) {
+        if (lowerPath.includes(kw) || lowerName.includes(kw)) {
+          score += 10;
+          reasons.push(`path:${kw}`);
+        }
+        for (const exp of lowerExports) {
+          if (exp.includes(kw)) {
+            score += 15;
+            reasons.push(`export:${kw}`);
+            break;
+          }
+        }
+      }
+      if (isBugOrFeature && file.type === "source") {
+        score += 5;
+        reasons.push("source");
+      }
+      if (taskType === "bug" && file.type === "test") {
+        score += 8;
+        reasons.push("test");
+      }
+      if (isDocTask && file.type === "doc") {
+        score += 20;
+        reasons.push("doc");
+      }
+      if (score > 0)
+        scored.push({ file, score, reason: reasons.join(",") });
+    }
+    return scored.sort((a, b) => b.score - a.score);
+  }
+  findRelevantSymbols(symbols, keywords, topFilePathSet) {
+    const relevant = [];
+    for (const [, fileSymbols] of symbols) {
+      for (const sym of fileSymbols) {
+        if (!topFilePathSet.has(sym.file))
+          continue;
+        const lname = sym.name.toLowerCase();
+        for (const kw of keywords) {
+          if (lname.includes(kw)) {
+            relevant.push(sym);
+            break;
+          }
+        }
+        if (relevant.length >= 20)
+          return relevant;
+      }
+    }
+    return relevant;
+  }
+  findRelevantTests(tests, topFiles, topModules) {
+    const topFilePaths = new Set(topFiles.map((f) => f.path));
+    const relevant = [];
+    const seen = new Set;
+    for (const test of tests) {
+      if (seen.has(test.path))
+        continue;
+      const inScope = test.targetFile && topFilePaths.has(test.targetFile) || topModules.has(test.path.split("/")[0] ?? "");
+      if (inScope) {
+        relevant.push(test);
+        seen.add(test.path);
+      }
+      if (relevant.length >= 10)
+        break;
+    }
+    return relevant;
+  }
+  findRelevantDocs(docs, keywords, topModules) {
+    const relevant = [];
+    const seen = new Set;
+    for (const doc of docs) {
+      if (seen.has(doc.path))
+        continue;
+      const lname = doc.name.toLowerCase();
+      const lpath = doc.path.toLowerCase();
+      const keyMatch = keywords.some((kw) => lname.includes(kw) || lpath.includes(kw));
+      const modMatch = topModules.has(doc.path.split("/")[0] ?? "");
+      if (keyMatch || modMatch) {
+        relevant.push(doc);
+        seen.add(doc.path);
+      }
+      if (relevant.length >= 5)
+        break;
+    }
+    return relevant;
+  }
+  calculateConfidence(rankedFiles, keywords) {
+    if (rankedFiles.length === 0 || keywords.length === 0)
+      return 0;
+    const avgScore = rankedFiles.reduce((s3, r) => s3 + r.score, 0) / rankedFiles.length;
+    const maxPossible = keywords.length * 25;
+    return Math.round(Math.min(avgScore / maxPossible, 1) * 100) / 100;
+  }
+}
+var retrievalInstance = null;
+function getRetrievalEngine() {
+  if (!retrievalInstance)
+    retrievalInstance = new RetrievalEngine;
+  return retrievalInstance;
+}
+
+// src/engi/summarizer.ts
+import * as path3 from "path";
+
+// src/engi/rag.ts
+import * as fs2 from "fs";
+import * as path2 from "path";
+var MAX_CHUNK_LINES = 40;
+var MAX_SNIPPET_LINES = 12;
+var MAX_RESULTS = 5;
+var MIN_SCORE = 0.05;
+var STOP = new Set([
+  "function",
+  "class",
+  "method",
+  "const",
+  "let",
+  "var",
+  "return",
+  "import",
+  "export",
+  "async",
+  "await",
+  "the",
+  "and",
+  "for",
+  "with",
+  "this",
+  "that",
+  "from",
+  "type",
+  "interface",
+  "new",
+  "not",
+  "if",
+  "else",
+  "try",
+  "catch",
+  "throw",
+  "get",
+  "set",
+  "public",
+  "private",
+  "protected",
+  "readonly",
+  "static",
+  "void",
+  "any",
+  "true",
+  "false",
+  "null",
+  "undefined",
+  "string",
+  "number",
+  "boolean",
+  "object",
+  "array"
+]);
+var CHUNK_START_RE = /^(?:export\s+)?(?:async\s+)?(?:function\s+(\w+)|class\s+(\w+)|(?:const|let)\s+(\w+)\s*=\s*(?:async\s+)?\(|(?:  |\t)(?:async\s+)?(\w+)\s*\()/;
+var chunkCache = null;
+
+class RagEngine {
+  retrieve(query, index, options = {}) {
+    const chunks = this.getChunks(index);
+    const topK = options.topK ?? MAX_RESULTS;
+    const fileSet = options.files ? new Set(options.files) : null;
+    const queryTerms = extractTerms(query);
+    if (queryTerms.size === 0)
+      return [];
+    const scored = [];
+    for (const chunk of chunks) {
+      if (fileSet && !fileSet.has(chunk.file))
+        continue;
+      const { score, reason } = scoreChunk(queryTerms, chunk.terms, chunk.symbol);
+      if (score >= MIN_SCORE)
+        scored.push({ chunk, score, reason });
+    }
+    scored.sort((a, b) => b.score - a.score);
+    return scored.slice(0, topK).map(({ chunk, score, reason }) => ({
+      file: chunk.file,
+      symbol: chunk.symbol,
+      snippet: trimSnippet(chunk.content, MAX_SNIPPET_LINES),
+      score: Math.round(score * 100) / 100,
+      reason
+    }));
+  }
+  retrieveByLiteral(literals, index, options = {}) {
+    const chunks = this.getChunks(index);
+    const topK = options.topK ?? MAX_RESULTS;
+    const fileSet = options.files ? new Set(options.files) : null;
+    const lits = literals.map((l) => l.toLowerCase());
+    const scored = [];
+    for (const chunk of chunks) {
+      if (fileSet && !fileSet.has(chunk.file))
+        continue;
+      const lower = chunk.content.toLowerCase();
+      const hits = lits.filter((l) => lower.includes(l));
+      if (hits.length > 0) {
+        const score = hits.length / lits.length;
+        scored.push({ chunk, score, reason: `literal:${hits.slice(0, 3).join(",")}` });
+      }
+    }
+    scored.sort((a, b) => b.score - a.score);
+    return scored.slice(0, topK).map(({ chunk, score, reason }) => ({
+      file: chunk.file,
+      symbol: chunk.symbol,
+      snippet: trimSnippet(chunk.content, MAX_SNIPPET_LINES),
+      score: Math.round(score * 100) / 100,
+      reason
+    }));
+  }
+  getChunks(index) {
+    if (chunkCache && chunkCache.indexedAt === index.lastIndexed) {
+      return chunkCache.chunks;
+    }
+    const chunks = buildChunkIndex(index);
+    chunkCache = { chunks, indexedAt: index.lastIndexed };
+    return chunks;
+  }
+}
+function buildChunkIndex(index) {
+  const chunks = [];
+  for (const [filePath, file] of index.files) {
+    if (file.type !== "source" && file.type !== "test")
+      continue;
+    if (!["typescript", "javascript", "python", "go"].includes(file.language))
+      continue;
+    const absPath = path2.join(index.rootPath, filePath);
+    let content;
+    try {
+      content = fs2.readFileSync(absPath, "utf-8");
+    } catch {
+      continue;
+    }
+    const fileChunks = extractChunks(content, filePath, file.language);
+    chunks.push(...fileChunks);
+  }
+  return chunks;
+}
+function extractChunks(content, filePath, language) {
+  const lines = content.split(`
+`);
+  const chunks = [];
+  for (let i = 0;i < lines.length; i++) {
+    const line = lines[i];
+    const match = CHUNK_START_RE.exec(line);
+    if (!match)
+      continue;
+    const symbol = match[1] || match[2] || match[3] || match[4];
+    if (!symbol || symbol.length < 2)
+      continue;
+    const type = line.includes("class ") ? "class" : match[4] ? "method" : line.includes("function") || line.includes("=>") || line.includes("= (") ? "function" : "block";
+    const bodyLines = extractBody(lines, i, MAX_CHUNK_LINES);
+    if (bodyLines.length < 2)
+      continue;
+    const chunkContent = bodyLines.join(`
+`);
+    chunks.push({
+      file: filePath,
+      symbol,
+      type,
+      startLine: i + 1,
+      content: chunkContent,
+      tokens: estimateChunkTokens(chunkContent),
+      terms: extractTerms(chunkContent + " " + symbol)
+    });
+  }
+  return chunks;
+}
+function extractBody(lines, startIdx, maxLines) {
+  const body = [lines[startIdx]];
+  let depth = 0;
+  let started = false;
+  for (let i = startIdx;i < Math.min(lines.length, startIdx + maxLines); i++) {
+    const line = lines[i];
+    for (const ch of line) {
+      if (ch === "{" || ch === "(") {
+        depth++;
+        started = true;
+      } else if (ch === "}" || ch === ")")
+        depth--;
+    }
+    if (i > startIdx)
+      body.push(line);
+    if (started && depth <= 0)
+      break;
+  }
+  return body;
+}
+function scoreChunk(queryTerms, chunkTerms, symbol) {
+  let score = 0;
+  const hits = [];
+  const symbolLower = symbol.toLowerCase();
+  for (const [term, qFreq] of queryTerms) {
+    const cFreq = chunkTerms.get(term) ?? 0;
+    if (cFreq > 0) {
+      const idfBoost = term.length > 5 ? 1.5 : 1;
+      score += Math.min(qFreq, cFreq) * idfBoost;
+      hits.push(term);
+    }
+    if (symbolLower.includes(term) || term.includes(symbolLower)) {
+      score += 3;
+      if (!hits.includes(term))
+        hits.push(`sym:${term}`);
+    }
+  }
+  const normalized = score / Math.max(queryTerms.size, 1);
+  return { score: normalized, reason: hits.slice(0, 4).join(",") };
+}
+function extractTerms(text) {
+  const freq = new Map;
+  const words = text.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase().split(/[^\w]+/);
+  for (const w of words) {
+    if (w.length > 2 && !STOP.has(w) && !/^\d+$/.test(w)) {
+      freq.set(w, (freq.get(w) ?? 0) + 1);
+    }
+  }
+  return freq;
+}
+function trimSnippet(content, maxLines) {
+  const lines = content.split(`
+`);
+  if (lines.length <= maxLines)
+    return content;
+  return lines.slice(0, maxLines).join(`
+`) + `
+  // ...`;
+}
+function estimateChunkTokens(content) {
+  return Math.ceil(content.length / 4);
+}
+var ragInstance = null;
+function getRagEngine() {
+  if (!ragInstance)
+    ragInstance = new RagEngine;
+  return ragInstance;
+}
+
+// src/engi/summarizer.ts
+var FLOW_MAX_SNIPPETS = 4;
+var BUG_MAX_SNIPPETS = 3;
+var DOC_MAX_EXAMPLES = 3;
+var SNIPPET_MAX_LINES = 10;
+
+class SummarizationEngine {
+  async generateFlowSummary(options) {
+    const index = getIndexer().getIndex();
+    if (!index)
+      return this.emptyFlowSummary();
+    const files = options.scope ? options.scope.map((p) => index.files.get(p)).filter(Boolean) : Array.from(index.files.values()).filter((f) => f.type === "source").slice(0, 10);
+    if (files.length === 0)
+      return this.emptyFlowSummary();
+    const verbosity = options.verbosity ?? "standard";
+    const steps = [];
+    const keySymbols = [];
+    const scopePaths = files.map((f) => f.path);
+    const scopeQuery = scopePaths.map((p) => path3.basename(p, path3.extname(p))).join(" ");
+    const ragChunks = getRagEngine().retrieve(scopeQuery, index, {
+      files: scopePaths,
+      topK: FLOW_MAX_SNIPPETS
+    });
+    const bestChunk = new Map;
+    for (const c2 of ragChunks) {
+      if (!bestChunk.has(c2.file))
+        bestChunk.set(c2.file, c2.snippet);
+    }
+    for (let i = 0;i < files.length; i++) {
+      const file = files[i];
+      const importedBy = this.getFilesImporting(file.path, index);
+      const topExports = file.exports.slice(0, 3).join(", ");
+      let description;
+      if (i === 0) {
+        description = `Entry: ${file.name}` + (topExports ? ` — exports ${topExports}` : "");
+      } else if (importedBy.length > 0) {
+        description = `${file.name} used by ${importedBy.length} file(s)` + (topExports ? ` · exports ${topExports}` : "");
+      } else {
+        description = `${file.name}` + (topExports ? ` — exports ${topExports}` : "");
+      }
+      const step = {
+        order: i + 1,
+        description,
+        file: file.path,
+        symbol: file.exports[0]
+      };
+      if (verbosity !== "minimal" && bestChunk.has(file.path)) {
+        step.snippet = limitLines(bestChunk.get(file.path), SNIPPET_MAX_LINES);
+      }
+      steps.push(step);
+      const symbols = index.symbols.get(file.path) ?? [];
+      for (const sym of symbols.slice(0, 3))
+        keySymbols.push(`${sym.name} (${sym.type})`);
+    }
+    return {
+      summary: this.generateSummaryText(steps, verbosity),
+      steps,
+      keyFiles: files.map((f) => f.path),
+      keySymbols: keySymbols.slice(0, 12),
+      entryPoint: options.entryPoint ?? files[0]?.path,
+      handle: this.generateHandle("flow", scopePaths.join(","))
+    };
+  }
+  async traceBug(symptom, scope) {
+    const index = getIndexer().getIndex();
+    if (!index)
+      return this.emptyBugTrace();
+    const symptomLower = symptom.toLowerCase();
+    const likelyCauses = [];
+    const suspectFiles = new Set;
+    const suspectSymbols = [];
+    if (symptomLower.match(/null|undefined|cannot read|is not a function/)) {
+      likelyCauses.push({
+        type: "null_undefined",
+        likelihood: 0.85,
+        description: "Null/undefined access — check for missing null guards before dereferencing"
+      });
+    }
+    if (symptomLower.match(/race|timing|async|concurrent|await/)) {
+      likelyCauses.push({
+        type: "race_condition",
+        likelihood: 0.75,
+        description: "Race condition or unresolved async — ensure all async paths are awaited"
+      });
+    }
+    if (symptomLower.match(/type|cast|instanceof|assign/)) {
+      likelyCauses.push({
+        type: "type_mismatch",
+        likelihood: 0.65,
+        description: "Type mismatch — verify type assertions and interface contracts"
+      });
+    }
+    if (symptomLower.match(/loop|infinite|timeout|hang/)) {
+      likelyCauses.push({
+        type: "logic_error",
+        likelihood: 0.7,
+        description: "Logic error in loop or termination condition"
+      });
+    }
+    if (symptomLower.match(/state|stale|cache|invalidat/)) {
+      likelyCauses.push({
+        type: "unsafe_state",
+        likelihood: 0.7,
+        description: "Stale or incorrectly invalidated state — check cache write-through and eviction"
+      });
+    }
+    const scopePaths = scope ?? [];
+    const keywords = extractKeywords(symptom);
+    const ragByLit = getRagEngine().retrieveByLiteral(keywords, index, {
+      files: scopePaths.length > 0 ? scopePaths : undefined,
+      topK: BUG_MAX_SNIPPETS
+    });
+    const ragBySem = getRagEngine().retrieve(symptom, index, {
+      files: scopePaths.length > 0 ? scopePaths : undefined,
+      topK: BUG_MAX_SNIPPETS
+    });
+    const seen = new Set;
+    const topRag = [...ragByLit, ...ragBySem].filter((c2) => {
+      const key = `${c2.file}:${c2.symbol}`;
+      if (seen.has(key))
+        return false;
+      seen.add(key);
+      return true;
+    }).slice(0, BUG_MAX_SNIPPETS);
+    for (let i = 0;i < topRag.length; i++) {
+      const chunk = topRag[i];
+      suspectFiles.add(chunk.file);
+      suspectSymbols.push(`${chunk.symbol} in ${chunk.file}`);
+      if (i < likelyCauses.length) {
+        likelyCauses[i].file = chunk.file;
+        likelyCauses[i].symbol = chunk.symbol;
+        likelyCauses[i].snippet = limitLines(chunk.snippet, SNIPPET_MAX_LINES);
+      } else {
+        likelyCauses.push({
+          type: "other",
+          likelihood: Math.max(0.3, chunk.score),
+          description: `Relevant code in ${chunk.symbol} (${chunk.file}) — ${chunk.reason}`,
+          file: chunk.file,
+          symbol: chunk.symbol,
+          snippet: limitLines(chunk.snippet, SNIPPET_MAX_LINES)
+        });
+      }
+    }
+    if (suspectFiles.size === 0) {
+      const targetFiles = scope ? scope.map((p) => index.files.get(p)).filter(Boolean) : Array.from(index.files.values()).filter((f) => f.type === "source").slice(0, 20);
+      for (const file of targetFiles) {
+        if (file.imports.length > 10 || file.exports.length > 10)
+          suspectFiles.add(file.path);
+      }
+    }
+    const confidence = Math.min(likelyCauses.length * 0.2 + (topRag.length > 0 ? 0.25 : 0.1), 0.95);
+    return {
+      likelyCauses,
+      suspectFiles: [...suspectFiles].slice(0, 10),
+      suspectSymbols: suspectSymbols.slice(0, 10),
+      confidence,
+      handle: this.generateHandle("bug", symptom)
+    };
+  }
+  async buildDocContext(options) {
+    const index = getIndexer().getIndex();
+    if (!index)
+      return this.emptyDocContext();
+    const featureSummary = options.feature ?? "Codebase overview";
+    const codeReferences = [];
+    const examples = [];
+    const targetFiles = options.changedFiles ? options.changedFiles.map((p) => index.files.get(p)).filter(Boolean) : Array.from(index.files.values()).filter((f) => f.type === "source").slice(0, 5);
+    for (const file of targetFiles) {
+      codeReferences.push({
+        file: file.path,
+        symbol: file.exports[0],
+        description: `${file.exports.length} exports: ${file.exports.slice(0, 4).join(", ")}`
+      });
+    }
+    const ragQuery = featureSummary + " " + (options.changedFiles ?? []).map((f) => path3.basename(f, path3.extname(f))).join(" ");
+    const scopePaths = targetFiles.map((f) => f.path);
+    const ragChunks = getRagEngine().retrieve(ragQuery, index, {
+      files: scopePaths,
+      topK: DOC_MAX_EXAMPLES
+    });
+    for (const chunk of ragChunks) {
+      const fileEntry = index.files.get(chunk.file);
+      if (!fileEntry)
+        continue;
+      examples.push({
+        title: `${chunk.symbol} — ${chunk.file}`,
+        code: limitLines(chunk.snippet, SNIPPET_MAX_LINES),
+        language: fileEntry.language
+      });
+    }
+    const audienceNotes = {};
+    const aud = options.audience ?? "developer";
+    audienceNotes[aud] = this.generateAudienceNote(aud, codeReferences);
+    const totalExports = codeReferences.reduce((s3, r) => {
+      const m = r.description.match(/\d+/);
+      return s3 + (m ? parseInt(m[0], 10) : 0);
+    }, 0);
+    return {
+      featureSummary,
+      currentBehavior: `${targetFiles.length} files · ${totalExports} total exports${ragChunks.length > 0 ? ` · ${ragChunks.length} code snippet(s) attached` : ""}`,
+      codeReferences,
+      examples: examples.slice(0, DOC_MAX_EXAMPLES),
+      audienceNotes,
+      handle: this.generateHandle("doc", options.feature ?? "overview")
+    };
+  }
+  emptyFlowSummary() {
+    return { summary: "No codebase indexed. Use repo_scope_find to index a repository first.", steps: [], keyFiles: [], keySymbols: [], handle: undefined };
+  }
+  emptyBugTrace() {
+    return { likelyCauses: [], suspectFiles: [], suspectSymbols: [], confidence: 0, handle: undefined };
+  }
+  emptyDocContext() {
+    return { featureSummary: "", currentBehavior: "", codeReferences: [], examples: [], audienceNotes: {}, handle: undefined };
+  }
+  generateSummaryText(steps, verbosity) {
+    if (verbosity === "minimal" || steps.length === 0)
+      return `${steps.length} files in flow`;
+    if (verbosity === "standard")
+      return `Flow overview:
+${steps.map((s3) => `${s3.order}. ${s3.description}`).join(`
+`)}`;
+    return `Code flow (${steps.length} files):
+
+${steps.map((s3) => `${s3.order}. ${s3.description}
+   ${s3.file}${s3.snippet ? `
+` + indent(s3.snippet, "   ") : ""}`).join(`
+
+`)}`;
+  }
+  getFilesImporting(filePath, index) {
+    const importers = [];
+    for (const [p, file] of index.files) {
+      if (file.imports.some((imp) => imp === filePath || p.endsWith(imp)))
+        importers.push(p);
+    }
+    return importers;
+  }
+  generateHandle(prefix, data) {
+    const hash = data.split("").reduce((acc, ch) => (acc << 5) - acc + ch.charCodeAt(0), 0);
+    return `${prefix}_${Math.abs(hash).toString(36)}`;
+  }
+  generateAudienceNote(audience, refs) {
+    switch (audience) {
+      case "junior":
+        return `Start with: ${refs.slice(0, 2).map((r) => r.file).join(", ")}. Focus on the exported functions.`;
+      case "senior":
+        return `Key files: ${refs.map((r) => r.file).join(", ")}. Review architecture and side-effects.`;
+      case "api":
+        return `Public surface: ${refs.flatMap((r) => r.description.replace(/^\d+ exports: /, "").split(", ")).slice(0, 8).join(", ")}`;
+      case "pm":
+        return `${refs.length} components changed. Each exposes: ${refs.map((r) => r.file.split("/").pop()).join(", ")}`;
+      case "qa":
+        return `Test entry points: ${refs.map((r) => r.symbol ?? r.file).join(", ")}`;
+      default:
+        return `${refs.length} main files to review.`;
+    }
+  }
+}
+function limitLines(text, max) {
+  const lines = text.split(`
+`);
+  return lines.length <= max ? text : lines.slice(0, max).join(`
+`) + `
+  // ...`;
+}
+function indent(text, prefix) {
+  return text.split(`
+`).map((l) => prefix + l).join(`
+`);
+}
+function extractKeywords(text) {
+  const quoted = [...text.matchAll(/'([^']+)'|"([^"]+)"/g)].map((m) => m[1] ?? m[2]);
+  const errCodes = text.match(/[A-Z][A-Z0-9_]{3,}/g) ?? [];
+  const words = text.toLowerCase().replace(/[^\w\s]/g, " ").split(/\s+/).filter((w) => w.length > 5);
+  return [...new Set([...quoted, ...errCodes, ...words])].slice(0, 12);
+}
+var summarizationInstance = null;
+function getSummarizationEngine() {
+  if (!summarizationInstance)
+    summarizationInstance = new SummarizationEngine;
+  return summarizationInstance;
+}
+
+// src/engi/memory.ts
+import * as fs3 from "fs";
+
+class MemoryStore {
+  checkpoints = new Map;
+  taskIndex = new Map;
+  storagePath = null;
+  initialize(options) {
+    if (options?.storagePath) {
+      this.storagePath = options.storagePath;
+      this.load();
+    }
+  }
+  saveCheckpoint(checkpoint) {
+    const full = { ...checkpoint, id: this.generateId(), timestamp: Date.now() };
+    this.checkpoints.set(full.id, full);
+    const ids = this.taskIndex.get(full.taskId) ?? [];
+    ids.push(full.id);
+    this.taskIndex.set(full.taskId, ids);
+    this.persist();
+    return full;
+  }
+  getCheckpoint(id) {
+    return this.checkpoints.get(id) ?? null;
+  }
+  getAllCheckpoints() {
+    return [...this.checkpoints.values()];
+  }
+  getLatestForTask(taskId) {
+    const ids = this.taskIndex.get(taskId);
+    if (!ids || ids.length === 0)
+      return null;
+    return this.checkpoints.get(ids[ids.length - 1]) ?? null;
+  }
+  deleteCheckpoint(id) {
+    const cp = this.checkpoints.get(id);
+    if (!cp)
+      return false;
+    this.checkpoints.delete(id);
+    const ids = this.taskIndex.get(cp.taskId);
+    if (ids) {
+      const idx = ids.indexOf(id);
+      if (idx !== -1)
+        ids.splice(idx, 1);
+      if (ids.length === 0)
+        this.taskIndex.delete(cp.taskId);
+    }
+    this.persist();
+    return true;
+  }
+  restore(id) {
+    const checkpoint = this.getCheckpoint(id);
+    if (!checkpoint)
+      return null;
+    return {
+      checkpoint,
+      currentScope: checkpoint.scope,
+      progressSummary: this.buildProgressSummary(checkpoint),
+      unresolvedItems: [...checkpoint.pendingValidations, ...checkpoint.pendingDocs]
+    };
+  }
+  updateCheckpoint(id, updates) {
+    const existing = this.checkpoints.get(id);
+    if (!existing)
+      return false;
+    this.checkpoints.set(id, { ...existing, ...updates });
+    this.persist();
+    return true;
+  }
+  clear() {
+    this.checkpoints.clear();
+    this.taskIndex.clear();
+    this.persist();
+  }
+  generateId() {
+    return `cp_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+  }
+  buildProgressSummary(cp) {
+    const parts = [
+      `Task: ${cp.taskType}`,
+      `Files in scope: ${cp.scope.files.length}`,
+      `Decisions made: ${cp.decisions.length}`,
+      `Risks identified: ${cp.risks.length}`
+    ];
+    if (cp.pendingValidations.length > 0)
+      parts.push(`Pending validations: ${cp.pendingValidations.length}`);
+    if (cp.pendingDocs.length > 0)
+      parts.push(`Pending docs: ${cp.pendingDocs.length}`);
+    return parts.join(" | ");
+  }
+  persist() {
+    if (!this.storagePath)
+      return;
+    try {
+      fs3.writeFileSync(this.storagePath, JSON.stringify([...this.checkpoints.entries()], null, 2), "utf-8");
+    } catch (err) {
+      console.error("Failed to persist memory:", err);
+    }
+  }
+  load() {
+    if (!this.storagePath || !fs3.existsSync(this.storagePath))
+      return;
+    try {
+      const entries = JSON.parse(fs3.readFileSync(this.storagePath, "utf-8"));
+      this.checkpoints = new Map(entries);
+      this.taskIndex.clear();
+      for (const [id, cp] of this.checkpoints) {
+        const ids = this.taskIndex.get(cp.taskId) ?? [];
+        ids.push(id);
+        this.taskIndex.set(cp.taskId, ids);
+      }
+    } catch (err) {
+      console.error("Failed to load memory:", err);
+    }
+  }
+}
+function createCheckpoint(options) {
+  return {
+    taskId: options.taskId,
+    taskType: options.taskType,
+    scope: options.scope,
+    decisions: options.decisions ?? [],
+    risks: options.risks ?? [],
+    pendingValidations: options.pendingValidations ?? [],
+    pendingDocs: options.pendingDocs ?? [],
+    notes: options.notes ?? ""
+  };
+}
+var memoryStoreInstance = null;
+function getMemoryStore() {
+  if (!memoryStoreInstance)
+    memoryStoreInstance = new MemoryStore;
+  return memoryStoreInstance;
+}
+
+// src/engi/tools.ts
+var STOP_WORDS2 = new Set([
+  "function",
+  "class",
+  "method",
+  "variable",
+  "const",
+  "let",
+  "var",
+  "return",
+  "import",
+  "export",
+  "async",
+  "await",
+  "the",
+  "and",
+  "for",
+  "with",
+  "this",
+  "that",
+  "from",
+  "type",
+  "interface",
+  "new",
+  "not"
+]);
+async function engiTaskClassify(params) {
+  const { task, keywords = [] } = params;
+  const taskLower = task.toLowerCase();
+  const detectedTypes = [];
+  let confidence = 0;
+  if (taskLower.includes("bug") || taskLower.includes("fix") || taskLower.includes("error") || taskLower.includes("crash") || taskLower.includes("fail") || taskLower.includes("issue")) {
+    detectedTypes.push("bug");
+    confidence += 0.8;
+  }
+  if (taskLower.includes("implement") || taskLower.includes("add") || taskLower.includes("new") || taskLower.includes("feature") || taskLower.includes("create")) {
+    detectedTypes.push("feature");
+    confidence += 0.7;
+  }
+  if (taskLower.includes("poc") || taskLower.includes("proof of concept") || taskLower.includes("prototype") || taskLower.includes("mockup")) {
+    detectedTypes.push("poc");
+    confidence += 0.9;
+  }
+  if (taskLower.includes("doc") || taskLower.includes("readme") || taskLower.includes("comment") || taskLower.includes("explain") || taskLower.includes("guide")) {
+    detectedTypes.push("documentation");
+    confidence += 0.8;
+  }
+  if (taskLower.includes("analyze") || taskLower.includes("understand") || taskLower.includes("how does") || taskLower.includes("what is")) {
+    detectedTypes.push("analysis");
+    confidence += 0.6;
+  }
+  if (detectedTypes.length === 0) {
+    detectedTypes.push("analysis");
+    confidence = 0.5;
+  }
+  let suggestedMode = "analysis";
+  if (detectedTypes.includes("bug") || detectedTypes.includes("feature")) {
+    suggestedMode = "planning";
+  } else if (detectedTypes.includes("documentation")) {
+    suggestedMode = "documentation";
+  }
+  const nextTools = [];
+  if (suggestedMode === "analysis") {
+    nextTools.push("engi_repo_scope_find", "engi_flow_summarize");
+  } else if (suggestedMode === "planning") {
+    nextTools.push("engi_repo_scope_find", "engi_implementation_plan");
+  } else if (suggestedMode === "documentation") {
+    nextTools.push("engi_doc_context_build", "engi_doc_update_plan");
+  }
+  confidence = Math.min(confidence, 1);
+  return { types: detectedTypes, confidence, suggestedMode, nextTools };
+}
+async function engiRepoScopeFind(params) {
+  const { task, taskType, keywords = [], limit = 10, repoPath } = params;
+  if (repoPath) {
+    await indexRepository(repoPath);
+  }
+  const retrieval = getRetrievalEngine();
+  return retrieval.findScope({ task, taskType, keywords, limit });
+}
+async function engiFlowSummarize(params) {
+  const summarizer = getSummarizationEngine();
+  return summarizer.generateFlowSummary({
+    scope: params.scope,
+    entryPoint: params.entryPoint,
+    verbosity: params.verbosity
+  });
+}
+async function engiBugTraceCompact(params) {
+  const summarizer = getSummarizationEngine();
+  return summarizer.traceBug(params.symptom, params.scope);
+}
+async function engiImplementationPlan(params) {
+  const { task, taskType, scope, existingPatterns = [] } = params;
+  const steps = [];
+  const editTargets = [];
+  const requiredTests = [];
+  const requiredDocs = [];
+  const riskNotes = [];
+  for (let i = 0;i < scope.length; i++) {
+    const file = scope[i];
+    if (taskType === "feature") {
+      steps.push({ order: i + 1, description: `Implement in ${file}`, file, action: "modify" });
+      editTargets.push({ file, description: `Add new functionality for: ${task}` });
+    } else {
+      steps.push({ order: i + 1, description: `Fix bug in ${file}`, file, action: "modify" });
+      editTargets.push({ file, description: `Address the bug: ${task}` });
+      riskNotes.push(`Potential regression risk in ${file}`);
+    }
+  }
+  steps.push({
+    order: steps.length + 1,
+    description: "Create or update tests",
+    file: scope[0] || "test file",
+    action: "create",
+    dependencies: steps.map((s3) => s3.file)
+  });
+  requiredTests.push(`${scope[0] || "source"}.test.ts`);
+  if (taskType === "feature") {
+    steps.push({ order: steps.length + 1, description: "Update documentation", file: "docs", action: "modify" });
+    requiredDocs.push("README.md");
+  }
+  return {
+    steps,
+    editTargets,
+    requiredTests,
+    requiredDocs,
+    riskNotes,
+    handle: `plan_${Date.now()}`
+  };
+}
+async function engiPOCPlan(params) {
+  const { goal, constraints = [], existingCode = [] } = params;
+  let minimalArchitecture = "Simple Node.js module";
+  const filesToCreate = [];
+  const shortcutsAllowed = [];
+  const excludedScope = [];
+  const goalLower = goal.toLowerCase();
+  if (goalLower.includes("api") || goalLower.includes("endpoint")) {
+    minimalArchitecture = "Simple Express/HTTP handler with minimal routing";
+    filesToCreate.push("src/poc/handler.ts");
+    shortcutsAllowed.push("Use in-memory storage", "Skip authentication");
+    excludedScope.push("Database integration", "Complex validation");
+  } else if (goalLower.includes("database") || goalLower.includes("storage")) {
+    minimalArchitecture = "In-memory or file-based storage";
+    filesToCreate.push("src/poc/storage.ts");
+    shortcutsAllowed.push("Skip connection pooling");
+    excludedScope.push("Production database");
+  } else if (goalLower.includes("ui") || goalLower.includes("interface")) {
+    minimalArchitecture = "Minimal UI component";
+    filesToCreate.push("src/poc/Component.tsx");
+    shortcutsAllowed.push("Skip styling", "Use mock data");
+  } else {
+    minimalArchitecture = "Simple module with core logic";
+    filesToCreate.push("src/poc/index.ts");
+    shortcutsAllowed.push("Skip error handling", "Skip logging");
+  }
+  for (const constraint of constraints) {
+    const cLower = constraint.toLowerCase();
+    if (cLower.includes("no auth"))
+      excludedScope.push("Authentication");
+    if (cLower.includes("simple"))
+      excludedScope.push("Advanced features");
+  }
+  return {
+    goal,
+    minimalArchitecture,
+    filesToCreate,
+    shortcutsAllowed,
+    excludedScope,
+    mockStrategy: "Use hardcoded test data and in-memory implementations",
+    handle: `poc_${Date.now()}`
+  };
+}
+async function engiImpactAnalyze(params) {
+  const { scope, changeType } = params;
+  const indexer = getIndexer();
+  const index = indexer.getIndex();
+  const affectedFiles = [];
+  const affectedModules = [];
+  const affectedSymbols = [];
+  const regressionNotes = [];
+  const riskyPoints = [];
+  const relatedTests = [];
+  const docsImpact = [];
+  if (!index) {
+    return { affectedFiles: [], affectedModules: [], affectedSymbols: [], regressionNotes: ["No repository indexed"], riskyPoints: [], relatedTests: [], docsImpact: [] };
+  }
+  const retrieval = getRetrievalEngine();
+  for (const filePath of scope) {
+    const dependents = await retrieval.findDependents(filePath);
+    for (const dep of dependents) {
+      if (!affectedFiles.includes(dep.path))
+        affectedFiles.push(dep.path);
+    }
+    const tests = await retrieval.findRelatedTests(filePath);
+    for (const test of tests) {
+      if (!relatedTests.includes(test.path))
+        relatedTests.push(test.path);
+    }
+    const module = filePath.split("/")[0];
+    if (!affectedModules.includes(module))
+      affectedModules.push(module);
+  }
+  for (const file of affectedFiles) {
+    const fileType = index.files.get(file)?.type;
+    if (fileType === "source")
+      regressionNotes.push(`Potential regression in: ${file}`);
+  }
+  if (changeType === "delete") {
+    riskyPoints.push("Removing files may break dependent code", "Check for exposed APIs that depend on deleted code");
+  } else if (changeType === "modify") {
+    riskyPoints.push("Existing function signatures may affect callers", "Check for breaking changes in public exports");
+  }
+  for (const file of scope) {
+    const module = file.split("/")[0];
+    const moduleDocs = index.docs.filter((d) => d.path.startsWith(module) || d.path.includes(module));
+    for (const doc of moduleDocs) {
+      if (!docsImpact.includes(doc.path))
+        docsImpact.push(doc.path);
+    }
+  }
+  return { affectedFiles, affectedModules, affectedSymbols, regressionNotes, riskyPoints, relatedTests, docsImpact };
+}
+async function engiTestSelect(params) {
+  const { scope, changeType = "modify" } = params;
+  const retrieval = getRetrievalEngine();
+  const requiredTests = [];
+  const optionalTests = [];
+  for (const filePath of scope) {
+    const tests = await retrieval.findRelatedTests(filePath);
+    for (const test of tests) {
+      const testInfo = {
+        path: test.path,
+        type: test.type === "other" ? "unit" : test.type,
+        targetCoverage: [filePath]
+      };
+      if (changeType !== "add") {
+        if (!requiredTests.some((t) => t.path === test.path))
+          requiredTests.push(testInfo);
+      } else {
+        if (!optionalTests.some((t) => t.path === test.path))
+          optionalTests.push(testInfo);
+      }
+    }
+  }
+  let reason = `Found ${requiredTests.length} required and ${optionalTests.length} optional tests`;
+  if (requiredTests.length === 0 && optionalTests.length === 0) {
+    reason = "No direct tests found - consider writing new tests for changes";
+  }
+  return { requiredTests, optionalTests, reason };
+}
+async function engiDocContextBuild(params) {
+  const summarizer = getSummarizationEngine();
+  return summarizer.buildDocContext({
+    feature: params.feature,
+    changedFiles: params.changedFiles,
+    audience: params.audience
+  });
+}
+async function engiDocUpdatePlan(params) {
+  const { changedFiles, existingDocs = [] } = params;
+  const indexer = getIndexer();
+  const index = indexer.getIndex();
+  const docsToUpdate = [];
+  const docsToCreate = [];
+  const sectionsToUpdate = [];
+  const examplesNeeded = [];
+  if (!index) {
+    return { docsToUpdate, docsToCreate, sectionsToUpdate, examplesNeeded };
+  }
+  const changedModules = new Set(changedFiles.map((f) => f.split("/")[0]));
+  for (const doc of index.docs) {
+    const docModule = doc.path.split("/")[0];
+    if (changedModules.has(docModule) || changedFiles.some((f) => doc.path.includes(f))) {
+      docsToUpdate.push({ path: doc.path, reason: `References changed module: ${docModule}` });
+      sectionsToUpdate.push(`${doc.name} - ${docModule} section`);
+    }
+  }
+  if (changedFiles.length > 0 && docsToUpdate.length === 0) {
+    docsToCreate.push({ path: "docs/CHANGES.md", purpose: "Document changes in changed files" });
+  }
+  for (const file of changedFiles.slice(0, 3)) {
+    const fileName = file.split("/").pop() || "";
+    if (fileName && !fileName.includes("test")) {
+      examplesNeeded.push(`Example usage of ${fileName.replace(/\.[^.]+$/, "")}`);
+    }
+  }
+  return { docsToUpdate, docsToCreate, sectionsToUpdate, examplesNeeded };
+}
+async function engiMemoryCheckpoint(params) {
+  const memory = getMemoryStore();
+  const checkpointData = createCheckpoint({
+    taskId: params.taskId,
+    taskType: params.taskType,
+    scope: {
+      files: params.files,
+      symbols: params.symbols || [],
+      modules: params.modules || []
+    },
+    decisions: params.decisions?.map((d) => ({ ...d, timestamp: Date.now() })) || [],
+    risks: params.risks || [],
+    pendingValidations: params.pendingValidations || [],
+    pendingDocs: params.pendingDocs || [],
+    notes: params.notes || ""
+  });
+  return memory.saveCheckpoint(checkpointData);
+}
+async function engiMemoryRestore(params) {
+  const memory = getMemoryStore();
+  if (params.id) {
+    return memory.restore(params.id);
+  } else if (params.taskId) {
+    const checkpoint = memory.getLatestForTask(params.taskId);
+    if (checkpoint)
+      return memory.restore(checkpoint.id);
+  }
+  return null;
+}
+var engiTools = [
+  {
+    name: "engi_task_classify",
+    description: "Classify an engineering task to determine its type and suggest next steps",
+    inputSchema: {
+      type: "object",
+      properties: {
+        task: { type: "string", description: "The engineering task description to classify" },
+        keywords: { type: "array", items: { type: "string" }, description: "Optional keywords for context" }
+      },
+      required: ["task"]
+    },
+    execute: async (args) => {
+      const result = await engiTaskClassify(args);
+      return { success: true, content: JSON.stringify(result, null, 2) };
+    }
+  },
+  {
+    name: "engi_repo_scope_find",
+    description: "Identify minimum relevant repository scope for a task",
+    inputSchema: {
+      type: "object",
+      properties: {
+        task: { type: "string", description: "The task description" },
+        taskType: { type: "string", enum: ["analysis", "feature", "bug", "poc", "documentation", "mixed"], description: "Type of task" },
+        keywords: { type: "array", items: { type: "string" }, description: "Additional keywords" },
+        limit: { type: "number", description: "Maximum results to return" },
+        repoPath: { type: "string", description: "Repository path to index" }
+      },
+      required: ["task", "taskType"]
+    },
+    execute: async (args) => {
+      const result = await engiRepoScopeFind(args);
+      return { success: true, content: JSON.stringify(result, null, 2) };
+    }
+  },
+  {
+    name: "engi_flow_summarize",
+    description: "Explain existing implementation flow",
+    inputSchema: {
+      type: "object",
+      properties: {
+        scope: { type: "array", items: { type: "string" }, description: "File paths to include" },
+        entryPoint: { type: "string", description: "Entry point file" },
+        verbosity: { type: "string", enum: ["minimal", "standard", "detailed"], description: "Verbosity level" }
+      }
+    },
+    execute: async (args) => {
+      const result = await engiFlowSummarize(args);
+      return { success: true, content: JSON.stringify(result, null, 2) };
+    }
+  },
+  {
+    name: "engi_bug_trace_compact",
+    description: "Trace likely bug causes from symptom description",
+    inputSchema: {
+      type: "object",
+      properties: {
+        symptom: { type: "string", description: "Bug symptom description" },
+        scope: { type: "array", items: { type: "string" }, description: "Files to investigate" }
+      },
+      required: ["symptom"]
+    },
+    execute: async (args) => {
+      const result = await engiBugTraceCompact(args);
+      return { success: true, content: JSON.stringify(result, null, 2) };
+    }
+  },
+  {
+    name: "engi_implementation_plan",
+    description: "Build implementation plan for new feature or fix",
+    inputSchema: {
+      type: "object",
+      properties: {
+        task: { type: "string", description: "Feature or fix description" },
+        taskType: { type: "string", enum: ["feature", "bug"], description: "Type of task" },
+        scope: { type: "array", items: { type: "string" }, description: "Files in scope" },
+        existingPatterns: { type: "array", items: { type: "string" }, description: "Existing patterns to follow" }
+      },
+      required: ["task", "taskType", "scope"]
+    },
+    execute: async (args) => {
+      const result = await engiImplementationPlan(args);
+      return { success: true, content: JSON.stringify(result, null, 2) };
+    }
+  },
+  {
+    name: "engi_poc_plan",
+    description: "Define minimum viable POC implementation",
+    inputSchema: {
+      type: "object",
+      properties: {
+        goal: { type: "string", description: "POC goal description" },
+        constraints: { type: "array", items: { type: "string" }, description: "Known constraints" },
+        existingCode: { type: "array", items: { type: "string" }, description: "Existing code to leverage" }
+      },
+      required: ["goal"]
+    },
+    execute: async (args) => {
+      const result = await engiPOCPlan(args);
+      return { success: true, content: JSON.stringify(result, null, 2) };
+    }
+  },
+  {
+    name: "engi_impact_analyze",
+    description: "Estimate blast radius of change",
+    inputSchema: {
+      type: "object",
+      properties: {
+        scope: { type: "array", items: { type: "string" }, description: "Files being changed" },
+        changeType: { type: "string", enum: ["add", "modify", "delete"], description: "Type of change" }
+      },
+      required: ["scope", "changeType"]
+    },
+    execute: async (args) => {
+      const result = await engiImpactAnalyze(args);
+      return { success: true, content: JSON.stringify(result, null, 2) };
+    }
+  },
+  {
+    name: "engi_test_select",
+    description: "Choose minimum useful test set",
+    inputSchema: {
+      type: "object",
+      properties: {
+        scope: { type: "array", items: { type: "string" }, description: "Files being changed" },
+        changeType: { type: "string", enum: ["add", "modify", "delete"], description: "Type of change" }
+      },
+      required: ["scope"]
+    },
+    execute: async (args) => {
+      const result = await engiTestSelect(args);
+      return { success: true, content: JSON.stringify(result, null, 2) };
+    }
+  },
+  {
+    name: "engi_doc_context_build",
+    description: "Build compact context for docs generation",
+    inputSchema: {
+      type: "object",
+      properties: {
+        feature: { type: "string", description: "Feature or change to document" },
+        changedFiles: { type: "array", items: { type: "string" }, description: "Files that changed" },
+        audience: { type: "string", enum: ["junior", "senior", "pm", "qa", "api"], description: "Target audience" }
+      }
+    },
+    execute: async (args) => {
+      const result = await engiDocContextBuild(args);
+      return { success: true, content: JSON.stringify(result, null, 2) };
+    }
+  },
+  {
+    name: "engi_doc_update_plan",
+    description: "Identify which docs must change",
+    inputSchema: {
+      type: "object",
+      properties: {
+        changedFiles: { type: "array", items: { type: "string" }, description: "Files that changed" },
+        existingDocs: { type: "array", items: { type: "string" }, description: "Existing docs" }
+      },
+      required: ["changedFiles"]
+    },
+    execute: async (args) => {
+      const result = await engiDocUpdatePlan(args);
+      return { success: true, content: JSON.stringify(result, null, 2) };
+    }
+  },
+  {
+    name: "engi_memory_checkpoint",
+    description: "Store compact task state outside conversation context",
+    inputSchema: {
+      type: "object",
+      properties: {
+        taskId: { type: "string", description: "Unique task identifier" },
+        taskType: { type: "string", enum: ["analysis", "feature", "bug", "poc", "documentation", "mixed"], description: "Type of task" },
+        files: { type: "array", items: { type: "string" }, description: "Files in scope" },
+        symbols: { type: "array", items: { type: "string" }, description: "Symbols in scope" },
+        modules: { type: "array", items: { type: "string" }, description: "Modules in scope" },
+        decisions: { type: "array", items: { type: "object", properties: { description: { type: "string" }, rationale: { type: "string" } } }, description: "Decisions made" },
+        risks: { type: "array", items: { type: "string" }, description: "Identified risks" },
+        pendingValidations: { type: "array", items: { type: "string" }, description: "Pending validations" },
+        pendingDocs: { type: "array", items: { type: "string" }, description: "Pending docs" },
+        notes: { type: "string", description: "Additional notes" }
+      },
+      required: ["taskId", "taskType", "files"]
+    },
+    execute: async (args) => {
+      const result = await engiMemoryCheckpoint(args);
+      return { success: true, content: JSON.stringify(result, null, 2) };
+    }
+  },
+  {
+    name: "engi_memory_restore",
+    description: "Restore compact previously saved task state",
+    inputSchema: {
+      type: "object",
+      properties: {
+        id: { type: "string", description: "Checkpoint ID to restore" },
+        taskId: { type: "string", description: "Task ID to restore latest checkpoint" }
+      }
+    },
+    execute: async (args) => {
+      const result = await engiMemoryRestore(args);
+      return { success: true, content: JSON.stringify(result, null, 2) };
+    }
+  }
+];
+
+// src/native-tools/index.ts
+var tools = [
+  {
+    name: "fetch_web_content",
+    description: "Fetch URL and extract clean content. Optimized for LLM (strips nav/ads, converts to markdown).",
+    inputSchema: {
+      type: "object",
+      properties: {
+        url: { type: "string", description: "URL to fetch" },
+        max_tokens: { type: "integer", description: "Max tokens output (default: 4000)" }
+      },
+      required: ["url"]
+    },
+    async execute(args) {
+      const result = await fetchWebContent(args.url, args.max_tokens || 4000);
+      return { success: result.success, content: result.content, error: result.error };
+    }
+  },
+  {
+    name: "quick_fetch",
+    description: "Ultra-fast fetch for quick lookups. Returns title + summary only.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        url: { type: "string", description: "URL to fetch" }
+      },
+      required: ["url"]
+    },
+    async execute(args) {
+      const result = await quickFetch(args.url);
+      return { success: result.success, content: result.content, error: result.error };
+    }
+  },
+  {
+    name: "open_in_browser",
+    description: "Open URL in default browser. Use when user wants to see results visually or needs interactive web content.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        url: { type: "string", description: "URL to open in browser" },
+        search: { type: "string", description: "Search query to open in Google (alternative to url)" }
+      },
+      required: []
+    },
+    async execute(args) {
+      try {
+        let url = args.url;
+        if (!url && args.search) {
+          url = `https://www.google.com/search?q=${encodeURIComponent(args.search)}`;
+        }
+        if (!url) {
+          return { success: false, content: "", error: "Provide url or search parameter" };
+        }
+        const { execSync: execSync2 } = await import("node:child_process");
+        const opener = process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
+        execSync2(`${opener} "${url}"`, { stdio: "ignore" });
+        return { success: true, content: `Opened in browser: ${url}` };
+      } catch (e) {
+        return { success: false, content: "", error: e.message };
+      }
+    }
+  },
+  {
+    name: "fetch_structured",
+    description: "Fetch and extract structured data (article metadata, product info, tables, links).",
+    inputSchema: {
+      type: "object",
+      properties: {
+        url: { type: "string" },
+        extraction_type: { type: "string", enum: ["article", "product", "table", "links"] },
+        max_tokens: { type: "integer" }
+      },
+      required: ["url", "extraction_type"]
+    },
+    async execute(args) {
+      const result = await fetchStructured(args.url, args.extraction_type, args.max_tokens);
+      return { success: result.success, content: result.content, error: result.error };
+    }
+  },
+  {
+    name: "fetch_with_selectors",
+    description: "Fetch URL and extract using CSS selectors.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        url: { type: "string" },
+        selectors: { type: "object" },
+        max_tokens: { type: "integer" }
+      },
+      required: ["url", "selectors"]
+    },
+    async execute(args) {
+      const result = await fetchWithSelectors(args.url, args.selectors, args.max_tokens);
+      return { success: result.success, content: result.content, error: result.error };
+    }
+  },
+  {
+    name: "scrape_freedium",
+    description: "Scrape Medium via Freedium.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        url: { type: "string" },
+        max_tokens: { type: "integer" }
+      },
+      required: ["url"]
+    },
+    async execute(args) {
+      const result = await scrapeFreedium(args.url, args.max_tokens);
+      return { success: result.success, content: result.content, error: result.error };
+    }
+  },
+  {
+    name: "webclaw_extract_article",
+    description: "Extract article content.",
+    inputSchema: { type: "object", properties: { url: { type: "string" } }, required: ["url"] },
+    async execute(args) {
+      const result = await webclawExtractArticle(args.url);
+      return { success: result.success, content: result.content, error: result.error };
+    }
+  },
+  {
+    name: "webclaw_extract_product",
+    description: "Extract e-commerce product info.",
+    inputSchema: { type: "object", properties: { url: { type: "string" } }, required: ["url"] },
+    async execute(args) {
+      const result = await webclawExtractProduct(args.url);
+      return { success: result.success, content: result.content, error: result.error };
+    }
+  },
+  {
+    name: "webclaw_crawl",
+    description: "Crawl with CSS selectors.",
+    inputSchema: {
+      type: "object",
+      properties: { url: { type: "string" }, selectors: { type: "object" } },
+      required: ["url", "selectors"]
+    },
+    async execute(args) {
+      const result = await webclawCrawl(args.url, args.selectors);
+      return { success: result.success, content: result.content, error: result.error };
+    }
+  },
+  {
+    name: "searxng_search",
+    description: "Web search via SearXNG. Supports categories, engines, time range.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        query: { type: "string", description: "Search query" },
+        limit: { type: "integer", description: "Max results (default: 10)" }
+      },
+      required: ["query"]
+    },
+    async execute(args) {
+      const result = await searxngSearch(args.query, args.limit || 10);
+      if (result.success && result.results) {
+        return {
+          success: true,
+          content: JSON.stringify({ results: result.results })
+        };
+      }
+      return { success: false, content: "", error: result.error };
+    }
+  },
+  {
+    name: "search_images",
+    description: "Image search via SearXNG.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        query: { type: "string" },
+        limit: { type: "integer" }
+      },
+      required: ["query"]
+    },
+    async execute(args) {
+      const result = await searchImages(args.query, args.limit || 10);
+      if (result.success && result.results) {
+        return { success: true, content: JSON.stringify({ results: result.results }) };
+      }
+      return { success: false, content: "", error: result.error };
+    }
+  },
+  {
+    name: "search_news",
+    description: "News search via SearXNG.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        query: { type: "string" },
+        time_range: { type: "string", enum: ["day", "week", "month", "year"] }
+      },
+      required: ["query"]
+    },
+    async execute(args) {
+      const result = await searchNews(args.query, args.time_range);
+      if (result.success && result.results) {
+        return { success: true, content: JSON.stringify({ results: result.results }) };
+      }
+      return { success: false, content: "", error: result.error };
+    }
+  },
+  {
+    name: "searxng_health",
+    description: "Check SearXNG health.",
+    inputSchema: { type: "object", properties: {} },
+    async execute() {
+      const result = await searxngHealth();
+      return { success: result.success, content: result.success ? "OK" : "DOWN", error: result.error };
+    }
+  },
+  {
+    name: "hackernews_top",
+    description: "Top HN stories.",
+    inputSchema: { type: "object", properties: { limit: { type: "integer" } } },
+    async execute(args) {
+      const result = await hackernewsTop(args.limit || 10);
+      if (result.success && result.results) {
+        return { success: true, content: JSON.stringify({ results: result.results }) };
+      }
+      return { success: false, content: "", error: result.error };
+    }
+  },
+  {
+    name: "hackernews_new",
+    description: "Newest HN stories.",
+    inputSchema: { type: "object", properties: { limit: { type: "integer" } } },
+    async execute(args) {
+      const result = await hackernewsNew(args.limit || 10);
+      if (result.success && result.results) {
+        return { success: true, content: JSON.stringify({ results: result.results }) };
+      }
+      return { success: false, content: "", error: result.error };
+    }
+  },
+  {
+    name: "hackernews_best",
+    description: "Best HN stories.",
+    inputSchema: { type: "object", properties: { limit: { type: "integer" } } },
+    async execute(args) {
+      const result = await hackernewsBest(args.limit || 10);
+      if (result.success && result.results) {
+        return { success: true, content: JSON.stringify({ results: result.results }) };
+      }
+      return { success: false, content: "", error: result.error };
+    }
+  },
+  {
+    name: "hackernews_get_comments",
+    description: "Get story comments.",
+    inputSchema: {
+      type: "object",
+      properties: { story_id: { type: "integer" }, limit: { type: "integer" } },
+      required: ["story_id"]
+    },
+    async execute(args) {
+      const result = await hackernewsComments(args.story_id, args.limit || 20);
+      if (result.success && result.results) {
+        return { success: true, content: JSON.stringify({ results: result.results }) };
+      }
+      return { success: false, content: "", error: result.error };
+    }
+  },
+  {
+    name: "file_read",
+    description: "Read file contents.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        path: { type: "string", description: "File path" },
+        max_size: { type: "integer", description: "Max bytes (default: 10MB)" }
+      },
+      required: ["path"]
+    },
+    async execute(args) {
+      const result = await fileRead(args.path, args.max_size);
+      return {
+        success: result.success,
+        content: result.content || "",
+        error: result.error
+      };
+    }
+  },
+  {
+    name: "file_write",
+    description: "Write content to a file.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        path: { type: "string", description: "File path" },
+        content: { type: "string", description: "Content to write" }
+      },
+      required: ["path", "content"]
+    },
+    async execute(args) {
+      const result = await fileWrite(args.path, args.content);
+      return {
+        success: result.success,
+        content: result.path || "",
+        error: result.error
+      };
+    }
+  },
+  {
+    name: "file_list",
+    description: "List directory contents.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        path: { type: "string", description: "Directory path (default: .)" },
+        max_items: { type: "integer" }
+      }
+    },
+    async execute(args) {
+      const result = await fileList(args.path || ".", args.max_items);
+      return {
+        success: result.success,
+        content: JSON.stringify(result.items),
+        error: result.error
+      };
+    }
+  },
+  {
+    name: "file_search",
+    description: "Search files by name pattern.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        directory: { type: "string" },
+        pattern: { type: "string" },
+        max_results: { type: "integer" }
+      },
+      required: ["directory", "pattern"]
+    },
+    async execute(args) {
+      const result = await fileSearch(args.directory, args.pattern, args.max_results);
+      return {
+        success: result.success,
+        content: JSON.stringify(result.files),
+        error: result.error
+      };
+    }
+  },
+  {
+    name: "file_grep",
+    description: "Search within files using grep.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        directory: { type: "string" },
+        query: { type: "string", description: "Search pattern" },
+        max_results: { type: "integer" },
+        file_pattern: { type: "string" }
+      },
+      required: ["directory", "query"]
+    },
+    async execute(args) {
+      const result = await fileGrep(args.directory, args.query, args.max_results, args.file_pattern || "*");
+      return {
+        success: result.success,
+        content: JSON.stringify(result.files),
+        error: result.error
+      };
+    }
+  },
+  {
+    name: "file_glob",
+    description: "Find files matching glob patterns.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        directory: { type: "string" },
+        patterns: { type: "array", items: { type: "string" } },
+        max_results: { type: "integer" }
+      },
+      required: ["directory", "patterns"]
+    },
+    async execute(args) {
+      const result = await fileGlob(args.directory, args.patterns, args.max_results);
+      return {
+        success: result.success,
+        content: JSON.stringify(result.files),
+        error: result.error
+      };
+    }
+  },
+  {
+    name: "run_code",
+    description: "Run code sandbox (Python, JS, Bash).",
+    inputSchema: {
+      type: "object",
+      properties: {
+        code: { type: "string" },
+        language: { type: "string", enum: ["python", "javascript", "bash"] },
+        timeout: { type: "integer" }
+      },
+      required: ["code", "language"]
+    },
+    async execute(args) {
+      const result = await runCode(args.code, args.language, args.timeout || 30);
+      return {
+        success: result.success,
+        content: result.output,
+        error: result.error
+      };
+    }
+  },
+  {
+    name: "run_python_snippet",
+    description: "Run Python with common imports.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        code: { type: "string" },
+        timeout: { type: "integer" }
+      },
+      required: ["code"]
+    },
+    async execute(args) {
+      const result = await runPythonSnippet(args.code, args.timeout);
+      return {
+        success: result.success,
+        content: result.output,
+        error: result.error
+      };
+    }
+  },
+  {
+    name: "run_command",
+    description: "Execute shell command. Supports any command with bash shell. Use for file ops, servers, scripts, etc.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        command: { type: "string", description: "Shell command to execute (full command with args)" },
+        cwd: { type: "string", description: "Working directory (optional, defaults to current)" },
+        background: { type: "boolean", description: "Run in background with nohup (default: false)" },
+        timeout: { type: "integer", description: "Timeout in seconds (default: 30)" }
+      },
+      required: ["command"]
+    },
+    async execute(args) {
+      const { execSync: execSync2, spawn: spawn2 } = await import("node:child_process");
+      const cmd = args.command;
+      const workingDir = args.cwd || process.cwd();
+      const timeout = args.timeout || 30;
+      const runBackground = args.background || false;
+      const dangerous = ["rm -rf", "dd", "mkfs", ":(){", "fork bomb", "> /dev/", "curl | bash", "wget -O- |"];
+      const isDangerous = dangerous.some((d) => cmd.toLowerCase().includes(d));
+      if (isDangerous) {
+        return { success: false, content: "", error: `⚠️  Dangerous command detected: "${cmd.slice(0, 50)}..."
+
+To execute dangerous commands, run directly in your terminal.` };
+      }
+      let fullCmd = cmd;
+      if (cmd.startsWith("cd ") && !cmd.includes("&&")) {
+        const match = cmd.match(/^cd\s+(.+)$/);
+        if (match) {
+          const targetDir = match[1].replace(/^~/, process.env.HOME || "~");
+          try {
+            const { statSync: statSync2 } = await import("node:fs");
+            statSync2(targetDir);
+            return { success: true, content: `Directory changed to: ${targetDir}` };
+          } catch {
+            return { success: false, content: "", error: `Directory not found: ${targetDir}` };
+          }
+        }
+      }
+      try {
+        if (runBackground || cmd.endsWith(" &")) {
+          const cleanCmd = cmd.replace(/\s*&\s*$/, "").trim();
+          spawn2(cleanCmd, [], {
+            shell: true,
+            cwd: workingDir,
+            detached: true,
+            stdio: "ignore"
+          }).unref();
+          return { success: true, content: `Started in background: ${cleanCmd}` };
+        }
+        const output = execSync2(`/bin/bash -c ${JSON.stringify(cmd)}`, {
+          encoding: "utf-8",
+          timeout: timeout * 1000,
+          cwd: workingDir,
+          maxBuffer: 10485760
+        });
+        return { success: true, content: output };
+      } catch (e) {
+        if (e.killed) {
+          return { success: false, content: "", error: `Command timed out after ${timeout}s` };
+        }
+        return { success: false, content: "", error: e.message };
+      }
+    }
+  },
+  {
+    name: "github_repo",
+    description: "Get repo info.",
+    inputSchema: {
+      type: "object",
+      properties: { owner: { type: "string" }, repo: { type: "string" } },
+      required: ["owner", "repo"]
+    },
+    async execute(args) {
+      const result = await githubRepo(args.owner, args.repo);
+      return { success: result.success, content: result.output, error: result.error };
+    }
+  },
+  {
+    name: "github_readme",
+    description: "Get repo README.",
+    inputSchema: {
+      type: "object",
+      properties: { owner: { type: "string" }, repo: { type: "string" } },
+      required: ["owner", "repo"]
+    },
+    async execute(args) {
+      const result = await githubReadme(args.owner, args.repo);
+      return { success: result.success, content: result.output, error: result.error };
+    }
+  },
+  {
+    name: "github_issues",
+    description: "List repo issues.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        owner: { type: "string" },
+        repo: { type: "string" },
+        state: { type: "string", enum: ["open", "closed", "all"] }
+      },
+      required: ["owner", "repo"]
+    },
+    async execute(args) {
+      const result = await githubIssues(args.owner, args.repo, args.state || "open");
+      return { success: result.success, content: result.output, error: result.error };
+    }
+  },
+  {
+    name: "github_commits",
+    description: "List recent commits.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        owner: { type: "string" },
+        repo: { type: "string" },
+        limit: { type: "integer" }
+      },
+      required: ["owner", "repo"]
+    },
+    async execute(args) {
+      const result = await githubCommits(args.owner, args.repo, args.limit || 20);
+      return { success: result.success, content: result.output, error: result.error };
+    }
+  },
+  {
+    name: "github_search_repos",
+    description: "Search repos.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        query: { type: "string" },
+        limit: { type: "integer" }
+      },
+      required: ["query"]
+    },
+    async execute(args) {
+      const result = await githubSearchRepos(args.query, args.limit || 10);
+      return { success: result.success, content: result.output, error: result.error };
+    }
+  },
+  {
+    name: "youtube_transcript",
+    description: "Get transcript from video.",
+    inputSchema: { type: "object", properties: { url: { type: "string" } }, required: ["url"] },
+    async execute(args) {
+      const result = await youtubeTranscript(args.url);
+      return { success: result.success, content: result.output, error: result.error };
+    }
+  },
+  {
+    name: "youtube_video_info",
+    description: "Get video metadata.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        video_id: { type: "string" },
+        url: { type: "string" }
+      }
+    },
+    async execute(args) {
+      const result = await youtubeVideoInfo(args.video_id, args.url);
+      return { success: result.success, content: result.output, error: result.error };
+    }
+  },
+  {
+    name: "youtube_search",
+    description: "Search videos.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        query: { type: "string" },
+        limit: { type: "integer" }
+      },
+      required: ["query"]
+    },
+    async execute(args) {
+      const result = await youtubeSearch(args.query, args.limit || 10);
+      return { success: result.success, content: result.output, error: result.error };
+    }
+  },
+  {
+    name: "youtube_summarize",
+    description: "Summarize transcript.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        transcript: { type: "string" },
+        max_words: { type: "integer" }
+      },
+      required: ["transcript"]
+    },
+    async execute(args) {
+      const result = await youtubeSummarize(args.transcript, args.max_words || 500);
+      return { success: result.success, content: result.output, error: result.error };
+    }
+  },
+  {
+    name: "pandas_create",
+    description: "Create DataFrame from data.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        data: { type: "string", description: "JSON data" },
+        name: { type: "string" }
+      },
+      required: ["data"]
+    },
+    async execute(args) {
+      const result = await pandasCreate(args.data, args.name);
+      return { success: result.success, content: result.output, error: result.error };
+    }
+  },
+  {
+    name: "pandas_filter",
+    description: "Filter data.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        data: { type: "array" },
+        conditions: { type: "string" }
+      },
+      required: ["data", "conditions"]
+    },
+    async execute(args) {
+      const result = await pandasFilter(args.data, args.conditions);
+      return { success: result.success, content: result.output, error: result.error };
+    }
+  },
+  {
+    name: "pandas_aggregate",
+    description: "Aggregate/group data.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        data: { type: "array" },
+        group_by: { type: "array", items: { type: "string" } },
+        aggregations: { type: "object" }
+      },
+      required: ["data", "group_by", "aggregations"]
+    },
+    async execute(args) {
+      const result = await pandasAggregate(args.data, args.group_by, args.aggregations);
+      return { success: result.success, content: result.output, error: result.error };
+    }
+  },
+  {
+    name: "plot_line",
+    description: "Generate line plot.",
+    inputSchema: {
+      type: "object",
+      properties: { x: { type: "array" }, y: { type: "array" }, title: { type: "string" } },
+      required: ["x", "y"]
+    },
+    async execute(args) {
+      return {
+        success: true,
+        content: `Line chart: ${args.title || "Plot"}
+X: ${args.x.slice(0, 5)}
+Y: ${args.y.slice(0, 5)}
+(Use run_code with matplotlib to render)`
+      };
+    }
+  },
+  {
+    name: "plot_bar",
+    description: "Generate bar chart.",
+    inputSchema: {
+      type: "object",
+      properties: { categories: { type: "array" }, values: { type: "array" }, title: { type: "string" } },
+      required: ["categories", "values"]
+    },
+    async execute(args) {
+      return {
+        success: true,
+        content: `Bar chart: ${args.title || "Plot"}
+Categories: ${args.categories.slice(0, 5)}
+Values: ${args.values.slice(0, 5)}
+(Use run_code with matplotlib to render)`
+      };
+    }
+  },
+  ...engiTools
+];
+function getTool(name) {
+  return tools.find((t) => t.name === name);
+}
+async function executeTool(name, args) {
+  const tool = getTool(name);
+  if (!tool) {
+    return { success: false, content: "", error: `Unknown tool: ${name}` };
+  }
+  try {
+    return await tool.execute(args);
+  } catch (e) {
+    return { success: false, content: "", error: e.message };
+  }
+}
+function getFormattedTools() {
+  return tools.map((t) => ({
+    name: t.name,
+    description: t.description,
+    inputSchema: t.inputSchema
+  }));
+}
+
+// src/utils/notifications.ts
+var NOTIFY_ENABLED = process.env.BEAST_NOTIFY !== "false";
+var NOTIFY_SOUND = process.env.BEAST_NOTIFY_SOUND !== "false";
+function playBell() {
+  if (NOTIFY_ENABLED && NOTIFY_SOUND) {
+    process.stdout.write("\x07");
+  }
+}
+function onResponseReady() {
+  playBell();
+}
+
+// src/index.ts
+init_agents();
+
 // src/providers/discover.ts
+var CODEX_OAUTH = {
+  CLIENT_ID: "app_EMoamEEZ73f0CkXaXp7hrann",
+  AUTHORIZE_URL: "https://auth.openai.com/oauth/authorize",
+  TOKEN_URL: "https://auth.openai.com/oauth/token",
+  REDIRECT_URI: "http://localhost:1455/auth/callback",
+  SCOPE: "openid profile email offline_access",
+  API_BASE_URL: "https://chatgpt.com/backend-api",
+  TOKEN_FILE: ".beast-cli/codex-auth.json"
+};
 async function fetchOllamaModels(baseUrl = "http://localhost:11434") {
   try {
     const res = await fetch(`${baseUrl}/api/tags`, { signal: AbortSignal.timeout(2000) });
@@ -6119,6 +6260,17 @@ async function fetchLocalModels(provider) {
       return [];
   }
 }
+var API_KEY_ENVS = {
+  anthropic: "ANTHROPIC_API_KEY",
+  openai: "OPENAI_API_KEY",
+  codex: "CODEX_API_KEY",
+  deepseek: "DEEPSEEK_API_KEY",
+  groq: "GROQ_API_KEY",
+  mistral: "MISTRAL_API_KEY",
+  openrouter: "OPENROUTER_API_KEY",
+  qwen: "DASHSCOPE_API_KEY",
+  gemini: "GEMINI_API_KEY"
+};
 function getApiKeyFromEnv(provider) {
   const envVar = API_KEY_ENVS[provider];
   if (!envVar)
@@ -6128,6 +6280,100 @@ function getApiKeyFromEnv(provider) {
 function isCloudProvider(provider) {
   return provider in API_KEY_ENVS;
 }
+var DEFAULT_MODEL = {
+  anthropic: "claude-sonnet-4-20250514",
+  openai: "gpt-5.4",
+  openrouter: "qwen/qwen3-32b",
+  deepseek: "deepseek-chat",
+  groq: "llama-3.3-70b-versatile",
+  mistral: "mistral-large-latest",
+  qwen: "qwen-plus",
+  gemini: "gemini-1.5-pro",
+  ollama: "llama3.2:latest",
+  lmstudio: "llama3.2:latest",
+  jan: "llama3.2:latest"
+};
+var CLOUD_MODELS = {
+  anthropic: [
+    "claude-opus-4-5",
+    "claude-sonnet-4-20250514",
+    "claude-haiku-4-20250514",
+    "claude-3-5-sonnet-latest"
+  ],
+  openai: [
+    "gpt-5.4",
+    "gpt-5.4-pro",
+    "gpt-5.4-mini",
+    "gpt-5.4-nano",
+    "gpt-5",
+    "gpt-5-mini",
+    "gpt-5-nano",
+    "gpt-5.2",
+    "gpt-5.2-pro",
+    "gpt-5-pro",
+    "gpt-4.1",
+    "gpt-4.1-mini",
+    "gpt-4.1-nano",
+    "o3-pro",
+    "o3",
+    "o4-mini",
+    "o3-deep-research",
+    "o4-mini-deep-research",
+    "o1-pro",
+    "o1",
+    "o3-mini",
+    "gpt-4o",
+    "gpt-4o-mini",
+    "gpt-4-turbo",
+    "gpt-4",
+    "gpt-3.5-turbo",
+    "gpt-5-codex",
+    "gpt-5.3-codex",
+    "gpt-5.2-codex",
+    "gpt-5.1-codex",
+    "gpt-5.1-codex-max",
+    "gpt-5.1-codex-mini"
+  ],
+  openrouter: [
+    "qwen/qwen3-32b",
+    "qwen/qwen3-14b",
+    "qwen/qwen3-8b",
+    "openrouter/auto",
+    "anthropic/claude-3-opus",
+    "openai/gpt-4o",
+    "google/gemini-pro-1.5",
+    "deepseek/deepseek-chat"
+  ],
+  deepseek: [
+    "deepseek-chat",
+    "deepseek-coder",
+    "deepseek-reasoner"
+  ],
+  groq: [
+    "llama-3.3-70b-versatile",
+    "mixtral-8x7b-32768",
+    "gemma2-9b-it",
+    "llama-3.1-8b-instant"
+  ],
+  mistral: [
+    "mistral-large-latest",
+    "mistral-small-latest",
+    "codestral-latest",
+    "mistral-nemo"
+  ],
+  qwen: [
+    "qwen-plus",
+    "qwen-max",
+    "qwen2.5-coder-32b",
+    "qwq-32b"
+  ],
+  gemini: [
+    "gemini-1.5-pro",
+    "gemini-1.5-flash",
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-exp"
+  ]
+};
 async function detectAllProviders() {
   const results = [];
   const [ollamaModels, lmModels, janModels] = await Promise.all([
@@ -6232,149 +6478,32 @@ function isCodexTokenValid(token) {
     return false;
   return Date.now() < token.expiresAt - 5 * 60 * 1000;
 }
-var CODEX_OAUTH, API_KEY_ENVS, DEFAULT_MODEL, CLOUD_MODELS, CODEX_MODELS;
-var init_discover = __esm(() => {
-  CODEX_OAUTH = {
-    CLIENT_ID: "app_EMoamEEZ73f0CkXaXp7hrann",
-    AUTHORIZE_URL: "https://auth.openai.com/oauth/authorize",
-    TOKEN_URL: "https://auth.openai.com/oauth/token",
-    REDIRECT_URI: "http://localhost:1455/auth/callback",
-    SCOPE: "openid profile email offline_access",
-    API_BASE_URL: "https://chatgpt.com/backend-api",
-    TOKEN_FILE: ".beast-cli/codex-auth.json"
-  };
-  API_KEY_ENVS = {
-    anthropic: "ANTHROPIC_API_KEY",
-    openai: "OPENAI_API_KEY",
-    codex: "CODEX_API_KEY",
-    deepseek: "DEEPSEEK_API_KEY",
-    groq: "GROQ_API_KEY",
-    mistral: "MISTRAL_API_KEY",
-    openrouter: "OPENROUTER_API_KEY",
-    qwen: "DASHSCOPE_API_KEY",
-    gemini: "GEMINI_API_KEY"
-  };
-  DEFAULT_MODEL = {
-    anthropic: "claude-sonnet-4-20250514",
-    openai: "gpt-5.4",
-    openrouter: "qwen/qwen3-32b",
-    deepseek: "deepseek-chat",
-    groq: "llama-3.3-70b-versatile",
-    mistral: "mistral-large-latest",
-    qwen: "qwen-plus",
-    gemini: "gemini-1.5-pro",
-    ollama: "llama3.2:latest",
-    lmstudio: "llama3.2:latest",
-    jan: "llama3.2:latest"
-  };
-  CLOUD_MODELS = {
-    anthropic: [
-      "claude-opus-4-5",
-      "claude-sonnet-4-20250514",
-      "claude-haiku-4-20250514",
-      "claude-3-5-sonnet-latest"
-    ],
-    openai: [
-      "gpt-5.4",
-      "gpt-5.4-pro",
-      "gpt-5.4-mini",
-      "gpt-5.4-nano",
-      "gpt-5",
-      "gpt-5-mini",
-      "gpt-5-nano",
-      "gpt-5.2",
-      "gpt-5.2-pro",
-      "gpt-5-pro",
-      "gpt-4.1",
-      "gpt-4.1-mini",
-      "gpt-4.1-nano",
-      "o3-pro",
-      "o3",
-      "o4-mini",
-      "o3-deep-research",
-      "o4-mini-deep-research",
-      "o1-pro",
-      "o1",
-      "o3-mini",
-      "gpt-4o",
-      "gpt-4o-mini",
-      "gpt-4-turbo",
-      "gpt-4",
-      "gpt-3.5-turbo",
-      "gpt-5-codex",
-      "gpt-5.3-codex",
-      "gpt-5.2-codex",
-      "gpt-5.1-codex",
-      "gpt-5.1-codex-max",
-      "gpt-5.1-codex-mini"
-    ],
-    openrouter: [
-      "qwen/qwen3-32b",
-      "qwen/qwen3-14b",
-      "qwen/qwen3-8b",
-      "openrouter/auto",
-      "anthropic/claude-3-opus",
-      "openai/gpt-4o",
-      "google/gemini-pro-1.5",
-      "deepseek/deepseek-chat"
-    ],
-    deepseek: [
-      "deepseek-chat",
-      "deepseek-coder",
-      "deepseek-reasoner"
-    ],
-    groq: [
-      "llama-3.3-70b-versatile",
-      "mixtral-8x7b-32768",
-      "gemma2-9b-it",
-      "llama-3.1-8b-instant"
-    ],
-    mistral: [
-      "mistral-large-latest",
-      "mistral-small-latest",
-      "codestral-latest",
-      "mistral-nemo"
-    ],
-    qwen: [
-      "qwen-plus",
-      "qwen-max",
-      "qwen2.5-coder-32b",
-      "qwq-32b"
-    ],
-    gemini: [
-      "gemini-1.5-pro",
-      "gemini-1.5-flash",
-      "gemini-2.0-flash",
-      "gemini-2.0-flash-exp"
-    ]
-  };
-  CODEX_MODELS = [
-    "gpt-5.2-codex",
-    "gpt-5.2-codex-low",
-    "gpt-5.2-codex-medium",
-    "gpt-5.2-codex-high",
-    "gpt-5.2-codex-xhigh",
-    "gpt-5.2",
-    "gpt-5.2-low",
-    "gpt-5.2-medium",
-    "gpt-5.2-high",
-    "gpt-5.2-xhigh",
-    "gpt-5.1-codex-max",
-    "gpt-5.1-codex",
-    "gpt-5.1-codex-mini",
-    "gpt-5.1",
-    "gpt-5.1-low",
-    "gpt-5.1-medium",
-    "gpt-5.1-high",
-    "gpt-5.1-xhigh",
-    "codex",
-    "gpt-4o",
-    "gpt-4o-mini",
-    "o3-mini",
-    "o3",
-    "o4-mini"
-  ];
-});
+var CODEX_MODELS = [
+  "gpt-5.2-codex",
+  "gpt-5.2-codex-low",
+  "gpt-5.2-codex-medium",
+  "gpt-5.2-codex-high",
+  "gpt-5.2-codex-xhigh",
+  "gpt-5.2",
+  "gpt-5.2-low",
+  "gpt-5.2-medium",
+  "gpt-5.2-high",
+  "gpt-5.2-xhigh",
+  "gpt-5.1-codex-max",
+  "gpt-5.1-codex",
+  "gpt-5.1-codex-mini",
+  "gpt-5.1",
+  "gpt-5.1-low",
+  "gpt-5.1-medium",
+  "gpt-5.1-high",
+  "gpt-5.1-xhigh",
+  "codex",
+  "gpt-4o",
+  "gpt-4o-mini",
+  "o3-mini",
+  "o3",
+  "o4-mini"
+];
 
 // src/config/index.ts
 import { readFileSync as readFileSync5, existsSync as existsSync6, writeFileSync as writeFileSync5, mkdirSync as mkdirSync3 } from "node:fs";
@@ -6417,157 +6546,11 @@ function parseContextSize(size) {
     return num * 1024 * 1024 * 1024;
   return num;
 }
-var CONTEXT_SIZES;
-var init_config = __esm(() => {
-  CONTEXT_SIZES = ["8K", "16K", "32K", "64K", "128K"];
-});
-
-// src/ui/banner.ts
-function termWidth2() {
-  try {
-    return process.stdout.columns || 80;
-  } catch {
-    return 80;
-  }
-}
-function renderCleanBanner2() {
-  if (!isColorEnabled2())
-    return "BEAST CLI - AI Coding Agent";
-  const width = termWidth2();
-  let logo;
-  if (width >= 60) {
-    logo = FULL_LOGO2;
-  } else if (width >= 40) {
-    logo = COMPACT_LOGO2;
-  } else {
-    logo = TINY_LOGO2;
-  }
-  if (width < 50) {
-    return logo;
-  }
-  const tagline = REVEAL_TAGLINE2 + `
-`;
-  const cardSep = "  ";
-  const cardLines = FEATURE_CARDS2.map((card) => {
-    return s2(card.label, card.color);
-  }).join(s2(cardSep, fg2.overlay));
-  return logo + tagline + `
-` + cardLines + `
-`;
-}
-var googlePurple3 = "\x1B[38;2;142;54;255m", googleBlue3 = "\x1B[38;2;70;130;255m", FULL_LOGO2, COMPACT_LOGO2, TINY_LOGO2, googlePurple22 = "\x1B[38;2;142;54;255m", googleBlue22 = "\x1B[38;2;70;130;255m", TEXT_LOGO2, FEATURE_CARDS2, REVEAL_TAGLINE2;
-var init_banner2 = __esm(() => {
-  init_colors2();
-  FULL_LOGO2 = `
- ${googlePurple3}+==================================================================+${reset2}` + `
- ${googlePurple3}|${reset2}  \uD83D\uDC09  ${s2("BEAST", googlePurple3, bold2)}   ${s2("CLI", googleBlue3, bold2)}    ${dim2}AI Coding Agent · 45+ Providers · 51+ Tools     ${googlePurple3}|${reset2}` + `
- ${googlePurple3}+==================================================================+${reset2}
-`;
-  COMPACT_LOGO2 = `
- ${googlePurple3}+----------------------------------------------+${reset2}` + `
- ${googlePurple3}|${reset2}  \uD83D\uDC09  ${s2("BEAST", googlePurple3, bold2)}  ${s2("CLI", googleBlue3, bold2)}  ${dim2}AI Coding Agent                  ${googlePurple3}|${reset2}` + `
- ${googlePurple3}+----------------------------------------------+${reset2}
-`;
-  TINY_LOGO2 = ` \uD83D\uDC09 ${s2("BEAST CLI", googlePurple3, bold2)} ${dim2}~ 
-`;
-  TEXT_LOGO2 = ` ${s2("BEAST", googlePurple22, bold2)} ${s2("CLI", googleBlue22, bold2)} `;
-  FEATURE_CARDS2 = [
-    { label: "Blazing Fast", color: fg2.warning },
-    { label: "Private & Local", color: fg2.success },
-    { label: "45+ Providers", color: fg2.sapphire },
-    { label: "51+ Tools", color: fg2.tool }
-  ];
-  REVEAL_TAGLINE2 = `${s2("·", fg2.overlay)} ${s2("45+ Providers", fg2.muted)} ` + `${s2("·", fg2.overlay)} ${s2("51+ Tools", fg2.muted)} ` + `${s2("·", fg2.overlay)} ${s2("Local AI Ready", fg2.muted)}`;
-});
-
-// src/ui/router.ts
-var exports_router = {};
-__export(exports_router, {
-  launchUI: () => launchUI,
-  launchRepl: () => launchRepl,
-  launchInk: () => launchInk
-});
-import { resolve as resolve4, dirname as dirname3 } from "node:path";
-import { fileURLToPath } from "node:url";
-import { spawn as spawn2 } from "node:child_process";
-function isInteractive() {
-  return process.stdin.isTTY === true;
-}
-function getInkSourcePath() {
-  const selfDir = dirname3(fileURLToPath(import.meta.url));
-  return resolve4(selfDir, "..", "src", "ui", "ink", "index.tsx");
-}
-async function launchRepl() {
-  const { repl } = await Promise.resolve().then(() => (init_src(), exports_src));
-  await repl();
-}
-async function launchInk() {
-  try {
-    const inkSource = getInkSourcePath();
-    const bunPath = process.env.BUN_INSTALL ? process.env.BUN_INSTALL + "/bin/bun" : "bun";
-    const child = spawn2(bunPath, ["--bun", "run", inkSource], {
-      stdio: "inherit",
-      env: { ...process.env, FORCE_COLOR: "1" }
-    });
-    child.on("exit", (code) => process.exit(code ?? 0));
-  } catch (err) {
-    console.error(s2(`
-Failed to launch Ink TUI: ` + String(err), fg2.error));
-    console.error(s2(`Falling back to REPL mode...
-`, fg2.warning));
-    await launchRepl();
-  }
-}
-async function promptMode() {
-  const readline = await import("readline");
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  return new Promise((resolve5) => {
-    console.log(renderCleanBanner2());
-    console.log();
-    console.log(`  ${s2("[1]", fg2.accent)} ${s2("Minimal REPL", fg2.primary)}   ${dim2}— fast, ASCII-safe, tab complete`);
-    console.log(`  ${s2("[2]", fg2.accent)} ${s2("Rich TUI", fg2.primary)}       ${dim2}— modern React/Ink with spinners & panels`);
-    console.log();
-    console.log(`  ${s2("Tip:", fg2.warning)} ${s2("Use", fg2.muted)} ${s2("--tui", fg2.accent)} ${s2("flag to skip this prompt", fg2.muted)}`);
-    console.log();
-    rl.question(s2("  Choose [1]", fg2.muted) + " ", (answer) => {
-      rl.close();
-      resolve5(answer.trim() === "2" ? "ink" : "repl");
-    });
-  });
-}
-async function launchUI(mode = "auto") {
-  if (process.argv.includes("--tui")) {
-    console.log(s2(`
-  Launching Rich TUI...`, fg2.accent));
-    await launchInk();
-    return;
-  }
-  if (!isInteractive()) {
-    await launchRepl();
-    return;
-  }
-  if (mode === "auto") {
-    const chosen = await promptMode();
-    if (chosen === "ink") {
-      await launchInk();
-    } else {
-      await launchRepl();
-    }
-    return;
-  }
-  mode === "ink" ? await launchInk() : await launchRepl();
-}
-var init_router = __esm(() => {
-  init_colors2();
-  init_banner2();
-});
+var CONTEXT_SIZES = ["8K", "16K", "32K", "64K", "128K"];
 
 // src/index.ts
-var exports_src = {};
-__export(exports_src, {
-  repl: () => repl
-});
 import readline from "readline";
+var VERSION = "1.2.18";
 function question(prompt) {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
   return new Promise((resolve5) => rl.question(prompt, (answer) => {
@@ -6587,6 +6570,22 @@ ${title}`);
     console.log("  Invalid selection. Try again.");
   }
 }
+var currentSpinner = null;
+var spinnerStarted = false;
+var spinnerFrame = 0;
+var spinnerLabel = "";
+var spinnerColor = "";
+var spinnerStartTime = 0;
+var spinnerSpeed = 80;
+var spinnerPhase = 0;
+var spinnerTask = "";
+var PULSE_FRAMES = ["\u25D0", "\u25D3", "\u25D1", "\u25D2"];
+var PHASE_STATES = [
+  { state: "thinking", label: "Thinking", color: fg.accent },
+  { state: "searching", label: "Searching", color: fg.sapphire },
+  { state: "tool", label: "Running", color: fg.peach },
+  { state: "formatting", label: "Formatting", color: fg.success }
+];
 function formatElapsed(ms) {
   if (ms < 1000)
     return `${ms}ms`;
@@ -6658,6 +6657,7 @@ function printUsage(usage) {
   process.stdout.write(`(${s("p:" + promptTokens, fg.sapphire)} ${s("c:" + completionTokens, fg.mauve)})
 `);
 }
+var nativeTools = [];
 async function connectMCP() {
   nativeTools = getFormattedTools();
   return nativeTools;
@@ -7625,32 +7625,7 @@ async function main() {
   saveSession({ provider: session.provider, model: session.model, contextSize: ctxSize, contextMax: session.contextMax || 32768, savedAt: Date.now() });
   await repl(session);
 }
-var VERSION = "1.2.18", currentSpinner = null, spinnerStarted = false, spinnerFrame = 0, spinnerLabel = "", spinnerColor = "", spinnerStartTime = 0, spinnerSpeed = 80, spinnerPhase = 0, spinnerTask = "", PULSE_FRAMES, PHASE_STATES, nativeTools;
-var init_src = __esm(() => {
-  init_providers();
-  init_colors();
-  init_layout();
-  init_format();
-  init_tool_renderer();
-  init_banner();
-  init_tips();
-  init_native_tools();
-  init_notifications();
-  init_agents();
-  init_discover();
-  init_config();
-  PULSE_FRAMES = ["\u25D0", "\u25D3", "\u25D1", "\u25D2"];
-  PHASE_STATES = [
-    { state: "thinking", label: "Thinking", color: fg.accent },
-    { state: "searching", label: "Searching", color: fg.sapphire },
-    { state: "tool", label: "Running", color: fg.peach },
-    { state: "formatting", label: "Formatting", color: fg.success }
-  ];
-  nativeTools = [];
-  main().catch(console.error);
-});
-init_src();
-
+main().catch(console.error);
 export {
   repl
 };

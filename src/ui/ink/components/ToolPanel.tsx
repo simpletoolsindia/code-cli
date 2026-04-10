@@ -1,6 +1,6 @@
 // ToolPanel Component - Expandable tool call card
-import React, { useState } from 'react'
-import { Text, Box, useInput } from 'ink'
+import React, { useState, useEffect } from 'react'
+import { Text, Box } from 'ink'
 import { getTheme } from '../theme.ts'
 
 interface ToolPanelProps {
@@ -14,13 +14,12 @@ export const ToolPanel: React.FC<ToolPanelProps> = ({ name, args, result, status
   const [expanded, setExpanded] = useState(false)
   const theme = getTheme()
 
-  useInput((_, key) => {
-    if (key.return && !expanded) {
+  // Auto-expand when tool finishes
+  useEffect(() => {
+    if (status === 'done' || status === 'error') {
       setExpanded(true)
-    } else if (key.escape && expanded) {
-      setExpanded(false)
     }
-  })
+  }, [status])
 
   const statusIcon = status === 'done' ? '✓' : status === 'error' ? '✗' : '›'
   const statusColor = status === 'done' ? theme.success : status === 'error' ? theme.error : theme.peach
@@ -33,7 +32,7 @@ export const ToolPanel: React.FC<ToolPanelProps> = ({ name, args, result, status
       <Box>
         <Text color={statusColor} bold>{statusIcon} {name}</Text>
         {!expanded && (status === 'done' || status === 'error') && (
-          <Text color={theme.muted}> [Enter to expand]</Text>
+          <Text color={theme.muted}> (expandable)</Text>
         )}
       </Box>
       {expanded && argsStr && (

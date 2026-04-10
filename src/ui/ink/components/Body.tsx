@@ -1,6 +1,6 @@
 // Body Component - Scrollable message history
 import React, { useRef, useEffect } from 'react'
-import { Text, Box, Static, useStdout } from 'ink'
+import { Text, Box, Static } from 'ink'
 import { getTheme } from '../theme.ts'
 
 interface ToolCall {
@@ -82,22 +82,15 @@ function MessageContent({ role, content, toolCalls }: Message & { role: string }
 
 export const Body: React.FC<BodyProps> = ({ messages }) => {
   const theme = getTheme()
-  const { stdout } = useStdout()
-  const [height, setHeight] = React.useState(stdout.rows - 8)
+  const MAX_VISIBLE = 20
 
-  useEffect(() => {
-    const update = () => setHeight(stdout.rows - 8)
-    stdout.on('resize', update)
-    return () => stdout.off('resize', update)
-  }, [stdout])
-
-  const visibleMessages = messages.slice(-Math.max(1, height - 4))
+  const visibleMessages = messages.slice(-MAX_VISIBLE)
 
   return (
     <Box flexDirection="column" flexGrow={1} overflow="hidden">
       <Static items={visibleMessages}>
-        {(msg, i) => (
-          <Box key={i}>
+        {(msg) => (
+          <Box key={`${msg.role}-${msg.content.slice(0, 20)}`}>
             <MessageContent
               role={msg.role}
               content={msg.content}

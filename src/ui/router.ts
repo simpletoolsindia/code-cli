@@ -21,10 +21,29 @@ function getInkSourcePath(): string {
   return resolve(selfDir, '..', 'src', 'ui', 'ink', 'index.tsx')
 }
 
-// Launch the REPL mode (forwards to main repl() function)
+// Launch the REPL mode via bun (avoids dynamic .ts import issues in bundled output)
 export async function launchRepl(): Promise<void> {
-  const { repl } = await import('../index.ts')
-  await repl()
+  try {
+    const { dirname } = await import('node:path')
+    const { fileURLToPath } = await import('node:url')
+    const { spawn } = await import('node:child_process')
+
+    const selfDir = dirname(fileURLToPath(import.meta.url))
+    const srcEntry = selfDir + '/../index.ts'
+    const bunPath = process.env.BUN_INSTALL
+      ? process.env.BUN_INSTALL + '/bin/bun'
+      : 'bun'
+
+    const child = spawn(bunPath, ['--bun', 'run', srcEntry, '--defaults'], {
+      stdio: 'inherit',
+      env: { ...process.env, FORCE_COLOR: '1' },
+    })
+
+    child.on('exit', (code) => process.exit(code ?? 0))
+  } catch (err) {
+    console.error(s('\nFailed to launch REPL: ' + String(err), fg.error))
+    process.exit(1)
+  }
 }
 
 // Launch the Ink TUI mode via bun --bun (runs TSX source directly)
