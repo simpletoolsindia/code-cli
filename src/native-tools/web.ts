@@ -140,16 +140,59 @@ export async function fetchWithSelectors(
 }
 
 export async function scrapeFreedium(url: string, maxTokens = 4000): Promise<FetchResult> {
-  // Freedium adds ?outputType=amp to Medium URLs
-  const freediumUrl = url.includes('freedium.cfd') ? url : `https://freedium.cfd/${url}`
-  const result = await fetchWebContent(freediumUrl, maxTokens)
-  if (!result.success) return result
+  // Try multiple fallbacks for Medium/Freedium scraping
 
+  // If already a freedium URL, use it directly
+  if (url.includes('freedium.cfd')) {
+    const result = await fetchWebContent(url, maxTokens)
+    if (result.success) {
+      return { ...result, url }
+    }
+    // Fall through to try Medium
+  }
+
+  // Check if it's a Medium URL
+  let mediumUrl = url
+  if (!url.includes('medium.com') && !url.includes('freedium.cfd')) {
+    // Assume it's a Medium article path
+    mediumUrl = url.startsWith('http') ? url : `https://medium.com/${url}`
+  }
+
+  // Try Medium's AMP endpoint (works better than freedium)
+  const ampUrl = mediumUrl.includes('?')
+    ? `${mediumUrl}&outputType=amp`
+    : `${mediumUrl}?outputType=amp`
+
+  let result = await fetchWebContent(ampUrl, maxTokens)
+  if (result.success && result.content.length > 100) {
+    return { ...result, url: ampUrl }
+  }
+
+  // Try direct Medium fetch
+  result = await fetchWebContent(mediumUrl, maxTokens)
+  if (result.success && result.content.length > 100) {
+    return { ...result, url: mediumUrl }
+  }
+
+  // Try freedium-mirror.cfd (new location)
+  const freediumUrl = `https://freedium-mirror.cfd/${mediumUrl.replace('https://medium.com/', '')}`
+  result = await fetchWebContent(freediumUrl, maxTokens)
+  if (result.success) {
+    return { ...result, url: freediumUrl }
+  }
+
+  // Try old freedium.cfd as last resort
+  const oldFreediumUrl = `https://freedium.cfd/${mediumUrl.replace('https://medium.com/', '')}`
+  result = await fetchWebContent(oldFreediumUrl, maxTokens)
+  if (result.success) {
+    return { ...result, url: oldFreediumUrl }
+  }
+
+  // All fallbacks failed
   return {
-    success: true,
-    content: result.content,
-    title: result.title,
-    url: freediumUrl,
+    success: false,
+    content: '',
+    error: `Could not fetch article. Tried: Medium AMP, Medium direct, Freedium. Original URL: ${url}`,
   }
 }
 

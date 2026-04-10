@@ -3052,15 +3052,39 @@ async function fetchWithSelectors(url, selectors, maxTokens = 2000) {
   };
 }
 async function scrapeFreedium(url, maxTokens = 4000) {
-  const freediumUrl = url.includes("freedium.cfd") ? url : `https://freedium.cfd/${url}`;
-  const result = await fetchWebContent(freediumUrl, maxTokens);
-  if (!result.success)
-    return result;
+  if (url.includes("freedium.cfd")) {
+    const result2 = await fetchWebContent(url, maxTokens);
+    if (result2.success) {
+      return { ...result2, url };
+    }
+  }
+  let mediumUrl = url;
+  if (!url.includes("medium.com") && !url.includes("freedium.cfd")) {
+    mediumUrl = url.startsWith("http") ? url : `https://medium.com/${url}`;
+  }
+  const ampUrl = mediumUrl.includes("?") ? `${mediumUrl}&outputType=amp` : `${mediumUrl}?outputType=amp`;
+  let result = await fetchWebContent(ampUrl, maxTokens);
+  if (result.success && result.content.length > 100) {
+    return { ...result, url: ampUrl };
+  }
+  result = await fetchWebContent(mediumUrl, maxTokens);
+  if (result.success && result.content.length > 100) {
+    return { ...result, url: mediumUrl };
+  }
+  const freediumUrl = `https://freedium-mirror.cfd/${mediumUrl.replace("https://medium.com/", "")}`;
+  result = await fetchWebContent(freediumUrl, maxTokens);
+  if (result.success) {
+    return { ...result, url: freediumUrl };
+  }
+  const oldFreediumUrl = `https://freedium.cfd/${mediumUrl.replace("https://medium.com/", "")}`;
+  result = await fetchWebContent(oldFreediumUrl, maxTokens);
+  if (result.success) {
+    return { ...result, url: oldFreediumUrl };
+  }
   return {
-    success: true,
-    content: result.content,
-    title: result.title,
-    url: freediumUrl
+    success: false,
+    content: "",
+    error: `Could not fetch article. Tried: Medium AMP, Medium direct, Freedium. Original URL: ${url}`
   };
 }
 async function webclawExtractArticle(url) {

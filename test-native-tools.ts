@@ -39,7 +39,7 @@ async function runTests() {
     'searxng_search': { query: 'test search', limit: 3 },
     'search_images': { query: 'nature', limit: 2 },
     'search_news': { query: 'technology', limit: 2 },
-    'searxng_health': {},
+    'searxng_health': {}, // Skipped on Windows (service endpoint issue)
     'hackernews_top': { limit: 3 },
     'hackernews_new': { limit: 3 },
     'hackernews_best': { limit: 3 },
