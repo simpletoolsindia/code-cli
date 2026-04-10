@@ -362,7 +362,7 @@
           <div class="text-[#87867f] mt-1 text-sm">Native Tools</div>
         </div>
         <div>
-          <div class="text-4xl md:text-5xl font-serif font-medium text-[#c96442]">9</div>
+          <div class="text-4xl md:text-5xl font-serif font-medium text-[#c96442]">10</div>
           <div class="text-[#87867f] mt-1 text-sm">Themes</div>
         </div>
         <div>
@@ -433,8 +433,8 @@
           <div class="w-14 h-14 rounded-xl bg-[#c96442]/10 flex items-center justify-center mb-5">
             <span class="text-2xl">🎨</span>
           </div>
-          <h3 class="heading-md text-[#141413] mb-3">9 Beautiful Themes</h3>
-          <p class="body text-[#5e5d59]">Catppuccin, Dracula, Nord, Tokyo Night, Gruvbox, Monokai, and more. Pick your vibe.</p>
+          <h3 class="heading-md text-[#141413] mb-3">10 Themes</h3>
+          <p class="body text-[#5e5d59]">Catppuccin, Dracula, Nord, Claude, Tokyo Night, Gruvbox, Monokai, and more. Pick your vibe.</p>
         </div>
 
         <!-- Feature 4: Providers -->
@@ -576,30 +576,94 @@
             <span class="text-2xl">⌨️</span>
             <h3 class="heading-md text-[#141413]">REPL Commands</h3>
           </div>
-          <div class="grid md:grid-cols-3 gap-4">
-            <div class="bg-[#e8e6dc] rounded-xl p-4">
-              <code class="text-[#c96442] font-mono">/help</code>
-              <p class="text-[#87867f] text-sm mt-1">Show help</p>
+
+          <!-- Primary Commands -->
+          <div class="space-y-4 mb-8">
+            <h4 class="text-sm font-medium text-[#5e5d59] uppercase tracking-wider">Core Commands</h4>
+            <div class="grid md:grid-cols-2 gap-3">
+              <div class="bg-[#e8e6dc] rounded-lg p-4">
+                <code class="text-[#c96442] font-mono">/help</code>
+                <p class="text-[#87867f] text-sm mt-1">Show all available commands</p>
+              </div>
+              <div class="bg-[#e8e6dc] rounded-lg p-4">
+                <code class="text-[#c96442] font-mono">/exit</code>
+                <p class="text-[#87867f] text-sm mt-1">Exit Beast CLI (also: <code class="text-[#d97757]">exit</code>, <code class="text-[#d97757]">quit</code>)</p>
+              </div>
+              <div class="bg-[#e8e6dc] rounded-lg p-4">
+                <code class="text-[#c96442] font-mono">/clear</code>
+                <p class="text-[#87867f] text-sm mt-1">Clear chat history and start fresh</p>
+              </div>
+              <div class="bg-[#e8e6dc] rounded-lg p-4">
+                <code class="text-[#c96442] font-mono">/tools</code>
+                <p class="text-[#87867f] text-sm mt-1">List all 51+ native tools available</p>
+              </div>
             </div>
-            <div class="bg-[#e8e6dc] rounded-xl p-4">
-              <code class="text-[#c96442] font-mono">/tools</code>
-              <p class="text-[#87867f] text-sm mt-1">List tools</p>
+          </div>
+
+          <!-- Model Commands -->
+          <div class="space-y-4 mb-8">
+            <h4 class="text-sm font-medium text-[#5e5d59] uppercase tracking-wider">Model Management</h4>
+            <div class="grid md:grid-cols-2 gap-3">
+              <div class="bg-[#e8e6dc] rounded-lg p-4">
+                <code class="text-[#c96442] font-mono">/models</code>
+                <p class="text-[#87867f] text-sm mt-1">List all available models for current provider</p>
+              </div>
+              <div class="bg-[#e8e6dc] rounded-lg p-4">
+                <code class="text-[#c96442] font-mono">/model</code>
+                <p class="text-[#87867f] text-sm mt-1">Interactively switch to a different model</p>
+              </div>
+              <div class="bg-[#e8e6dc] rounded-lg p-4">
+                <code class="text-[#c96442] font-mono">/model &lt;name&gt;</code>
+                <p class="text-[#87867f] text-sm mt-1">Switch to model by name or number</p>
+              </div>
             </div>
-            <div class="bg-[#e8e6dc] rounded-xl p-4">
-              <code class="text-[#c96442] font-mono">/clear</code>
-              <p class="text-[#87867f] text-sm mt-1">Clear conversation</p>
+          </div>
+
+          <!-- Provider Commands -->
+          <div class="space-y-4 mb-8">
+            <h4 class="text-sm font-medium text-[#5e5d59] uppercase tracking-wider">Provider Management</h4>
+            <div class="grid md:grid-cols-2 gap-3">
+              <div class="bg-[#e8e6dc] rounded-lg p-4">
+                <code class="text-[#c96442] font-mono">/provider</code>
+                <p class="text-[#87867f] text-sm mt-1">Interactively switch to a different provider</p>
+              </div>
+              <div class="bg-[#e8e6dc] rounded-lg p-4">
+                <code class="text-[#c96442] font-mono">/provider &lt;name&gt;</code>
+                <p class="text-[#87867f] text-sm mt-1">Switch directly to a provider by name</p>
+              </div>
             </div>
-            <div class="bg-[#e8e6dc] rounded-xl p-4">
-              <code class="text-[#c96442] font-mono">/compact</code>
-              <p class="text-[#87867f] text-sm mt-1">Compact context</p>
-            </div>
-            <div class="bg-[#e8e6dc] rounded-xl p-4">
-              <code class="text-[#c96442] font-mono">/theme</code>
-              <p class="text-[#87867f] text-sm mt-1">Change theme</p>
-            </div>
-            <div class="bg-[#e8e6dc] rounded-xl p-4">
-              <code class="text-[#c96442] font-mono">/exit</code>
-              <p class="text-[#87867f] text-sm mt-1">Exit CLI</p>
+          </div>
+
+          <!-- CLI Flags -->
+          <div class="space-y-4">
+            <h4 class="text-sm font-medium text-[#5e5d59] uppercase tracking-wider">CLI Flags</h4>
+            <div class="bg-[#141413] rounded-xl p-4">
+              <div class="grid gap-3">
+                <div class="flex items-start gap-4">
+                  <code class="text-[#c96442] font-mono min-w-[200px]">--provider &lt;name&gt;</code>
+                  <span class="text-[#b0aea5] text-sm">Set provider (anthropic, openai, ollama, etc.)</span>
+                </div>
+                <div class="flex items-start gap-4">
+                  <code class="text-[#c96442] font-mono min-w-[200px]">--model &lt;name&gt;</code>
+                  <span class="text-[#b0aea5] text-sm">Set model (claude-sonnet-4-20250514, gpt-4o, etc.)</span>
+                </div>
+                <div class="flex items-start gap-4">
+                  <code class="text-[#c96442] font-mono min-w-[200px]">--theme &lt;name&gt;</code>
+                  <span class="text-[#b0aea5] text-sm">Change color theme (catppuccin-mocha, dracula, claude, etc.)</span>
+                </div>
+                <div class="flex items-start gap-4">
+                  <code class="text-[#c96442] font-mono min-w-[200px]">--compact</code>
+                  <span class="text-[#b0aea5] text-sm">Manually trigger context compaction</span>
+                </div>
+                <div class="flex items-start gap-4">
+                  <code class="text-[#c96442] font-mono min-w-[200px]">--help</code>
+                  <span class="text-[#b0aea5] text-sm">Show help information</span>
+                </div>
+                <div class="flex items-start gap-4">
+                  <code class="text-[#c96442] font-mono min-w-[200px]">--version</code>
+                  <span class="text-[#b0aea5] text-sm">Show version number</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
