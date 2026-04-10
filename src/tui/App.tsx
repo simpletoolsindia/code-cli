@@ -45,8 +45,9 @@ const StatusBar = ({
     {/* Top bar */}
     <Box justifyContent="space-between">
       <Box>
-        <Text bold color={colors.accent}>🐉 Beast</Text>
+        <Text bold color={colors.accent}>Beast</Text>
         <Text color={colors.muted}> CLI</Text>
+        <Text color={colors.accent}> 🦁</Text>
       </Box>
       <Box>
         <Text color={colors.muted}>{new Date().toLocaleTimeString()}</Text>

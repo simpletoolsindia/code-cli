@@ -12,6 +12,7 @@ import { renderHeader, renderFooter, renderCompactHeader, contextBar } from './u
 import { inlineList, helpPanel, panel, withProgress } from './ui/format.ts'
 import { renderToolResult } from './ui/tool-renderer.ts'
 import { beastSpinner } from './ui/beast-loader.ts'
+import { renderLionBanner } from './ui/banner.ts'
 import { tipBanner, randomTip } from './ui/tips.ts'
 import { Spinner } from './ui/spinner.ts'
 import { getFormattedTools, executeTool, getAllTools } from './native-tools/index.ts'
@@ -786,6 +787,7 @@ function providerSupportsNativeTools(sessionProvider: string): boolean {
 // ── Main ─────────────────────────────────────────────────────────────────────
 
 function printHelp() {
+  console.log('\n' + renderLionBanner())
   console.log(`
 🐉 Beast CLI v${VERSION} - AI Coding Agent
 
@@ -834,10 +836,14 @@ async function main() {
   if (options.test) { console.log('Running tests...'); process.exit(0) }
   if (options.setup) { await autoStartMCP(); process.exit(0) }
 
+  console.log(renderLionBanner())
+
   // Connect MCP
   startSpinner('🔧 Connecting MCP')
   await connectMCP()
   stopSpinner(nativeTools.length > 0, '🔧 MCP')
+
+  console.log(renderLionBanner())
 
   let session: Session
   if (options.provider && options.model) {

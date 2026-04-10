@@ -8,6 +8,7 @@ import * as code from './code.ts'
 import * as search from './search.ts'
 import * as github from './github.ts'
 import * as youtube from './youtube.ts'
+import { engiTools } from '../engi/tools.ts'
 
 export interface NativeTool {
   name: string
@@ -783,6 +784,7 @@ const tools: NativeTool[] = [
       }
     },
   },
+  ...engiTools,
 ]
 
 // ── Registry Access ───────────────────────────────────────────────────────
