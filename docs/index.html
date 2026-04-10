@@ -7,69 +7,240 @@
   <meta name="description" content="Beast CLI is a powerful AI coding agent with 51+ native tools, RAG-based code intelligence, and multi-theme TUI.">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
         extend: {
-          colors: {
-            primary: '#cba6f7',
-            secondary: '#1e1e2e',
-            accent: '#89b4fa',
-            surface: '#313244',
-            muted: '#6c7086',
-            success: '#a6e3a1',
-            warning: '#f9e2af',
-            error: '#f38ba8',
-          },
           fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
+            sans: ['Outfit', 'sans-serif'],
+            mono: ['Fira Code', 'monospace'],
           },
+          animation: {
+            'float': 'float 6s ease-in-out infinite',
+            'float-slow': 'float 8s ease-in-out infinite',
+            'pulse-slow': 'pulse 4s ease-in-out infinite',
+            'gradient': 'gradient 8s ease infinite',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-20px)' },
+            },
+            gradient: {
+              '0%, 100%': { backgroundPosition: '0% 50%' },
+              '50%': { backgroundPosition: '100% 50%' },
+            }
+          }
         }
       }
     }
   </script>
   <style>
-    body { font-family: 'Inter', sans-serif; }
-    code, pre { font-family: 'JetBrains Mono', monospace; }
-    .gradient-text {
-      background: linear-gradient(135deg, #cba6f7 0%, #89b4fa 50%, #a6e3a1 100%);
+    body { font-family: 'Outfit', sans-serif; }
+    code, pre { font-family: 'Fira Code', monospace; }
+
+    /* Animated gradient background */
+    .gradient-bg {
+      background: linear-gradient(-45deg, #0a0a0f, #12121a, #1a1a2e, #16213e);
+      background-size: 400% 400%;
+      animation: gradient 15s ease infinite;
+    }
+
+    @keyframes gradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Glowing orbs */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .orb-1 {
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(0, 255, 255, 0.4) 0%, transparent 70%);
+      top: -100px;
+      right: -100px;
+      animation: float 8s ease-in-out infinite;
+    }
+
+    .orb-2 {
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(139, 92, 246, 0.4) 0%, transparent 70%);
+      bottom: -150px;
+      left: -150px;
+      animation: float 10s ease-in-out infinite reverse;
+    }
+
+    .orb-3 {
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(236, 72, 153, 0.3) 0%, transparent 70%);
+      top: 40%;
+      left: 30%;
+      animation: float 12s ease-in-out infinite;
+    }
+
+    /* Glass morphism cards */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .glass-card:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(0, 255, 255, 0.2);
+    }
+
+    /* Gradient text */
+    .gradient-text-cyan {
+      background: linear-gradient(135deg, #00d4ff, #00ff88, #00d4ff);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: gradient 3s ease infinite;
+    }
+
+    .gradient-text-magenta {
+      background: linear-gradient(135deg, #ff0080, #ff4da6, #ff0080);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: gradient 3s ease infinite;
+    }
+
+    /* Glow effects */
+    .glow-cyan {
+      box-shadow: 0 0 40px rgba(0, 255, 255, 0.3), 0 0 80px rgba(0, 255, 255, 0.1);
+    }
+
+    .glow-border {
+      position: relative;
+    }
+
+    .glow-border::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      background: linear-gradient(45deg, #00d4ff, #8b5cf6, #ff0080, #00d4ff);
+      background-size: 300% 300%;
+      border-radius: inherit;
+      z-index: -1;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      animation: gradient 4s ease infinite;
+    }
+
+    .glow-border:hover::before {
+      opacity: 1;
+    }
+
+    /* Command prompt styling */
+    .cmd-prompt {
+      background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(139, 92, 246, 0.1));
+      border: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    /* Stats counter */
+    .stat-number {
+      background: linear-gradient(135deg, #00d4ff, #00ff88);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
-    .glow {
-      box-shadow: 0 0 60px rgba(203, 166, 247, 0.3);
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
     }
-    .card-glow:hover {
-      box-shadow: 0 0 30px rgba(203, 166, 247, 0.2);
+    ::-webkit-scrollbar-track {
+      background: #0a0a0f;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #00d4ff, #8b5cf6);
+      border-radius: 4px;
+    }
+
+    /* Mobile menu */
+    #mobile-menu {
+      background: rgba(10, 10, 15, 0.95);
+      backdrop-filter: blur(20px);
+    }
+
+    /* Provider badge */
+    .provider-badge {
+      transition: all 0.3s ease;
+    }
+    .provider-badge:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Terminal window */
+    .terminal-window {
+      background: linear-gradient(180deg, #1e1e2e 0%, #181825 100%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .terminal-dot-red { background: #ff5f56; }
+    .terminal-dot-yellow { background: #ffbd2e; }
+    .terminal-dot-green { background: #27c93f; }
+
+    /* Feature icon glow */
+    .feature-icon {
+      background: linear-gradient(135deg, rgba(0, 255, 255, 0.2), rgba(139, 92, 246, 0.2));
+      border: 1px solid rgba(0, 255, 255, 0.3);
+    }
+
+    /* Tab active state */
+    .tab-active {
+      background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(139, 92, 246, 0.1));
+      border-bottom: 2px solid #00d4ff;
     }
   </style>
 </head>
-<body class="bg-[#11111b] text-[#cdd6f4] min-h-screen">
+<body class="gradient-bg text-gray-100 min-h-screen relative overflow-x-hidden">
+
+  <!-- Animated Background Orbs -->
+  <div class="fixed inset-0 overflow-hidden pointer-events-none">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
 
   <!-- Navigation -->
-  <nav class="fixed top-0 left-0 right-0 z-50 bg-[#11111b]/90 backdrop-blur-md border-b border-[#313244]">
+  <nav class="fixed top-0 left-0 right-0 z-50 glass-card border-0">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
-        <a href="#" class="flex items-center gap-3">
-          <span class="text-2xl">🐉</span>
-          <span class="font-bold text-lg gradient-text">Beast CLI</span>
+        <a href="#" class="flex items-center gap-3 group">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-purple-500 flex items-center justify-center text-xl transform group-hover:scale-110 transition-transform">
+            🐉
+          </div>
+          <span class="font-bold text-lg gradient-text-cyan">Beast CLI</span>
         </a>
         <div class="hidden md:flex items-center gap-8">
-          <a href="#features" class="text-[#a6adc8] hover:text-primary transition-colors">Features</a>
-          <a href="#installation" class="text-[#a6adc8] hover:text-primary transition-colors">Install</a>
-          <a href="#usage" class="text-[#a6adc8] hover:text-primary transition-colors">Usage</a>
-          <a href="#configuration" class="text-[#a6adc8] hover:text-primary transition-colors">Config</a>
-          <a href="#providers" class="text-[#a6adc8] hover:text-primary transition-colors">Providers</a>
-          <a href="#troubleshooting" class="text-[#a6adc8] hover:text-primary transition-colors">FAQ</a>
-          <a href="https://github.com/simpletoolsindia/code-cli" target="_blank" class="bg-[#313244] hover:bg-[#45475a] px-4 py-2 rounded-lg transition-colors">
+          <a href="#features" class="text-gray-400 hover:text-cyan-400 transition-colors">Features</a>
+          <a href="#installation" class="text-gray-400 hover:text-cyan-400 transition-colors">Install</a>
+          <a href="#usage" class="text-gray-400 hover:text-cyan-400 transition-colors">Usage</a>
+          <a href="#providers" class="text-gray-400 hover:text-cyan-400 transition-colors">Providers</a>
+          <a href="#faq" class="text-gray-400 hover:text-cyan-400 transition-colors">FAQ</a>
+          <a href="https://github.com/simpletoolsindia/code-cli" target="_blank" class="ml-4 px-5 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-medium hover:opacity-90 transition-opacity">
             GitHub
           </a>
         </div>
-        <button id="mobile-menu-btn" class="md:hidden p-2">
+        <button id="mobile-menu-btn" class="md:hidden p-2 text-gray-400 hover:text-white">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
           </svg>
@@ -77,289 +248,346 @@
       </div>
     </div>
     <!-- Mobile menu -->
-    <div id="mobile-menu" class="hidden md:hidden bg-[#1e1e2e] border-t border-[#313244]">
+    <div id="mobile-menu" class="hidden md:hidden border-t border-white/5">
       <div class="px-4 py-4 space-y-3">
-        <a href="#features" class="block py-2 text-[#a6adc8]">Features</a>
-        <a href="#installation" class="block py-2 text-[#a6adc8]">Install</a>
-        <a href="#usage" class="block py-2 text-[#a6adc8]">Usage</a>
-        <a href="#configuration" class="block py-2 text-[#a6adc8]">Config</a>
-        <a href="#providers" class="block py-2 text-[#a6adc8]">Providers</a>
-        <a href="#troubleshooting" class="block py-2 text-[#a6adc8]">FAQ</a>
+        <a href="#features" class="block py-2 text-gray-400">Features</a>
+        <a href="#installation" class="block py-2 text-gray-400">Install</a>
+        <a href="#usage" class="block py-2 text-gray-400">Usage</a>
+        <a href="#providers" class="block py-2 text-gray-400">Providers</a>
+        <a href="#faq" class="block py-2 text-gray-400">FAQ</a>
+        <a href="https://github.com/simpletoolsindia/code-cli" target="_blank" class="block py-2 text-cyan-400">GitHub</a>
       </div>
     </div>
   </nav>
 
   <!-- Hero Section -->
-  <section class="pt-32 pb-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-    <div class="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent"></div>
-    <div class="max-w-7xl mx-auto text-center relative">
-      <div class="inline-flex items-center gap-2 bg-[#1e1e2e] border border-[#313244] rounded-full px-4 py-2 mb-8">
-        <span class="w-2 h-2 bg-success rounded-full animate-pulse"></span>
-        <span class="text-sm text-[#a6adc8]">v1.2.5 - Now on npm!</span>
-      </div>
-      <h1 class="text-5xl md:text-7xl font-extrabold mb-6">
-        <span class="gradient-text">AI Coding Agent</span>
-        <br>
-        <span class="text-white">for Power Users</span>
-      </h1>
-      <p class="text-xl text-[#a6adc8] max-w-2xl mx-auto mb-10">
-        51+ native tools, RAG-based code intelligence, multi-theme TUI, and support for 45+ AI providers. The terminal AI assistant built for developers.
-      </p>
-      <div class="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-        <a href="#installation" class="bg-primary hover:bg-primary/90 text-[#1e1e2e] font-semibold px-8 py-4 rounded-xl transition-all hover:scale-105 glow">
-          Install Now
-        </a>
-        <a href="#usage" class="border border-[#45475a] hover:border-primary px-8 py-4 rounded-xl transition-colors">
-          Quick Start
-        </a>
-      </div>
-
-      <!-- Code Preview -->
-      <div class="max-w-3xl mx-auto bg-[#1e1e2e] rounded-2xl border border-[#313244] overflow-hidden glow">
-        <div class="flex items-center gap-2 px-4 py-3 bg-[#181825] border-b border-[#313244]">
-          <div class="w-3 h-3 rounded-full bg-[#f38ba8]"></div>
-          <div class="w-3 h-3 rounded-full bg-[#f9e2af]"></div>
-          <div class="w-3 h-3 rounded-full bg-[#a6e3a1]"></div>
-          <span class="ml-4 text-sm text-[#6c7086]">beast</span>
+  <section class="pt-32 pb-24 px-4 sm:px-6 lg:px-8 relative">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center">
+        <!-- Badge -->
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-8">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-cyan-400"></span>
+          </span>
+          <span class="text-sm text-gray-300">v1.2.5 — Now on npm!</span>
         </div>
-        <pre class="p-6 text-left font-mono text-sm overflow-x-auto"><code><span class="text-[#6c7086]">$</span> <span class="text-success">beast</span>
 
-<span class="text-[#6c7086]">    🐉 Beast CLI</span>
-<span class="text-[#6c7086]">    AI Coding Agent for Power Users</span>
+        <!-- Headline -->
+        <h1 class="text-5xl md:text-7xl font-extrabold mb-6 leading-tight">
+          <span class="text-white">The</span>
+          <span class="gradient-text-cyan ml-3">AI Coding Agent</span>
+          <br>
+          <span class="text-white mt-2 block">that Works for You</span>
+        </h1>
 
-<span class="text-muted">Provider:</span> <span class="text-success">anthropic</span>  <span class="text-muted">Model:</span> <span class="text-accent">claude-sonnet-4-20250514</span>
-<span class="text-muted">Tools:</span> <span class="text-warning">51 native</span> + <span class="text-warning">12 engi</span>
+        <!-- Subtitle -->
+        <p class="text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+          51+ native tools, RAG-based code intelligence, 9 beautiful themes,
+          <br class="hidden md:block">and support for 45+ AI providers. Your terminal deserves better.
+        </p>
 
-<span class="text-primary">❯</span> <span class="text-[#cdd6f4]">Build me a REST API with authentication</span>
+        <!-- CTA Buttons -->
+        <div class="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+          <a href="#installation" class="group px-8 py-4 rounded-xl bg-gradient-to-r from-cyan-500 to-cyan-400 text-gray-900 font-bold text-lg hover:shadow-lg hover:shadow-cyan-500/30 transition-all hover:scale-105">
+            <span class="flex items-center justify-center gap-2">
+              <span>Install Now</span>
+              <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+              </svg>
+            </span>
+          </a>
+          <a href="#usage" class="px-8 py-4 rounded-xl glass-card text-gray-300 font-medium text-lg hover:text-white transition-colors">
+            Quick Start →
+          </a>
+        </div>
 
-<span class="text-[#6c7086]">◈ Thinking...</span>
-<span class="text-success">✓</span> Creating REST API with JWT authentication...</code></pre>
+        <!-- Stats -->
+        <div class="grid grid-cols-3 gap-8 max-w-2xl mx-auto mb-16">
+          <div>
+            <div class="text-4xl md:text-5xl font-bold stat-number">51+</div>
+            <div class="text-gray-500 mt-1">Native Tools</div>
+          </div>
+          <div>
+            <div class="text-4xl md:text-5xl font-bold stat-number">9</div>
+            <div class="text-gray-500 mt-1">Beautiful Themes</div>
+          </div>
+          <div>
+            <div class="text-4xl md:text-5xl font-bold stat-number">45+</div>
+            <div class="text-gray-500 mt-1">AI Providers</div>
+          </div>
+        </div>
+
+        <!-- Terminal Preview -->
+        <div class="max-w-4xl mx-auto terminal-window rounded-2xl overflow-hidden glow-cyan">
+          <div class="flex items-center gap-2 px-4 py-3 bg-gray-800/50 border-b border-white/5">
+            <div class="w-3 h-3 rounded-full terminal-dot-red"></div>
+            <div class="w-3 h-3 rounded-full terminal-dot-yellow"></div>
+            <div class="w-3 h-3 rounded-full terminal-dot-green"></div>
+            <span class="ml-4 text-sm text-gray-500 font-mono">~ beast</span>
+          </div>
+          <div class="p-6 text-left">
+            <pre class="font-mono text-sm leading-relaxed"><code><span class="text-gray-500">$</span> <span class="text-cyan-400">beast</span>
+
+<span class="text-purple-400">    🐉 Beast CLI</span>
+<span class="text-gray-500">    AI Coding Agent for Power Users</span>
+
+<span class="text-gray-600">──────────────────────────────</span>
+<span class="text-gray-400">Provider:</span>  <span class="text-cyan-400">anthropic</span>
+<span class="text-gray-400">Model:</span>    <span class="text-green-400">claude-sonnet-4-20250514</span>
+<span class="text-gray-400">Tools:</span>    <span class="text-yellow-400">51 native</span> + <span class="text-purple-400">12 engi</span>
+<span class="text-gray-600">──────────────────────────────</span>
+
+<span class="text-cyan-500">❯</span> <span class="text-white">Build me a REST API with authentication</span>
+
+<span class="text-gray-500">◈ Analyzing codebase context...</span>
+<span class="text-green-400">✓</span> Generated complete REST API with JWT auth</code></pre>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- Features Section -->
-  <section id="features" class="py-20 px-4 sm:px-6 lg:px-8">
+  <section id="features" class="py-24 px-4 sm:px-6 lg:px-8 relative">
     <div class="max-w-7xl mx-auto">
       <div class="text-center mb-16">
-        <h2 class="text-4xl font-bold mb-4">Why Beast CLI?</h2>
-        <p class="text-[#a6adc8] text-lg max-w-2xl mx-auto">
+        <span class="text-cyan-400 text-sm font-medium tracking-wider uppercase mb-4 block">Features</span>
+        <h2 class="text-4xl md:text-5xl font-bold mb-4">
+          Everything you need to
+          <span class="gradient-text-magenta">build faster</span>
+        </h2>
+        <p class="text-gray-400 text-lg max-w-2xl mx-auto">
           Built for developers who want powerful AI assistance without leaving the terminal
         </p>
       </div>
 
       <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Feature Cards -->
-        <div class="bg-[#1e1e2e] rounded-2xl p-6 border border-[#313244] card-glow transition-all">
-          <div class="w-12 h-12 bg-[#cba6f7]/20 rounded-xl flex items-center justify-center mb-4">
+        <!-- Feature 1: RAG -->
+        <div class="glass-card rounded-2xl p-6 glow-border transition-all duration-300">
+          <div class="feature-icon w-14 h-14 rounded-xl flex items-center justify-center mb-5">
             <span class="text-2xl">🧠</span>
           </div>
-          <h3 class="text-xl font-semibold mb-2">RAG Code Intelligence</h3>
-          <p class="text-[#a6adc8]">TF-IDF + RAG-based code retrieval. Understands your codebase context for smarter suggestions.</p>
+          <h3 class="text-xl font-semibold mb-3 text-white">RAG Code Intelligence</h3>
+          <p class="text-gray-400 leading-relaxed">TF-IDF + RAG-based retrieval understands your codebase context for smarter, more relevant suggestions.</p>
         </div>
 
-        <div class="bg-[#1e1e2e] rounded-2xl p-6 border border-[#313244] card-glow transition-all">
-          <div class="w-12 h-12 bg-[#89b4fa]/20 rounded-xl flex items-center justify-center mb-4">
+        <!-- Feature 2: Tools -->
+        <div class="glass-card rounded-2xl p-6 glow-border transition-all duration-300">
+          <div class="feature-icon w-14 h-14 rounded-xl flex items-center justify-center mb-5">
             <span class="text-2xl">🔧</span>
           </div>
-          <h3 class="text-xl font-semibold mb-2">51+ Native Tools</h3>
-          <p class="text-[#a6adc8]">File ops, web search, GitHub, code execution, and 12 engineering intelligence tools - no Docker needed.</p>
+          <h3 class="text-xl font-semibold mb-3 text-white">51+ Native Tools</h3>
+          <p class="text-gray-400 leading-relaxed">File operations, web search, GitHub integration, code execution, and 12 engineering intelligence tools.</p>
         </div>
 
-        <div class="bg-[#1e1e2e] rounded-2xl p-6 border border-[#313244] card-glow transition-all">
-          <div class="w-12 h-12 bg-[#a6e3a1]/20 rounded-xl flex items-center justify-center mb-4">
-            <span class="text-2xl">🌈</span>
+        <!-- Feature 3: Themes -->
+        <div class="glass-card rounded-2xl p-6 glow-border transition-all duration-300">
+          <div class="feature-icon w-14 h-14 rounded-xl flex items-center justify-center mb-5">
+            <span class="text-2xl">🎨</span>
           </div>
-          <h3 class="text-xl font-semibold mb-2">9 Themes</h3>
-          <p class="text-[#a6adc8]">Catppuccin, Dracula, Nord, Tokyo Night, Gruvbox, Monokai, and more. Pick your vibe.</p>
+          <h3 class="text-xl font-semibold mb-3 text-white">9 Beautiful Themes</h3>
+          <p class="text-gray-400 leading-relaxed">Catppuccin, Dracula, Nord, Tokyo Night, Gruvbox, Monokai, and more. Pick your vibe.</p>
         </div>
 
-        <div class="bg-[#1e1e2e] rounded-2xl p-6 border border-[#313244] card-glow transition-all">
-          <div class="w-12 h-12 bg-[#f9e2af]/20 rounded-xl flex items-center justify-center mb-4">
+        <!-- Feature 4: Providers -->
+        <div class="glass-card rounded-2xl p-6 glow-border transition-all duration-300">
+          <div class="feature-icon w-14 h-14 rounded-xl flex items-center justify-center mb-5">
             <span class="text-2xl">🤖</span>
           </div>
-          <h3 class="text-xl font-semibold mb-2">45+ AI Providers</h3>
-          <p class="text-[#a6adc8]">Claude, GPT, Gemini, Groq, Ollama, LM Studio, and more. Use any model you want.</p>
+          <h3 class="text-xl font-semibold mb-3 text-white">45+ AI Providers</h3>
+          <p class="text-gray-400 leading-relaxed">Claude, GPT, Gemini, Groq, Ollama, LM Studio, Azure, AWS Bedrock, and more.</p>
         </div>
 
-        <div class="bg-[#1e1e2e] rounded-2xl p-6 border border-[#313244] card-glow transition-all">
-          <div class="w-12 h-12 bg-[#f38ba8]/20 rounded-xl flex items-center justify-center mb-4">
+        <!-- Feature 5: Smart Context -->
+        <div class="glass-card rounded-2xl p-6 glow-border transition-all duration-300">
+          <div class="feature-icon w-14 h-14 rounded-xl flex items-center justify-center mb-5">
             <span class="text-2xl">💾</span>
           </div>
-          <h3 class="text-xl font-semibold mb-2">Smart Context</h3>
-          <p class="text-[#a6adc8]">Auto-compact at 95% context, session persistence, and memory checkpoints for long projects.</p>
+          <h3 class="text-xl font-semibold mb-3 text-white">Smart Context</h3>
+          <p class="text-gray-400 leading-relaxed">Auto-compact at 95%, session persistence, memory checkpoints. Never lose context on long projects.</p>
         </div>
 
-        <div class="bg-[#1e1e2e] rounded-2xl p-6 border border-[#313244] card-glow transition-all">
-          <div class="w-12 h-12 bg-[#94e2d5]/20 rounded-xl flex items-center justify-center mb-4">
+        <!-- Feature 6: Permissions -->
+        <div class="glass-card rounded-2xl p-6 glow-border transition-all duration-300">
+          <div class="feature-icon w-14 h-14 rounded-xl flex items-center justify-center mb-5">
             <span class="text-2xl">🔒</span>
           </div>
-          <h3 class="text-xl font-semibold mb-2">Permission System</h3>
-          <p class="text-[#a6adc8]">Auto-approve safe commands, banned list for dangerous ops, session-based permissions.</p>
+          <h3 class="text-xl font-semibold mb-3 text-white">Permission System</h3>
+          <p class="text-gray-400 leading-relaxed">Auto-approve safe commands, banned list protection, session-based permissions for peace of mind.</p>
         </div>
       </div>
     </div>
   </section>
 
   <!-- Installation Section -->
-  <section id="installation" class="py-20 px-4 sm:px-6 lg:px-8 bg-[#181825]">
+  <section id="installation" class="py-24 px-4 sm:px-6 lg:px-8 relative">
     <div class="max-w-7xl mx-auto">
       <div class="text-center mb-16">
-        <h2 class="text-4xl font-bold mb-4">Quick Installation</h2>
-        <p class="text-[#a6adc8] text-lg">Get started in under a minute</p>
+        <span class="text-cyan-400 text-sm font-medium tracking-wider uppercase mb-4 block">Installation</span>
+        <h2 class="text-4xl md:text-5xl font-bold mb-4">Get started in <span class="gradient-text-cyan">seconds</span></h2>
+        <p class="text-gray-400 text-lg">Works with Node.js, Bun, or our one-line installer</p>
       </div>
 
-      <div class="grid lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
-        <!-- npm install -->
-        <div class="bg-[#1e1e2e] rounded-2xl p-8 border border-[#313244]">
-          <div class="flex items-center gap-3 mb-6">
-            <div class="w-10 h-10 bg-[#cb4644] rounded-lg flex items-center justify-center text-white font-bold">N</div>
-            <h3 class="text-xl font-semibold">npm</h3>
+      <!-- Installation Methods -->
+      <div class="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-12">
+        <!-- npm -->
+        <div class="glass-card rounded-2xl p-6 relative group">
+          <div class="absolute -top-3 -right-3 w-8 h-8 rounded-lg bg-red-500 flex items-center justify-center text-white font-bold text-sm opacity-80">N</div>
+          <h3 class="text-xl font-semibold mb-4 text-white">npm</h3>
+          <div class="cmd-prompt rounded-lg p-4 mb-4">
+            <code class="text-cyan-400 text-sm font-mono">npm install -g @simpletoolsindia/beast-cli</code>
           </div>
-          <div class="bg-[#11111b] rounded-xl p-4 mb-4">
-            <code class="text-success text-sm">npm install -g @simpletoolsindia/beast-cli</code>
-          </div>
-          <button onclick="copyToClipboard('npm install -g @simpletoolsindia/beast-cli', this)" class="w-full bg-[#313244] hover:bg-[#45475a] py-3 rounded-lg transition-colors">
+          <button onclick="copyToClipboard('npm install -g @simpletoolsindia/beast-cli', this)" class="w-full py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-medium hover:opacity-90 transition-opacity">
             Copy
           </button>
         </div>
 
-        <!-- bun install -->
-        <div class="bg-[#1e1e2e] rounded-2xl p-8 border border-[#313244]">
-          <div class="flex items-center gap-3 mb-6">
-            <div class="w-10 h-10 bg-[#fbbf24] rounded-lg flex items-center justify-center text-[#1e1e2e] font-bold">B</div>
-            <h3 class="text-xl font-semibold">Bun</h3>
+        <!-- bun -->
+        <div class="glass-card rounded-2xl p-6 relative group">
+          <div class="absolute -top-3 -right-3 w-8 h-8 rounded-lg bg-yellow-400 flex items-center justify-center text-gray-900 font-bold text-sm opacity-80">B</div>
+          <h3 class="text-xl font-semibold mb-4 text-white">Bun</h3>
+          <div class="cmd-prompt rounded-lg p-4 mb-4">
+            <code class="text-cyan-400 text-sm font-mono">bun add -g @simpletoolsindia/beast-cli</code>
           </div>
-          <div class="bg-[#11111b] rounded-xl p-4 mb-4">
-            <code class="text-success text-sm">bun add -g @simpletoolsindia/beast-cli</code>
-          </div>
-          <button onclick="copyToClipboard('bun add -g @simpletoolsindia/beast-cli', this)" class="w-full bg-[#313244] hover:bg-[#45475a] py-3 rounded-lg transition-colors">
+          <button onclick="copyToClipboard('bun add -g @simpletoolsindia/beast-cli', this)" class="w-full py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-medium hover:opacity-90 transition-opacity">
             Copy
           </button>
         </div>
-      </div>
 
-      <!-- One-liner install -->
-      <div class="mt-8 max-w-3xl mx-auto">
-        <div class="bg-[#1e1e2e] rounded-2xl p-8 border border-[#313244]">
-          <div class="flex items-center gap-3 mb-6">
-            <div class="w-10 h-10 bg-[#89b4fa] rounded-lg flex items-center justify-center">⚡</div>
-            <h3 class="text-xl font-semibold">One-Line Installer</h3>
+        <!-- One-liner -->
+        <div class="glass-card rounded-2xl p-6 relative group">
+          <div class="absolute -top-3 -right-3 w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-purple-500 flex items-center justify-center text-white text-lg">⚡</div>
+          <h3 class="text-xl font-semibold mb-4 text-white">One-liner</h3>
+          <div class="cmd-prompt rounded-lg p-4 mb-4">
+            <code class="text-cyan-400 text-sm font-mono">curl -fsSL ... | bash</code>
           </div>
-          <div class="bg-[#11111b] rounded-xl p-4 mb-4">
-            <code class="text-success text-sm">curl -fsSL https://raw.githubusercontent.com/simpletoolsindia/code-cli/main/install.sh | bash</code>
-          </div>
-          <button onclick="copyToClipboard('curl -fsSL https://raw.githubusercontent.com/simpletoolsindia/code-cli/main/install.sh | bash', this)" class="w-full bg-[#313244] hover:bg-[#45475a] py-3 rounded-lg transition-colors">
+          <button onclick="copyToClipboard('curl -fsSL https://raw.githubusercontent.com/simpletoolsindia/code-cli/main/install.sh | bash', this)" class="w-full py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-medium hover:opacity-90 transition-opacity">
             Copy
           </button>
         </div>
       </div>
 
       <!-- Requirements -->
-      <div class="mt-12 max-w-2xl mx-auto text-center">
-        <h3 class="text-lg font-semibold mb-4 text-[#a6adc8]">Requirements</h3>
-        <div class="flex flex-wrap justify-center gap-4">
-          <span class="bg-[#313244] px-4 py-2 rounded-lg text-sm">Node.js 18+</span>
-          <span class="bg-[#313244] px-4 py-2 rounded-lg text-sm">or Bun 1.0+</span>
-          <span class="bg-[#313244] px-4 py-2 rounded-lg text-sm">macOS / Linux / Windows</span>
+      <div class="max-w-xl mx-auto text-center">
+        <div class="glass-card rounded-2xl p-6">
+          <h4 class="text-gray-400 text-sm uppercase tracking-wider mb-4">Requirements</h4>
+          <div class="flex flex-wrap justify-center gap-3">
+            <span class="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-gray-300 text-sm">Node.js 18+</span>
+            <span class="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-gray-300 text-sm">Bun 1.0+</span>
+            <span class="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-gray-300 text-sm">macOS / Linux / Windows</span>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
   <!-- Usage Section -->
-  <section id="usage" class="py-20 px-4 sm:px-6 lg:px-8">
+  <section id="usage" class="py-24 px-4 sm:px-6 lg:px-8 relative">
     <div class="max-w-7xl mx-auto">
       <div class="text-center mb-16">
-        <h2 class="text-4xl font-bold mb-4">Usage Guide</h2>
-        <p class="text-[#a6adc8] text-lg">Start coding with AI assistance</p>
+        <span class="text-cyan-400 text-sm font-medium tracking-wider uppercase mb-4 block">Usage</span>
+        <h2 class="text-4xl md:text-5xl font-bold mb-4">Start <span class="gradient-text-cyan">coding</span> now</h2>
+        <p class="text-gray-400 text-lg">Simple commands, powerful results</p>
       </div>
 
-      <!-- Basic Usage -->
-      <div class="max-w-4xl mx-auto space-y-8">
-        <div class="bg-[#1e1e2e] rounded-2xl p-6 border border-[#313244]">
-          <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">
-            <span class="text-success">▶</span> Start Beast CLI
-          </h3>
-          <div class="bg-[#11111b] rounded-xl p-4">
-            <code class="text-[#a6adc8]">beast</code>
+      <div class="max-w-4xl mx-auto space-y-6">
+        <!-- Basic Usage -->
+        <div class="glass-card rounded-2xl p-6">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="text-2xl">▶</span>
+            <h3 class="text-xl font-semibold text-white">Start Beast CLI</h3>
           </div>
-          <p class="mt-4 text-[#6c7086]">Auto-detects your configured API keys and starts the REPL.</p>
+          <div class="cmd-prompt rounded-xl p-4">
+            <code class="text-cyan-400 font-mono">beast</code>
+          </div>
+          <p class="text-gray-500 mt-3 text-sm">Auto-detects your configured API keys and starts the REPL.</p>
         </div>
 
-        <div class="bg-[#1e1e2e] rounded-2xl p-6 border border-[#313244]">
-          <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">
-            <span class="text-accent">⚡</span> Use Specific Provider
-          </h3>
-          <div class="bg-[#11111b] rounded-xl p-4 space-y-2">
-            <code class="text-[#a6adc8]">beast --provider ollama --model llama3.2</code>
-            <code class="text-[#a6adc8]">beast --provider anthropic --model claude-sonnet-4-20250514</code>
-            <code class="text-[#a6adc8]">beast --provider openai --model gpt-4o</code>
+        <!-- Provider Selection -->
+        <div class="glass-card rounded-2xl p-6">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="text-2xl">⚡</span>
+            <h3 class="text-xl font-semibold text-white">Choose Provider & Model</h3>
           </div>
-        </div>
-
-        <div class="bg-[#1e1e2e] rounded-2xl p-6 border border-[#313244]">
-          <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">
-            <span class="text-warning">🔧</span> Commands
-          </h3>
-          <div class="grid md:grid-cols-2 gap-4">
-            <div class="bg-[#11111b] rounded-xl p-4">
-              <code class="text-primary">/help</code>
-              <p class="text-[#6c7086] text-sm mt-1">Show help</p>
+          <div class="space-y-3">
+            <div class="cmd-prompt rounded-lg p-3">
+              <code class="text-cyan-400 font-mono text-sm">beast --provider ollama --model llama3.2</code>
             </div>
-            <div class="bg-[#11111b] rounded-xl p-4">
-              <code class="text-primary">/tools</code>
-              <p class="text-[#6c7086] text-sm mt-1">List available tools</p>
+            <div class="cmd-prompt rounded-lg p-3">
+              <code class="text-cyan-400 font-mono text-sm">beast --provider anthropic --model claude-sonnet-4-20250514</code>
             </div>
-            <div class="bg-[#11111b] rounded-xl p-4">
-              <code class="text-primary">/clear</code>
-              <p class="text-[#6c7086] text-sm mt-1">Clear conversation</p>
-            </div>
-            <div class="bg-[#11111b] rounded-xl p-4">
-              <code class="text-primary">/compact</code>
-              <p class="text-[#6c7086] text-sm mt-1">Compact context</p>
-            </div>
-            <div class="bg-[#11111b] rounded-xl p-4">
-              <code class="text-primary">/theme</code>
-              <p class="text-[#6c7086] text-sm mt-1">Change theme</p>
-            </div>
-            <div class="bg-[#11111b] rounded-xl p-4">
-              <code class="text-primary">/exit</code>
-              <p class="text-[#6c7086] text-sm mt-1">Exit CLI</p>
+            <div class="cmd-prompt rounded-lg p-3">
+              <code class="text-cyan-400 font-mono text-sm">beast --provider openai --model gpt-4o</code>
             </div>
           </div>
         </div>
 
-        <!-- Engi Tools -->
-        <div class="bg-[#1e1e2e] rounded-2xl p-6 border border-[#313244]">
-          <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">
-            <span class="text-[#cba6f7]">🧠</span> Engineering Intelligence Tools
-          </h3>
-          <p class="text-[#a6adc8] mb-4">12 specialized tools for code analysis and engineering tasks:</p>
-          <div class="grid md:grid-cols-3 gap-3">
-            <div class="bg-[#11111b] rounded-lg p-3">
-              <code class="text-[#cba6f7] text-sm">engi_task_classify</code>
-              <p class="text-[#6c7086] text-xs mt-1">Classify task type</p>
+        <!-- Commands -->
+        <div class="glass-card rounded-2xl p-6">
+          <div class="flex items-center gap-3 mb-6">
+            <span class="text-2xl">⌨️</span>
+            <h3 class="text-xl font-semibold text-white">REPL Commands</h3>
+          </div>
+          <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="bg-white/5 rounded-xl p-4">
+              <code class="text-purple-400 font-mono">/help</code>
+              <p class="text-gray-500 text-sm mt-1">Show help</p>
             </div>
-            <div class="bg-[#11111b] rounded-lg p-3">
-              <code class="text-[#cba6f7] text-sm">engi_repo_scope_find</code>
-              <p class="text-[#6c7086] text-xs mt-1">Find relevant files</p>
+            <div class="bg-white/5 rounded-xl p-4">
+              <code class="text-purple-400 font-mono">/tools</code>
+              <p class="text-gray-500 text-sm mt-1">List tools</p>
             </div>
-            <div class="bg-[#11111b] rounded-lg p-3">
-              <code class="text-[#cba6f7] text-sm">engi_flow_summarize</code>
-              <p class="text-[#6c7086] text-xs mt-1">Explain code flow</p>
+            <div class="bg-white/5 rounded-xl p-4">
+              <code class="text-purple-400 font-mono">/clear</code>
+              <p class="text-gray-500 text-sm mt-1">Clear conversation</p>
             </div>
-            <div class="bg-[#11111b] rounded-lg p-3">
-              <code class="text-[#cba6f7] text-sm">engi_bug_trace</code>
-              <p class="text-[#6c7086] text-xs mt-1">Trace bug causes</p>
+            <div class="bg-white/5 rounded-xl p-4">
+              <code class="text-purple-400 font-mono">/compact</code>
+              <p class="text-gray-500 text-sm mt-1">Compact context</p>
             </div>
-            <div class="bg-[#11111b] rounded-lg p-3">
-              <code class="text-[#cba6f7] text-sm">engi_memory_checkpoint</code>
-              <p class="text-[#6c7086] text-xs mt-1">Save task state</p>
+            <div class="bg-white/5 rounded-xl p-4">
+              <code class="text-purple-400 font-mono">/theme</code>
+              <p class="text-gray-500 text-sm mt-1">Change theme</p>
             </div>
-            <div class="bg-[#11111b] rounded-lg p-3">
-              <code class="text-[#cba6f7] text-sm">engi_impact_analyze</code>
-              <p class="text-[#6c7086] text-xs mt-1">Analyze blast radius</p>
+            <div class="bg-white/5 rounded-xl p-4">
+              <code class="text-purple-400 font-mono">/exit</code>
+              <p class="text-gray-500 text-sm mt-1">Exit CLI</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Engineering Tools -->
+        <div class="glass-card rounded-2xl p-6">
+          <div class="flex items-center gap-3 mb-6">
+            <span class="text-2xl">🧠</span>
+            <h3 class="text-xl font-semibold text-white">Engineering Intelligence</h3>
+          </div>
+          <p class="text-gray-400 mb-6">12 specialized tools for code analysis and engineering tasks:</p>
+          <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div class="bg-white/5 rounded-lg p-3">
+              <code class="text-cyan-400 text-sm font-mono">engi_task_classify</code>
+              <p class="text-gray-500 text-xs mt-1">Classify task type</p>
+            </div>
+            <div class="bg-white/5 rounded-lg p-3">
+              <code class="text-cyan-400 text-sm font-mono">engi_repo_scope_find</code>
+              <p class="text-gray-500 text-xs mt-1">Find relevant files</p>
+            </div>
+            <div class="bg-white/5 rounded-lg p-3">
+              <code class="text-cyan-400 text-sm font-mono">engi_flow_summarize</code>
+              <p class="text-gray-500 text-xs mt-1">Explain code flow</p>
+            </div>
+            <div class="bg-white/5 rounded-lg p-3">
+              <code class="text-cyan-400 text-sm font-mono">engi_bug_trace_compact</code>
+              <p class="text-gray-500 text-xs mt-1">Trace bug causes</p>
+            </div>
+            <div class="bg-white/5 rounded-lg p-3">
+              <code class="text-cyan-400 text-sm font-mono">engi_memory_checkpoint</code>
+              <p class="text-gray-500 text-xs mt-1">Save task state</p>
+            </div>
+            <div class="bg-white/5 rounded-lg p-3">
+              <code class="text-cyan-400 text-sm font-mono">engi_impact_analyze</code>
+              <p class="text-gray-500 text-xs mt-1">Analyze blast radius</p>
             </div>
           </div>
         </div>
@@ -368,43 +596,43 @@
   </section>
 
   <!-- Configuration Section -->
-  <section id="configuration" class="py-20 px-4 sm:px-6 lg:px-8 bg-[#181825]">
+  <section id="config" class="py-24 px-4 sm:px-6 lg:px-8 relative">
     <div class="max-w-7xl mx-auto">
       <div class="text-center mb-16">
-        <h2 class="text-4xl font-bold mb-4">Configuration</h2>
-        <p class="text-[#a6adc8] text-lg">Set up your API keys and preferences</p>
+        <span class="text-cyan-400 text-sm font-medium tracking-wider uppercase mb-4 block">Configuration</span>
+        <h2 class="text-4xl md:text-5xl font-bold mb-4">Set up your <span class="gradient-text-magenta">environment</span></h2>
       </div>
 
       <div class="grid lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
         <!-- Environment Variables -->
-        <div class="bg-[#1e1e2e] rounded-2xl p-8 border border-[#313244]">
-          <h3 class="text-xl font-semibold mb-6">Environment Variables</h3>
+        <div class="glass-card rounded-2xl p-8">
+          <h3 class="text-xl font-semibold mb-6 text-white">Environment Variables</h3>
           <div class="space-y-4">
-            <div class="bg-[#11111b] rounded-xl p-4">
-              <code class="text-success">ANTHROPIC_API_KEY</code>
-              <p class="text-[#6c7086] text-sm mt-1">For Claude models</p>
+            <div class="cmd-prompt rounded-lg p-4">
+              <code class="text-green-400 font-mono">ANTHROPIC_API_KEY</code>
+              <p class="text-gray-500 text-sm mt-1">For Claude models</p>
             </div>
-            <div class="bg-[#11111b] rounded-xl p-4">
-              <code class="text-success">OPENAI_API_KEY</code>
-              <p class="text-[#6c7086] text-sm mt-1">For GPT models</p>
+            <div class="cmd-prompt rounded-lg p-4">
+              <code class="text-green-400 font-mono">OPENAI_API_KEY</code>
+              <p class="text-gray-500 text-sm mt-1">For GPT models</p>
             </div>
-            <div class="bg-[#11111b] rounded-xl p-4">
-              <code class="text-success">GEMINI_API_KEY</code>
-              <p class="text-[#6c7086] text-sm mt-1">For Gemini models</p>
+            <div class="cmd-prompt rounded-lg p-4">
+              <code class="text-green-400 font-mono">GEMINI_API_KEY</code>
+              <p class="text-gray-500 text-sm mt-1">For Gemini models</p>
             </div>
-            <div class="bg-[#11111b] rounded-xl p-4">
-              <code class="text-success">GROQ_API_KEY</code>
-              <p class="text-[#6c7086] text-sm mt-1">For Groq models</p>
+            <div class="cmd-prompt rounded-lg p-4">
+              <code class="text-green-400 font-mono">GROQ_API_KEY</code>
+              <p class="text-gray-500 text-sm mt-1">For Groq models</p>
             </div>
           </div>
         </div>
 
         <!-- Config File -->
-        <div class="bg-[#1e1e2e] rounded-2xl p-8 border border-[#313244]">
-          <h3 class="text-xl font-semibold mb-6">Config File</h3>
-          <p class="text-[#a6adc8] mb-4">Create <code class="text-warning">~/.beast-cli.yml</code>:</p>
-          <div class="bg-[#11111b] rounded-xl p-4">
-            <pre class="text-sm text-[#cdd6f4] overflow-x-auto"><code>provider: anthropic
+        <div class="glass-card rounded-2xl p-8">
+          <h3 class="text-xl font-semibold mb-6 text-white">Config File</h3>
+          <p class="text-gray-400 mb-4">Create <code class="text-yellow-400">~/.beast-cli.yml</code>:</p>
+          <div class="bg-[#1e1e2e] rounded-xl p-4">
+            <pre class="text-sm text-gray-300 font-mono overflow-x-auto"><code>provider: anthropic
 model: claude-sonnet-4-20250514
 theme: catppuccin-mocha
 temperature: 0.7
@@ -417,141 +645,173 @@ autoCompact: true</code></pre>
   </section>
 
   <!-- Providers Section -->
-  <section id="providers" class="py-20 px-4 sm:px-6 lg:px-8">
+  <section id="providers" class="py-24 px-4 sm:px-6 lg:px-8 relative">
     <div class="max-w-7xl mx-auto">
       <div class="text-center mb-16">
-        <h2 class="text-4xl font-bold mb-4">Supported Providers</h2>
-        <p class="text-[#a6adc8] text-lg">45+ AI providers with auto-detection</p>
+        <span class="text-cyan-400 text-sm font-medium tracking-wider uppercase mb-4 block">Providers</span>
+        <h2 class="text-4xl md:text-5xl font-bold mb-4">Use <span class="gradient-text-cyan">any</span> model</h2>
+        <p class="text-gray-400 text-lg">45+ providers with OpenAI-compatible API support</p>
       </div>
 
-      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div class="bg-[#1e1e2e] rounded-xl p-4 border border-[#313244] flex items-center gap-3">
-          <div class="w-8 h-8 bg-[#ff6154] rounded-lg flex items-center justify-center text-white text-xs font-bold">A</div>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
+        <div class="provider-badge glass-card rounded-xl p-4 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center text-red-500 font-bold">A</div>
           <div>
-            <span class="font-medium">Anthropic</span>
-            <p class="text-xs text-[#6c7086]">Claude models</p>
+            <span class="font-semibold text-white">Anthropic</span>
+            <p class="text-gray-500 text-sm">Claude models</p>
           </div>
         </div>
-        <div class="bg-[#1e1e2e] rounded-xl p-4 border border-[#313244] flex items-center gap-3">
-          <div class="w-8 h-8 bg-[#10a37f] rounded-lg flex items-center justify-center text-white text-xs font-bold">O</div>
+
+        <div class="provider-badge glass-card rounded-xl p-4 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center text-green-500 font-bold">O</div>
           <div>
-            <span class="font-medium">OpenAI</span>
-            <p class="text-xs text-[#6c7086]">GPT-4, O1 models</p>
+            <span class="font-semibold text-white">OpenAI</span>
+            <p class="text-gray-500 text-sm">GPT-4, O1 models</p>
           </div>
         </div>
-        <div class="bg-[#1e1e2e] rounded-xl p-4 border border-[#313244] flex items-center gap-3">
-          <div class="w-8 h-8 bg-[#4285f4] rounded-lg flex items-center justify-center text-white text-xs font-bold">G</div>
+
+        <div class="provider-badge glass-card rounded-xl p-4 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-500 font-bold">G</div>
           <div>
-            <span class="font-medium">Google</span>
-            <p class="text-xs text-[#6c7086]">Gemini models</p>
+            <span class="font-semibold text-white">Google</span>
+            <p class="text-gray-500 text-sm">Gemini models</p>
           </div>
         </div>
-        <div class="bg-[#1e1e2e] rounded-xl p-4 border border-[#313244] flex items-center gap-3">
-          <div class="w-8 h-8 bg-[#f97316] rounded-lg flex items-center justify-center text-white text-xs font-bold">G</div>
+
+        <div class="provider-badge glass-card rounded-xl p-4 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center text-orange-500 font-bold">G</div>
           <div>
-            <span class="font-medium">Groq</span>
-            <p class="text-xs text-[#6c7086]">Llama, Qwen models</p>
+            <span class="font-semibold text-white">Groq</span>
+            <p class="text-gray-500 text-sm">Llama, Qwen models</p>
           </div>
         </div>
-        <div class="bg-[#1e1e2e] rounded-xl p-4 border border-[#313244] flex items-center gap-3">
-          <div class="w-8 h-8 bg-[#800080] rounded-lg flex items-center justify-center text-white text-xs font-bold">O</div>
+
+        <div class="provider-badge glass-card rounded-xl p-4 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-500 font-bold">O</div>
           <div>
-            <span class="font-medium">Ollama</span>
-            <p class="text-xs text-[#6c7086]">Local models</p>
+            <span class="font-semibold text-white">Ollama</span>
+            <p class="text-gray-500 text-sm">Local models</p>
           </div>
         </div>
-        <div class="bg-[#1e1e2e] rounded-xl p-4 border border-[#313244] flex items-center gap-3">
-          <div class="w-8 h-8 bg-[#9170f2] rounded-lg flex items-center justify-center text-white text-xs font-bold">L</div>
+
+        <div class="provider-badge glass-card rounded-xl p-4 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-500 font-bold">L</div>
           <div>
-            <span class="font-medium">LM Studio</span>
-            <p class="text-xs text-[#6c7086]">Local models</p>
+            <span class="font-semibold text-white">LM Studio</span>
+            <p class="text-gray-500 text-sm">Local models</p>
           </div>
         </div>
-        <div class="bg-[#1e1e2e] rounded-xl p-4 border border-[#313244] flex items-center gap-3">
-          <div class="w-8 h-8 bg-[#0078d4] rounded-lg flex items-center justify-center text-white text-xs font-bold">A</div>
+
+        <div class="provider-badge glass-card rounded-xl p-4 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-sky-500/20 flex items-center justify-center text-sky-500 font-bold">A</div>
           <div>
-            <span class="font-medium">Azure</span>
-            <p class="text-xs text-[#6c7086]">OpenAI on Azure</p>
+            <span class="font-semibold text-white">Azure</span>
+            <p class="text-gray-500 text-sm">OpenAI on Azure</p>
           </div>
         </div>
-        <div class="bg-[#1e1e2e] rounded-xl p-4 border border-[#313244] flex items-center gap-3">
-          <div class="w-8 h-8 bg-[#1da1f2] rounded-lg flex items-center justify-center text-white text-xs font-bold">O</div>
+
+        <div class="provider-badge glass-card rounded-xl p-4 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-500 font-bold">A</div>
           <div>
-            <span class="font-medium">OpenRouter</span>
-            <p class="text-xs text-[#6c7086]">Aggregated models</p>
+            <span class="font-semibold text-white">AWS Bedrock</span>
+            <p class="text-gray-500 text-sm">Claude on AWS</p>
           </div>
         </div>
-        <div class="bg-[#1e1e2e] rounded-xl p-4 border border-[#313244] flex items-center gap-3">
-          <div class="w-8 h-8 bg-[#ff9900] rounded-lg flex items-center justify-center text-white text-xs font-bold">A</div>
+
+        <div class="provider-badge glass-card rounded-xl p-4 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-rose-500/20 flex items-center justify-center text-rose-500 font-bold">O</div>
           <div>
-            <span class="font-medium">AWS Bedrock</span>
-            <p class="text-xs text-[#6c7086]">Claude on AWS</p>
+            <span class="font-semibold text-white">OpenRouter</span>
+            <p class="text-gray-500 text-sm">Aggregated models</p>
           </div>
         </div>
       </div>
 
-      <p class="text-center text-[#6c7086] mt-8">And 35+ more providers with OpenAI-compatible API support</p>
+      <p class="text-center text-gray-500 mt-8">And 35+ more providers...</p>
     </div>
   </section>
 
-  <!-- Troubleshooting Section -->
-  <section id="troubleshooting" class="py-20 px-4 sm:px-6 lg:px-8 bg-[#181825]">
-    <div class="max-w-7xl mx-auto">
+  <!-- FAQ Section -->
+  <section id="faq" class="py-24 px-4 sm:px-6 lg:px-8 relative">
+    <div class="max-w-3xl mx-auto">
       <div class="text-center mb-16">
-        <h2 class="text-4xl font-bold mb-4">FAQ & Troubleshooting</h2>
-        <p class="text-[#a6adc8] text-lg">Common questions and solutions</p>
+        <span class="text-cyan-400 text-sm font-medium tracking-wider uppercase mb-4 block">FAQ</span>
+        <h2 class="text-4xl md:text-5xl font-bold mb-4">Got <span class="gradient-text-cyan">questions</span>?</h2>
       </div>
 
-      <div class="max-w-3xl mx-auto space-y-6">
-        <details class="bg-[#1e1e2e] rounded-xl border border-[#313244] overflow-hidden">
-          <summary class="p-6 cursor-pointer font-medium text-lg">"beast: command not found" after install</summary>
-          <div class="px-6 pb-6 text-[#a6adc8]">
-            <p class="mb-2">Add the npm global bin to your PATH:</p>
-            <div class="bg-[#11111b] rounded-lg p-3">
-              <code class="text-sm text-success">export PATH="$HOME/.npm-global/bin:$PATH"</code>
+      <div class="space-y-4">
+        <details class="glass-card rounded-2xl overflow-hidden group">
+          <summary class="p-6 cursor-pointer font-medium text-lg text-white flex items-center justify-between">
+            <span>"beast: command not found" after install</span>
+            <svg class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </summary>
+          <div class="px-6 pb-6 text-gray-400">
+            <p class="mb-2">Add npm global bin to your PATH:</p>
+            <div class="cmd-prompt rounded-lg p-3 mb-2">
+              <code class="text-green-400 text-sm font-mono">export PATH="$HOME/.npm-global/bin:$PATH"</code>
             </div>
-            <p class="mt-2">Add this to your <code class="text-warning">~/.bashrc</code> or <code class="text-warning">~/.zshrc</code></p>
+            <p class="text-sm">Add to <code class="text-yellow-400">~/.bashrc</code> or <code class="text-yellow-400">~/.zshrc</code></p>
           </div>
         </details>
 
-        <details class="bg-[#1e1e2e] rounded-xl border border-[#313244] overflow-hidden">
-          <summary class="p-6 cursor-pointer font-medium text-lg">How to use local models (Ollama)?</summary>
-          <div class="px-6 pb-6 text-[#a6adc8]">
-            <p class="mb-2">1. Install Ollama: <code class="text-success">brew install ollama</code></p>
-            <p class="mb-2">2. Start Ollama: <code class="text-success">ollama serve</code></p>
-            <p class="mb-2">3. Pull a model: <code class="text-success">ollama pull llama3.2</code></p>
-            <p class="mb-2">4. Run Beast: <code class="text-success">beast --provider ollama --model llama3.2</code></p>
+        <details class="glass-card rounded-2xl overflow-hidden group">
+          <summary class="p-6 cursor-pointer font-medium text-lg text-white flex items-center justify-between">
+            <span>How to use local models (Ollama)?</span>
+            <svg class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </summary>
+          <div class="px-6 pb-6 text-gray-400">
+            <p class="mb-2">1. Install: <code class="text-cyan-400">brew install ollama</code></p>
+            <p class="mb-2">2. Start: <code class="text-cyan-400">ollama serve</code></p>
+            <p class="mb-2">3. Pull: <code class="text-cyan-400">ollama pull llama3.2</code></p>
+            <p>4. Run: <code class="text-cyan-400">beast --provider ollama --model llama3.2</code></p>
           </div>
         </details>
 
-        <details class="bg-[#1e1e2e] rounded-xl border border-[#313244] overflow-hidden">
-          <summary class="p-6 cursor-pointer font-medium text-lg">Context window limit errors</summary>
-          <div class="px-6 pb-6 text-[#a6adc8]">
-            <p class="mb-2">Beast CLI automatically compacts context at 95% usage. To manually trigger:</p>
-            <div class="bg-[#11111b] rounded-lg p-3">
-              <code class="text-sm text-success">beast --compact</code>
+        <details class="glass-card rounded-2xl overflow-hidden group">
+          <summary class="p-6 cursor-pointer font-medium text-lg text-white flex items-center justify-between">
+            <span>Context window limit errors</span>
+            <svg class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </summary>
+          <div class="px-6 pb-6 text-gray-400">
+            <p class="mb-2">Beast auto-compacts at 95% usage. Manual trigger:</p>
+            <div class="cmd-prompt rounded-lg p-3 mb-2">
+              <code class="text-cyan-400 text-sm font-mono">beast --compact</code>
             </div>
-            <p class="mt-2">Or type <code class="text-warning">/compact</code> in the REPL.</p>
+            <p>Or type <code class="text-purple-400">/compact</code> in REPL.</p>
           </div>
         </details>
 
-        <details class="bg-[#1e1e2e] rounded-xl border border-[#313244] overflow-hidden">
-          <summary class="p-6 cursor-pointer font-medium text-lg">How to change themes?</summary>
-          <div class="px-6 pb-6 text-[#a6adc8]">
-            <p class="mb-2">Available themes: <code class="text-warning">catppuccin-mocha</code>, <code class="text-warning">dracula</code>, <code class="text-warning">nord</code>, <code class="text-warning">tokyonight</code>, <code class="text-warning">gruvbox</code>, <code class="text-warning">monokai</code>, <code class="text-warning">one-dark</code></p>
-            <div class="bg-[#11111b] rounded-lg p-3 mt-2">
-              <code class="text-sm text-success">beast --theme catppuccin-mocha</code>
+        <details class="glass-card rounded-2xl overflow-hidden group">
+          <summary class="p-6 cursor-pointer font-medium text-lg text-white flex items-center justify-between">
+            <span>How to change themes?</span>
+            <svg class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </summary>
+          <div class="px-6 pb-6 text-gray-400">
+            <p class="mb-2">Themes: <code class="text-purple-400">catppuccin-mocha</code>, <code class="text-purple-400">dracula</code>, <code class="text-purple-400">nord</code>, <code class="text-purple-400">tokyonight</code>, <code class="text-purple-400">gruvbox</code>, <code class="text-purple-400">monokai</code>, <code class="text-purple-400">one-dark</code></p>
+            <div class="cmd-prompt rounded-lg p-3 mt-2">
+              <code class="text-cyan-400 text-sm font-mono">beast --theme dracula</code>
             </div>
-            <p class="mt-2">Or set in config: <code class="text-warning">theme: dracula</code></p>
           </div>
         </details>
 
-        <details class="bg-[#1e1e2e] rounded-xl border border-[#313244] overflow-hidden">
-          <summary class="p-6 cursor-pointer font-medium text-lg">Permission denied for file operations</summary>
-          <div class="px-6 pb-6 text-[#a6adc8]">
-            <p class="mb-2">Beast has a permission system. Safe commands auto-approve. For new operations:</p>
-            <p class="mb-2">Type <code class="text-warning">y</code> to allow or <code class="text-warning">a</code> for session-wide approval.</p>
-            <p class="mt-2">To bypass: <code class="text-success">BEAST_MODE=bypass beast</code></p>
+        <details class="glass-card rounded-2xl overflow-hidden group">
+          <summary class="p-6 cursor-pointer font-medium text-lg text-white flex items-center justify-between">
+            <span>Permission denied for file operations</span>
+            <svg class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </summary>
+          <div class="px-6 pb-6 text-gray-400">
+            <p class="mb-2">Type <code class="text-purple-400">y</code> to allow or <code class="text-purple-400">a</code> for session-wide approval.</p>
+            <p>Bypass: <code class="text-cyan-400">BEAST_MODE=bypass beast</code></p>
           </div>
         </details>
       </div>
@@ -559,37 +819,37 @@ autoCompact: true</code></pre>
   </section>
 
   <!-- Uninstall Section -->
-  <section class="py-20 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-3xl mx-auto text-center">
-      <h2 class="text-3xl font-bold mb-6">Uninstall</h2>
-      <div class="bg-[#1e1e2e] rounded-2xl p-8 border border-[#313244]">
-        <div class="bg-[#11111b] rounded-xl p-4 mb-6">
-          <code class="text-error text-sm">npm uninstall -g @simpletoolsindia/beast-cli</code>
+  <section class="py-24 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-xl mx-auto text-center">
+      <div class="glass-card rounded-2xl p-8">
+        <h2 class="text-2xl font-bold mb-6 text-white">Uninstall</h2>
+        <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-4">
+          <code class="text-red-400 font-mono">npm uninstall -g @simpletoolsindia/beast-cli</code>
         </div>
-        <p class="text-[#6c7086]">Or use the install script's uninstall option:</p>
-        <div class="bg-[#11111b] rounded-xl p-4 mt-4">
-          <code class="text-error text-sm">curl -fsSL https://raw.githubusercontent.com/simpletoolsindia/code-cli/main/install.sh | bash -s -- --uninstall</code>
+        <p class="text-gray-500 text-sm">Or with the installer:</p>
+        <div class="bg-white/5 rounded-xl p-4 mt-2">
+          <code class="text-gray-400 font-mono text-sm">curl -fsSL ... | bash -s -- --uninstall</code>
         </div>
       </div>
     </div>
   </section>
 
   <!-- Footer -->
-  <footer class="py-12 px-4 sm:px-6 lg:px-8 border-t border-[#313244]">
+  <footer class="py-12 px-4 sm:px-6 lg:px-8 border-t border-white/5">
     <div class="max-w-7xl mx-auto">
       <div class="flex flex-col md:flex-row justify-between items-center gap-6">
         <div class="flex items-center gap-3">
-          <span class="text-2xl">🐉</span>
-          <span class="font-bold gradient-text">Beast CLI</span>
-          <span class="text-[#6c7086]">v1.2.5</span>
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-purple-500 flex items-center justify-center text-xl">🐉</div>
+          <span class="font-bold text-lg gradient-text-cyan">Beast CLI</span>
+          <span class="text-gray-500">v1.2.5</span>
         </div>
-        <div class="flex items-center gap-6 text-[#6c7086]">
-          <a href="https://github.com/simpletoolsindia/code-cli" class="hover:text-primary transition-colors">GitHub</a>
-          <a href="https://www.npmjs.com/package/@simpletoolsindia/beast-cli" class="hover:text-primary transition-colors">npm</a>
-          <a href="https://github.com/simpletoolsindia/code-cli/issues" class="hover:text-primary transition-colors">Issues</a>
+        <div class="flex items-center gap-6 text-gray-400">
+          <a href="https://github.com/simpletoolsindia/code-cli" class="hover:text-cyan-400 transition-colors">GitHub</a>
+          <a href="https://www.npmjs.com/package/@simpletoolsindia/beast-cli" class="hover:text-cyan-400 transition-colors">npm</a>
+          <a href="https://github.com/simpletoolsindia/code-cli/issues" class="hover:text-cyan-400 transition-colors">Issues</a>
         </div>
       </div>
-      <p class="text-center text-[#6c7086] mt-8">MIT License - Built with Catppuccin Mocha theme</p>
+      <p class="text-center text-gray-500 mt-8">MIT License — Built with Outfit + Fira Code</p>
     </div>
   </footer>
 
@@ -603,16 +863,19 @@ autoCompact: true</code></pre>
     function copyToClipboard(text, btn) {
       navigator.clipboard.writeText(text).then(() => {
         const original = btn.textContent;
-        btn.textContent = 'Copied!';
-        btn.classList.add('bg-success', 'text-[#1e1e2e]');
+        btn.textContent = '✓ Copied!';
+        btn.classList.add('bg-green-500');
         setTimeout(() => {
           btn.textContent = original;
-          btn.classList.remove('bg-success', 'text-[#1e1e2e]');
+          btn.classList.remove('bg-green-500');
         }, 2000);
+      }).catch(() => {
+        btn.textContent = 'Failed';
+        setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
       });
     }
 
-    // Smooth scroll for anchor links
+    // Smooth scroll
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       anchor.addEventListener('click', function (e) {
         e.preventDefault();
@@ -622,6 +885,26 @@ autoCompact: true</code></pre>
           document.getElementById('mobile-menu').classList.add('hidden');
         }
       });
+    });
+
+    // Intersection Observer for animations
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('opacity-100', 'translate-y-0');
+          entry.target.classList.remove('opacity-0', 'translate-y-10');
+        }
+      });
+    }, observerOptions);
+
+    document.querySelectorAll('.glass-card').forEach(card => {
+      card.classList.add('opacity-0', 'translate-y-10', 'transition-all', 'duration-500');
+      observer.observe(card);
     });
   </script>
 </body>
