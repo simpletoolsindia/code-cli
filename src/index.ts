@@ -17,7 +17,7 @@ import { tipBanner, randomTip, contextualTip } from './ui/tips.ts'
 import { Spinner } from './ui/spinner.ts'
 import { getFormattedTools, executeTool, getAllTools } from './native-tools/index.ts'
 import { funSpinner, FunSpinner, randomFunFact, thinkingMessage, toolRunningMessage } from './ui/fun-animations.ts'
-import { notifications, playBell, playAlertBeeps, onResponseReady, onWaitingForInput, onError, onTaskComplete, onPermissionRequest } from './utils/notifications.ts'
+import { notifications, playBell, playAlertBeeps, onResponseReady, onWaitingForInput, onError, onTaskComplete, onPermissionRequest, showNotification } from './utils/notifications.ts'
 import type { ToolCall } from './providers/index.ts'
 import {
   detectAllProviders,
@@ -673,6 +673,11 @@ Commands:
 
         // Notify on completion (bell + notification)
         if (toolCallCount === 0 && response.content) {
+          onResponseReady()
+        }
+
+        // Notify when tools completed and response is ready (analysis/research done)
+        if (toolCallCount > 0 && response.content) {
           onResponseReady()
         }
 

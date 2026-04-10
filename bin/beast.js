@@ -1545,7 +1545,7 @@ var spinnerFrames = {
   star: ["⋆", "✦", "✧", "⋆", "✧", "✦"]
 };
 var DEFAULT_SPINNER = spinnerFrames.dots;
-var icon2 = {
+var icon = {
   prompt: "›",
   userPrefix: ">",
   aiPrefix: "◈",
@@ -1704,7 +1704,7 @@ var spinnerFrames2 = {
   star: ["⋆", "✦", "✧", "⋆", "✧", "✦"]
 };
 var DEFAULT_SPINNER2 = spinnerFrames2.dots;
-var icon3 = {
+var icon2 = {
   prompt: "›",
   userPrefix: ">",
   aiPrefix: "◈",
@@ -1783,13 +1783,13 @@ function renderHeader(config) {
     s2("CLI", gpBlue, bold2),
     s2(` v${version}`, fg2.muted),
     s2(` ${b.h} `, gpPurple),
-    s2(icon3.check + " ", fg2.success),
+    s2(icon2.check + " ", fg2.success),
     s2(provider, fg2.success),
     s2(` ${b.h} `, gpPurple),
-    s2(icon3.code + " ", gpBlue),
+    s2(icon2.code + " ", gpBlue),
     s2(model, gpBlue),
     s2(` ${b.h} `, gpPurple),
-    s2(icon3.tool + " ", fg2.peach),
+    s2(icon2.tool + " ", fg2.peach),
     s2(`${toolsCount} tools`, fg2.peach),
     s2(` ${b.h}${b.tr}`, gpPurple)
   ].join("");
@@ -1811,7 +1811,7 @@ function contextBar(stats) {
   const usedStr = s2(formatTokens(used), fg2.muted);
   const maxStr = s2(formatTokens(max), fg2.muted);
   return [
-    s2(`  ${icon3.context} `, fg2.muted),
+    s2(`  ${icon2.context} `, fg2.muted),
     bar,
     s2(" ", fg2.muted),
     pctStr,
@@ -1862,8 +1862,8 @@ function panel(content, options = {}) {
 function inlineList(items, options = {}) {
   const { iconColor = fg2.accent, labelColor = fg2.muted, valueColor = fg2.primary, separator = "  " } = options;
   return items.map((item) => {
-    const icon4 = item.icon ? s2(item.icon + " ", iconColor) : "";
-    return icon4 + s2(item.label, labelColor) + ": " + s2(item.value, valueColor);
+    const icon3 = item.icon ? s2(item.icon + " ", iconColor) : "";
+    return icon3 + s2(item.label, labelColor) + ": " + s2(item.value, valueColor);
   }).join(separator);
 }
 async function withProgress(label, promise, onTick) {
@@ -2120,7 +2120,7 @@ function renderGeneric(content) {
   }
 }
 function renderError(toolName, error) {
-  return s2(`${icon3.error} ${toolName}: ${error}`, fg2.error);
+  return s2(`${icon2.error} ${toolName}: ${error}`, fg2.error);
 }
 function formatSize(bytes) {
   if (bytes < 1024)
@@ -5547,8 +5547,15 @@ function getFormattedTools() {
 }
 
 // src/utils/notifications.ts
+var NOTIFY_ENABLED = process.env.BEAST_NOTIFY !== "false";
+var NOTIFY_SOUND = process.env.BEAST_NOTIFY_SOUND !== "false";
 function playBell() {
-  process.stdout.write("\x07");
+  if (NOTIFY_ENABLED && NOTIFY_SOUND) {
+    process.stdout.write("\x07");
+  }
+}
+function onResponseReady() {
+  playBell();
 }
 
 // src/providers/discover.ts
@@ -6167,8 +6174,8 @@ function printBanner(session) {
   }));
   console.log(`
 ` + inlineList([
-    { icon: icon2.prompt, label: "Type", value: "your request" },
-    { icon: icon2.tool, label: toolCount + " tools", value: "available" }
+    { icon: icon.prompt, label: "Type", value: "your request" },
+    { icon: icon.tool, label: toolCount + " tools", value: "available" }
   ]));
   console.log(`
 ` + s("Commands:", fg.muted));
@@ -6467,7 +6474,10 @@ ${s("!", fg.warning)} Unknown provider: ${target}`);
         });
         stopFunSpinner("done");
         if (toolCallCount === 0 && response.content) {
-          playBell();
+          onResponseReady();
+        }
+        if (toolCallCount > 0 && response.content) {
+          onResponseReady();
         }
         if (!response.toolCalls || response.toolCalls.length === 0) {
           const noNativeTools = !providerSupportsNativeTools(session.provider);
