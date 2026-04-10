@@ -37,6 +37,7 @@ export interface LLMRequest {
   temperature?: number
   tools?: LLMTool[]
   stream?: boolean
+  signal?: AbortSignal
 }
 
 export interface LLMResponse {
@@ -596,7 +597,7 @@ async function createCodexProvider(config: LLMConfig): Promise<LLMProvider> {
           'chatgpt-account-id': token.accountId || '',
         },
         body: JSON.stringify(body),
-        signal: AbortSignal.timeout(120_000),
+        signal: request.signal ?? AbortSignal.timeout(120_000),
       })
 
       if (response.status === 401) {
@@ -704,7 +705,7 @@ async function createCodexProvider(config: LLMConfig): Promise<LLMProvider> {
           'chatgpt-account-id': token.accountId || '',
         },
         body: JSON.stringify(body),
-        signal: AbortSignal.timeout(120_000),
+        signal: request.signal ?? AbortSignal.timeout(120_000),
       })
 
       if (!response.ok || !response.body) {
@@ -895,7 +896,7 @@ async function createOllamaProvider(config: LLMConfig): Promise<LLMProvider> {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
-        signal: AbortSignal.timeout(120_000),
+        signal: request.signal ?? AbortSignal.timeout(120_000),
       })
 
       if (!response.ok) {

@@ -558,7 +558,7 @@ async function createCodexProvider(config) {
           "chatgpt-account-id": token.accountId || ""
         },
         body: JSON.stringify(body),
-        signal: AbortSignal.timeout(120000)
+        signal: request.signal ?? AbortSignal.timeout(120000)
       });
       if (response.status === 401) {
         saveToken({ accessToken: "", refreshToken: "", expiresAt: 0 });
@@ -654,7 +654,7 @@ async function createCodexProvider(config) {
           "chatgpt-account-id": token.accountId || ""
         },
         body: JSON.stringify(body),
-        signal: AbortSignal.timeout(120000)
+        signal: request.signal ?? AbortSignal.timeout(120000)
       });
       if (!response.ok || !response.body) {
         const err = await response.text();
@@ -828,7 +828,7 @@ async function createOllamaProvider(config) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
-        signal: AbortSignal.timeout(120000)
+        signal: request.signal ?? AbortSignal.timeout(120000)
       });
       if (!response.ok) {
         const error = await response.text();
@@ -1349,6 +1349,24 @@ var init_providers = __esm(() => {
 });
 
 // src/ui/colors.ts
+function supportsUnicode() {
+  if (NO_COLOR2)
+    return false;
+  if (process.env.FORCE_COLOR)
+    return true;
+  if (process.env.LANG?.toLowerCase().includes("utf-8") || process.env.LC_ALL?.toLowerCase().includes("utf-8"))
+    return true;
+  if (process.env.LANG?.toLowerCase().includes("utf8") || process.env.LC_ALL?.toLowerCase().includes("utf8"))
+    return true;
+  if (process.stdout?.isTTY && process.env.TERM_PROGRAM?.includes("iTerm"))
+    return true;
+  if (process.stdout?.isTTY && process.env.TERM_PROGRAM?.includes("Terminal"))
+    return true;
+  return true;
+}
+function getBoxChars() {
+  return supportsUnicode() ? box : boxAscii;
+}
 function isColorEnabled2() {
   if (NO_COLOR2)
     return false;
@@ -1363,7 +1381,7 @@ function s2(text, ...styles) {
     return text;
   return styles.join("") + text + reset2;
 }
-var reset2 = "\x1B[0m", bold2 = "\x1B[1m", dim2 = "\x1B[2m", italic = "\x1B[3m", claudePalette2, fg2, bg2, box, spinnerFrames2, DEFAULT_SPINNER2, icon2, NO_COLOR2;
+var reset2 = "\x1B[0m", bold2 = "\x1B[1m", dim2 = "\x1B[2m", italic = "\x1B[3m", claudePalette2, fg2, bg2, box, boxAscii, spinnerFrames2, DEFAULT_SPINNER2, icon2, NO_COLOR2;
 var init_colors = __esm(() => {
   claudePalette2 = {
     crust: "\x1B[48;2;250;249;245m",
@@ -1447,6 +1465,15 @@ var init_colors = __esm(() => {
     soft: { tl: "╭", tr: "╮", bl: "╯", br: "╰", h: "─", v: "│" },
     light: { tl: "┌", tr: "┐", bl: "└", br: "┘", h: "─", v: "│" },
     polished: { tl: "╔", tr: "╗", bl: "╚", br: "╝", h: "═", v: "║" }
+  };
+  boxAscii = {
+    single: { tl: "+", tr: "+", bl: "+", br: "+", h: "-", v: "|" },
+    round: { tl: "+", tr: "+", bl: "+", br: "+", h: "-", v: "|" },
+    heavy: { tl: "+", tr: "+", bl: "+", br: "+", h: "=", v: "|" },
+    dashed: { tl: "+", tr: "+", bl: "+", br: "+", h: "-", v: "|" },
+    soft: { tl: "+", tr: "+", bl: "+", br: "+", h: "-", v: "|" },
+    light: { tl: "+", tr: "+", bl: "+", br: "+", h: "-", v: "|" },
+    polished: { tl: "+", tr: "+", bl: "+", br: "+", h: "=", v: "|" }
   };
   spinnerFrames2 = {
     dots: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"],
@@ -22584,11 +22611,33 @@ function stripAnsi(text) {
   return text.replace(/\x1b\[[0-9;]*m/g, "");
 }
 function panel(content, options = {}) {
-  const { title, titleColor = fg2.accent, width = 70 } = options;
+  const { title, titleColor = fg2.accent, width = 70, useBox = true } = options;
   const rawLines = content.split(`
 `);
   const maxLen = rawLines.reduce((m, l) => Math.max(m, stripAnsi(l).length), 0);
   const w = Math.max(width, maxLen + 4);
+  if (useBox) {
+    const b = getBoxChars();
+    let result2 = `${b.tl}${b.h.repeat(w)}${b.tr}
+`;
+    if (title) {
+      const titleLen = stripAnsi(title).length;
+      const pad1 = Math.floor((w - titleLen) / 2);
+      const pad2 = w - titleLen - pad1;
+      result2 += `${b.v}${" ".repeat(pad1)}${title}${" ".repeat(pad2)}${b.v}
+`;
+      result2 += `${b.v}${b.h.repeat(w)}${b.v}
+`;
+    }
+    for (const ln of rawLines) {
+      const len = stripAnsi(ln).length;
+      const pad = w - len;
+      result2 += `${b.v} ${ln}${" ".repeat(Math.max(0, pad - 1))} ${b.v}
+`;
+    }
+    result2 += `${b.bl}${b.h.repeat(w)}${b.br}`;
+    return s2(result2, titleColor);
+  }
   let result = `+${"-".repeat(w)}+
 `;
   if (title) {
@@ -23810,42 +23859,136 @@ async function githubSearchRepos(query, limit = 10) {
 }
 
 // src/native-tools/youtube.ts
-async function youtubeTranscript(url) {
+async function tryTranscriptionDotCom(videoId) {
   try {
-    const videoId = extractVideoId(url);
-    if (!videoId) {
-      return { success: false, output: "", error: "Invalid YouTube URL" };
-    }
-    const transcriptUrl = `https://youtubetranscript.com/?video=${videoId}`;
-    const response = await fetch(transcriptUrl, {
+    const response = await fetch(`https://youtubetranscript.com/?video=${videoId}`, {
       signal: AbortSignal.timeout(1e4)
     });
     if (response.ok) {
       const text = await response.text();
-      return {
-        success: true,
-        output: text.slice(0, 5000)
-      };
+      if (text && text.length > 50) {
+        return { success: true, output: text.slice(0, 5000) };
+      }
     }
+    return { success: false, output: "", error: "No transcript available" };
+  } catch (e) {
+    return { success: false, output: "", error: e.message };
+  }
+}
+async function tryYouTubePageFallback(videoId) {
+  try {
     const pageRes = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
-      headers: { "User-Agent": "Mozilla/5.0" },
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept-Language": "en-US,en;q=0.9"
+      },
       signal: AbortSignal.timeout(1e4)
     });
     if (pageRes.ok) {
       const html = await pageRes.text();
       const captionMatch = html.match(/"captionTracks":\[([^\]]+)\]/);
       if (captionMatch) {
-        return { success: true, output: "Captions available. Use youtube_video_info for details." };
+        const baseUrlMatch = captionMatch[1].match(/"baseUrl":"([^"]+)"/);
+        if (baseUrlMatch) {
+          const captionUrl = decodeURIComponent(baseUrlMatch[1]);
+          const captionRes = await fetch(captionUrl, {
+            headers: { "User-Agent": "Mozilla/5.0" },
+            signal: AbortSignal.timeout(1e4)
+          });
+          if (captionRes.ok) {
+            const captionXml = await captionRes.text();
+            const textMatches = captionXml.match(/<text[^>]*>([^<]+)<\/text>/g);
+            if (textMatches) {
+              const transcript = textMatches.map((m) => {
+                const match = m.match(/<text[^>]*>([^<]+)<\/text>/);
+                return match ? match[1] : "";
+              }).filter((t) => t.trim()).join(" ");
+              return { success: true, output: transcript };
+            }
+          }
+        }
+        return { success: true, output: "Captions found but could not extract text." };
       }
     }
-    return {
-      success: false,
-      output: "",
-      error: "Transcript not available. Video may not have captions."
-    };
+    return { success: false, output: "", error: "Could not fetch video page" };
   } catch (e) {
     return { success: false, output: "", error: e.message };
   }
+}
+async function tryInvidiousFallback(videoId) {
+  const invidiousInstances = [
+    "https://inv.nadeko.net/api/v1",
+    "https://invidious.privacyredirect.com/api/v1",
+    "https://yewtu.be/api/v1"
+  ];
+  for (const instance of invidiousInstances) {
+    try {
+      const response = await fetch(`${instance}/captions/${videoId}`, {
+        signal: AbortSignal.timeout(8000)
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.captions && data.captions.length > 0) {
+          const autoCaption = data.captions.find((c2) => c2.label?.includes("auto"));
+          if (autoCaption) {
+            return { success: true, output: `Auto-generated transcript from ${autoCaption.label}` };
+          }
+        }
+      }
+    } catch {
+      continue;
+    }
+  }
+  return { success: false, output: "", error: "All Invidious instances failed" };
+}
+async function tryYtdlpFallback(url) {
+  try {
+    const { execSync: execSync2 } = await import("child_process");
+    try {
+      execSync2("which yt-dlp", { stdio: "ignore" });
+    } catch {
+      return { success: false, output: "", error: "yt-dlp not installed" };
+    }
+    const output = execSync2(`yt-dlp --skip-download --write-subs --write-auto-subs --sub-lang en --stdout --print "%(subtitles.en)s" "${url}"`, { encoding: "utf-8", timeout: 15000 });
+    if (output && output.trim()) {
+      return { success: true, output };
+    }
+    return { success: false, output: "", error: "No subtitles extracted" };
+  } catch (e) {
+    return { success: false, output: "", error: e.message };
+  }
+}
+async function youtubeTranscript(url) {
+  const videoId = extractVideoId(url);
+  if (!videoId) {
+    return { success: false, output: "", error: "Invalid YouTube URL" };
+  }
+  const fallbacks = [
+    () => tryTranscriptionDotCom(videoId),
+    () => tryYouTubePageFallback(videoId),
+    () => tryInvidiousFallback(videoId),
+    () => tryYtdlpFallback(url)
+  ];
+  const fallbackNames = [
+    "Transcription.com",
+    "YouTube Page",
+    "Invidious Instance",
+    "yt-dlp CLI"
+  ];
+  let lastError = "";
+  for (let i = 0;i < fallbacks.length; i++) {
+    const result = await fallbacks[i]();
+    if (result.success) {
+      return result;
+    }
+    lastError = result.error || "Unknown error";
+    console.log(`   [Fallback ${i + 1}/${fallbacks.length}] ${fallbackNames[i]} failed: ${lastError}`);
+  }
+  return {
+    success: false,
+    output: "",
+    error: `All ${fallbacks.length} transcript methods failed. Last error: ${lastError}`
+  };
 }
 async function youtubeVideoInfo(videoId, url) {
   try {

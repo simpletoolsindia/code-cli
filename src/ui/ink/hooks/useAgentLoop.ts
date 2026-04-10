@@ -36,12 +36,19 @@ interface UseAgentLoopOptions {
   messages?: Message[]
 }
 
-const TIMEOUT_MS = 30_000
+const TIMEOUT_MS = 180_000 // 3 minutes - generous for large models
 
-function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+function withTimeout<T>(promise: Promise<T>, ms: number, signal?: AbortSignal): Promise<T> {
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error(`Request timed out after ${ms / 1000}s`)), ms)
-    promise.then(val => { clearTimeout(timer); resolve(val) }).catch(err => { clearTimeout(timer); reject(err) })
+    const timer = setTimeout(() => {
+      signal?.abort()
+      reject(new Error(`Request timed out after ${ms / 1000}s`))
+    }, ms)
+    promise.then(val => { clearTimeout(timer); resolve(val) }).catch(err => {
+      clearTimeout(timer)
+      if (signal?.aborted) err = new Error(`Request timed out after ${ms / 1000}s`)
+      reject(err)
+    })
   })
 }
 
@@ -55,6 +62,9 @@ export function useAgentLoop(options: UseAgentLoopOptions) {
 
   const run = useCallback(async (prompt: string) => {
     setState({ phase: 'thinking', streamedText: '', toolCalls: [], error: undefined })
+
+    // Create abort controller for this request
+    const controller = new AbortController()
 
     try {
       const nativeTools = getFormattedTools()
@@ -96,8 +106,9 @@ export function useAgentLoop(options: UseAgentLoopOptions) {
       while (toolCallCount < MAX_TOOL_CALLS) {
         const tools = nativeTools.length > 0 ? nativeTools : undefined
         const llmResponse = await withTimeout(
-          p.create({ messages: agentMessages, tools, maxTokens: 16384 }),
-          TIMEOUT_MS
+          p.create({ messages: agentMessages, tools, maxTokens: 16384, signal: controller.signal }),
+          TIMEOUT_MS,
+          controller.signal
         )
 
         response = llmResponse.content || ''
@@ -154,6 +165,7 @@ export function useAgentLoop(options: UseAgentLoopOptions) {
 
       setState(s => ({ ...s, phase: 'done' }))
     } catch (err: any) {
+      controller.abort() // Clean up any in-flight requests
       setState(s => ({ ...s, phase: 'error', error: err.message || String(err) }))
     }
   }, [options])
