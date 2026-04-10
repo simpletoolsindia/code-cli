@@ -1,6 +1,6 @@
 // Ink TUI Root App - Main entry point for React/Ink interface
 import React, { useState, useEffect } from 'react'
-import { render, isRawModeSupported } from 'ink'
+import { render } from 'ink'
 import { Box, Text } from 'ink'
 import { Header } from './components/Header.tsx'
 import { Spinner } from './components/Spinner.tsx'
@@ -158,9 +158,7 @@ export function renderBeastApp(options: BeastAppProps = {}) {
 }
 
 // CLI entry point — render immediately
-import { isRawModeSupported } from 'ink'
-
-if (!isRawModeSupported()) {
+if (!process.stdin.isTTY) {
   console.error('Ink TUI requires a real terminal (TTY). Use --defaults for REPL mode instead.')
   process.exit(1)
 }
