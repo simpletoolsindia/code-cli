@@ -97,15 +97,14 @@ Beast CLI has full Windows support with multiple UI modes:
 ### Installation on Windows
 
 ```powershell
-# Option 1: PowerShell installer (recommended)
+# Option 1: PowerShell installer (recommended) - Run in PowerShell as Administrator
 irm https://raw.githubusercontent.com/simpletoolsindia/code-cli/main/install.ps1 | iex
 
-# Option 2: npm (requires Node.js)
+# Option 2: npm (requires Node.js already installed)
 npm install -g @simpletoolsindia/beast-cli
-
-# Option 3: One-liner
-iwr https://raw.githubusercontent.com/simpletoolsindia/code-cli/main/install.sh -UseBash | bash
 ```
+
+> **Note:** Run PowerShell as Administrator for system-wide installation, or use option 2 for user-local install.
 
 ### Windows Terminal
 
