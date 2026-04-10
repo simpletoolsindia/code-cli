@@ -4,6 +4,7 @@
 import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from 'node:fs'
 import { resolve, dirname, basename, extname, join, relative } from 'node:path'
 import { execSync } from 'node:child_process'
+import { glob } from 'glob'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB default
 const ALLOWED_EXTENSIONS = new Set([
@@ -153,14 +154,19 @@ export async function fileSearch(
       return { success: false, files: [], error: 'Directory not found' }
     }
 
-    // Use find command instead of glob
-    const escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    const cmd = `find "${resolved}" -type f \\( -path "*/node_modules" -o -path "*/.git" -o -path "*/dist" -o -path "*/build" \\) -prune -o -type f -name "*${pattern}*" -print 2>/dev/null | head -${maxResults}`
+    // Use glob for cross-platform compatibility
+    const searchPattern = `**/*${pattern}*`
+    const files = await glob(searchPattern, {
+      cwd: resolved,
+      ignore: ['**/node_modules/**', '**/.git/**', '**/dist/**', '**/build/**'],
+      maxDepth: 20,
+      absolute: false,
+    })
 
-    const output = execSync(cmd, { encoding: 'utf-8', timeout: 10000 })
-    const files = output.split('\n').filter(Boolean).map(f => ({ path: f }))
-
-    return { success: true, files }
+    return {
+      success: true,
+      files: files.slice(0, maxResults).map(f => ({ path: join(resolved, f) }))
+    }
   } catch (e: any) {
     return { success: false, files: [], error: e.message }
   }
@@ -220,13 +226,17 @@ export async function fileGlob(
     const files: { path: string }[] = []
 
     for (const pattern of patterns) {
-      // Use find with glob patterns
-      const cmd = `find "${resolved}" -type f \\( -path "*/node_modules" -o -path "*/.git" -o -path "*/dist" -o -path "*/build" \\) -prune -o -type f -name "${pattern}" -print 2>/dev/null | head -${maxResults}`
+      // Use glob for cross-platform compatibility
+      const globFiles = await glob(pattern, {
+        cwd: resolved,
+        ignore: ['**/node_modules/**', '**/.git/**', '**/dist/**', '**/build/**'],
+        maxDepth: 20,
+        absolute: false,
+      })
 
-      const output = execSync(cmd, { encoding: 'utf-8', timeout: 10000 })
-      for (const line of output.split('\n').filter(Boolean)) {
-        if (!files.some(f => f.path === line)) {
-          files.push({ path: line })
+      for (const f of globFiles) {
+        if (!files.some(existing => existing.path === f)) {
+          files.push({ path: join(resolved, f) })
         }
       }
 

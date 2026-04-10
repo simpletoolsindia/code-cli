@@ -95,7 +95,9 @@ async function runPython(code: string, timeout: number, start: number): Promise<
   try {
     writeFileSync(filePath, code, 'utf-8')
 
-    const result = await execProcess('python3', ['-u', filePath], timeout * 1000)
+    // Use python on Windows, python3 on Unix
+    const pythonCmd = isWindows ? 'python' : 'python3'
+    const result = await execProcess(pythonCmd, ['-u', filePath], timeout * 1000)
     const executionTime = Date.now() - start
 
     return {

@@ -3136,6 +3136,7 @@ function extractLinks(content, baseUrl) {
 import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { resolve, dirname, extname, join } from "node:path";
 import { execSync } from "node:child_process";
+import { glob } from "glob";
 var MAX_FILE_SIZE = 10 * 1024 * 1024;
 var ALLOWED_EXTENSIONS = new Set([
   ".ts",
@@ -3260,12 +3261,17 @@ async function fileSearch(directory, pattern, maxResults = 50) {
     if (!existsSync(resolved)) {
       return { success: false, files: [], error: "Directory not found" };
     }
-    const escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const cmd = `find "${resolved}" -type f \\( -path "*/node_modules" -o -path "*/.git" -o -path "*/dist" -o -path "*/build" \\) -prune -o -type f -name "*${pattern}*" -print 2>/dev/null | head -${maxResults}`;
-    const output = execSync(cmd, { encoding: "utf-8", timeout: 1e4 });
-    const files = output.split(`
-`).filter(Boolean).map((f) => ({ path: f }));
-    return { success: true, files };
+    const searchPattern = `**/*${pattern}*`;
+    const files = await glob(searchPattern, {
+      cwd: resolved,
+      ignore: ["**/node_modules/**", "**/.git/**", "**/dist/**", "**/build/**"],
+      maxDepth: 20,
+      absolute: false
+    });
+    return {
+      success: true,
+      files: files.slice(0, maxResults).map((f) => ({ path: join(resolved, f) }))
+    };
   } catch (e) {
     return { success: false, files: [], error: e.message };
   }
@@ -3308,12 +3314,15 @@ async function fileGlob(directory, patterns, maxResults = 100) {
     const resolved = resolve(directory);
     const files = [];
     for (const pattern of patterns) {
-      const cmd = `find "${resolved}" -type f \\( -path "*/node_modules" -o -path "*/.git" -o -path "*/dist" -o -path "*/build" \\) -prune -o -type f -name "${pattern}" -print 2>/dev/null | head -${maxResults}`;
-      const output = execSync(cmd, { encoding: "utf-8", timeout: 1e4 });
-      for (const line of output.split(`
-`).filter(Boolean)) {
-        if (!files.some((f) => f.path === line)) {
-          files.push({ path: line });
+      const globFiles = await glob(pattern, {
+        cwd: resolved,
+        ignore: ["**/node_modules/**", "**/.git/**", "**/dist/**", "**/build/**"],
+        maxDepth: 20,
+        absolute: false
+      });
+      for (const f of globFiles) {
+        if (!files.some((existing) => existing.path === f)) {
+          files.push({ path: join(resolved, f) });
         }
       }
       if (files.length >= maxResults)
@@ -3389,7 +3398,8 @@ async function runPython(code, timeout, start) {
   const filePath = join2(SANDBOX_DIR, `${id}.py`);
   try {
     writeFileSync2(filePath, code, "utf-8");
-    const result = await execProcess("python3", ["-u", filePath], timeout * 1000);
+    const pythonCmd = isWindows ? "python" : "python3";
+    const result = await execProcess(pythonCmd, ["-u", filePath], timeout * 1000);
     const executionTime = Date.now() - start;
     return {
       success: !result.error,
