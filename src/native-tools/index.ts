@@ -465,78 +465,69 @@ const tools: NativeTool[] = [
   },
   {
     name: 'run_command',
-    description: 'Execute whitelisted system command. Supports cd, python3, npm, git, and background commands with &.',
+    description: 'Execute shell command. Supports any command with bash shell. Use for file ops, servers, scripts, etc.',
     inputSchema: {
       type: 'object',
       properties: {
-        command: { type: 'string', description: 'Command to execute' },
-        args: { type: 'array', items: { type: 'string' }, description: 'Command arguments' },
-        cwd: { type: 'string', description: 'Working directory (optional)' },
+        command: { type: 'string', description: 'Shell command to execute (full command with args)' },
+        cwd: { type: 'string', description: 'Working directory (optional, defaults to current)' },
         background: { type: 'boolean', description: 'Run in background with nohup (default: false)' },
         timeout: { type: 'integer', description: 'Timeout in seconds (default: 30)' },
       },
       required: ['command'],
     },
     async execute(args) {
-      // Extended allowlist with common dev commands
-      const allowed = [
-        'ls', 'cat', 'cp', 'mv', 'rm', 'mkdir', 'rmdir', 'find', 'grep', 'head', 'tail', 'wc',
-        'cd', 'pwd', 'echo', 'touch', 'chmod', 'chown', 'tar', 'zip', 'unzip',
-        'python', 'python2', 'python3', 'node', 'npm', 'npx', 'bun', 'deno',
-        'git', 'gh', 'curl', 'wget', 'ssh', 'scp', 'rsync',
-        'docker', 'kubectl', 'helm',
-        'kill', 'pkill', 'ps', 'top', 'htop', 'df', 'du', 'free',
-        'netstat', 'lsof', 'ping', 'traceroute', 'nslookup', 'dig',
-        'sed', 'awk', 'cut', 'sort', 'uniq', 'diff',
-        'nohup', 'bg', 'jobs', 'fg',
-        'code', 'nano', 'vim', 'vi', 'nano',
-      ]
+      const { execSync, spawn } = await import('node:child_process')
 
       const cmd = args.command as string
-      const cmdArgs = (args.args as string[]) || []
       const workingDir = (args.cwd as string) || process.cwd()
       const timeout = (args.timeout as number) || 30
       const runBackground = (args.background as boolean) || false
 
-      if (!allowed.includes(cmd)) {
-        return { success: false, content: '', error: `Command not allowed: ${cmd}. Allowed: ${allowed.slice(0, 20).join(', ')}...` }
+      // Dangerous commands that need permission
+      const dangerous = ['rm -rf', 'dd', 'mkfs', ':(){', 'fork bomb', '> /dev/', 'curl | bash', 'wget -O- |']
+      const isDangerous = dangerous.some(d => cmd.toLowerCase().includes(d))
+
+      if (isDangerous) {
+        return { success: false, content: '', error: `⚠️  Dangerous command detected: "${cmd.slice(0, 50)}..."\n\nTo execute dangerous commands, run directly in your terminal.` }
       }
 
-      // Handle cd specially - it needs shell execution
-      if (cmd === 'cd') {
-        const targetDir = cmdArgs[0] || workingDir
-        try {
-          const { statSync } = await import('node:fs')
-          statSync(targetDir)
-          return { success: true, content: `Changed directory to: ${targetDir}` }
-        } catch (e: any) {
-          return { success: false, content: '', error: `Directory not found: ${targetDir}` }
+      // Handle cd with full command
+      let fullCmd = cmd
+      if (cmd.startsWith('cd ') && !cmd.includes('&&')) {
+        // Single cd command - just validate directory
+        const match = cmd.match(/^cd\s+(.+)$/)
+        if (match) {
+          const targetDir = match[1].replace(/^~/, process.env.HOME || '~')
+          try {
+            const { statSync } = await import('node:fs')
+            statSync(targetDir)
+            return { success: true, content: `Directory changed to: ${targetDir}` }
+          } catch {
+            return { success: false, content: '', error: `Directory not found: ${targetDir}` }
+          }
         }
       }
 
-      const { execSync, spawn } = await import('node:child_process')
       try {
-        let fullCommand = cmdArgs.length > 0 ? `${cmd} ${cmdArgs.join(' ')}` : cmd
-
         // Handle background execution
-        if (runBackground || fullCommand.includes(' &')) {
-          fullCommand = fullCommand.replace(/\s*&\s*$/, '').trim()
-          spawn(fullCommand, [], {
+        if (runBackground || cmd.endsWith(' &')) {
+          const cleanCmd = cmd.replace(/\s*&\s*$/, '').trim()
+          spawn(cleanCmd, [], {
             shell: true,
             cwd: workingDir,
             detached: true,
             stdio: 'ignore',
           }).unref()
-
-          return { success: true, content: `Started in background: ${fullCommand} (PID: process detached)` }
+          return { success: true, content: `Started in background: ${cleanCmd}` }
         }
 
-        // Normal execution with timeout
-        const output = execSync(fullCommand, {
+        // Normal execution with timeout via bash
+        const output = execSync(`/bin/bash -c ${JSON.stringify(cmd)}`, {
           encoding: 'utf-8',
           timeout: timeout * 1000,
           cwd: workingDir,
-          maxBuffer: 10 * 1024 * 1024, // 10MB buffer
+          maxBuffer: 10 * 1024 * 1024,
         })
         return { success: true, content: output }
       } catch (e: any) {
