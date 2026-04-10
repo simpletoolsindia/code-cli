@@ -1,6 +1,6 @@
 // Ink TUI Root App - Main entry point for React/Ink interface
 import React, { useState, useEffect } from 'react'
-import { render } from 'ink'
+import { render, useApp } from 'ink'
 import { Box, Text } from 'ink'
 import { Header } from './components/Header.tsx'
 import { Spinner } from './components/Spinner.tsx'
@@ -14,7 +14,6 @@ import { getTheme, setThemeName, listThemeNames } from './theme.ts'
 import { getFormattedTools } from '../../native-tools/index.ts'
 import { loadSession } from '../../config/index.ts'
 import { getApiKeyFromEnv, getBaseUrl } from '../../providers/discover.ts'
-import { s, fg } from '../colors.ts'
 
 interface Message {
   role: 'user' | 'assistant' | 'system' | 'tool'
@@ -31,75 +30,75 @@ if (THEME_ENV) {
   }
 }
 
-interface BeastAppProps {
-  provider?: string
-  model?: string
-  theme?: string
-}
-
-const BeastApp: React.FC<BeastAppProps> = ({ provider: initProvider, model: initModel, theme: initTheme }) => {
+const BeastApp: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([])
   const [spinnerStart, setSpinnerStart] = useState(0)
-  const [provider, setProvider] = useState(initProvider || 'ollama')
-  const [model, setModel] = useState(initModel || 'llama3.2')
+  const [provider, setProvider] = useState('ollama')
+  const [model, setModel] = useState('llama3.2')
   const [toolsCount, setToolsCount] = useState(0)
+  const { waitUntil } = useApp()
   const theme = getTheme()
 
   useEffect(() => {
-    // Load session or defaults
     const saved = loadSession()
-    if (saved && !initProvider) {
+    if (saved) {
       setProvider(saved.provider)
       setModel(saved.model)
     }
-
-    // Count tools
-    const tools = getFormattedTools()
-    setToolsCount(tools.length)
+    setToolsCount(getFormattedTools().length)
   }, [])
 
-  const { state, run, reset } = useAgentLoop({
+  const { state, run } = useAgentLoop({
     provider,
     model,
     apiKey: getApiKeyFromEnv(provider) || undefined,
     baseUrl: getBaseUrl(provider) || undefined,
-    messages: messages.map(m => ({ ...m, toolCalls: m.toolCalls as any })),
   })
 
+  // Track spinner start
   useEffect(() => {
     if (state.phase === 'thinking' || state.phase === 'streaming') {
       if (spinnerStart === 0) setSpinnerStart(Date.now())
+    } else if (state.phase === 'done' || state.phase === 'error') {
+      setSpinnerStart(0)
     }
   }, [state.phase])
 
   const handleSubmit = async (input: string) => {
     if (!input.trim()) return
-
-    // Add user message
-    setMessages(prev => [...prev, { role: 'user', content: input }])
     setSpinnerStart(Date.now())
+    setMessages(prev => [...prev, { role: 'user', content: input }])
 
-    await run(input)
-
-    // Add assistant response
-    setMessages(prev => [
-      ...prev,
-      {
-        role: 'assistant',
-        content: state.streamedText,
-        toolCalls: state.toolCalls.map(tc => ({
-          name: tc.name,
-          arguments: tc.arguments,
-          result: tc.result,
-        })),
-      },
-    ])
+    // Use waitUntil to keep Ink alive while run() completes asynchronously
+    waitUntil(run(input))
   }
+
+  // Sync run() result into messages when phase becomes done/error
+  useEffect(() => {
+    if (state.phase === 'done' || state.phase === 'error') {
+      setMessages(prev => {
+        // Don't duplicate if last message is already from this run
+        const last = prev[prev.length - 1]
+        if (last?.role === 'assistant' && last.content === state.streamedText) return prev
+        return [
+          ...prev,
+          {
+            role: 'assistant' as const,
+            content: state.streamedText || (state.phase === 'error' ? `Error: ${state.error}` : ''),
+            toolCalls: state.toolCalls.map(tc => ({
+              name: tc.name,
+              arguments: tc.arguments,
+              result: tc.result,
+            })),
+          },
+        ]
+      })
+    }
+  }, [state.phase, state.streamedText, state.error])
 
   const getSpinnerState = () => {
     if (state.phase === 'thinking') return 'thinking'
     if (state.phase === 'streaming') return 'formatting'
-    if (state.phase === 'done') return 'done'
     if (state.phase === 'error') return 'error'
     return 'done'
   }
@@ -123,20 +122,15 @@ const BeastApp: React.FC<BeastAppProps> = ({ provider: initProvider, model: init
           {state.toolCalls
             .filter(tc => tc.status === 'running')
             .map((tc, i) => (
-              <ToolPanel
-                key={i}
-                name={tc.name}
-                args={tc.arguments}
-                status={tc.status}
-              />
+              <ToolPanel key={i} name={tc.name} args={tc.arguments} status={tc.status} />
             ))}
         </Box>
       )}
 
       {state.phase === 'idle' && <Tips />}
 
-      {state.phase === 'error' && (
-        <Text color={theme.error}>Error: {state.error}</Text>
+      {state.phase === 'error' && state.error && (
+        <Text color={theme.error}>{state.error}</Text>
       )}
 
       {state.phase === 'idle' && (
@@ -153,10 +147,6 @@ const BeastApp: React.FC<BeastAppProps> = ({ provider: initProvider, model: init
   )
 }
 
-export function renderBeastApp(options: BeastAppProps = {}) {
-  return render(<BeastApp {...options} />)
-}
-
 // CLI entry point — render immediately
 if (!process.stdin.isTTY) {
   console.error('Ink TUI requires a real terminal (TTY). Use --defaults for REPL mode instead.')
@@ -164,3 +154,4 @@ if (!process.stdin.isTTY) {
 }
 
 render(<BeastApp />)
+
