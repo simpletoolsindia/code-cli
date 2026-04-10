@@ -570,8 +570,13 @@ async function createCodexProvider(config: LLMConfig): Promise<LLMProvider> {
         stream: true,
       }
 
-      // Note: MCP tools are not sent to Codex due to schema compatibility
-      // Codex uses its own built-in coding tools
+      // Add tools for real-time data access (gold rate, weather, etc.)
+      if (request.tools && request.tools.length > 0) {
+        body.tools = request.tools.map(t => ({
+          type: 'function' as const,
+          function: { name: t.name, description: t.description, parameters: t.inputSchema },
+        }))
+      }
 
       // Add temperature if provided
       if (request.temperature !== undefined) {
