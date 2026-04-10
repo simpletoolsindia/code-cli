@@ -12,6 +12,7 @@ export interface HeaderConfig {
 }
 
 // Full header: [Logo] [Version] | [Provider] | [Model] | [Tools]
+// Polished header: Google brand colors + consistent spacing
 export function renderHeader(config: HeaderConfig): string {
   if (!isColorEnabled()) {
     return `BEAST CLI v${config.version} | ${config.provider} | ${config.model}`
@@ -22,6 +23,7 @@ export function renderHeader(config: HeaderConfig): string {
   const gpPurple = '\x1b[38;2;142;54;255m'
   const gpBlue = '\x1b[38;2;70;130;255m'
 
+  // Polished: Google brand gradient, consistent spacing, clear hierarchy
   const line = [
     s(`${b.tl} `, gpPurple),
     s('🐉', gpPurple),
@@ -71,6 +73,7 @@ export interface ContextStats {
 }
 
 // Clean context bar: [▓▓▓▓░░░░░░░░░] 45% (18K / 32K)
+// Polished context bar: gradient color for usage levels
 export function contextBar(stats: ContextStats): string {
   const { used, max } = stats
   const width = 16
@@ -78,9 +81,10 @@ export function contextBar(stats: ContextStats): string {
   const filled = Math.round(pct * width)
   const empty = width - filled
 
+  // Polished: gradient-style color transition based on usage
   let barColor = fg.success
-  if (pct > 0.75) barColor = fg.warning
-  if (pct > 0.90) barColor = fg.error
+  if (pct > 0.75) barColor = fg.sapphire
+  if (pct > 0.90) barColor = fg.warning
 
   const bar = s('█'.repeat(filled), barColor) + s('░'.repeat(empty), fg.overlay)
   const pctStr = s(`${Math.round(pct * 100)}%`, barColor)
@@ -135,6 +139,7 @@ export interface FooterStats {
 }
 
 // Footer: [messages] · [tokens] · [time] · [context]   [/help] · [/tools] · [/exit] · [↑↓ history]
+// Polished footer with consistent spacing rhythm
 export function renderFooter(stats: FooterStats): string {
   if (!isColorEnabled()) {
     const parts = [`${stats.messages} msgs`, `${stats.tokens} tokens`]
@@ -144,6 +149,7 @@ export function renderFooter(stats: FooterStats): string {
 
   const { messages, tokens, duration, contextMax = 32, contextUsed = 0 } = stats
 
+  // Polished: consistent dot separator, balanced layout
   const parts: string[] = []
   parts.push(s(icon.messages + ' ' + messages, fg.muted))
   parts.push(s(icon.tokens + ' ' + formatTokens(tokens), fg.muted))
@@ -157,7 +163,7 @@ export function renderFooter(stats: FooterStats): string {
     s('/tools', fg.accent),
     s('/clear', fg.accent),
     s('/exit', fg.accent),
-    s('↑↓', fg.blue),
+    s('↑↓', fg.sapphire),
     s('history', fg.overlay),
   ]
 

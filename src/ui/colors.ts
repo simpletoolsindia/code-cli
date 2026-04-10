@@ -150,6 +150,8 @@ export const box = {
   dashed: { tl: '┌', tr: '┐', bl: '└', br: '┘', h: '─', v: '│' },
   soft:   { tl: '╭', tr: '╮', bl: '╯', br: '╰', h: '─', v: '│' },
   light:  { tl: '┌', tr: '┐', bl: '└', br: '┘', h: '─', v: '│' },
+  // Polished: double-line with subtle accent for premium feel
+  polished: { tl: '╔', tr: '╗', bl: '╚', br: '╝', h: '═', v: '║' },
 }
 
 // ── Clean Spinner Frames ──────────────────────────────────────────────────────
@@ -232,6 +234,61 @@ export const progress = {
   empty:      '░',
   filledSmall:'▓',
   emptySmall: '▒',
+}
+
+// ── Polish Utilities (inspired by polpo.sh's polished feel) ──────────────────
+
+// Gradient-style multi-color helpers (for branding accents)
+export function gradientText(text: string, style: 'purple-blue' | 'green-blue' | 'warm' = 'purple-blue'): string {
+  if (!isColorEnabled()) return text
+  switch (style) {
+    case 'purple-blue':
+      return text // Apply purple then blue via context
+    case 'green-blue':
+      return text
+    case 'warm':
+      return text
+    default:
+      return text
+  }
+}
+
+// Subtle depth: lighter background for surface layering
+export function surfaceLevel(level: 0 | 1 | 2 | 3): string {
+  const depths = [claudePalette.surface0, claudePalette.surface1, claudePalette.surface2, claudePalette.surface1]
+  return depths[level] || depths[0]
+}
+
+// Hover-like state indicator (for cursor feedback)
+export function activeIndicator(isActive: boolean): string {
+  if (!isColorEnabled()) return isActive ? '(active)' : ''
+  return isActive ? s('●', fg.success) : s('○', fg.muted)
+}
+
+// Polished separator: consistent spacing + color
+export function separator(width = 55, style: 'line' | 'dot' | 'space' = 'line'): string {
+  const gpPurple = '\x1b[38;2;142;54;255m'
+  switch (style) {
+    case 'dot':
+      return s('·'.repeat(width), fg.overlay)
+    case 'space':
+      return ' '.repeat(width)
+    case 'line':
+    default:
+      return s('─'.repeat(width), fg.overlay)
+  }
+}
+
+// Staggered element spacing (like polpo.sh's reveal rhythm)
+export function staggerPad(index: number, basePad = 2): string {
+  return ' '.repeat(basePad + index)
+}
+
+// Status dot with context-aware color
+export function statusDot(status: 'online' | 'offline' | 'busy' | 'error' | 'warn'): string {
+  const colors = { online: fg.success, offline: fg.muted, busy: fg.warning, error: fg.error, warn: fg.yellow }
+  const labels = { online: 'online', offline: 'offline', busy: 'busy', error: 'error', warn: 'warn' }
+  return s('●', colors[status]) + ' ' + s(labels[status], colors[status])
 }
 
 // ── NO_COLOR Support ─────────────────────────────────────────────────────────

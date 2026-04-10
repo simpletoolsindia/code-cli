@@ -1693,7 +1693,8 @@ var box = {
   heavy: { tl: "┏", tr: "┓", bl: "┗", br: "┛", h: "━", v: "┃" },
   dashed: { tl: "┌", tr: "┐", bl: "└", br: "┘", h: "─", v: "│" },
   soft: { tl: "╭", tr: "╮", bl: "╯", br: "╰", h: "─", v: "│" },
-  light: { tl: "┌", tr: "┐", bl: "└", br: "┘", h: "─", v: "│" }
+  light: { tl: "┌", tr: "┐", bl: "└", br: "┘", h: "─", v: "│" },
+  polished: { tl: "╔", tr: "╗", bl: "╚", br: "╝", h: "═", v: "║" }
 };
 var spinnerFrames2 = {
   dots: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"],
@@ -1802,9 +1803,9 @@ function contextBar(stats) {
   const empty = width - filled;
   let barColor = fg2.success;
   if (pct > 0.75)
-    barColor = fg2.warning;
+    barColor = fg2.sapphire;
   if (pct > 0.9)
-    barColor = fg2.error;
+    barColor = fg2.warning;
   const bar = s2("█".repeat(filled), barColor) + s2("░".repeat(empty), fg2.overlay);
   const pctStr = s2(`${Math.round(pct * 100)}%`, barColor);
   const usedStr = s2(formatTokens(used), fg2.muted);
@@ -1832,8 +1833,8 @@ function stripAnsi(text) {
   return text.replace(/\x1b\[[0-9;]*m/g, "");
 }
 function panel(content, options = {}) {
-  const { title, titleColor = fg2.accent, width = 70 } = options;
-  const b = box.round;
+  const { title, titleColor = fg2.accent, width = 70, style = "round" } = options;
+  const b = box[style] || box.round;
   const rawLines = content.split(`
 `);
   const maxLen = rawLines.reduce((m, l) => Math.max(m, stripAnsi(l).length), 0);
@@ -1859,7 +1860,7 @@ function panel(content, options = {}) {
   return s2(result, titleColor);
 }
 function inlineList(items, options = {}) {
-  const { iconColor = fg2.accent, labelColor = fg2.muted, valueColor = fg2.primary, separator = " · " } = options;
+  const { iconColor = fg2.accent, labelColor = fg2.muted, valueColor = fg2.primary, separator = "  " } = options;
   return items.map((item) => {
     const icon4 = item.icon ? s2(item.icon + " ", iconColor) : "";
     return icon4 + s2(item.label, labelColor) + ": " + s2(item.value, valueColor);
@@ -1899,7 +1900,7 @@ function helpPanel(commands) {
   const maxCmd = Math.max(...commands.map((c) => stripAnsi(c.cmd).length), 4);
   return commands.map(({ cmd, desc, shortcut }) => {
     const shortcutStr = shortcut ? s2(` (${shortcut})`, fg2.muted, italic) : "";
-    return `  ${s2(cmd.padEnd(maxCmd + 2), fg2.accent)}${desc}${shortcutStr}`;
+    return `  ${s2(cmd.padEnd(maxCmd + 2), fg2.accent)}${s2(desc, fg2.primary)}${shortcutStr}`;
   }).join(`
 `);
 }
@@ -2191,7 +2192,13 @@ var TINY_LOGO = ` \uD83D\uDC09 ${s2("BEAST CLI", googlePurple, bold2)} ${dim2}~
 var googlePurple2 = "\x1B[38;2;142;54;255m";
 var googleBlue2 = "\x1B[38;2;70;130;255m";
 var TEXT_LOGO = ` ${s2("BEAST", googlePurple2, bold2)} ${s2("CLI", googleBlue2, bold2)} `;
-var TAGLINE = `${s2("·", fg2.overlay)} ${s2("45+ Providers", fg2.muted)} ${s2("·", fg2.overlay)} ${s2("51+ Tools", fg2.muted)} ${s2("·", fg2.overlay)} ${s2("Local AI Ready", fg2.muted)}`;
+var FEATURE_CARDS = [
+  { icon: "⚡", label: "Blazing Fast", color: fg2.warning },
+  { icon: "\uD83D\uDD12", label: "Private & Local", color: fg2.success },
+  { icon: "\uD83C\uDF10", label: "45+ Providers", color: fg2.sapphire },
+  { icon: "\uD83D\uDD27", label: "51+ Tools", color: fg2.tool }
+];
+var REVEAL_TAGLINE = `${s2("·", fg2.overlay)} ${s2("45+ Providers", fg2.muted)} ` + `${s2("·", fg2.overlay)} ${s2("51+ Tools", fg2.muted)} ` + `${s2("·", fg2.overlay)} ${s2("Local AI Ready", fg2.muted)}`;
 function renderCleanBanner() {
   if (!isColorEnabled2())
     return "BEAST CLI - AI Coding Agent";
@@ -2207,7 +2214,16 @@ function renderCleanBanner() {
   if (width < 50) {
     return logo;
   }
-  return logo + TAGLINE + `
+  const tagline = REVEAL_TAGLINE + `
+`;
+  const cardWidth = 22;
+  const cardSep = "  ";
+  const cardLines = FEATURE_CARDS.map((card) => {
+    const label = card.label.padEnd(cardWidth - card.icon.length - 1);
+    return s2(card.icon + " " + label, card.color);
+  }).join(s2(cardSep, fg2.overlay));
+  return logo + tagline + `
+` + cardLines + `
 `;
 }
 
@@ -5963,7 +5979,7 @@ function stopFunSpinner(status = "done") {
   }
 }
 function streamText(text) {
-  process.stdout.write(panel(text, { title: "\uD83E\uDD16 Response", titleColor: fg.assistant, width: 70 }));
+  process.stdout.write(panel(text, { title: "\uD83E\uDD16 Response", titleColor: fg.mauve, width: 70, style: "round" }));
   process.stdout.write(`
 `);
 }
@@ -5971,8 +5987,8 @@ function printUsage(usage) {
   if (!usage)
     return;
   const { promptTokens, completionTokens, totalTokens } = usage;
-  process.stdout.write(`${s("\u26A1 ", fg.secondary)}${s(totalTokens.toLocaleString(), fg.mauve)} tokens `);
-  process.stdout.write(`(${s("p:" + promptTokens, fg.blue)} ${s("c:" + completionTokens, fg.mauve)})
+  process.stdout.write(`${s("\u26A1 ", fg.muted)}${s(totalTokens.toLocaleString(), fg.mauve)} tokens `);
+  process.stdout.write(`(${s("p:" + promptTokens, fg.sapphire)} ${s("c:" + completionTokens, fg.mauve)})
 `);
 }
 var nativeTools = [];
@@ -6459,7 +6475,7 @@ ${s("!", fg.warning)} Unknown provider: ${target}`);
           const looksLikeApology = response.content ? isApologyOrNoAccess(response.content) : false;
           if (noNativeTools && needsRealTime && looksLikeApology) {
             console.log(s(`
-\uD83D\uDD0D Auto-detected real-time query`, fg.info) + s(" \u2014 fetching live data...", fg.secondary));
+\uD83D\uDD0D Auto-detected real-time query`, fg.sapphire) + s(" \u2014 fetching live data...", fg.muted));
             const searchQuery = trimmed;
             const searchResult = await withProgress("Searching", executeTool("searxng_search", { query: searchQuery, limit: 10 }));
             const resultText = searchResult.success ? searchResult.content : `Error: ${searchResult.error}`;

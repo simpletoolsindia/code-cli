@@ -34,14 +34,15 @@ export function drawBox(content: string, options: {
   return result
 }
 
-// ── Panel ─────────────────────────────────────────────────────────────────────
+// ── Polished Panel (with accent border and depth) ───────────────────────────
 export function panel(content: string, options: {
   title?: string
   titleColor?: string
   width?: number
+  style?: 'round' | 'single' | 'polished' | 'heavy'
 } = {}): string {
-  const { title, titleColor = fg.accent, width = 70 } = options
-  const b = box.round
+  const { title, titleColor = fg.accent, width = 70, style = 'round' } = options
+  const b = box[style] || box.round
 
   const rawLines = content.split('\n')
   const maxLen = rawLines.reduce((m, l) => Math.max(m, stripAnsi(l).length), 0)
@@ -67,7 +68,7 @@ export function panel(content: string, options: {
   return s(result, titleColor)
 }
 
-// ── Table Renderer ─────────────────────────────────────────────────────────────
+// ── Polished Table ────────────────────────────────────────────────────────────
 interface TableColumn {
   header: string
   width: number
@@ -80,13 +81,14 @@ interface TableRow {
 
 export function renderTable(columns: TableColumn[], rows: TableRow[], options: {
   maxWidth?: number
-  style?: 'single' | 'round'
+  style?: 'single' | 'round' | 'polished'
 } = {}): string {
   const { style = 'single' } = options
-  const b = box[style]
+  const b = box[style] || box.single
 
   const colWidths = columns.map(c => c.width)
 
+  // Polished: accent color for headers
   let headerLine = b.v
   let sepLine = b.v
   columns.forEach((col, i) => {
@@ -112,14 +114,22 @@ export function renderTable(columns: TableColumn[], rows: TableRow[], options: {
   return s(topLine, fg.muted) + headerLine + bodyLines + s(botLine, fg.muted)
 }
 
-// ── Inline List ───────────────────────────────────────────────────────────────
+// ── Polished Inline Status Indicator ────────────────────────────────────────
+// Like polpo.sh's status dots: online/offline/busy indicators
+export function inlineStatus(label: string, value: string, status?: 'success' | 'warning' | 'error' | 'info'): string {
+  const dotColors = { success: fg.success, warning: fg.warning, error: fg.error, info: fg.sapphire }
+  const dot = status ? s('●', dotColors[status]) + ' ' : ''
+  return dot + s(label + ':', fg.muted) + ' ' + s(value, fg.primary)
+}
+
+// ── Polished Inline List ──────────────────────────────────────────────────────
 export function inlineList(items: Array<{ icon?: string; label: string; value: string }>, options: {
   iconColor?: string
   labelColor?: string
   valueColor?: string
   separator?: string
 } = {}): string {
-  const { iconColor = fg.accent, labelColor = fg.muted, valueColor = fg.primary, separator = ' · ' } = options
+  const { iconColor = fg.accent, labelColor = fg.muted, valueColor = fg.primary, separator = '  ' } = options
   return items.map(item => {
     const icon = item.icon ? s(item.icon + ' ', iconColor) : ''
     return icon + s(item.label, labelColor) + ': ' + s(item.value, valueColor)
@@ -138,7 +148,7 @@ export function kvList(items: Array<{ key: string; value: string }>, options: {
   ).join('\n')
 }
 
-// ── Tool Result Card ─────────────────────────────────────────────────────────
+// ── Polished Tool Result Card ────────────────────────────────────────────────
 export function toolCard(name: string, result: string, options: {
   maxLines?: number
   maxWidth?: number
@@ -146,15 +156,17 @@ export function toolCard(name: string, result: string, options: {
 } = {}): string {
   const { maxLines = 8, maxWidth = 80, collapsed = false } = options
 
+  // Polished: accent color for tool header
   const header = `${s('› ', fg.tool)}${s(name, fg.tool, bold)}`
   const lines = result.split('\n').slice(0, maxLines)
   const truncated = result.split('\n').length > maxLines
   const content = lines.join('\n') + (truncated ? '\n...' : '')
 
   const lineW = Math.min(maxWidth - 2, stripAnsi(content.split('\n')[0]).length + 4)
-  return `${header}\n${s('┌' + '─'.repeat(lineW) + '┐', fg.muted)}\n` +
+  // Polished: use accent color instead of muted
+  return `${header}\n${s('┌' + '─'.repeat(lineW) + '┐', fg.accent)}\n` +
     lines.map(l => `  ${l}`).join('\n') + '\n' +
-    s('└' + '─'.repeat(lineW) + '┘', fg.muted)
+    s('└' + '─'.repeat(lineW) + '┘', fg.accent)
 }
 
 // ── Code Block ────────────────────────────────────────────────────────────────
@@ -180,11 +192,16 @@ export function badge(text: string, variant: 'success' | 'error' | 'warning' | '
   return s('[' + text + ']', colors[variant])
 }
 
-// ── Progress Bar ─────────────────────────────────────────────────────────────
+// ── Polished Progress Bar ────────────────────────────────────────────────────
 export function progressBar(current: number, total: number, width = 30): string {
   const filled = Math.round((current / total) * width)
   const empty = width - filled
-  return s('█'.repeat(filled), fg.success) + s('░'.repeat(empty), fg.muted)
+  // Polished: gradient-style color transition
+  const pct = total > 0 ? current / total : 0
+  let barColor = fg.success
+  if (pct > 0.5) barColor = fg.sapphire
+  if (pct > 0.8) barColor = fg.warning
+  return s('█'.repeat(filled), barColor) + s('░'.repeat(empty), fg.muted)
 }
 
 // ── Loading Progress ───────────────────────────────────────────────────────────
@@ -247,12 +264,13 @@ export async function withProgress<T>(
   }
 }
 
-// ── Help Panel ────────────────────────────────────────────────────────────────
+// ── Polished Help Panel ──────────────────────────────────────────────────────
 export function helpPanel(commands: Array<{ cmd: string; desc: string; shortcut?: string }>): string {
   const maxCmd = Math.max(...commands.map(c => stripAnsi(c.cmd).length), 4)
   return commands.map(({ cmd, desc, shortcut }) => {
     const shortcutStr = shortcut ? s(` (${shortcut})`, fg.muted, italic) : ''
-    return `  ${s(cmd.padEnd(maxCmd + 2), fg.accent)}${desc}${shortcutStr}`
+    // Polished: accent color for commands, primary for descriptions
+    return `  ${s(cmd.padEnd(maxCmd + 2), fg.accent)}${s(desc, fg.primary)}${shortcutStr}`
   }).join('\n')
 }
 

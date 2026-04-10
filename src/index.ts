@@ -190,18 +190,18 @@ function clearLine(): void {
   process.stderr.write('\r' + ' '.repeat(60) + '\r')
 }
 
-// Streaming write — prints response in a clean panel
+// Polished streaming: Google brand colors for response panel
 function streamText(text: string): void {
-  process.stdout.write(panel(text, { title: '🤖 Response', titleColor: fg.assistant, width: 70 }))
+  process.stdout.write(panel(text, { title: '🤖 Response', titleColor: fg.mauve, width: 70, style: 'round' }))
   process.stdout.write('\n')
 }
 
-// Print token usage compact
+// Polished token usage display
 function printUsage(usage?: { promptTokens: number; completionTokens: number; totalTokens: number }): void {
   if (!usage) return
   const { promptTokens, completionTokens, totalTokens } = usage
-  process.stdout.write(`${s('⚡ ', fg.secondary)}${s(totalTokens.toLocaleString(), fg.mauve)} tokens `)
-  process.stdout.write(`(${s('p:' + promptTokens, fg.blue)} ${s('c:' + completionTokens, fg.mauve)})\n`)
+  process.stdout.write(`${s('⚡ ', fg.muted)}${s(totalTokens.toLocaleString(), fg.mauve)} tokens `)
+  process.stdout.write(`(${s('p:' + promptTokens, fg.sapphire)} ${s('c:' + completionTokens, fg.mauve)})\n`)
 }
 
 // ── MCP Server ────────────────────────────────────────────────────────────────
@@ -432,6 +432,7 @@ function printBanner(session: Session) {
 async function repl(session: Session) {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
 
+  // Polished REPL prompt with Google-style `>` with accent color
   const promptUser = () => rl.question('\n' + s('> ', fg.accent), async (input) => {
     const trimmed = input.trim()
 
@@ -681,7 +682,8 @@ Commands:
           const looksLikeApology = response.content ? isApologyOrNoAccess(response.content) : false
 
           if (noNativeTools && needsRealTime && looksLikeApology) {
-            console.log(s('\n🔍 Auto-detected real-time query', fg.info) + s(' — fetching live data...', fg.secondary))
+            // Polished inline status for real-time query detection
+            console.log(s('\n🔍 Auto-detected real-time query', fg.sapphire) + s(' — fetching live data...', fg.muted))
 
             const searchQuery = trimmed
             const searchResult = await withProgress(
@@ -728,7 +730,7 @@ Commands:
           const toolName = tc.name
           const toolArgs = tc.arguments ?? {}
 
-          process.stdout.write('\n')
+                    process.stdout.write('\n')
           const argsStr = JSON.stringify(toolArgs)
           const argsDisplay = argsStr.length > 60 ? argsStr.slice(0, 60) + '...' : argsStr
           process.stdout.write(s('🔧 ' + toolName, fg.tool) + ' ' + s(argsDisplay, fg.muted) + '\n')

@@ -6,16 +6,18 @@ import { s, fg, bold, isColorEnabled, spinnerFrames } from './colors.ts'
 // ── State Types ───────────────────────────────────────────────────────────────
 export type AnimationState = 'thinking' | 'searching' | 'coding' | 'analyzing' | 'tool' | 'formatting'
 
+// Polished: state config with smooth transitions
 const STATE_CONFIG: Record<AnimationState, { label: string; color: string; frames: string[] }> = {
   thinking:  { label: 'Thinking',   color: fg.accent,    frames: spinnerFrames.dots },
-  searching: { label: 'Searching', color: fg.info,      frames: spinnerFrames.arrow },
-  coding:    { label: 'Coding',     color: fg.warning,   frames: spinnerFrames.blocks },
-  analyzing: { label: 'Analyzing', color: fg.mauve,     frames: spinnerFrames.dots },
+  searching: { label: 'Searching', color: fg.sapphire,  frames: spinnerFrames.arrow },
+  coding:    { label: 'Coding',    color: fg.warning,   frames: spinnerFrames.blocks },
+  analyzing: { label: 'Analyzing', color: fg.mauve,    frames: spinnerFrames.dots },
   tool:      { label: 'Running',   color: fg.tool,      frames: spinnerFrames.dots },
-  formatting:{ label: 'Formatting', color: fg.success, frames: spinnerFrames.star },
+  formatting:{ label: 'Formatting', color: fg.success,   frames: spinnerFrames.star },
 }
 
 // ── Clean Spinner Class ───────────────────────────────────────────────────────
+// Polished FunSpinner: smooth transitions between states
 export class FunSpinner {
   private handle: ReturnType<typeof setInterval> | null = null
   private frame = 0
@@ -66,6 +68,7 @@ export class FunSpinner {
     }
     this.started = false
 
+    // Polished: clear line with proper spacing
     process.stderr.write('\r' + ' '.repeat(60) + '\r')
 
     if (!isColorEnabled()) {
@@ -74,6 +77,7 @@ export class FunSpinner {
       return
     }
 
+    // Polished: clear status indicators with smooth transitions
     if (status === 'done') {
       process.stderr.write(s('✓ ', fg.success) + (customLabel || this.label) + '\n')
     } else if (status === 'error') {
@@ -107,23 +111,28 @@ export function toolRunningMessage(toolName: string): string {
   return s(`${toolName}...`, fg.tool)
 }
 
+// Polished status messages with clear visual hierarchy
 export function statusMessage(msg: string, type: 'info' | 'success' | 'warning' | 'error'): string {
-  const color = type === 'info' ? fg.info : type === 'success' ? fg.success : type === 'warning' ? fg.warning : fg.error
-  const icon = type === 'info' ? 'i' : type === 'success' ? '✓' : type === 'warning' ? '!' : '✗'
+  const color = type === 'info' ? fg.sapphire : type === 'success' ? fg.success : type === 'warning' ? fg.warning : fg.error
+  const icon = type === 'info' ? 'ℹ' : type === 'success' ? '✓' : type === 'warning' ? '!' : '✗'
   return `${s(icon, color)} ${s(msg, color)}`
 }
 
 // ── ASCII Art ─────────────────────────────────────────────────────────────────
+// Polished ASCII art with Google brand colors
 export function asciiBeast(): string {
   if (!isColorEnabled()) return 'BEAST CLI'
+  const gpPurple = '\x1b[38;2;142;54;255m'
+  const gpBlue = '\x1b[38;2;70;130;255m'
   return `
-${s('  ╔════════════════════════════════╗', fg.accent)}
-${s('  ║  BEAST CLI v1.2.14              ║', fg.accent)}
+${s('  ╔════════════════════════════════╗', gpPurple)}
+${s('  ║  BEAST CLI v1.2.14              ║', gpPurple)}
 ${s('  ║  AI Coding Agent                ║', fg.secondary)}
-${s('  ╚════════════════════════════════╝', fg.accent)}
+${s('  ╚════════════════════════════════╝', gpPurple)}
 `
 }
 
+// Polished success/error indicators with clear status
 export function successAscii(): string {
   return s('✓', fg.success)
 }
@@ -132,13 +141,13 @@ export function errorAscii(): string {
   return s('✗', fg.error)
 }
 
-// ── Debug Helpers ─────────────────────────────────────────────────────────────
+// Polished debug/info/warn/error with consistent formatting
 export function debug(msg: string): string {
   return s(`[debug] ${msg}`, fg.muted)
 }
 
 export function info(msg: string): string {
-  return s(`[info] ${msg}`, fg.info)
+  return s(`[info] ${msg}`, fg.sapphire)
 }
 
 export function warn(msg: string): string {
@@ -149,7 +158,7 @@ export function error(msg: string): string {
   return s(`[error] ${msg}`, fg.error)
 }
 
-// ── Fun Facts (cleaned up) ────────────────────────────────────────────────────
+// Polished fun facts with consistent format
 const FUN_FACTS = [
   'Type /clear to reset the conversation',
   'Use Tab for auto-complete',

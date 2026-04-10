@@ -34,10 +34,22 @@ const googlePurple2 = '\x1b[38;2;142;54;255m'
 const googleBlue2 = '\x1b[38;2;70;130;255m'
 const TEXT_LOGO = ` ${s('BEAST', googlePurple2, bold)} ${s('CLI', googleBlue2, bold)} `
 
-// ── Tagline strip ────────────────────────────────────────────────────────────
-const TAGLINE = `${s('·', fg.overlay)} ${s('45+ Providers', fg.muted)} ${s('·', fg.overlay)} ${s('51+ Tools', fg.muted)} ${s('·', fg.overlay)} ${s('Local AI Ready', fg.muted)}`
+// ── Polished Feature Highlights ─────────────────────────────────────────────
+// Inspired by polpo.sh: staggered reveal, clear hierarchy, subtle depth
+const FEATURE_CARDS = [
+  { icon: '⚡', label: 'Blazing Fast', color: fg.warning },
+  { icon: '🔒', label: 'Private & Local', color: fg.success },
+  { icon: '🌐', label: '45+ Providers', color: fg.sapphire },
+  { icon: '🔧', label: '51+ Tools', color: fg.tool },
+]
 
-// ── Main Banner ──────────────────────────────────────────────────────────────
+// Staggered reveal tagline for wide terminals
+const REVEAL_TAGLINE =
+  `${s('·', fg.overlay)} ${s('45+ Providers', fg.muted)} ` +
+  `${s('·', fg.overlay)} ${s('51+ Tools', fg.muted)} ` +
+  `${s('·', fg.overlay)} ${s('Local AI Ready', fg.muted)}`
+
+// ── Polished Banner (with feature reveal) ────────────────────────────────────
 export function renderCleanBanner(): string {
   if (!isColorEnabled()) return 'BEAST CLI - AI Coding Agent'
 
@@ -55,46 +67,60 @@ export function renderCleanBanner(): string {
   if (width < 50) {
     return logo
   }
-  return logo + TAGLINE + '\n'
+
+  // Polished reveal: tagline + feature cards with spacing
+  const tagline = REVEAL_TAGLINE + '\n'
+
+  // Feature highlights strip (like polpo.sh card layout)
+  const cardWidth = 22
+  const cardSep = '  '
+  const cardLines = FEATURE_CARDS.map(card => {
+    const label = card.label.padEnd(cardWidth - card.icon.length - 1)
+    return s(card.icon + ' ' + label, card.color)
+  }).join(s(cardSep, fg.overlay))
+
+  return logo + tagline + '\n' + cardLines + '\n'
 }
 
-// ── Compact Banner (single line) ────────────────────────────────────────────
-export function renderCompactBanner(): string {
-  if (!isColorEnabled()) return 'BEAST CLI'
-  return TEXT_LOGO
-}
-
-// ── Session Banner ────────────────────────────────────────────────────────────
+// ── Polished Session Banner ──────────────────────────────────────────────────
 export function renderSessionBanner(provider: string, model: string, toolsCount: number): string {
   if (!isColorEnabled()) {
     return `BEAST CLI | ${provider} | ${model} | ${toolsCount} tools`
   }
 
-  const sep = s(' · ', fg.overlay)
   const gpP = '\x1b[38;2;142;54;255m'
   const gpB = '\x1b[38;2;70;130;255m'
+
+  // Polished: gradient-style separators with smooth visual hierarchy
+  const sep = s('·', fg.overlay)
   const parts = [
     s('🐉', gpP),
     s('BEAST', gpP, bold),
     s('CLI', gpB, bold),
-    s('·', fg.overlay),
+    sep,
     s(provider, fg.green),
     sep,
-    s(model, fg.blue),
+    s(model, fg.sapphire),
     sep,
-    s(`${toolsCount} tools`, fg.peach),
+    s(`${toolsCount} tools`, fg.tool),
   ]
 
   return '\n' + parts.join('') + '\n'
 }
 
-// ── Minimal logo for inline use ──────────────────────────────────────────────
+// ── Polished Compact Banner ──────────────────────────────────────────────────
+export function renderCompactBanner(): string {
+  if (!isColorEnabled()) return 'BEAST CLI'
+  return TEXT_LOGO
+}
+
+// ── Polished Minimal Logo ───────────────────────────────────────────────────
 export function miniLogo(): string {
   if (!isColorEnabled()) return 'BEAST'
   return s('BEAST', fg.accent, bold)
 }
 
-// ── Fallback ─────────────────────────────────────────────────────────────────
+// ── Polished Fallback ───────────────────────────────────────────────────────
 export function renderLionBanner(): string {
   return renderCleanBanner()
 }
