@@ -508,6 +508,14 @@ async function createCodexProvider(config) {
         store: false,
         stream: true
       };
+      if (request.tools && request.tools.length > 0) {
+        const validTools = request.tools.filter((t) => t.name && t.inputSchema);
+        console.log("\uD83D\uDCE1 Sending tools:", validTools.map((t) => t.name).join(", "));
+        body.tools = validTools.map((t) => ({
+          type: "function",
+          function: { name: t.name, description: t.description || "", parameters: t.inputSchema }
+        }));
+      }
       if (request.temperature !== undefined) {
         body.temperature = request.temperature;
       }
@@ -5137,121 +5145,56 @@ var tools = [
   },
   {
     name: "run_command",
-    description: "Execute whitelisted system command. Supports cd, python3, npm, git, and background commands with &.",
+    description: "Execute shell command. Supports any command with bash shell. Use for file ops, servers, scripts, etc.",
     inputSchema: {
       type: "object",
       properties: {
-        command: { type: "string", description: "Command to execute" },
-        args: { type: "array", items: { type: "string" }, description: "Command arguments" },
-        cwd: { type: "string", description: "Working directory (optional)" },
+        command: { type: "string", description: "Shell command to execute (full command with args)" },
+        cwd: { type: "string", description: "Working directory (optional, defaults to current)" },
         background: { type: "boolean", description: "Run in background with nohup (default: false)" },
         timeout: { type: "integer", description: "Timeout in seconds (default: 30)" }
       },
       required: ["command"]
     },
     async execute(args) {
-      const allowed = [
-        "ls",
-        "cat",
-        "cp",
-        "mv",
-        "rm",
-        "mkdir",
-        "rmdir",
-        "find",
-        "grep",
-        "head",
-        "tail",
-        "wc",
-        "cd",
-        "pwd",
-        "echo",
-        "touch",
-        "chmod",
-        "chown",
-        "tar",
-        "zip",
-        "unzip",
-        "python",
-        "python2",
-        "python3",
-        "node",
-        "npm",
-        "npx",
-        "bun",
-        "deno",
-        "git",
-        "gh",
-        "curl",
-        "wget",
-        "ssh",
-        "scp",
-        "rsync",
-        "docker",
-        "kubectl",
-        "helm",
-        "kill",
-        "pkill",
-        "ps",
-        "top",
-        "htop",
-        "df",
-        "du",
-        "free",
-        "netstat",
-        "lsof",
-        "ping",
-        "traceroute",
-        "nslookup",
-        "dig",
-        "sed",
-        "awk",
-        "cut",
-        "sort",
-        "uniq",
-        "diff",
-        "nohup",
-        "bg",
-        "jobs",
-        "fg",
-        "code",
-        "nano",
-        "vim",
-        "vi",
-        "nano"
-      ];
+      const { execSync: execSync2, spawn: spawn2 } = await import("node:child_process");
       const cmd = args.command;
-      const cmdArgs = args.args || [];
       const workingDir = args.cwd || process.cwd();
       const timeout = args.timeout || 30;
       const runBackground = args.background || false;
-      if (!allowed.includes(cmd)) {
-        return { success: false, content: "", error: `Command not allowed: ${cmd}. Allowed: ${allowed.slice(0, 20).join(", ")}...` };
+      const dangerous = ["rm -rf", "dd", "mkfs", ":(){", "fork bomb", "> /dev/", "curl | bash", "wget -O- |"];
+      const isDangerous = dangerous.some((d) => cmd.toLowerCase().includes(d));
+      if (isDangerous) {
+        return { success: false, content: "", error: `⚠️  Dangerous command detected: "${cmd.slice(0, 50)}..."
+
+To execute dangerous commands, run directly in your terminal.` };
       }
-      if (cmd === "cd") {
-        const targetDir = cmdArgs[0] || workingDir;
-        try {
-          const { statSync: statSync2 } = await import("node:fs");
-          statSync2(targetDir);
-          return { success: true, content: `Changed directory to: ${targetDir}` };
-        } catch (e) {
-          return { success: false, content: "", error: `Directory not found: ${targetDir}` };
+      let fullCmd = cmd;
+      if (cmd.startsWith("cd ") && !cmd.includes("&&")) {
+        const match = cmd.match(/^cd\s+(.+)$/);
+        if (match) {
+          const targetDir = match[1].replace(/^~/, process.env.HOME || "~");
+          try {
+            const { statSync: statSync2 } = await import("node:fs");
+            statSync2(targetDir);
+            return { success: true, content: `Directory changed to: ${targetDir}` };
+          } catch {
+            return { success: false, content: "", error: `Directory not found: ${targetDir}` };
+          }
         }
       }
-      const { execSync: execSync2, spawn: spawn2 } = await import("node:child_process");
       try {
-        let fullCommand = cmdArgs.length > 0 ? `${cmd} ${cmdArgs.join(" ")}` : cmd;
-        if (runBackground || fullCommand.includes(" &")) {
-          fullCommand = fullCommand.replace(/\s*&\s*$/, "").trim();
-          spawn2(fullCommand, [], {
+        if (runBackground || cmd.endsWith(" &")) {
+          const cleanCmd = cmd.replace(/\s*&\s*$/, "").trim();
+          spawn2(cleanCmd, [], {
             shell: true,
             cwd: workingDir,
             detached: true,
             stdio: "ignore"
           }).unref();
-          return { success: true, content: `Started in background: ${fullCommand} (PID: process detached)` };
+          return { success: true, content: `Started in background: ${cleanCmd}` };
         }
-        const output = execSync2(fullCommand, {
+        const output = execSync2(`/bin/bash -c ${JSON.stringify(cmd)}`, {
           encoding: "utf-8",
           timeout: timeout * 1000,
           cwd: workingDir,
