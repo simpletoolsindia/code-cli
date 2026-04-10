@@ -350,7 +350,7 @@ async function validateSavedConfig(session: ReturnType<typeof buildSessionFromSa
 // ── Interactive setup ───────────────────────────────────────────────────────
 
 async function interactiveSetup(saved?: ReturnType<typeof loadSession>): Promise<Session> {
-  console.log(`\n${s('🐉 Beast CLI', fg.accent, bold)} ${s(`v${VERSION}`, fg.muted)} ${s('·', fg.muted)} ${s('45+ Providers', fg.secondary)} ${s('·', fg.muted)} ${s('39 Tools', fg.secondary)}`)
+  console.log(`\n🐉 ${s('BEAST', fg.accent, bold)} ${s('CLI', fg.mauve, bold)} ${s(`v${VERSION}`, fg.muted)} ${s('·', fg.muted)} ${s('45+ Providers', fg.secondary)} ${s('·', fg.muted)} ${s('51+ Tools', fg.secondary)}`)
 
   const providers = await detectAllProviders()
   console.log(`${s('✓', fg.success)} MCP: ${nativeTools.length} tools | ${s('✓', fg.success)} Ollama: ${providers.find(p=>p.id==='ollama')?.models.length || 0} models`)
@@ -363,7 +363,7 @@ async function interactiveSetup(saved?: ReturnType<typeof loadSession>): Promise
   if (isCloudProvider(provider)) {
     const key = await promptApiKey(provider)
     if (!key) {
-      console.log(`   ${s('⚠', fg.warning)} No API key`)
+      console.log(`   ${s('!', fg.warning)} No API key`)
       process.exit(1)
     }
     apiKey = key
@@ -431,7 +431,7 @@ function printBanner(session: Session) {
 async function repl(session: Session) {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
 
-  const promptUser = () => rl.question('\n❯ ', async (input) => {
+  const promptUser = () => rl.question('\n' + s('> ', fg.accent), async (input) => {
     const trimmed = input.trim()
 
     if (!trimmed) { promptUser(); return }
@@ -505,7 +505,7 @@ Commands:
       } else {
         const models = await fetchLocalModels(session.provider)
         if (models.length === 0) {
-          console.log('\n⚠️  Could not fetch models. Is the server running?')
+          console.log('\n' + s('!', fg.warning) + ' Could not fetch models. Is the server running?')
         } else {
           console.log(`\nAvailable models on ${session.provider}:`)
           models.forEach((m, i) => console.log(`  [${i + 1}] ${m}`))
@@ -542,7 +542,7 @@ Commands:
       if (n >= 1 && n <= models.length) session.model = models[n - 1]
       else if (models.includes(target)) session.model = target
       else {
-        console.log(`\n⚠️  Unknown model: ${target}`)
+        console.log(`\n${s('!', fg.warning)} Unknown model: ${target}`)
         console.log(`   Run /models to see available models.`)
         promptUser(); return
       }
@@ -557,7 +557,7 @@ Commands:
       const newProvider = await selectProvider(providers)
       if (isCloudProvider(newProvider)) {
         const key = await promptApiKey(newProvider)
-        if (!key) { console.log('\n⚠️  Provider switch cancelled.'); promptUser(); return }
+        if (!key) { console.log('\n' + s('!', fg.warning) + ' Provider switch cancelled.'); promptUser(); return }
         session.apiKey = key
       }
       const newModel = await selectModelForProvider(newProvider)
@@ -576,13 +576,13 @@ Commands:
       const providers = await detectAllProviders()
       const found = providers.find(p => p.id === target)
       if (!found) {
-        console.log(`\n⚠️  Unknown provider: ${target}`)
+        console.log(`\n${s('!', fg.warning)} Unknown provider: ${target}`)
         console.log('   Run /provider to see available providers.')
         promptUser(); return
       }
       if (isCloudProvider(target)) {
         const key = await promptApiKey(target)
-        if (!key) { console.log('\n⚠️  Provider switch cancelled.'); promptUser(); return }
+        if (!key) { console.log('\n' + s('!', fg.warning) + ' Provider switch cancelled.'); promptUser(); return }
         session.apiKey = key
       }
       const newModel = await selectModelForProvider(target)
@@ -767,7 +767,7 @@ Commands:
       }
     } catch (e) {
       stopFunSpinner('error')
-      console.log(`\n${s('❌ Error:', fg.error)} ${e}`)
+      console.log(`\n❌ Error: ${e}`)
       if (session.messages.length > 0) session.messages.pop()
     }
 
@@ -784,7 +784,7 @@ Commands:
 function printHelp() {
   console.log(renderCleanBanner())
   console.log(`
-🐉 Beast CLI v${VERSION} - AI Coding Agent
+🐉 BEAST CLI v${VERSION} - AI Coding Agent
 
 USAGE:
   beast [options]
@@ -866,12 +866,12 @@ async function main() {
     const token = loadCodexToken()
     if (token && isCodexTokenValid(token)) {
       session = { provider: 'codex', model: 'gpt-5.2-codex', apiKey: undefined, baseUrl: 'https://chatgpt.com/backend-api', messages: [], contextMax: 128 * 1024 }
-      console.log(`${s('✓', fg.success)} ChatGPT Plus (logged in)`)
+      console.log(`✅ ChatGPT Plus (logged in)`)
     } else {
       const ollamaModels = await fetchOllamaModels()
       if (ollamaModels.length > 0) {
         session = { provider: 'ollama', model: ollamaModels[0], apiKey: undefined, baseUrl: 'http://localhost:11434', messages: [], contextMax: 128 * 1024 }
-        console.log(`${s('✓', fg.success)} Ollama (${ollamaModels[0]}) — Free & offline`)
+        console.log(`✅ Ollama (${ollamaModels[0]}) — Free & offline`)
       } else {
         session = await interactiveSetup(saved || undefined)
       }
@@ -880,7 +880,7 @@ async function main() {
     // Use saved config
     session = buildSessionFromSaved(saved)!
     const ctxStr = saved.contextMax ? (saved.contextMax >= 1024 ? Math.round(saved.contextMax / 1024) + 'K' : String(saved.contextMax)) : '32K'
-    console.log(`${s('✓', fg.success)} Using saved config: ${session.provider} / ${session.model} / ${ctxStr}`)
+    console.log(`✅ Using saved config: ${session.provider} / ${session.model} / ${ctxStr}`)
   } else {
     // No saved config or invalid - run setup once and save
     session = await interactiveSetup(saved || undefined)

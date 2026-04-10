@@ -1,256 +1,45 @@
-// Beast CLI - Fun ASCII Animations
-// Animated characters for loading states and interactive fun
+// Beast CLI - Clean UI Animations
+// Minimal, professional spinner and status animations (no emoji)
 
-import { s, fg, bold, isColorEnabled } from './colors.ts'
+import { s, fg, bold, isColorEnabled, spinnerFrames } from './colors.ts'
 
-// ── Animation Types ─────────────────────────────────────────────────────────
-
+// ── State Types ───────────────────────────────────────────────────────────────
 export type AnimationState = 'thinking' | 'searching' | 'coding' | 'analyzing' | 'tool' | 'formatting'
 
-// ── ASCII Character Animations ─────────────────────────────────────────────
-
-// Each animation has multiple frames that cycle
-const ANIMATIONS = {
-  // 🐕 Dog - happy wagging tail
-  dog: {
-    frames: [
-      '(◕‿◕)🐕',
-      '(◕‿◕)🐕',
-      '(◕ω◕)🐕',
-      '(◕‿◕)🐕',
-      '(◕ω◕)🐕',
-      '(◕‿◕)🐕',
-    ],
-    speed: 150,
-  },
-
-  // 🐱 Cat - stretching and pawing
-  cat: {
-    frames: [
-      '(=^・^=)',
-      '(=^・ω・^=)',
-      '(=^・^=)',
-      '(=^・ω・^=)',
-      '(=⌒‿⌒=)',
-      '(=^・^=)',
-    ],
-    speed: 200,
-  },
-
-  // 🐟 Fish - swimming
-  fish: {
-    frames: [
-      '><(((º>',
-      ' ><(((º>',
-      '  ><(((º>',
-      '   ><(((º>',
-      '  ><(((º>',
-      ' ><(((º>',
-    ],
-    speed: 120,
-  },
-
-  // 🦆 Duck - floating
-  duck: {
-    frames: [
-      '<(º)>',
-      '<(º)>',
-      '<(º)>',
-      '<( · )>',
-      '<(º)>',
-    ],
-    speed: 180,
-  },
-
-  // 👽 Alien - pulsing
-  alien: {
-    frames: [
-      '(◕‿◕)',
-      '(◠‿◠)',
-      '(◕‿◕)',
-      '(◡‿◡)',
-      '(◕‿◕)',
-    ],
-    speed: 250,
-  },
-
-  // 🦊 Fox - curious
-  fox: {
-    frames: [
-      '(¨)',
-      '(◕‿◕)',
-      '(¨)',
-      '(◠‿◠)',
-      '(¨)',
-    ],
-    speed: 200,
-  },
-
-  // 🐰 Rabbit - hopping
-  rabbit: {
-    frames: [
-      '(=・)',
-      '(\\/)',
-      '(=・)',
-      '(/^)',
-      '(=・)',
-    ],
-    speed: 150,
-  },
-
-  // 🦋 Butterfly - flying
-  butterfly: {
-    frames: [
-      '( ..)',
-      '(> <)',
-      '(\\/\\)',
-      '(> <)',
-      '( ..)',
-    ],
-    speed: 180,
-  },
-
-  // ⭐ Stars - twinkling
-  star: {
-    frames: [
-      '✧',
-      '✦',
-      '✧',
-      '★',
-      '✧',
-    ],
-    speed: 150,
-  },
-
-  // 🔥 Fire - crackling
-  fire: {
-    frames: [
-      '🔥',
-      '🔥',
-      '🔥',
-      '🔥',
-      '🔥',
-    ],
-    speed: 200,
-  },
-
-  // 🐸 Frog - jumping
-  frog: {
-    frames: [
-      '( @)',
-      '(\\)',
-      '( @)',
-      '(/)',
-      '( @)',
-    ],
-    speed: 150,
-  },
-
-  // 🐢 Turtle - walking
-  turtle: {
-    frames: [
-      '🐢',
-      '🐢',
-      '🐢',
-      '🐢',
-      '🐢',
-    ],
-    speed: 300,
-  },
-
-  // 🐙 Octopus - waving
-  octopus: {
-    frames: [
-      '( --- )',
-      '( === )',
-      '( --- )',
-      '( ~~~ )',
-      '( --- )',
-    ],
-    speed: 200,
-  },
-
-  // 🦄 Unicorn - magical
-  unicorn: {
-    frames: [
-      '🦄✨',
-      '✨🦄',
-      '🦄✨',
-      '✨🦄',
-      '🦄✨',
-    ],
-    speed: 180,
-  },
-
-  // 🐝 Bee - buzzing
-  bee: {
-    frames: [
-      '(^)',
-      '(•)',
-      '(^)',
-      '(•)',
-      '(^)',
-    ],
-    speed: 100,
-  },
+const STATE_CONFIG: Record<AnimationState, { label: string; color: string; frames: string[] }> = {
+  thinking:  { label: 'Thinking',   color: fg.accent,    frames: spinnerFrames.dots },
+  searching: { label: 'Searching', color: fg.info,      frames: spinnerFrames.arrow },
+  coding:    { label: 'Coding',     color: fg.warning,   frames: spinnerFrames.blocks },
+  analyzing: { label: 'Analyzing', color: fg.mauve,     frames: spinnerFrames.dots },
+  tool:      { label: 'Running',   color: fg.tool,      frames: spinnerFrames.dots },
+  formatting:{ label: 'Formatting', color: fg.success, frames: spinnerFrames.star },
 }
 
-// Character names for random selection
-const THINKING_CHARS = ['dog', 'cat', 'fox', 'rabbit', 'frog']
-const SEARCH_CHARS = ['fish', 'duck', 'bee', 'turtle']
-const CODING_CHARS = ['rabbit', 'butterfly', 'bee', 'frog']
-const ANALYZING_CHARS = ['alien', 'star', 'fire', 'unicorn']
-const TOOL_CHARS = ['cat', 'dog', 'fox', 'rabbit', 'bee']
-const FORMATTING_CHARS = ['star', 'butterfly', 'fire', 'unicorn']
-
-// ── Fun Spinner Class ───────────────────────────────────────────────────────
-
+// ── Clean Spinner Class ───────────────────────────────────────────────────────
 export class FunSpinner {
   private handle: ReturnType<typeof setInterval> | null = null
   private frame = 0
   private started = false
   private label = ''
   private animation: string[] = []
-  private speed = 150
-  private state: AnimationState = 'thinking'
+  private speed = 80
   private color = ''
 
-  /**
-   * Start the spinner with an animated character
-   */
-  start(state: AnimationState = 'thinking', char?: string): void {
+  start(state: AnimationState = 'thinking', customChar?: string): void {
     if (this.handle) this.stop()
 
-    this.state = state
+    const config = STATE_CONFIG[state]
+    this.label = config.label
+    this.animation = config.frames
+    this.speed = 80
+    this.color = config.color
     this.frame = 0
-
-    // Select character
-    const selectedChar = char || this.getRandomChar(state)
-    const anim = ANIMATIONS[selectedChar as keyof typeof ANIMATIONS]
-
-    if (!anim) {
-      // Fallback to default
-      this.animation = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
-      this.speed = 80
-    } else {
-      this.animation = anim.frames
-      this.speed = anim.speed
-    }
-
-    // Set color based on state
-    this.color = this.getColor(state)
-
-    // Set label
-    this.label = this.getLabel(state)
-
     this.started = true
     this.writeFrame()
+
     this.handle = setInterval(() => this.writeFrame(), this.speed)
   }
 
-  /**
-   * Update the spinner with a new state
-   */
   update(state: AnimationState): void {
     if (!this.started) {
       this.start(state)
@@ -258,27 +47,16 @@ export class FunSpinner {
     }
 
     this.frame = 0
-    this.state = state
-    this.color = this.getColor(state)
-    this.label = this.getLabel(state)
+    this.label = STATE_CONFIG[state].label
+    this.color = STATE_CONFIG[state].color
+    this.animation = STATE_CONFIG[state].frames
+    this.speed = 80
 
-    // Get new animation
-    const selectedChar = this.getRandomChar(state)
-    const anim = ANIMATIONS[selectedChar as keyof typeof ANIMATIONS]
-    if (anim) {
-      this.animation = anim.frames
-      this.speed = anim.speed
-    }
-
-    // Restart with new speed
     if (this.handle) clearInterval(this.handle)
     this.writeFrame()
     this.handle = setInterval(() => this.writeFrame(), this.speed)
   }
 
-  /**
-   * Stop the spinner
-   */
   stop(status: 'done' | 'error' | 'skip' = 'done', customLabel?: string): void {
     if (!this.started) return
 
@@ -288,13 +66,11 @@ export class FunSpinner {
     }
     this.started = false
 
-    // Clear the line
     process.stderr.write('\r' + ' '.repeat(60) + '\r')
 
-    // Write status
     if (!isColorEnabled()) {
-      if (status === 'done') console.log(customLabel || this.label + ' ✓')
-      else if (status === 'error') console.log(customLabel || 'Error ✗')
+      if (status === 'done') console.log(customLabel || this.label + ' done')
+      else if (status === 'error') console.log(customLabel || 'Error')
       return
     }
 
@@ -307,120 +83,44 @@ export class FunSpinner {
 
   private writeFrame(): void {
     if (!this.started || !isColorEnabled()) return
-
     this.frame = (this.frame + 1) % this.animation.length
-    const char = this.animation[this.frame]
-
-    // Format: [label] [character] [spinning dots]
-    const dots = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴'][this.frame % 6]
-    process.stderr.write(`\r${s(this.label, this.color)} ${char} ${dots}  `)
-  }
-
-  private getRandomChar(state: AnimationState): string {
-    const chars = this.getCharsForState(state)
-    return chars[Math.floor(Math.random() * chars.length)]
-  }
-
-  private getCharsForState(state: AnimationState): string[] {
-    switch (state) {
-      case 'thinking': return THINKING_CHARS
-      case 'searching': return SEARCH_CHARS
-      case 'coding': return CODING_CHARS
-      case 'analyzing': return ANALYZING_CHARS
-      case 'tool': return TOOL_CHARS
-      case 'formatting': return FORMATTING_CHARS
-      default: return THINKING_CHARS
-    }
-  }
-
-  private getColor(state: AnimationState): string {
-    switch (state) {
-      case 'thinking': return fg.accent
-      case 'searching': return fg.info
-      case 'coding': return fg.warning
-      case 'analyzing': return fg.mauve
-      case 'tool': return fg.tool
-      case 'formatting': return fg.success
-      default: return fg.accent
-    }
-  }
-
-  private getLabel(state: AnimationState): string {
-    switch (state) {
-      case 'thinking': return 'Thinking'
-      case 'searching': return 'Searching'
-      case 'coding': return 'Coding'
-      case 'analyzing': return 'Analyzing'
-      case 'tool': return 'Running tool'
-      case 'formatting': return 'Formatting'
-      default: return 'Loading'
-    }
+    const frame = this.animation[this.frame]
+    process.stderr.write(`\r${s(this.label, this.color)} ${frame}  `)
   }
 }
 
-// Singleton instance
 export const funSpinner = new FunSpinner()
 
-// ── Random Fun Fact Generator ───────────────────────────────────────────────
-
-const FUN_FACTS = [
-  "You can type `/clear` to reset the conversation",
-  "Use Tab for auto-complete!",
-  "↑/↓ navigates your history",
-  "ChatGPT Plus works FREE via OAuth!",
-  "Ollama runs AI locally — no internet needed",
-  "Type `/model gpt-4o` to switch instantly",
-  "Context auto-compacts at 95%",
-  "Try `/provider ollama` for local models",
-  "Use `--theme claude` for warm styling",
-  "beast --defaults auto-selects best option",
-  "51+ tools available — try `/tools`!",
-  "Run `run_python` for inline Python execution",
-  "Use `searxng_search` for web research",
-  "GitHub repos searchable with `/tools`",
-  "Type `/help` anytime for commands",
+// ── Thinking Messages ─────────────────────────────────────────────────────────
+const THINKING_MSGS = [
+  'Thinking...', 'Processing...', 'Computing...', 'Analyzing...',
+  'Working on it...', 'Hold on...', 'Calculating...',
 ]
 
-export function randomFunFact(): string {
-  const fact = FUN_FACTS[Math.floor(Math.random() * FUN_FACTS.length)]
-  return `${s('💡 Fun tip:', fg.warning)} ${s(fact, fg.secondary)}`
-}
-
-// ── Animated Progress Messages ──────────────────────────────────────────────
-
 export function thinkingMessage(): string {
-  const messages = [
-    'Consulting the oracle...',
-    'Consulting the neural network...',
-    'Invoking the AI...',
-    'Querying the model...',
-    'Processing your request...',
-    'Computing response...',
-    'Decoding your message...',
-    'Processing...',
-  ]
-  const msg = messages[Math.floor(Math.random() * messages.length)]
+  const msg = THINKING_MSGS[Math.floor(Math.random() * THINKING_MSGS.length)]
   return s(msg, fg.secondary)
 }
 
+// ── Status Messages ───────────────────────────────────────────────────────────
 export function toolRunningMessage(toolName: string): string {
-  const msgs = [
-    `Executing ${toolName}...`,
-    `Running ${toolName}...`,
-    `Calling ${toolName}...`,
-    `${toolName} in progress...`,
-  ]
-  return msgs[Math.floor(Math.random() * msgs.length)]
+  return s(`${toolName}...`, fg.tool)
 }
 
-// ── ASCII Art Helper ────────────────────────────────────────────────────────
+export function statusMessage(msg: string, type: 'info' | 'success' | 'warning' | 'error'): string {
+  const color = type === 'info' ? fg.info : type === 'success' ? fg.success : type === 'warning' ? fg.warning : fg.error
+  const icon = type === 'info' ? 'i' : type === 'success' ? '✓' : type === 'warning' ? '!' : '✗'
+  return `${s(icon, color)} ${s(msg, color)}`
+}
 
+// ── ASCII Art ─────────────────────────────────────────────────────────────────
 export function asciiBeast(): string {
+  if (!isColorEnabled()) return 'BEAST CLI'
   return `
-${s('    ╔═══════════════════════════════════╗', fg.accent)}
-${s('    ║  🐉 BEAST CLI v1.2.8                ║', fg.accent)}
-${s('    ║  AI Coding Agent                   ║', fg.secondary)}
-${s('    ╚═══════════════════════════════════╝', fg.accent)}
+${s('  ╔════════════════════════════════╗', fg.accent)}
+${s('  ║  BEAST CLI v1.2.14              ║', fg.accent)}
+${s('  ║  AI Coding Agent                ║', fg.secondary)}
+${s('  ╚════════════════════════════════╝', fg.accent)}
 `
 }
 
@@ -432,28 +132,40 @@ export function errorAscii(): string {
   return s('✗', fg.error)
 }
 
-// ── Colorful Status Messages ────────────────────────────────────────────────
-
-export function statusMessage(msg: string, type: 'info' | 'success' | 'warning' | 'error'): string {
-  const color = type === 'info' ? fg.info : type === 'success' ? fg.success : type === 'warning' ? fg.warning : fg.error
-  const icon = type === 'info' ? 'ℹ' : type === 'success' ? '✓' : type === 'warning' ? '⚠' : '✗'
-  return `${s(icon, color)} ${s(msg, color)}`
-}
-
-// ── Debug/Verbose Helpers ────────────────────────────────────────────────────
-
+// ── Debug Helpers ─────────────────────────────────────────────────────────────
 export function debug(msg: string): string {
-  return s(`[DEBUG] ${msg}`, fg.muted)
+  return s(`[debug] ${msg}`, fg.muted)
 }
 
 export function info(msg: string): string {
-  return s(`[INFO] ${msg}`, fg.info)
+  return s(`[info] ${msg}`, fg.info)
 }
 
 export function warn(msg: string): string {
-  return s(`[WARN] ${msg}`, fg.warning)
+  return s(`[warn] ${msg}`, fg.warning)
 }
 
 export function error(msg: string): string {
-  return s(`[ERROR] ${msg}`, fg.error)
+  return s(`[error] ${msg}`, fg.error)
+}
+
+// ── Fun Facts (cleaned up) ────────────────────────────────────────────────────
+const FUN_FACTS = [
+  'Type /clear to reset the conversation',
+  'Use Tab for auto-complete',
+  'Up/Down arrows navigate your history',
+  'ChatGPT Plus works free via OAuth',
+  'Ollama runs AI locally — no internet needed',
+  'Type /model gpt-4o to switch instantly',
+  'Context auto-compacts at 95%',
+  'Try /provider ollama for local models',
+  'Use --theme claude for warm styling',
+  'beast --defaults auto-selects the best option',
+  '51+ tools available — try /tools',
+  'Type /help anytime for command reference',
+]
+
+export function randomFunFact(): string {
+  const fact = FUN_FACTS[Math.floor(Math.random() * FUN_FACTS.length)]
+  return `${s('💡', fg.warning)} ${s(fact, fg.secondary)}`
 }

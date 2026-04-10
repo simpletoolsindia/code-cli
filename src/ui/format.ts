@@ -1,10 +1,14 @@
-// Beast CLI - Output Formatters
-// Structured output: boxes, tables, panels, cards
+// Beast CLI - Output Formatters (Clean)
+// Structured output: panels, tables, cards, badges
 
-import { s, c, fg, bg, box, bold, italic } from './colors.ts'
+import { s, fg, bg, box, bold, italic, isColorEnabled } from './colors.ts'
 
-// ── Box Drawing ────────────────────────────────────────────────────────────────
+// ── ANSI Strip Utility ───────────────────────────────────────────────────────
+export function stripAnsi(text: string): string {
+  return text.replace(/\x1b\[[0-9;]*m/g, '')
+}
 
+// ── Box Drawing ───────────────────────────────────────────────────────────────
 export function drawBox(content: string, options: {
   style?: 'single' | 'round' | 'heavy'
   title?: string
@@ -18,20 +22,19 @@ export function drawBox(content: string, options: {
 
   const lines = content.split('\n')
   const topLine = title
-    ? `${b.tl}${b.h.repeat(2)}${title}${b.h.repeat(width - title.length - 2)}${b.tr}`
+    ? `${b.tl}${b.h.repeat(2)}${title}${b.h.repeat(Math.max(0, width - title.length - 2))}${b.tr}`
     : `${b.tl}${b.h.repeat(width)}${b.tr}`
   const bottomLine = `${b.bl}${b.h.repeat(width)}${b.br}`
 
   let result = s(topLine, color) + '\n'
   for (const line of lines) {
-    result += `${c.v}${pad}${line}${' '.repeat(Math.max(0, width - line.length - padding * 2))}${pad}${c.v}\n`
+    result += `${b.v}${pad}${line}${' '.repeat(Math.max(0, width - stripAnsi(line).length - padding * 2))}${pad}${b.v}\n`
   }
   result += s(bottomLine, color)
   return result
 }
 
-// ── Panel (Bordered Container) ───────────────────────────────────────────────
-
+// ── Panel ─────────────────────────────────────────────────────────────────────
 export function panel(content: string, options: {
   title?: string
   titleColor?: string
@@ -40,7 +43,6 @@ export function panel(content: string, options: {
   const { title, titleColor = fg.accent, width = 70 } = options
   const b = box.round
 
-  // Simple split on newlines
   const rawLines = content.split('\n')
   const maxLen = rawLines.reduce((m, l) => Math.max(m, stripAnsi(l).length), 0)
   const w = Math.max(width, maxLen + 4)
@@ -65,8 +67,7 @@ export function panel(content: string, options: {
   return s(result, titleColor)
 }
 
-// ── Table Renderer ───────────────────────────────────────────────────────────
-
+// ── Table Renderer ─────────────────────────────────────────────────────────────
 interface TableColumn {
   header: string
   width: number
@@ -81,14 +82,11 @@ export function renderTable(columns: TableColumn[], rows: TableRow[], options: {
   maxWidth?: number
   style?: 'single' | 'round'
 } = {}): string {
-  const { maxWidth = 100, style = 'single' } = options
+  const { style = 'single' } = options
   const b = box[style]
 
-  // Calculate widths if auto
   const colWidths = columns.map(c => c.width)
-  const totalWidth = colWidths.reduce((a, b) => a + b, 0) + colWidths.length + 1
 
-  // Build header
   let headerLine = b.v
   let sepLine = b.v
   columns.forEach((col, i) => {
@@ -98,7 +96,6 @@ export function renderTable(columns: TableColumn[], rows: TableRow[], options: {
   })
   headerLine += '\n' + sepLine + '\n'
 
-  // Build rows
   let bodyLines = ''
   for (const row of rows) {
     let rowLine = b.v
@@ -109,7 +106,6 @@ export function renderTable(columns: TableColumn[], rows: TableRow[], options: {
     bodyLines += rowLine + '\n'
   }
 
-  // Top/bottom
   const topLine = b.tl + colWidths.map(w => b.h.repeat(w + 2)).join(b.h) + b.tr + '\n'
   const botLine = b.bl + colWidths.map(w => b.h.repeat(w + 2)).join(b.h) + b.br
 
@@ -117,7 +113,6 @@ export function renderTable(columns: TableColumn[], rows: TableRow[], options: {
 }
 
 // ── Inline List ───────────────────────────────────────────────────────────────
-
 export function inlineList(items: Array<{ icon?: string; label: string; value: string }>, options: {
   iconColor?: string
   labelColor?: string
@@ -131,8 +126,7 @@ export function inlineList(items: Array<{ icon?: string; label: string; value: s
   }).join(separator)
 }
 
-// ── Key-Value List ───────────────────────────────────────────────────────────
-
+// ── Key-Value List ─────────────────────────────────────────────────────────────
 export function kvList(items: Array<{ key: string; value: string }>, options: {
   keyWidth?: number
   indent?: number
@@ -145,7 +139,6 @@ export function kvList(items: Array<{ key: string; value: string }>, options: {
 }
 
 // ── Tool Result Card ─────────────────────────────────────────────────────────
-
 export function toolCard(name: string, result: string, options: {
   maxLines?: number
   maxWidth?: number
@@ -153,27 +146,29 @@ export function toolCard(name: string, result: string, options: {
 } = {}): string {
   const { maxLines = 8, maxWidth = 80, collapsed = false } = options
 
-  const header = `${s(icon.tool, fg.tool)} ${s(name, fg.tool, bold)}`
+  const header = `${s('› ', fg.tool)}${s(name, fg.tool, bold)}`
   const lines = result.split('\n').slice(0, maxLines)
   const truncated = result.split('\n').length > maxLines
   const content = lines.join('\n') + (truncated ? '\n...' : '')
 
-  return `${header}\n${s('┌' + '─'.repeat(Math.min(maxWidth - 2, stripAnsi(content.split('\n')[0]).length + 4)) + '┐', fg.muted)}\n` +
+  const lineW = Math.min(maxWidth - 2, stripAnsi(content.split('\n')[0]).length + 4)
+  return `${header}\n${s('┌' + '─'.repeat(lineW) + '┐', fg.muted)}\n` +
     lines.map(l => `  ${l}`).join('\n') + '\n' +
-    s('└' + '─'.repeat(Math.min(maxWidth - 2, stripAnsi(lines[lines.length - 1]).length + 4)) + '┘', fg.muted)
+    s('└' + '─'.repeat(lineW) + '┘', fg.muted)
 }
 
-// ── Markdown Code Block ───────────────────────────────────────────────────────
-
+// ── Code Block ────────────────────────────────────────────────────────────────
 export function codeBlock(code: string, language?: string): string {
   const lang = language ? s(` ${language} `, fg.muted, italic) : ''
-  return s('┌', fg.cyan) + '─'.repeat(50) + lang + s('┐', fg.cyan) + '\n' +
-    code.split('\n').map(l => s('│', fg.cyan) + ' ' + s(l, fg.code) + ' '.repeat(Math.max(0, 48 - l.length)) + s('│', fg.cyan)).join('\n') + '\n' +
-    s('└', fg.cyan) + '─'.repeat(50) + '─'.repeat(stripAnsi(lang)) + s('┘', fg.cyan)
+  const w = 50
+  return s('┌', fg.cyan) + '─'.repeat(w) + lang + s('┐', fg.cyan) + '\n' +
+    code.split('\n').map(l =>
+      s('│', fg.cyan) + ' ' + s(l, fg.code) + ' '.repeat(Math.max(0, w - l.length)) + s('│', fg.cyan)
+    ).join('\n') + '\n' +
+    s('└', fg.cyan) + '─'.repeat(w) + '─'.repeat(stripAnsi(lang).length) + s('┘', fg.cyan)
 }
 
-// ── Status Badge ─────────────────────────────────────────────────────────────
-
+// ── Badge ─────────────────────────────────────────────────────────────────────
 export function badge(text: string, variant: 'success' | 'error' | 'warning' | 'info' | 'muted' = 'muted'): string {
   const colors: Record<string, string> = {
     success: fg.success,
@@ -182,20 +177,17 @@ export function badge(text: string, variant: 'success' | 'error' | 'warning' | '
     info: fg.info,
     muted: fg.muted,
   }
-  const color = colors[variant]
-  return s('[' + text + ']', color)
+  return s('[' + text + ']', colors[variant])
 }
 
-// ── Progress Bar ────────────────────────────────────────────────────────────
-
+// ── Progress Bar ─────────────────────────────────────────────────────────────
 export function progressBar(current: number, total: number, width = 30): string {
   const filled = Math.round((current / total) * width)
   const empty = width - filled
   return s('█'.repeat(filled), fg.success) + s('░'.repeat(empty), fg.muted)
 }
 
-// ── Download / Loading Progress ──────────────────────────────────────────────
-
+// ── Loading Progress ───────────────────────────────────────────────────────────
 export interface ProgressState {
   label: string
   current: number
@@ -220,7 +212,7 @@ export function renderProgress(state: ProgressState): string {
   return `${labelStr} ${bar} ${pctStr}`
 }
 
-// Animated progress bar that runs while a promise resolves
+// Animated progress bar for async operations
 export async function withProgress<T>(
   label: string,
   promise: Promise<T>,
@@ -231,13 +223,12 @@ export async function withProgress<T>(
 
   const ticker = setInterval(() => {
     const elapsed = Date.now() - start
-    const estimated = Math.min(1, elapsed / 10000) // assume 10s max
+    const estimated = Math.min(1, elapsed / 10000)
     ticks++
     const pct = Math.round(estimated * 100)
     const filled = Math.round(estimated * 24)
     const barColor = pct > 80 ? fg.warning : pct > 50 ? fg.accent : fg.success
     const bar = s('█'.repeat(filled), barColor) + s('░'.repeat(24 - filled), fg.muted)
-    // Single-line update via stderr
     process.stderr.write(`\r  ${s(label, fg.secondary)} ${bar} ${s(pct + '%', barColor)}   `)
     if (onTick) onTick(elapsed)
   }, 300)
@@ -245,7 +236,6 @@ export async function withProgress<T>(
   try {
     const result = await promise
     clearInterval(ticker)
-    // Clear the line
     process.stderr.write('\r' + ' '.repeat(60) + '\r')
     process.stderr.write(s('✓ ', fg.success) + s(label, fg.secondary) + '\n')
     return result
@@ -258,7 +248,6 @@ export async function withProgress<T>(
 }
 
 // ── Help Panel ────────────────────────────────────────────────────────────────
-
 export function helpPanel(commands: Array<{ cmd: string; desc: string; shortcut?: string }>): string {
   const maxCmd = Math.max(...commands.map(c => stripAnsi(c.cmd).length), 4)
   return commands.map(({ cmd, desc, shortcut }) => {
@@ -267,37 +256,33 @@ export function helpPanel(commands: Array<{ cmd: string; desc: string; shortcut?
   }).join('\n')
 }
 
-// ── ANSI Strip Utility ──────────────────────────────────────────────────────
-
-export function stripAnsi(text: string): string {
-  return text.replace(/\x1b\[[0-9;]*m/g, '')
-}
-
-// ── Truncate with Ellipsis ───────────────────────────────────────────────────
-
+// ── Truncate ─────────────────────────────────────────────────────────────────
 export function truncate(text: string, maxWidth: number): string {
   const stripped = stripAnsi(text)
   if (stripped.length <= maxWidth) return text
   return text.slice(0, maxWidth - 3) + '...'
 }
 
-// ── Conversation Turn ────────────────────────────────────────────────────────
-
+// ── Conversation Turn (Clean — like Gemini CLI) ───────────────────────────────
+// User: "> message"  |  Assistant: "🤖 message"  |  Tool: "🔧 tool_name"
 export function conversationTurn(role: 'user' | 'assistant' | 'tool', content: string): string {
+  if (role === 'user') {
+    return `${s('› ', fg.green)}${s(content, fg.primary)}`
+  }
+
+  // Assistant and tool use panel with clean prefix
   const icons: Record<string, string> = {
-    user: s(icon.prompt, fg.user),
-    assistant: '🤖',
-    tool: s(icon.tool, fg.tool),
+    assistant: s('🤖', fg.mauve),
+    tool: s('🔧', fg.tool),
   }
   const colors: Record<string, string> = {
-    user: fg.user,
     assistant: fg.assistant,
     tool: fg.tool,
   }
 
-  if (role === 'user') {
-    return `${icons.user} ${s(content, fg.primary)}`
-  }
-
-  return `\n${panel(content, { title: icons[role] + ' Response', titleColor: colors[role], width: 70 })}\n`
+  return `\n${panel(content, {
+    title: `${icons[role]} ${role.charAt(0).toUpperCase() + role.slice(1)}`,
+    titleColor: colors[role],
+    width: 70,
+  })}\n`
 }

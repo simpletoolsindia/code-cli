@@ -1,10 +1,9 @@
-// Beast CLI - UI Layout Components
-// Modern terminal UI with Catppuccin theme
+// Beast CLI - UI Layout Components (Clean)
+// Modern terminal UI — clean headers, footers, status bars
 
 import { s, fg, icon, box, bold, dim, progress, isColorEnabled } from './colors.ts'
 
-// ── Header Components ───────────────────────────────────────────────────────
-
+// ── Header ────────────────────────────────────────────────────────────────────
 export interface HeaderConfig {
   version: string
   provider: string
@@ -12,75 +11,66 @@ export interface HeaderConfig {
   toolsCount: number
 }
 
-/**
- * Full header with stats and branding
- * Pattern: [Logo] [Version] │ [Provider] │ [Model] │ [Tools]
- */
+// Full header: [Logo] [Version] | [Provider] | [Model] | [Tools]
 export function renderHeader(config: HeaderConfig): string {
   if (!isColorEnabled()) {
-    return `Beast CLI v${config.version} | ${config.provider} | ${config.model}`
+    return `BEAST CLI v${config.version} | ${config.provider} | ${config.model}`
   }
 
   const { version, provider, model, toolsCount } = config
   const b = box.round
+  const gpPurple = '\x1b[38;2;142;54;255m'
+  const gpBlue = '\x1b[38;2;70;130;255m'
 
   const line = [
-    s(`${b.tl} `, fg.accent),
-    s(icon.spark, fg.accent),
-    s(' Beast CLI ', fg.accent, bold),
-    s(`v${version}`, fg.muted),
-    s(` ${b.h} ${b.h} ${b.tr}`, fg.accent),
-    s(` ${b.v} `, fg.muted),
+    s(`${b.tl} `, gpPurple),
+    s('🐉', gpPurple),
+    s(' Beast ', gpPurple, bold),
+    s('CLI', gpBlue, bold),
+    s(` v${version}`, fg.muted),
+    s(` ${b.h} `, gpPurple),
     s(icon.check + ' ', fg.success),
     s(provider, fg.success),
-    s(` ${b.v} `, fg.muted),
-    s(icon.code + ' ', fg.blue),
-    s(model, fg.blue),
-    s(` ${b.v} `, fg.muted),
+    s(` ${b.h} `, gpPurple),
+    s(icon.code + ' ', gpBlue),
+    s(model, gpBlue),
+    s(` ${b.h} `, gpPurple),
     s(icon.tool + ' ', fg.peach),
     s(`${toolsCount} tools`, fg.peach),
-    s(` ${b.h} ${b.h}${b.tr}`, fg.accent),
+    s(` ${b.h}${b.tr}`, gpPurple),
   ].join('')
 
-  const width = Math.min(80, stripAnsi(line).length + 4)
-  const sep = s(` ${b.h} `.repeat(Math.floor(width / 2)).slice(0, width), fg.accent)
-
-  return `${line}\n${s(b.bl, fg.accent)}${sep}${s(b.br, fg.accent)}`
+  return line
 }
 
-/**
- * Compact single-line header
- */
+// Compact single-line header
 export function renderCompactHeader(config: HeaderConfig): string {
   if (!isColorEnabled()) {
-    return `Beast CLI v${config.version} | ${config.provider}`
+    return `BEAST CLI v${config.version} | ${config.provider}`
   }
 
   const { version, provider, model } = config
+  const gpPurple = '\x1b[38;2;142;54;255m'
+  const gpBlue = '\x1b[38;2;70;130;255m'
   return [
-    s(icon.spark, fg.accent),
-    s(' Beast CLI ', fg.accent, bold),
-    s(`v${version}`, fg.muted),
-    s(' │ ', fg.overlay),
-    s(icon.check, fg.success),
-    s(' ' + provider, fg.success),
-    s(' │ ', fg.overlay),
-    s(icon.code, fg.blue),
-    s(' ' + model, fg.blue),
+    s('🐉', gpPurple),
+    s(' BEAST ', gpPurple, bold),
+    s('CLI', gpBlue, bold),
+    s(` v${version}`, fg.muted),
+    s(' · ', fg.overlay),
+    s(provider, fg.green),
+    s(' · ', fg.overlay),
+    s(model, gpBlue),
   ].join('')
 }
 
 // ── Context Usage Bar ─────────────────────────────────────────────────────────
-
 export interface ContextStats {
-  used: number       // tokens used in current conversation
-  max: number        // max context window in tokens
+  used: number
+  max: number
 }
 
-/**
- * Progress bar showing context window usage
- * Uses Catppuccin colors: green < 75%, yellow < 90%, red > 90%
- */
+// Clean context bar: [▓▓▓▓░░░░░░░░░] 45% (18K / 32K)
 export function contextBar(stats: ContextStats): string {
   const { used, max } = stats
   const width = 16
@@ -88,12 +78,11 @@ export function contextBar(stats: ContextStats): string {
   const filled = Math.round(pct * width)
   const empty = width - filled
 
-  // Color based on usage level (Catppuccin semantic colors)
-  let barColor = fg.success   // green - healthy
-  if (pct > 0.75) barColor = fg.warning  // yellow - warning
-  if (pct > 0.90) barColor = fg.error   // red - critical
+  let barColor = fg.success
+  if (pct > 0.75) barColor = fg.warning
+  if (pct > 0.90) barColor = fg.error
 
-  const bar = s(progress.filled.repeat(filled), barColor) + s(progress.empty.repeat(empty), fg.overlay)
+  const bar = s('█'.repeat(filled), barColor) + s('░'.repeat(empty), fg.overlay)
   const pctStr = s(`${Math.round(pct * 100)}%`, barColor)
   const usedStr = s(formatTokens(used), fg.muted)
   const maxStr = s(formatTokens(max), fg.muted)
@@ -112,16 +101,13 @@ export function contextBar(stats: ContextStats): string {
 }
 
 // ── Token Counter ─────────────────────────────────────────────────────────────
-
 export interface TokenStats {
   prompt: number
   completion: number
   total: number
 }
 
-/**
- * Compact token display
- */
+// Compact: ⚡ 1,234 tokens (p: 500  c: 734)
 export function tokenDisplay(stats: TokenStats): string {
   if (!isColorEnabled()) {
     return `${stats.total} tokens (p:${stats.prompt} c:${stats.completion})`
@@ -139,8 +125,7 @@ export function tokenDisplay(stats: TokenStats): string {
   ].join('')
 }
 
-// ── Status Footer ────────────────────────────────────────────────────────────
-
+// ── Footer ─────────────────────────────────────────────────────────────────────
 export interface FooterStats {
   messages: number
   tokens: number
@@ -149,10 +134,7 @@ export interface FooterStats {
   contextUsed?: number
 }
 
-/**
- * Footer with stats and keyboard shortcuts
- * Pattern: [Stats] [Separator] [Shortcuts]
- */
+// Footer: [messages] · [tokens] · [time] · [context]   [/help] · [/tools] · [/exit] · [↑↓ history]
 export function renderFooter(stats: FooterStats): string {
   if (!isColorEnabled()) {
     const parts = [`${stats.messages} msgs`, `${stats.tokens} tokens`]
@@ -163,7 +145,6 @@ export function renderFooter(stats: FooterStats): string {
   const { messages, tokens, duration, contextMax = 32, contextUsed = 0 } = stats
 
   const parts: string[] = []
-
   parts.push(s(icon.messages + ' ' + messages, fg.muted))
   parts.push(s(icon.tokens + ' ' + formatTokens(tokens), fg.muted))
   if (duration) {
@@ -171,23 +152,21 @@ export function renderFooter(stats: FooterStats): string {
   }
   parts.push(s(icon.context + ' ' + contextMax + 'K', fg.muted))
 
-  // Keyboard shortcuts with colors
   const shortcuts = [
-    s('/help', fg.mauve),
-    s('/tools', fg.mauve),
-    s('/clear', fg.mauve),
-    s('/exit', fg.mauve),
+    s('/help', fg.accent),
+    s('/tools', fg.accent),
+    s('/clear', fg.accent),
+    s('/exit', fg.accent),
     s('↑↓', fg.blue),
     s('history', fg.overlay),
   ]
 
   const topLine = parts.join(s(' · ', fg.overlay))
   const bottomLine = shortcuts.join(s(' · ', fg.overlay))
-  const sep = s(bold.substring(0, 3) + '─'.repeat(55), fg.overlay)
+  const sep = s('─'.repeat(55), fg.overlay)
 
   let output = `${topLine}\n${sep}\n  ${bottomLine}`
 
-  // Add context bar if we have usage data
   if (contextUsed > 0) {
     const ctxTokens = contextMax * 1024
     output += '\n' + contextBar({ used: contextUsed, max: ctxTokens })
@@ -196,39 +175,32 @@ export function renderFooter(stats: FooterStats): string {
   return output
 }
 
-// ── Session Info Bar ─────────────────────────────────────────────────────────
-
-/**
-
-Session bar showing current provider, model, and tool count */
+// ── Session Info Bar ──────────────────────────────────────────────────────────
 export function sessionBar(provider: string, model: string, toolsCount: number): string {
   if (!isColorEnabled()) {
     return `${provider} | ${model} | ${toolsCount} tools`
   }
 
+  const gpPurple = '\x1b[38;2;142;54;255m'
   return [
-    s(icon.spark, fg.mauve),
+    s('🐉', gpPurple),
     s(' ' + provider, fg.green),
-    s(' │ ', fg.overlay),
+    s(' · ', fg.overlay),
     s(icon.code, fg.blue),
     s(' ' + model, fg.blue),
-    s(' │ ', fg.overlay),
+    s(' · ', fg.overlay),
     s(icon.tool, fg.peach),
     s(' ' + toolsCount, fg.peach),
   ].join('')
 }
 
-// ── Tool Result Panel ────────────────────────────────────────────────────────
-
+// ── Tool Panel ────────────────────────────────────────────────────────────────
 export interface ToolPanelOptions {
   title?: string
   titleColor?: string
   width?: number
 }
 
-/**
- * Panel wrapper for tool output
- */
 export function toolPanel(content: string, opts: ToolPanelOptions = {}): string {
   if (!isColorEnabled()) return content
 
@@ -243,19 +215,15 @@ export function toolPanel(content: string, opts: ToolPanelOptions = {}): string 
   return `${top}\n${middle}\n${bottom}`
 }
 
-// ── Message Bubble ───────────────────────────────────────────────────────────
-
+// ── Message Bubble (Clean — "> " prefix style) ────────────────────────────────
 export interface MessageBubbleOptions {
   role: 'user' | 'assistant' | 'system'
   timestamp?: Date
 }
 
-/**
- * Styled message bubble
- */
 export function messageBubble(content: string, opts: MessageBubbleOptions): string {
   if (!isColorEnabled()) {
-    const prefix = opts.role === 'user' ? '> ' : opts.role === 'assistant' ? '◈ ' : '⚙ '
+    const prefix = opts.role === 'user' ? '> ' : opts.role === 'assistant' ? '◈ ' : '› '
     return prefix + content
   }
 
@@ -265,35 +233,26 @@ export function messageBubble(content: string, opts: MessageBubbleOptions): stri
 
   if (role === 'user') {
     color = fg.green
-    prefix = icon.arrow + ' '
+    prefix = icon.userPrefix + ' '
   } else if (role === 'assistant') {
     color = fg.mauve
-    prefix = icon.sparkles + ' '
+    prefix = icon.aiPrefix + ' '
   } else {
     color = fg.sapphire
-    prefix = icon.info + ' '
+    prefix = icon.tool + ' '
   }
 
   return s(prefix, color) + s(content, fg.primary)
 }
 
-// ── Helpers ─────────────────────────────────────────────────────────────────
-
+// ── Helpers ────────────────────────────────────────────────────────────────────
 function formatTokens(n: number): string {
-  if (n >= 1000) {
-    return (n / 1000).toFixed(1) + 'K'
-  }
+  if (n >= 1000) return (n / 1000).toFixed(1) + 'K'
   return String(n)
 }
 
 function formatDuration(ms: number): string {
   const sec = Math.floor(ms / 1000)
-  if (sec >= 60) {
-    return Math.floor(sec / 60) + 'm ' + (sec % 60) + 's'
-  }
+  if (sec >= 60) return Math.floor(sec / 60) + 'm ' + (sec % 60) + 's'
   return sec + 's'
-}
-
-function stripAnsi(text: string): string {
-  return text.replace(/\x1b\[[0-9;]*m/g, '')
 }
