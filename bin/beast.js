@@ -1318,281 +1318,7 @@ var init_providers = __esm(() => {
   };
 });
 
-// src/native-tools/search.ts
-var exports_search = {};
-__export(exports_search, {
-  searxngSearch: () => searxngSearch,
-  searxngHealth: () => searxngHealth,
-  searchNews: () => searchNews,
-  searchImages: () => searchImages,
-  hackernewsTop: () => hackernewsTop,
-  hackernewsNew: () => hackernewsNew,
-  hackernewsComments: () => hackernewsComments,
-  hackernewsBest: () => hackernewsBest
-});
-async function searxngSearch(query, limit = 10, categories, engines, timeRange) {
-  try {
-    const params = new URLSearchParams({
-      q: query,
-      format: "json",
-      engines: engines?.join(",") || "",
-      categories: categories || "general",
-      pageno: "1",
-      ...timeRange ? { time_range: timeRange } : {}
-    });
-    const response = await fetch(`${SEARX_URL}/search?${params}`, {
-      headers: {
-        "User-Agent": "BeastCLI/1.0",
-        Accept: "application/json"
-      },
-      signal: AbortSignal.timeout(15000)
-    });
-    if (!response.ok) {
-      return { success: false, error: `Search failed: ${response.status}` };
-    }
-    const data = await response.json();
-    const results = [];
-    for (const r of (data.results || []).slice(0, limit)) {
-      results.push({
-        title: r.title || "",
-        url: r.url || r.link || "",
-        snippet: r.content || r.snippet || "",
-        engine: r.engine || "",
-        published: r.published || ""
-      });
-    }
-    return { success: true, results };
-  } catch (e) {
-    return { success: false, error: e.message };
-  }
-}
-async function searchImages(query, limit = 10) {
-  return searxngSearch(query, limit, "images");
-}
-async function searchNews(query, timeRange) {
-  return searxngSearch(query, 10, "news", undefined, timeRange);
-}
-async function searxngHealth() {
-  try {
-    const response = await fetch(`${SEARX_URL}/health`, {
-      signal: AbortSignal.timeout(5000)
-    });
-    return { success: response.ok };
-  } catch (e) {
-    return { success: false, error: e.message };
-  }
-}
-async function hackernewsTop(limit = 10) {
-  return hackernewsFetch("topstories", limit);
-}
-async function hackernewsNew(limit = 10) {
-  return hackernewsFetch("newstories", limit);
-}
-async function hackernewsBest(limit = 10) {
-  return hackernewsFetch("beststories", limit);
-}
-async function hackernewsComments(storyId, limit = 20) {
-  try {
-    const storyRes = await fetch(`https://hacker-news.firebaseio.com/v0/item/${storyId}.json`);
-    if (!storyRes.ok)
-      return { success: false, error: "Story not found" };
-    const story = await storyRes.json();
-    const comments = [];
-    if (story.kids) {
-      for (const kid of story.kids.slice(0, limit)) {
-        const commentRes = await fetch(`https://hacker-news.firebaseio.com/v0/item/${kid}.json`);
-        if (commentRes.ok) {
-          const comment = await commentRes.json();
-          comments.push({
-            title: comment.text || "",
-            url: `https://news.ycombinator.com/item?id=${kid}`,
-            snippet: (comment.text || "").slice(0, 300)
-          });
-        }
-      }
-    }
-    return {
-      success: true,
-      results: [
-        {
-          title: story.title || "",
-          url: story.url || `https://news.ycombinator.com/item?id=${storyId}`,
-          snippet: `${story.score || 0} points | ${story.descendants || 0} comments`
-        },
-        ...comments.map((c2) => ({ title: c2.title, url: c2.url, snippet: c2.snippet }))
-      ]
-    };
-  } catch (e) {
-    return { success: false, error: e.message };
-  }
-}
-async function hackernewsFetch(endpoint, limit) {
-  try {
-    const idsRes = await fetch(`https://hacker-news.firebaseio.com/v0/${endpoint}.json`);
-    if (!idsRes.ok)
-      return { success: false, error: "Failed to fetch stories" };
-    const ids = await idsRes.json();
-    const results = [];
-    for (const id of ids.slice(0, limit)) {
-      const itemRes = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`);
-      if (itemRes.ok) {
-        const item = await itemRes.json();
-        if (item && item.type === "story") {
-          results.push({
-            title: item.title || "",
-            url: item.url || `https://news.ycombinator.com/item?id=${id}`,
-            snippet: `${item.score || 0} points | ${item.descendants || 0} comments | by ${item.by || "unknown"}`
-          });
-        }
-      }
-    }
-    return { success: true, results };
-  } catch (e) {
-    return { success: false, error: e.message };
-  }
-}
-var SEARX_URL;
-var init_search = __esm(() => {
-  SEARX_URL = process.env.SEARX_URL || "https://search.sridharhomelab.in";
-});
-
-// src/index.ts
-init_providers();
-
 // src/ui/colors.ts
-var reset = "\x1B[0m";
-var bold = "\x1B[1m";
-var dim = "\x1B[2m";
-var claudePalette = {
-  crust: "\x1B[48;2;250;249;245m",
-  mantle: "\x1B[48;2;245;244;237m",
-  base: "\x1B[48;2;240;238;220m",
-  surface0: "\x1B[48;2;232;230;220m",
-  surface1: "\x1B[48;2;215;213;200m",
-  surface2: "\x1B[48;2;180;178;170m",
-  text: "\x1B[38;2;20;20;19m",
-  subtext0: "\x1B[38;2;80;79;75m",
-  subtext1: "\x1B[38;2;50;49;46m",
-  overlay0: "\x1B[38;2;140;138;130m",
-  blue: "\x1B[38;2;56;152;236m",
-  sapphire: "\x1B[38;2;56;152;236m",
-  sky: "\x1B[38;2;100;170;210m",
-  teal: "\x1B[38;2;23;146;153m",
-  green: "\x1B[38;2;30;160;80m",
-  yellow: "\x1B[38;2;200;140;0m",
-  peach: "\x1B[38;2;201;130;70m",
-  maroon: "\x1B[38;2;160;100;90m",
-  red: "\x1B[38;2;200;60;60m",
-  mauve: "\x1B[38;2;180;80;200m",
-  pink: "\x1B[38;2;200;100;180m",
-  flamingo: "\x1B[38;2;220;150;130m",
-  lavender: "\x1B[38;2;139;92;246m",
-  white: "\x1B[38;2;255;255;250m",
-  gpPurple: "\x1B[38;2;142;54;255m",
-  gpBlue: "\x1B[38;2;70;130;255m",
-  gpCyan: "\x1B[38;2;0;200;200m",
-  gpGreen: "\x1B[38;2;0;200;100m",
-  gpYellow: "\x1B[38;2;255;200;0m",
-  gpRed: "\x1B[38;2;255;100;100m"
-};
-var fg = {
-  primary: claudePalette.text,
-  secondary: claudePalette.subtext1,
-  muted: claudePalette.overlay0,
-  overlay: claudePalette.surface2,
-  success: claudePalette.green,
-  warning: claudePalette.yellow,
-  error: claudePalette.red,
-  info: claudePalette.blue,
-  user: claudePalette.green,
-  assistant: claudePalette.mauve,
-  system: claudePalette.sapphire,
-  tool: claudePalette.peach,
-  code: claudePalette.teal,
-  link: claudePalette.sapphire,
-  keyword: claudePalette.mauve,
-  function: claudePalette.blue,
-  string: claudePalette.green,
-  number: claudePalette.peach,
-  accent: claudePalette.gpPurple,
-  accent2: claudePalette.pink,
-  accent3: claudePalette.lavender,
-  peach: claudePalette.peach,
-  mauve: claudePalette.mauve,
-  cyan: claudePalette.teal,
-  purple: claudePalette.gpPurple,
-  prompt: claudePalette.gpPurple,
-  gpPurple: claudePalette.gpPurple,
-  gpBlue: claudePalette.gpBlue,
-  gpCyan: claudePalette.gpCyan,
-  gpGreen: claudePalette.gpGreen,
-  gpYellow: claudePalette.gpYellow,
-  gpRed: claudePalette.gpRed
-};
-var bg = {
-  base: claudePalette.base,
-  surface: claudePalette.surface0,
-  elevated: claudePalette.surface1,
-  overlay: claudePalette.surface2,
-  crust: claudePalette.crust,
-  mantle: claudePalette.mantle
-};
-var spinnerFrames = {
-  dots: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"],
-  line: ["-", "\\", "|", "/"],
-  blocks: ["▖", "▘", "▝", "▗"],
-  arrow: ["←", "↙", "↓", "↘", "→", "↗", "↑", "↖"],
-  star: ["⋆", "✦", "✧", "⋆", "✧", "✦"]
-};
-var DEFAULT_SPINNER = spinnerFrames.dots;
-var icon = {
-  prompt: "›",
-  userPrefix: ">",
-  aiPrefix: "◈",
-  success: "✓",
-  error: "✗",
-  warning: "!",
-  info: "i",
-  check: "●",
-  online: "●",
-  offline: "○",
-  tool: "›",
-  run: "›",
-  search: "⌕",
-  edit: "✎",
-  plus: "+",
-  minus: "−",
-  arrow: "→",
-  arrowUp: "↑",
-  arrowDown: "↓",
-  bullet: "·",
-  separator: "│",
-  folder: "▶",
-  file: "▷",
-  code: "◈",
-  link: "↗",
-  star: "★",
-  spark: "✦",
-  sparkles: "⁎",
-  tokens: "⚡",
-  messages: "≡",
-  time: "⏱",
-  context: "◈",
-  clock: "⏰",
-  ts: "TS",
-  js: "JS",
-  py: "PY",
-  md: "MD",
-  json: "{}",
-  git: "⎇",
-  thinking: "◐",
-  loading: "⠋",
-  line: "─",
-  dash: "–",
-  dot: "·",
-  space: " "
-};
-var NO_COLOR = process.env.NO_COLOR || process.env.NO_COLOUR;
 function isColorEnabled() {
   if (NO_COLOR)
     return false;
@@ -1607,151 +1333,141 @@ function s(text, ...styles) {
     return text;
   return styles.join("") + text + reset;
 }
+var reset = "\x1B[0m", bold = "\x1B[1m", dim = "\x1B[2m", claudePalette, fg, bg, spinnerFrames, DEFAULT_SPINNER, icon, NO_COLOR;
+var init_colors = __esm(() => {
+  claudePalette = {
+    crust: "\x1B[48;2;250;249;245m",
+    mantle: "\x1B[48;2;245;244;237m",
+    base: "\x1B[48;2;240;238;220m",
+    surface0: "\x1B[48;2;232;230;220m",
+    surface1: "\x1B[48;2;215;213;200m",
+    surface2: "\x1B[48;2;180;178;170m",
+    text: "\x1B[38;2;20;20;19m",
+    subtext0: "\x1B[38;2;80;79;75m",
+    subtext1: "\x1B[38;2;50;49;46m",
+    overlay0: "\x1B[38;2;140;138;130m",
+    blue: "\x1B[38;2;56;152;236m",
+    sapphire: "\x1B[38;2;56;152;236m",
+    sky: "\x1B[38;2;100;170;210m",
+    teal: "\x1B[38;2;23;146;153m",
+    green: "\x1B[38;2;30;160;80m",
+    yellow: "\x1B[38;2;200;140;0m",
+    peach: "\x1B[38;2;201;130;70m",
+    maroon: "\x1B[38;2;160;100;90m",
+    red: "\x1B[38;2;200;60;60m",
+    mauve: "\x1B[38;2;180;80;200m",
+    pink: "\x1B[38;2;200;100;180m",
+    flamingo: "\x1B[38;2;220;150;130m",
+    lavender: "\x1B[38;2;139;92;246m",
+    white: "\x1B[38;2;255;255;250m",
+    gpPurple: "\x1B[38;2;142;54;255m",
+    gpBlue: "\x1B[38;2;70;130;255m",
+    gpCyan: "\x1B[38;2;0;200;200m",
+    gpGreen: "\x1B[38;2;0;200;100m",
+    gpYellow: "\x1B[38;2;255;200;0m",
+    gpRed: "\x1B[38;2;255;100;100m"
+  };
+  fg = {
+    primary: claudePalette.text,
+    secondary: claudePalette.subtext1,
+    muted: claudePalette.overlay0,
+    overlay: claudePalette.surface2,
+    success: claudePalette.green,
+    warning: claudePalette.yellow,
+    error: claudePalette.red,
+    info: claudePalette.blue,
+    user: claudePalette.green,
+    assistant: claudePalette.mauve,
+    system: claudePalette.sapphire,
+    tool: claudePalette.peach,
+    code: claudePalette.teal,
+    link: claudePalette.sapphire,
+    keyword: claudePalette.mauve,
+    function: claudePalette.blue,
+    string: claudePalette.green,
+    number: claudePalette.peach,
+    accent: claudePalette.gpPurple,
+    accent2: claudePalette.pink,
+    accent3: claudePalette.lavender,
+    peach: claudePalette.peach,
+    mauve: claudePalette.mauve,
+    cyan: claudePalette.teal,
+    purple: claudePalette.gpPurple,
+    prompt: claudePalette.gpPurple,
+    gpPurple: claudePalette.gpPurple,
+    gpBlue: claudePalette.gpBlue,
+    gpCyan: claudePalette.gpCyan,
+    gpGreen: claudePalette.gpGreen,
+    gpYellow: claudePalette.gpYellow,
+    gpRed: claudePalette.gpRed
+  };
+  bg = {
+    base: claudePalette.base,
+    surface: claudePalette.surface0,
+    elevated: claudePalette.surface1,
+    overlay: claudePalette.surface2,
+    crust: claudePalette.crust,
+    mantle: claudePalette.mantle
+  };
+  spinnerFrames = {
+    dots: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"],
+    line: ["-", "\\", "|", "/"],
+    blocks: ["▖", "▘", "▝", "▗"],
+    arrow: ["←", "↙", "↓", "↘", "→", "↗", "↑", "↖"],
+    star: ["⋆", "✦", "✧", "⋆", "✧", "✦"]
+  };
+  DEFAULT_SPINNER = spinnerFrames.dots;
+  icon = {
+    prompt: "›",
+    userPrefix: ">",
+    aiPrefix: "◈",
+    success: "✓",
+    error: "✗",
+    warning: "!",
+    info: "i",
+    check: "●",
+    online: "●",
+    offline: "○",
+    tool: "›",
+    run: "›",
+    search: "⌕",
+    edit: "✎",
+    plus: "+",
+    minus: "−",
+    arrow: "→",
+    arrowUp: "↑",
+    arrowDown: "↓",
+    bullet: "·",
+    separator: "│",
+    folder: "▶",
+    file: "▷",
+    code: "◈",
+    link: "↗",
+    star: "★",
+    spark: "✦",
+    sparkles: "⁎",
+    tokens: "⚡",
+    messages: "≡",
+    time: "⏱",
+    context: "◈",
+    clock: "⏰",
+    ts: "TS",
+    js: "JS",
+    py: "PY",
+    md: "MD",
+    json: "{}",
+    git: "⎇",
+    thinking: "◐",
+    loading: "⠋",
+    line: "─",
+    dash: "–",
+    dot: "·",
+    space: " "
+  };
+  NO_COLOR = process.env.NO_COLOR || process.env.NO_COLOUR;
+});
 
 // src/ui/colors.ts
-var reset2 = "\x1B[0m";
-var bold2 = "\x1B[1m";
-var dim2 = "\x1B[2m";
-var italic = "\x1B[3m";
-var claudePalette2 = {
-  crust: "\x1B[48;2;250;249;245m",
-  mantle: "\x1B[48;2;245;244;237m",
-  base: "\x1B[48;2;240;238;220m",
-  surface0: "\x1B[48;2;232;230;220m",
-  surface1: "\x1B[48;2;215;213;200m",
-  surface2: "\x1B[48;2;180;178;170m",
-  text: "\x1B[38;2;20;20;19m",
-  subtext0: "\x1B[38;2;80;79;75m",
-  subtext1: "\x1B[38;2;50;49;46m",
-  overlay0: "\x1B[38;2;140;138;130m",
-  blue: "\x1B[38;2;56;152;236m",
-  sapphire: "\x1B[38;2;56;152;236m",
-  sky: "\x1B[38;2;100;170;210m",
-  teal: "\x1B[38;2;23;146;153m",
-  green: "\x1B[38;2;30;160;80m",
-  yellow: "\x1B[38;2;200;140;0m",
-  peach: "\x1B[38;2;201;130;70m",
-  maroon: "\x1B[38;2;160;100;90m",
-  red: "\x1B[38;2;200;60;60m",
-  mauve: "\x1B[38;2;180;80;200m",
-  pink: "\x1B[38;2;200;100;180m",
-  flamingo: "\x1B[38;2;220;150;130m",
-  lavender: "\x1B[38;2;139;92;246m",
-  white: "\x1B[38;2;255;255;250m",
-  gpPurple: "\x1B[38;2;142;54;255m",
-  gpBlue: "\x1B[38;2;70;130;255m",
-  gpCyan: "\x1B[38;2;0;200;200m",
-  gpGreen: "\x1B[38;2;0;200;100m",
-  gpYellow: "\x1B[38;2;255;200;0m",
-  gpRed: "\x1B[38;2;255;100;100m"
-};
-var fg2 = {
-  primary: claudePalette2.text,
-  secondary: claudePalette2.subtext1,
-  muted: claudePalette2.overlay0,
-  overlay: claudePalette2.surface2,
-  success: claudePalette2.green,
-  warning: claudePalette2.yellow,
-  error: claudePalette2.red,
-  info: claudePalette2.blue,
-  user: claudePalette2.green,
-  assistant: claudePalette2.mauve,
-  system: claudePalette2.sapphire,
-  tool: claudePalette2.peach,
-  code: claudePalette2.teal,
-  link: claudePalette2.sapphire,
-  keyword: claudePalette2.mauve,
-  function: claudePalette2.blue,
-  string: claudePalette2.green,
-  number: claudePalette2.peach,
-  accent: claudePalette2.gpPurple,
-  accent2: claudePalette2.pink,
-  accent3: claudePalette2.lavender,
-  peach: claudePalette2.peach,
-  mauve: claudePalette2.mauve,
-  cyan: claudePalette2.teal,
-  purple: claudePalette2.gpPurple,
-  prompt: claudePalette2.gpPurple,
-  gpPurple: claudePalette2.gpPurple,
-  gpBlue: claudePalette2.gpBlue,
-  gpCyan: claudePalette2.gpCyan,
-  gpGreen: claudePalette2.gpGreen,
-  gpYellow: claudePalette2.gpYellow,
-  gpRed: claudePalette2.gpRed
-};
-var bg2 = {
-  base: claudePalette2.base,
-  surface: claudePalette2.surface0,
-  elevated: claudePalette2.surface1,
-  overlay: claudePalette2.surface2,
-  crust: claudePalette2.crust,
-  mantle: claudePalette2.mantle
-};
-var box = {
-  single: { tl: "┌", tr: "┐", bl: "└", br: "┘", h: "─", v: "│" },
-  round: { tl: "╭", tr: "╮", bl: "╰", br: "╯", h: "─", v: "│" },
-  heavy: { tl: "┏", tr: "┓", bl: "┗", br: "┛", h: "━", v: "┃" },
-  dashed: { tl: "┌", tr: "┐", bl: "└", br: "┘", h: "─", v: "│" },
-  soft: { tl: "╭", tr: "╮", bl: "╯", br: "╰", h: "─", v: "│" },
-  light: { tl: "┌", tr: "┐", bl: "└", br: "┘", h: "─", v: "│" },
-  polished: { tl: "╔", tr: "╗", bl: "╚", br: "╝", h: "═", v: "║" }
-};
-var spinnerFrames2 = {
-  dots: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"],
-  line: ["-", "\\", "|", "/"],
-  blocks: ["▖", "▘", "▝", "▗"],
-  arrow: ["←", "↙", "↓", "↘", "→", "↗", "↑", "↖"],
-  star: ["⋆", "✦", "✧", "⋆", "✧", "✦"]
-};
-var DEFAULT_SPINNER2 = spinnerFrames2.dots;
-var icon2 = {
-  prompt: "›",
-  userPrefix: ">",
-  aiPrefix: "◈",
-  success: "✓",
-  error: "✗",
-  warning: "!",
-  info: "i",
-  check: "●",
-  online: "●",
-  offline: "○",
-  tool: "›",
-  run: "›",
-  search: "⌕",
-  edit: "✎",
-  plus: "+",
-  minus: "−",
-  arrow: "→",
-  arrowUp: "↑",
-  arrowDown: "↓",
-  bullet: "·",
-  separator: "│",
-  folder: "▶",
-  file: "▷",
-  code: "◈",
-  link: "↗",
-  star: "★",
-  spark: "✦",
-  sparkles: "⁎",
-  tokens: "⚡",
-  messages: "≡",
-  time: "⏱",
-  context: "◈",
-  clock: "⏰",
-  ts: "TS",
-  js: "JS",
-  py: "PY",
-  md: "MD",
-  json: "{}",
-  git: "⎇",
-  thinking: "◐",
-  loading: "⠋",
-  line: "─",
-  dash: "–",
-  dot: "·",
-  space: " "
-};
-var NO_COLOR2 = process.env.NO_COLOR || process.env.NO_COLOUR;
 function isColorEnabled2() {
   if (NO_COLOR2)
     return false;
@@ -1766,6 +1482,148 @@ function s2(text, ...styles) {
     return text;
   return styles.join("") + text + reset2;
 }
+var reset2 = "\x1B[0m", bold2 = "\x1B[1m", dim2 = "\x1B[2m", italic = "\x1B[3m", claudePalette2, fg2, bg2, box, spinnerFrames2, DEFAULT_SPINNER2, icon2, NO_COLOR2;
+var init_colors2 = __esm(() => {
+  claudePalette2 = {
+    crust: "\x1B[48;2;250;249;245m",
+    mantle: "\x1B[48;2;245;244;237m",
+    base: "\x1B[48;2;240;238;220m",
+    surface0: "\x1B[48;2;232;230;220m",
+    surface1: "\x1B[48;2;215;213;200m",
+    surface2: "\x1B[48;2;180;178;170m",
+    text: "\x1B[38;2;20;20;19m",
+    subtext0: "\x1B[38;2;80;79;75m",
+    subtext1: "\x1B[38;2;50;49;46m",
+    overlay0: "\x1B[38;2;140;138;130m",
+    blue: "\x1B[38;2;56;152;236m",
+    sapphire: "\x1B[38;2;56;152;236m",
+    sky: "\x1B[38;2;100;170;210m",
+    teal: "\x1B[38;2;23;146;153m",
+    green: "\x1B[38;2;30;160;80m",
+    yellow: "\x1B[38;2;200;140;0m",
+    peach: "\x1B[38;2;201;130;70m",
+    maroon: "\x1B[38;2;160;100;90m",
+    red: "\x1B[38;2;200;60;60m",
+    mauve: "\x1B[38;2;180;80;200m",
+    pink: "\x1B[38;2;200;100;180m",
+    flamingo: "\x1B[38;2;220;150;130m",
+    lavender: "\x1B[38;2;139;92;246m",
+    white: "\x1B[38;2;255;255;250m",
+    gpPurple: "\x1B[38;2;142;54;255m",
+    gpBlue: "\x1B[38;2;70;130;255m",
+    gpCyan: "\x1B[38;2;0;200;200m",
+    gpGreen: "\x1B[38;2;0;200;100m",
+    gpYellow: "\x1B[38;2;255;200;0m",
+    gpRed: "\x1B[38;2;255;100;100m"
+  };
+  fg2 = {
+    primary: claudePalette2.text,
+    secondary: claudePalette2.subtext1,
+    muted: claudePalette2.overlay0,
+    overlay: claudePalette2.surface2,
+    success: claudePalette2.green,
+    warning: claudePalette2.yellow,
+    error: claudePalette2.red,
+    info: claudePalette2.blue,
+    user: claudePalette2.green,
+    assistant: claudePalette2.mauve,
+    system: claudePalette2.sapphire,
+    tool: claudePalette2.peach,
+    code: claudePalette2.teal,
+    link: claudePalette2.sapphire,
+    keyword: claudePalette2.mauve,
+    function: claudePalette2.blue,
+    string: claudePalette2.green,
+    number: claudePalette2.peach,
+    accent: claudePalette2.gpPurple,
+    accent2: claudePalette2.pink,
+    accent3: claudePalette2.lavender,
+    peach: claudePalette2.peach,
+    mauve: claudePalette2.mauve,
+    cyan: claudePalette2.teal,
+    purple: claudePalette2.gpPurple,
+    prompt: claudePalette2.gpPurple,
+    gpPurple: claudePalette2.gpPurple,
+    gpBlue: claudePalette2.gpBlue,
+    gpCyan: claudePalette2.gpCyan,
+    gpGreen: claudePalette2.gpGreen,
+    gpYellow: claudePalette2.gpYellow,
+    gpRed: claudePalette2.gpRed
+  };
+  bg2 = {
+    base: claudePalette2.base,
+    surface: claudePalette2.surface0,
+    elevated: claudePalette2.surface1,
+    overlay: claudePalette2.surface2,
+    crust: claudePalette2.crust,
+    mantle: claudePalette2.mantle
+  };
+  box = {
+    single: { tl: "┌", tr: "┐", bl: "└", br: "┘", h: "─", v: "│" },
+    round: { tl: "╭", tr: "╮", bl: "╰", br: "╯", h: "─", v: "│" },
+    heavy: { tl: "┏", tr: "┓", bl: "┗", br: "┛", h: "━", v: "┃" },
+    dashed: { tl: "┌", tr: "┐", bl: "└", br: "┘", h: "─", v: "│" },
+    soft: { tl: "╭", tr: "╮", bl: "╯", br: "╰", h: "─", v: "│" },
+    light: { tl: "┌", tr: "┐", bl: "└", br: "┘", h: "─", v: "│" },
+    polished: { tl: "╔", tr: "╗", bl: "╚", br: "╝", h: "═", v: "║" }
+  };
+  spinnerFrames2 = {
+    dots: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"],
+    line: ["-", "\\", "|", "/"],
+    blocks: ["▖", "▘", "▝", "▗"],
+    arrow: ["←", "↙", "↓", "↘", "→", "↗", "↑", "↖"],
+    star: ["⋆", "✦", "✧", "⋆", "✧", "✦"]
+  };
+  DEFAULT_SPINNER2 = spinnerFrames2.dots;
+  icon2 = {
+    prompt: "›",
+    userPrefix: ">",
+    aiPrefix: "◈",
+    success: "✓",
+    error: "✗",
+    warning: "!",
+    info: "i",
+    check: "●",
+    online: "●",
+    offline: "○",
+    tool: "›",
+    run: "›",
+    search: "⌕",
+    edit: "✎",
+    plus: "+",
+    minus: "−",
+    arrow: "→",
+    arrowUp: "↑",
+    arrowDown: "↓",
+    bullet: "·",
+    separator: "│",
+    folder: "▶",
+    file: "▷",
+    code: "◈",
+    link: "↗",
+    star: "★",
+    spark: "✦",
+    sparkles: "⁎",
+    tokens: "⚡",
+    messages: "≡",
+    time: "⏱",
+    context: "◈",
+    clock: "⏰",
+    ts: "TS",
+    js: "JS",
+    py: "PY",
+    md: "MD",
+    json: "{}",
+    git: "⎇",
+    thinking: "◐",
+    loading: "⠋",
+    line: "─",
+    dash: "–",
+    dot: "·",
+    space: " "
+  };
+  NO_COLOR2 = process.env.NO_COLOR || process.env.NO_COLOUR;
+});
 
 // src/ui/layout.ts
 function renderHeader(config) {
@@ -1827,36 +1685,38 @@ function formatTokens(n) {
     return (n / 1000).toFixed(1) + "K";
   return String(n);
 }
+var init_layout = __esm(() => {
+  init_colors2();
+});
 
 // src/ui/format.ts
 function stripAnsi(text) {
   return text.replace(/\x1b\[[0-9;]*m/g, "");
 }
 function panel(content, options = {}) {
-  const { title, titleColor = fg2.accent, width = 70, style = "round" } = options;
-  const b = box[style] || box.round;
+  const { title, titleColor = fg2.accent, width = 70 } = options;
   const rawLines = content.split(`
 `);
   const maxLen = rawLines.reduce((m, l) => Math.max(m, stripAnsi(l).length), 0);
   const w = Math.max(width, maxLen + 4);
-  let result = b.tl + "─".repeat(w) + b.tr + `
+  let result = `+${"-".repeat(w)}+
 `;
   if (title) {
     const titleLen = stripAnsi(title).length;
     const pad1 = Math.floor((w - titleLen) / 2);
     const pad2 = w - titleLen - pad1;
-    result += b.v + " ".repeat(pad1) + title + " ".repeat(pad2) + b.v + `
+    result += `|${" ".repeat(pad1)}${title}${" ".repeat(pad2)}|
 `;
-    result += b.v + "─".repeat(w) + b.v + `
+    result += `|${"-".repeat(w)}|
 `;
   }
   for (const ln of rawLines) {
     const len = stripAnsi(ln).length;
     const pad = w - len - 2;
-    result += b.v + " " + ln + " ".repeat(Math.max(0, pad)) + " " + b.v + `
+    result += `| ${ln}${" ".repeat(Math.max(0, pad))} |
 `;
   }
-  result += b.bl + "─".repeat(w) + b.br;
+  result += `+${"-".repeat(w)}+`;
   return s2(result, titleColor);
 }
 function inlineList(items, options = {}) {
@@ -1904,15 +1764,19 @@ function helpPanel(commands) {
   }).join(`
 `);
 }
+var init_format = __esm(() => {
+  init_colors2();
+});
 
 // src/ui/format.ts
 function stripAnsi2(text) {
   return text.replace(/\x1b\[[0-9;]*m/g, "");
 }
+var init_format2 = __esm(() => {
+  init_colors2();
+});
 
 // src/ui/tool-renderer.ts
-var MAX_RESULT_LINES = 2;
-var MAX_LINE_WIDTH = 120;
 function truncateResult(content, maxLines = MAX_RESULT_LINES) {
   const lines = content.split(`
 `);
@@ -2166,6 +2030,11 @@ function truncate(text, maxLen) {
   }
   return text.slice(0, maxLen - 3) + "...";
 }
+var MAX_RESULT_LINES = 2, MAX_LINE_WIDTH = 120;
+var init_tool_renderer = __esm(() => {
+  init_colors2();
+  init_format2();
+});
 
 // src/ui/banner.ts
 function termWidth() {
@@ -2175,30 +2044,6 @@ function termWidth() {
     return 80;
   }
 }
-var googlePurple = "\x1B[38;2;142;54;255m";
-var googleBlue = "\x1B[38;2;70;130;255m";
-var FULL_LOGO = `
- ${googlePurple}╔══════════════════════════════════════════════════════════════════╗${reset2}` + `
- ${googlePurple}║${reset2}  \uD83D\uDC09  ${s2("BEAST", googlePurple, bold2)}   ${s2("CLI", googleBlue, bold2)}    ${dim2}AI Coding Agent · 45+ Providers · 51+ Tools     ${googlePurple}║${reset2}` + `
- ${googlePurple}╚══════════════════════════════════════════════════════════════════╝${reset2}
-`;
-var COMPACT_LOGO = `
- ${googlePurple}┌────────────────────────────────────────────┐${reset2}` + `
- ${googlePurple}│${reset2}  \uD83D\uDC09  ${s2("BEAST", googlePurple, bold2)}  ${s2("CLI", googleBlue, bold2)}  ${dim2}AI Coding Agent                  ${googlePurple}│${reset2}` + `
- ${googlePurple}└────────────────────────────────────────────┘${reset2}
-`;
-var TINY_LOGO = ` \uD83D\uDC09 ${s2("BEAST CLI", googlePurple, bold2)} ${dim2}~ 
-`;
-var googlePurple2 = "\x1B[38;2;142;54;255m";
-var googleBlue2 = "\x1B[38;2;70;130;255m";
-var TEXT_LOGO = ` ${s2("BEAST", googlePurple2, bold2)} ${s2("CLI", googleBlue2, bold2)} `;
-var FEATURE_CARDS = [
-  { icon: "⚡", label: "Blazing Fast", color: fg2.warning },
-  { icon: "\uD83D\uDD12", label: "Private & Local", color: fg2.success },
-  { icon: "\uD83C\uDF10", label: "45+ Providers", color: fg2.sapphire },
-  { icon: "\uD83D\uDD27", label: "51+ Tools", color: fg2.tool }
-];
-var REVEAL_TAGLINE = `${s2("·", fg2.overlay)} ${s2("45+ Providers", fg2.muted)} ` + `${s2("·", fg2.overlay)} ${s2("51+ Tools", fg2.muted)} ` + `${s2("·", fg2.overlay)} ${s2("Local AI Ready", fg2.muted)}`;
 function renderCleanBanner() {
   if (!isColorEnabled2())
     return "BEAST CLI - AI Coding Agent";
@@ -2216,50 +2061,55 @@ function renderCleanBanner() {
   }
   const tagline = REVEAL_TAGLINE + `
 `;
-  const cardWidth = 22;
   const cardSep = "  ";
   const cardLines = FEATURE_CARDS.map((card) => {
-    const label = card.label.padEnd(cardWidth - card.icon.length - 1);
-    return s2(card.icon + " " + label, card.color);
+    return s2(card.label, card.color);
   }).join(s2(cardSep, fg2.overlay));
   return logo + tagline + `
 ` + cardLines + `
 `;
 }
+var googlePurple = "\x1B[38;2;142;54;255m", googleBlue = "\x1B[38;2;70;130;255m", FULL_LOGO, COMPACT_LOGO, TINY_LOGO, googlePurple2 = "\x1B[38;2;142;54;255m", googleBlue2 = "\x1B[38;2;70;130;255m", TEXT_LOGO, FEATURE_CARDS, REVEAL_TAGLINE;
+var init_banner = __esm(() => {
+  init_colors2();
+  FULL_LOGO = `
+ ${googlePurple}+==================================================================+${reset2}` + `
+ ${googlePurple}|${reset2}  \uD83D\uDC09  ${s2("BEAST", googlePurple, bold2)}   ${s2("CLI", googleBlue, bold2)}    ${dim2}AI Coding Agent · 45+ Providers · 51+ Tools     ${googlePurple}|${reset2}` + `
+ ${googlePurple}+==================================================================+${reset2}
+`;
+  COMPACT_LOGO = `
+ ${googlePurple}+----------------------------------------------+${reset2}` + `
+ ${googlePurple}|${reset2}  \uD83D\uDC09  ${s2("BEAST", googlePurple, bold2)}  ${s2("CLI", googleBlue, bold2)}  ${dim2}AI Coding Agent                  ${googlePurple}|${reset2}` + `
+ ${googlePurple}+----------------------------------------------+${reset2}
+`;
+  TINY_LOGO = ` \uD83D\uDC09 ${s2("BEAST CLI", googlePurple, bold2)} ${dim2}~ 
+`;
+  TEXT_LOGO = ` ${s2("BEAST", googlePurple2, bold2)} ${s2("CLI", googleBlue2, bold2)} `;
+  FEATURE_CARDS = [
+    { label: "Blazing Fast", color: fg2.warning },
+    { label: "Private & Local", color: fg2.success },
+    { label: "45+ Providers", color: fg2.sapphire },
+    { label: "51+ Tools", color: fg2.tool }
+  ];
+  REVEAL_TAGLINE = `${s2("·", fg2.overlay)} ${s2("45+ Providers", fg2.muted)} ` + `${s2("·", fg2.overlay)} ${s2("51+ Tools", fg2.muted)} ` + `${s2("·", fg2.overlay)} ${s2("Local AI Ready", fg2.muted)}`;
+});
 
 // src/ui/tips.ts
-var TIPS = [
-  { cmd: "/model <name>", tip: "Switch models mid-session without restarting", category: "command" },
-  { cmd: "/provider <name>", tip: "Jump between Ollama, OpenRouter, Claude instantly", category: "command" },
-  { cmd: "/tools", tip: "See all available MCP tools and their descriptions", category: "command" },
-  { cmd: "/clear", tip: "Wipe conversation history to reset context window", category: "command" },
-  { cmd: "/models", tip: "List all available models for your current provider", category: "command" },
-  { cmd: "Tab", tip: "Auto-complete tool names and common commands", category: "command" },
-  { cmd: "Up / Down", tip: "Navigate through your command history", category: "command" },
-  { cmd: "file_read", tip: "Read any file in the current directory", category: "tool" },
-  { cmd: "file_list", tip: "Show directories and files with sizes and times", category: "tool" },
-  { cmd: "file_tree", tip: "View your entire project structure at a glance", category: "tool" },
-  { cmd: "run_code", tip: "Execute shell commands — git, npm, docker, anything", category: "tool" },
-  { cmd: "run_python", tip: "Run Python code with a sandboxed interpreter", category: "tool" },
-  { cmd: "github_search_repos", tip: "Search GitHub by keyword with stars and language", category: "tool" },
-  { cmd: "searxng_search", tip: "Web search without leaving the CLI", category: "tool" },
-  { cmd: "fetch_web", tip: "Fetch full web page content from any URL", category: "tool" },
-  { cmd: "hacker_news", tip: "Get top Hacker News stories and comments", category: "tool" },
-  { cmd: "youtube_transcript", tip: "Extract transcripts from YouTube videos", category: "tool" },
-  { cmd: "/provider codex", tip: "Use ChatGPT Plus OAuth — free with your subscription", category: "provider" },
-  { cmd: "/provider ollama", tip: "Ollama runs AI models locally — no internet needed", category: "provider" },
-  { cmd: "beast --defaults", tip: "Auto-selects the best available provider", category: "provider" },
-  { cmd: "Claude", tip: "Anthropic Claude — excellent reasoning and long context", category: "provider" },
-  { cmd: "Groq", tip: "Ultra-fast inference with a free tier", category: "provider" },
-  { cmd: "/compact", tip: "Manually trigger context compaction to free up space", category: "context" },
-  { cmd: "Context", tip: "History counts toward your context — /clear to free it", category: "context" },
-  { cmd: "auto-compact", tip: "Context auto-compacts at 95% — never lose your place", category: "context" },
-  { cmd: "--theme claude", tip: "Use --theme claude for warm editorial styling", category: "fun" },
-  { cmd: "--theme dracula", tip: "Use --theme dracula for dark mode", category: "fun" }
-];
+function shuffleTips() {
+  tipShuffle = [...ALL_TIPS];
+  for (let i = tipShuffle.length - 1;i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [tipShuffle[i], tipShuffle[j]] = [tipShuffle[j], tipShuffle[i]];
+  }
+  tipIndex = 0;
+}
 function randomTip() {
-  const tip = TIPS[Math.floor(Math.random() * TIPS.length)];
-  return `${s2("\uD83D\uDCA1", fg2.warning)} ${s2(tip.tip, fg2.secondary)} ${s2(`(${tip.cmd})`, fg2.muted)}`;
+  if (tipShuffle.length === 0)
+    shuffleTips();
+  if (tipIndex >= tipShuffle.length)
+    shuffleTips();
+  const tip = tipShuffle[tipIndex++];
+  return `${s2("*", fg2.warning)} ${s2(tip.tip, fg2.secondary)} ${s2(`(${tip.cmd})`, fg2.muted)}`;
 }
 function tipBanner() {
   return `
@@ -2267,9 +2117,79 @@ function tipBanner() {
 ` + randomTip() + `
 `;
 }
+var ALL_TIPS, tipShuffle, tipIndex = 0;
+var init_tips = __esm(() => {
+  init_colors2();
+  ALL_TIPS = [
+    { cmd: "/model <name>", tip: "Switch models mid-session without restarting", category: "command" },
+    { cmd: "/provider <name>", tip: "Jump between Ollama, OpenRouter, Claude instantly", category: "command" },
+    { cmd: "/tools", tip: "See all available MCP tools and their descriptions", category: "command" },
+    { cmd: "/clear", tip: "Wipe conversation history to reset context window", category: "command" },
+    { cmd: "/clean", tip: "Nuke everything — history, memory, and agents for a fresh start", category: "command" },
+    { cmd: "/init", tip: "Set up project context, known facts, and custom agents", category: "command" },
+    { cmd: "/agents", tip: "Manage custom agents — create, use, delete, or info", category: "command" },
+    { cmd: "/models", tip: "List all available models for your current provider", category: "command" },
+    { cmd: "/switch", tip: "Reconfigure provider, model, and context size interactively", category: "command" },
+    { cmd: "/login", tip: "Authenticate with ChatGPT Plus OAuth for free access", category: "command" },
+    { cmd: "/logout", tip: "Clear ChatGPT Plus authentication", category: "command" },
+    { cmd: "/provider", tip: "Switch to a different LLM provider interactively", category: "command" },
+    { cmd: "Tab", tip: "Auto-complete slash commands and agent names", category: "command" },
+    { cmd: "Up / Down", tip: "Navigate through your command history", category: "command" },
+    { cmd: "/agents create", tip: "Create a reusable agent with custom instructions", category: "command" },
+    { cmd: "/agents use <name>", tip: "Set an agent as always-on — prepended to every prompt", category: "command" },
+    { cmd: "@agentname", tip: "Activate a custom agent for a single prompt", category: "command" },
+    { cmd: "searxng_search", tip: "Web search without leaving the CLI — multiple engines", category: "tool" },
+    { cmd: "fetch_web", tip: "Fetch full web page content from any URL", category: "tool" },
+    { cmd: "run_code", tip: "Execute shell commands — git, npm, docker, anything", category: "tool" },
+    { cmd: "run_python", tip: "Run Python code with a sandboxed interpreter", category: "tool" },
+    { cmd: "github_search_repos", tip: "Search GitHub by keyword with stars and language", category: "tool" },
+    { cmd: "github_issues", tip: "View, create, and manage GitHub issues", category: "tool" },
+    { cmd: "github_commits", tip: "Browse commit history for any repository", category: "tool" },
+    { cmd: "hacker_news", tip: "Get top Hacker News stories and comments", category: "tool" },
+    { cmd: "youtube_transcript", tip: "Extract transcripts from YouTube videos", category: "tool" },
+    { cmd: "youtube_search", tip: "Search YouTube videos and get metadata", category: "tool" },
+    { cmd: "webclaw_crawl", tip: "Crawl an entire website for structured data", category: "tool" },
+    { cmd: "scrapling_extract", tip: "Extract structured data from web pages using CSS selectors", category: "tool" },
+    { cmd: "file_read", tip: "Read any file in the current directory", category: "tool" },
+    { cmd: "file_write", tip: "Write or overwrite files with content", category: "tool" },
+    { cmd: "file_list", tip: "Show directories and files with sizes and times", category: "tool" },
+    { cmd: "file_search", tip: "Full-text search across all files in a directory", category: "tool" },
+    { cmd: "file_grep", tip: "Search for patterns in files with context", category: "tool" },
+    { cmd: "file_glob", tip: "Find files by pattern — great for project exploration", category: "tool" },
+    { cmd: "pandas_create", tip: "Create pandas DataFrames for data analysis", category: "tool" },
+    { cmd: "pandas_filter", tip: "Filter DataFrames by column conditions", category: "tool" },
+    { cmd: "pandas_aggregate", tip: "Group and aggregate data — sum, mean, count", category: "tool" },
+    { cmd: "/provider codex", tip: "Use ChatGPT Plus OAuth — free with your subscription", category: "provider" },
+    { cmd: "/provider ollama", tip: "Ollama runs AI models locally — no internet needed", category: "provider" },
+    { cmd: "beast --defaults", tip: "Auto-selects the best available provider", category: "provider" },
+    { cmd: "/model gpt-4o", tip: "Use GPT-4o for the latest capabilities", category: "provider" },
+    { cmd: "/model claude-3-5-sonnet", tip: "Anthropic Claude — best reasoning and analysis", category: "provider" },
+    { cmd: "/model qwen3.5:35b", tip: "Qwen 35B — strong coding abilities, runs locally", category: "provider" },
+    { cmd: "/provider groq", tip: "Groq — ultra-fast inference with a free tier", category: "provider" },
+    { cmd: "/provider deepseek", tip: "DeepSeek — cost-effective reasoning models", category: "provider" },
+    { cmd: "/provider gemini", tip: "Google Gemini — huge context window and multimodal", category: "provider" },
+    { cmd: "/provider anthropic", tip: "Direct Anthropic API — full Claude access", category: "provider" },
+    { cmd: "/provider openai", tip: "Direct OpenAI API — GPT models with your key", category: "provider" },
+    { cmd: "/provider lmstudio", tip: "LM Studio — run any GGUF model locally", category: "provider" },
+    { cmd: "/init", tip: "Store project context and facts — remember across sessions", category: "context" },
+    { cmd: "Memory", tip: "Context and facts are stored in ~/.beast-cli/agents/", category: "context" },
+    { cmd: "auto-compact", tip: "Context auto-compacts at 95% — never lose your place", category: "context" },
+    { cmd: "Context", tip: "History counts toward your context — /clear to free it", category: "context" },
+    { cmd: "@agentname", tip: "Custom agents get injected as system context in prompts", category: "context" },
+    { cmd: "--theme claude", tip: "Warm editorial styling like claude.ai", category: "fun" },
+    { cmd: "--theme dracula", tip: "Classic dark theme with vibrant colors", category: "fun" },
+    { cmd: "--theme catppuccin-mocha", tip: "Subtle dark theme with pastel accents", category: "fun" },
+    { cmd: "--theme nord", tip: "Arctic color palette — clean and calming", category: "fun" },
+    { cmd: "--theme tokyonight", tip: "Japanese-inspired night theme", category: "fun" },
+    { cmd: "--theme gruvbox", tip: "Retro warmth — perfect for long sessions", category: "fun" },
+    { cmd: "beast --help", tip: "Full command reference and examples", category: "fun" },
+    { cmd: "beast --setup", tip: "Auto-start MCP server with sensible defaults", category: "fun" },
+    { cmd: "51+ tools", tip: "Web search, file ops, GitHub, YouTube, code exec, and more", category: "fun" }
+  ];
+  tipShuffle = [];
+});
 
 // src/native-tools/web.ts
-var DEFAULT_TIMEOUT = 15000;
 async function fetchWebContent(url, maxTokens = 4000) {
   try {
     const controller = new AbortController;
@@ -2453,45 +2373,12 @@ function extractLinks(content, baseUrl) {
     url: baseUrl
   };
 }
+var DEFAULT_TIMEOUT = 15000;
 
 // src/native-tools/files.ts
 import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { resolve, dirname, extname, join } from "node:path";
 import { execSync } from "node:child_process";
-var MAX_FILE_SIZE = 10 * 1024 * 1024;
-var ALLOWED_EXTENSIONS = new Set([
-  ".ts",
-  ".js",
-  ".json",
-  ".md",
-  ".txt",
-  ".yml",
-  ".yaml",
-  ".xml",
-  ".html",
-  ".css",
-  ".scss",
-  ".py",
-  ".rs",
-  ".go",
-  ".java",
-  ".c",
-  ".cpp",
-  ".h",
-  ".hpp",
-  ".sh",
-  ".bash",
-  ".zsh",
-  ".sql",
-  ".csv",
-  ".log",
-  ".gitignore",
-  ".env",
-  ".prettierrc",
-  ".eslintrc",
-  ".babelrc"
-]);
-var RESTRICTED_PATHS = ["/Users/sridhar/.ssh", "/Users/sridhar/.npm", "/Users/sridhar/.aws"];
 async function fileRead(path, maxSize = MAX_FILE_SIZE) {
   try {
     const resolved = resolve(path);
@@ -2646,16 +2533,49 @@ async function fileGlob(directory, patterns, maxResults = 100) {
     return { success: false, files: [], error: e.message };
   }
 }
+var MAX_FILE_SIZE, ALLOWED_EXTENSIONS, RESTRICTED_PATHS;
+var init_files = __esm(() => {
+  MAX_FILE_SIZE = 10 * 1024 * 1024;
+  ALLOWED_EXTENSIONS = new Set([
+    ".ts",
+    ".js",
+    ".json",
+    ".md",
+    ".txt",
+    ".yml",
+    ".yaml",
+    ".xml",
+    ".html",
+    ".css",
+    ".scss",
+    ".py",
+    ".rs",
+    ".go",
+    ".java",
+    ".c",
+    ".cpp",
+    ".h",
+    ".hpp",
+    ".sh",
+    ".bash",
+    ".zsh",
+    ".sql",
+    ".csv",
+    ".log",
+    ".gitignore",
+    ".env",
+    ".prettierrc",
+    ".eslintrc",
+    ".babelrc"
+  ]);
+  RESTRICTED_PATHS = ["/Users/sridhar/.ssh", "/Users/sridhar/.npm", "/Users/sridhar/.aws"];
+});
 
 // src/native-tools/code.ts
 import { spawn } from "node:child_process";
 import { writeFileSync as writeFileSync2, unlinkSync, mkdirSync, existsSync as existsSync2 } from "node:fs";
 import { join as join2 } from "node:path";
 import { randomUUID } from "crypto";
-var SANDBOX_DIR = "/tmp/beast-sandbox";
-if (!existsSync2(SANDBOX_DIR)) {
-  mkdirSync(SANDBOX_DIR, { recursive: true });
-}
 async function runCode(code, language, timeout = 30) {
   const start = Date.now();
   try {
@@ -2893,13 +2813,152 @@ async function pandasAggregate(data, groupBy, aggregations) {
     return { success: false, output: "", error: e.message };
   }
 }
+var SANDBOX_DIR = "/tmp/beast-sandbox";
+var init_code = __esm(() => {
+  if (!existsSync2(SANDBOX_DIR)) {
+    mkdirSync(SANDBOX_DIR, { recursive: true });
+  }
+});
 
-// src/native-tools/index.ts
-init_search();
+// src/native-tools/search.ts
+var exports_search = {};
+__export(exports_search, {
+  searxngSearch: () => searxngSearch,
+  searxngHealth: () => searxngHealth,
+  searchNews: () => searchNews,
+  searchImages: () => searchImages,
+  hackernewsTop: () => hackernewsTop,
+  hackernewsNew: () => hackernewsNew,
+  hackernewsComments: () => hackernewsComments,
+  hackernewsBest: () => hackernewsBest
+});
+async function searxngSearch(query, limit = 10, categories, engines, timeRange) {
+  try {
+    const params = new URLSearchParams({
+      q: query,
+      format: "json",
+      engines: engines?.join(",") || "",
+      categories: categories || "general",
+      pageno: "1",
+      ...timeRange ? { time_range: timeRange } : {}
+    });
+    const response = await fetch(`${SEARX_URL}/search?${params}`, {
+      headers: {
+        "User-Agent": "BeastCLI/1.0",
+        Accept: "application/json"
+      },
+      signal: AbortSignal.timeout(15000)
+    });
+    if (!response.ok) {
+      return { success: false, error: `Search failed: ${response.status}` };
+    }
+    const data = await response.json();
+    const results = [];
+    for (const r of (data.results || []).slice(0, limit)) {
+      results.push({
+        title: r.title || "",
+        url: r.url || r.link || "",
+        snippet: r.content || r.snippet || "",
+        engine: r.engine || "",
+        published: r.published || ""
+      });
+    }
+    return { success: true, results };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+}
+async function searchImages(query, limit = 10) {
+  return searxngSearch(query, limit, "images");
+}
+async function searchNews(query, timeRange) {
+  return searxngSearch(query, 10, "news", undefined, timeRange);
+}
+async function searxngHealth() {
+  try {
+    const response = await fetch(`${SEARX_URL}/health`, {
+      signal: AbortSignal.timeout(5000)
+    });
+    return { success: response.ok };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+}
+async function hackernewsTop(limit = 10) {
+  return hackernewsFetch("topstories", limit);
+}
+async function hackernewsNew(limit = 10) {
+  return hackernewsFetch("newstories", limit);
+}
+async function hackernewsBest(limit = 10) {
+  return hackernewsFetch("beststories", limit);
+}
+async function hackernewsComments(storyId, limit = 20) {
+  try {
+    const storyRes = await fetch(`https://hacker-news.firebaseio.com/v0/item/${storyId}.json`);
+    if (!storyRes.ok)
+      return { success: false, error: "Story not found" };
+    const story = await storyRes.json();
+    const comments = [];
+    if (story.kids) {
+      for (const kid of story.kids.slice(0, limit)) {
+        const commentRes = await fetch(`https://hacker-news.firebaseio.com/v0/item/${kid}.json`);
+        if (commentRes.ok) {
+          const comment = await commentRes.json();
+          comments.push({
+            title: comment.text || "",
+            url: `https://news.ycombinator.com/item?id=${kid}`,
+            snippet: (comment.text || "").slice(0, 300)
+          });
+        }
+      }
+    }
+    return {
+      success: true,
+      results: [
+        {
+          title: story.title || "",
+          url: story.url || `https://news.ycombinator.com/item?id=${storyId}`,
+          snippet: `${story.score || 0} points | ${story.descendants || 0} comments`
+        },
+        ...comments.map((c2) => ({ title: c2.title, url: c2.url, snippet: c2.snippet }))
+      ]
+    };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+}
+async function hackernewsFetch(endpoint, limit) {
+  try {
+    const idsRes = await fetch(`https://hacker-news.firebaseio.com/v0/${endpoint}.json`);
+    if (!idsRes.ok)
+      return { success: false, error: "Failed to fetch stories" };
+    const ids = await idsRes.json();
+    const results = [];
+    for (const id of ids.slice(0, limit)) {
+      const itemRes = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`);
+      if (itemRes.ok) {
+        const item = await itemRes.json();
+        if (item && item.type === "story") {
+          results.push({
+            title: item.title || "",
+            url: item.url || `https://news.ycombinator.com/item?id=${id}`,
+            snippet: `${item.score || 0} points | ${item.descendants || 0} comments | by ${item.by || "unknown"}`
+          });
+        }
+      }
+    }
+    return { success: true, results };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+}
+var SEARX_URL;
+var init_search = __esm(() => {
+  SEARX_URL = process.env.SEARX_URL || "https://search.sridharhomelab.in";
+});
 
 // src/native-tools/github.ts
-var GITHUB_API = "https://api.github.com";
-var GITHUB_TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || "";
 async function githubFetch(path) {
   try {
     const headers = {
@@ -3003,6 +3062,10 @@ async function githubSearchRepos(query, limit = 10) {
   }));
   return { success: true, output: JSON.stringify(repos, null, 2) };
 }
+var GITHUB_API = "https://api.github.com", GITHUB_TOKEN;
+var init_github = __esm(() => {
+  GITHUB_TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || "";
+});
 
 // src/native-tools/youtube.ts
 async function youtubeTranscript(url) {
@@ -3117,54 +3180,6 @@ function extractVideoId(input) {
 import * as fs from "fs";
 import * as fsPromises from "fs/promises";
 import * as path from "path";
-var EXTENSION_LANGUAGE_MAP = {
-  ".ts": "typescript",
-  ".tsx": "typescript",
-  ".js": "javascript",
-  ".jsx": "javascript",
-  ".py": "python",
-  ".java": "java",
-  ".go": "go",
-  ".rs": "rust",
-  ".rb": "ruby",
-  ".php": "php",
-  ".cs": "csharp",
-  ".cpp": "cpp",
-  ".c": "c",
-  ".swift": "swift",
-  ".kt": "kotlin",
-  ".scala": "scala"
-};
-var IGNORE_DIRS = new Set([
-  "node_modules",
-  ".git",
-  "dist",
-  "build",
-  "coverage",
-  ".venv",
-  "vendor",
-  "__pycache__",
-  ".next",
-  ".nuxt",
-  "out"
-]);
-var TEST_PATTERNS = new Set(["test", "spec", "__tests__", "tests"]);
-var TEST_EXTS = new Set([".test.", ".spec."]);
-var CONFIG_EXTS = new Set([".json", ".yaml", ".yml", ".toml", ".ini", ".conf"]);
-var DOC_PATTERNS = new Set(["readme", "changelog", "contributing", "license", "api", "guide", "docs"]);
-var DOC_EXTS = new Set([".md", ".rst", ".adoc"]);
-var SOURCE_EXTS = new Set([".ts", ".tsx", ".js", ".jsx", ".py", ".java", ".go", ".rs"]);
-var TS_EXPORT_NAMED = /export\s+(?:const|function|class|interface|type|let|var)\s+(\w+)/g;
-var TS_EXPORT_DEFAULT = /export\s+default\s+(\w+)/g;
-var TS_EXPORT_BLOCK = /export\s*\{\s*([^}]+)\s*\}/g;
-var TS_IMPORT = /import\s+(?:\{\s*[^}]+\s*\}|\*\s+as\s+\w+|\w+)\s+from\s+['"]([^'"]+)['"]/g;
-var TS_REQUIRE = /require\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
-var TS_FUNC = /(?:export\s+)?(?:async\s+)?function\s+(\w+)/g;
-var TS_CLASS = /(?:export\s+)?class\s+(\w+)/g;
-var TS_INTERFACE = /(?:export\s+)?interface\s+(\w+)/g;
-var TS_CONST = /(?:export\s+)?(?:const|let|var)\s+(\w+)\s*=/g;
-var PY_DEF = /(?:^|\n)\s*(?:def|class)\s+(\w+)/gm;
-var PY_IMPORT = /(?:^|\n)\s*import\s+([^\n]+)|(?:^|\n)\s*from\s+([^\n]+)\s+import/gm;
 
 class RepoIndexer {
   index = null;
@@ -3389,7 +3404,6 @@ class RepoIndexer {
     return { path: relativePath, name: path.basename(filePath), type, sections: [] };
   }
 }
-var indexerInstance = null;
 function getIndexer() {
   if (!indexerInstance)
     indexerInstance = new RepoIndexer;
@@ -3398,34 +3412,59 @@ function getIndexer() {
 async function indexRepository(rootPath) {
   return getIndexer().indexRepository(rootPath);
 }
+var EXTENSION_LANGUAGE_MAP, IGNORE_DIRS, TEST_PATTERNS, TEST_EXTS, CONFIG_EXTS, DOC_PATTERNS, DOC_EXTS, SOURCE_EXTS, TS_EXPORT_NAMED, TS_EXPORT_DEFAULT, TS_EXPORT_BLOCK, TS_IMPORT, TS_REQUIRE, TS_FUNC, TS_CLASS, TS_INTERFACE, TS_CONST, PY_DEF, PY_IMPORT, indexerInstance = null;
+var init_indexer = __esm(() => {
+  EXTENSION_LANGUAGE_MAP = {
+    ".ts": "typescript",
+    ".tsx": "typescript",
+    ".js": "javascript",
+    ".jsx": "javascript",
+    ".py": "python",
+    ".java": "java",
+    ".go": "go",
+    ".rs": "rust",
+    ".rb": "ruby",
+    ".php": "php",
+    ".cs": "csharp",
+    ".cpp": "cpp",
+    ".c": "c",
+    ".swift": "swift",
+    ".kt": "kotlin",
+    ".scala": "scala"
+  };
+  IGNORE_DIRS = new Set([
+    "node_modules",
+    ".git",
+    "dist",
+    "build",
+    "coverage",
+    ".venv",
+    "vendor",
+    "__pycache__",
+    ".next",
+    ".nuxt",
+    "out"
+  ]);
+  TEST_PATTERNS = new Set(["test", "spec", "__tests__", "tests"]);
+  TEST_EXTS = new Set([".test.", ".spec."]);
+  CONFIG_EXTS = new Set([".json", ".yaml", ".yml", ".toml", ".ini", ".conf"]);
+  DOC_PATTERNS = new Set(["readme", "changelog", "contributing", "license", "api", "guide", "docs"]);
+  DOC_EXTS = new Set([".md", ".rst", ".adoc"]);
+  SOURCE_EXTS = new Set([".ts", ".tsx", ".js", ".jsx", ".py", ".java", ".go", ".rs"]);
+  TS_EXPORT_NAMED = /export\s+(?:const|function|class|interface|type|let|var)\s+(\w+)/g;
+  TS_EXPORT_DEFAULT = /export\s+default\s+(\w+)/g;
+  TS_EXPORT_BLOCK = /export\s*\{\s*([^}]+)\s*\}/g;
+  TS_IMPORT = /import\s+(?:\{\s*[^}]+\s*\}|\*\s+as\s+\w+|\w+)\s+from\s+['"]([^'"]+)['"]/g;
+  TS_REQUIRE = /require\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
+  TS_FUNC = /(?:export\s+)?(?:async\s+)?function\s+(\w+)/g;
+  TS_CLASS = /(?:export\s+)?class\s+(\w+)/g;
+  TS_INTERFACE = /(?:export\s+)?interface\s+(\w+)/g;
+  TS_CONST = /(?:export\s+)?(?:const|let|var)\s+(\w+)\s*=/g;
+  PY_DEF = /(?:^|\n)\s*(?:def|class)\s+(\w+)/gm;
+  PY_IMPORT = /(?:^|\n)\s*import\s+([^\n]+)|(?:^|\n)\s*from\s+([^\n]+)\s+import/gm;
+});
 
 // src/engi/retrieval.ts
-var STOP_WORDS = new Set([
-  "function",
-  "class",
-  "method",
-  "variable",
-  "const",
-  "let",
-  "var",
-  "return",
-  "import",
-  "export",
-  "async",
-  "await",
-  "the",
-  "and",
-  "for",
-  "with",
-  "this",
-  "that",
-  "from",
-  "type",
-  "interface",
-  "new",
-  "not"
-]);
-
 class RetrievalEngine {
   async findScope(query) {
     const index = getIndexer().getIndex();
@@ -3621,72 +3660,44 @@ class RetrievalEngine {
     return Math.round(Math.min(avgScore / maxPossible, 1) * 100) / 100;
   }
 }
-var retrievalInstance = null;
 function getRetrievalEngine() {
   if (!retrievalInstance)
     retrievalInstance = new RetrievalEngine;
   return retrievalInstance;
 }
-
-// src/engi/summarizer.ts
-import * as path3 from "path";
+var STOP_WORDS, retrievalInstance = null;
+var init_retrieval = __esm(() => {
+  init_indexer();
+  STOP_WORDS = new Set([
+    "function",
+    "class",
+    "method",
+    "variable",
+    "const",
+    "let",
+    "var",
+    "return",
+    "import",
+    "export",
+    "async",
+    "await",
+    "the",
+    "and",
+    "for",
+    "with",
+    "this",
+    "that",
+    "from",
+    "type",
+    "interface",
+    "new",
+    "not"
+  ]);
+});
 
 // src/engi/rag.ts
 import * as fs2 from "fs";
 import * as path2 from "path";
-var MAX_CHUNK_LINES = 40;
-var MAX_SNIPPET_LINES = 12;
-var MAX_RESULTS = 5;
-var MIN_SCORE = 0.05;
-var STOP = new Set([
-  "function",
-  "class",
-  "method",
-  "const",
-  "let",
-  "var",
-  "return",
-  "import",
-  "export",
-  "async",
-  "await",
-  "the",
-  "and",
-  "for",
-  "with",
-  "this",
-  "that",
-  "from",
-  "type",
-  "interface",
-  "new",
-  "not",
-  "if",
-  "else",
-  "try",
-  "catch",
-  "throw",
-  "get",
-  "set",
-  "public",
-  "private",
-  "protected",
-  "readonly",
-  "static",
-  "void",
-  "any",
-  "true",
-  "false",
-  "null",
-  "undefined",
-  "string",
-  "number",
-  "boolean",
-  "object",
-  "array"
-]);
-var CHUNK_START_RE = /^(?:export\s+)?(?:async\s+)?(?:function\s+(\w+)|class\s+(\w+)|(?:const|let)\s+(\w+)\s*=\s*(?:async\s+)?\(|(?:  |\t)(?:async\s+)?(\w+)\s*\()/;
-var chunkCache = null;
 
 class RagEngine {
   retrieve(query, index, options = {}) {
@@ -3858,18 +3869,65 @@ function trimSnippet(content, maxLines) {
 function estimateChunkTokens(content) {
   return Math.ceil(content.length / 4);
 }
-var ragInstance = null;
 function getRagEngine() {
   if (!ragInstance)
     ragInstance = new RagEngine;
   return ragInstance;
 }
+var MAX_CHUNK_LINES = 40, MAX_SNIPPET_LINES = 12, MAX_RESULTS = 5, MIN_SCORE = 0.05, STOP, CHUNK_START_RE, chunkCache = null, ragInstance = null;
+var init_rag = __esm(() => {
+  STOP = new Set([
+    "function",
+    "class",
+    "method",
+    "const",
+    "let",
+    "var",
+    "return",
+    "import",
+    "export",
+    "async",
+    "await",
+    "the",
+    "and",
+    "for",
+    "with",
+    "this",
+    "that",
+    "from",
+    "type",
+    "interface",
+    "new",
+    "not",
+    "if",
+    "else",
+    "try",
+    "catch",
+    "throw",
+    "get",
+    "set",
+    "public",
+    "private",
+    "protected",
+    "readonly",
+    "static",
+    "void",
+    "any",
+    "true",
+    "false",
+    "null",
+    "undefined",
+    "string",
+    "number",
+    "boolean",
+    "object",
+    "array"
+  ]);
+  CHUNK_START_RE = /^(?:export\s+)?(?:async\s+)?(?:function\s+(\w+)|class\s+(\w+)|(?:const|let)\s+(\w+)\s*=\s*(?:async\s+)?\(|(?:  |\t)(?:async\s+)?(\w+)\s*\()/;
+});
 
 // src/engi/summarizer.ts
-var FLOW_MAX_SNIPPETS = 4;
-var BUG_MAX_SNIPPETS = 3;
-var DOC_MAX_EXAMPLES = 3;
-var SNIPPET_MAX_LINES = 10;
+import * as path3 from "path";
 
 class SummarizationEngine {
   async generateFlowSummary(options) {
@@ -4142,12 +4200,16 @@ function extractKeywords(text) {
   const words = text.toLowerCase().replace(/[^\w\s]/g, " ").split(/\s+/).filter((w) => w.length > 5);
   return [...new Set([...quoted, ...errCodes, ...words])].slice(0, 12);
 }
-var summarizationInstance = null;
 function getSummarizationEngine() {
   if (!summarizationInstance)
     summarizationInstance = new SummarizationEngine;
   return summarizationInstance;
 }
+var FLOW_MAX_SNIPPETS = 4, BUG_MAX_SNIPPETS = 3, DOC_MAX_EXAMPLES = 3, SNIPPET_MAX_LINES = 10, summarizationInstance = null;
+var init_summarizer = __esm(() => {
+  init_indexer();
+  init_rag();
+});
 
 // src/engi/memory.ts
 import * as fs3 from "fs";
@@ -4277,39 +4339,15 @@ function createCheckpoint(options) {
     notes: options.notes ?? ""
   };
 }
-var memoryStoreInstance = null;
 function getMemoryStore() {
   if (!memoryStoreInstance)
     memoryStoreInstance = new MemoryStore;
   return memoryStoreInstance;
 }
+var memoryStoreInstance = null;
+var init_memory = () => {};
 
 // src/engi/tools.ts
-var STOP_WORDS2 = new Set([
-  "function",
-  "class",
-  "method",
-  "variable",
-  "const",
-  "let",
-  "var",
-  "return",
-  "import",
-  "export",
-  "async",
-  "await",
-  "the",
-  "and",
-  "for",
-  "with",
-  "this",
-  "that",
-  "from",
-  "type",
-  "interface",
-  "new",
-  "not"
-]);
 async function engiTaskClassify(params) {
   const { task, keywords = [] } = params;
   const taskLower = task.toLowerCase();
@@ -4603,927 +4641,247 @@ async function engiMemoryRestore(params) {
   }
   return null;
 }
-var engiTools = [
-  {
-    name: "engi_task_classify",
-    description: "Classify an engineering task to determine its type and suggest next steps",
-    inputSchema: {
-      type: "object",
-      properties: {
-        task: { type: "string", description: "The engineering task description to classify" },
-        keywords: { type: "array", items: { type: "string" }, description: "Optional keywords for context" }
+var STOP_WORDS2, engiTools;
+var init_tools = __esm(() => {
+  init_indexer();
+  init_retrieval();
+  init_summarizer();
+  init_memory();
+  STOP_WORDS2 = new Set([
+    "function",
+    "class",
+    "method",
+    "variable",
+    "const",
+    "let",
+    "var",
+    "return",
+    "import",
+    "export",
+    "async",
+    "await",
+    "the",
+    "and",
+    "for",
+    "with",
+    "this",
+    "that",
+    "from",
+    "type",
+    "interface",
+    "new",
+    "not"
+  ]);
+  engiTools = [
+    {
+      name: "engi_task_classify",
+      description: "Classify an engineering task to determine its type and suggest next steps",
+      inputSchema: {
+        type: "object",
+        properties: {
+          task: { type: "string", description: "The engineering task description to classify" },
+          keywords: { type: "array", items: { type: "string" }, description: "Optional keywords for context" }
+        },
+        required: ["task"]
       },
-      required: ["task"]
-    },
-    execute: async (args) => {
-      const result = await engiTaskClassify(args);
-      return { success: true, content: JSON.stringify(result, null, 2) };
-    }
-  },
-  {
-    name: "engi_repo_scope_find",
-    description: "Identify minimum relevant repository scope for a task",
-    inputSchema: {
-      type: "object",
-      properties: {
-        task: { type: "string", description: "The task description" },
-        taskType: { type: "string", enum: ["analysis", "feature", "bug", "poc", "documentation", "mixed"], description: "Type of task" },
-        keywords: { type: "array", items: { type: "string" }, description: "Additional keywords" },
-        limit: { type: "number", description: "Maximum results to return" },
-        repoPath: { type: "string", description: "Repository path to index" }
-      },
-      required: ["task", "taskType"]
-    },
-    execute: async (args) => {
-      const result = await engiRepoScopeFind(args);
-      return { success: true, content: JSON.stringify(result, null, 2) };
-    }
-  },
-  {
-    name: "engi_flow_summarize",
-    description: "Explain existing implementation flow",
-    inputSchema: {
-      type: "object",
-      properties: {
-        scope: { type: "array", items: { type: "string" }, description: "File paths to include" },
-        entryPoint: { type: "string", description: "Entry point file" },
-        verbosity: { type: "string", enum: ["minimal", "standard", "detailed"], description: "Verbosity level" }
+      execute: async (args) => {
+        const result = await engiTaskClassify(args);
+        return { success: true, content: JSON.stringify(result, null, 2) };
       }
     },
-    execute: async (args) => {
-      const result = await engiFlowSummarize(args);
-      return { success: true, content: JSON.stringify(result, null, 2) };
-    }
-  },
-  {
-    name: "engi_bug_trace_compact",
-    description: "Trace likely bug causes from symptom description",
-    inputSchema: {
-      type: "object",
-      properties: {
-        symptom: { type: "string", description: "Bug symptom description" },
-        scope: { type: "array", items: { type: "string" }, description: "Files to investigate" }
+    {
+      name: "engi_repo_scope_find",
+      description: "Identify minimum relevant repository scope for a task",
+      inputSchema: {
+        type: "object",
+        properties: {
+          task: { type: "string", description: "The task description" },
+          taskType: { type: "string", enum: ["analysis", "feature", "bug", "poc", "documentation", "mixed"], description: "Type of task" },
+          keywords: { type: "array", items: { type: "string" }, description: "Additional keywords" },
+          limit: { type: "number", description: "Maximum results to return" },
+          repoPath: { type: "string", description: "Repository path to index" }
+        },
+        required: ["task", "taskType"]
       },
-      required: ["symptom"]
-    },
-    execute: async (args) => {
-      const result = await engiBugTraceCompact(args);
-      return { success: true, content: JSON.stringify(result, null, 2) };
-    }
-  },
-  {
-    name: "engi_implementation_plan",
-    description: "Build implementation plan for new feature or fix",
-    inputSchema: {
-      type: "object",
-      properties: {
-        task: { type: "string", description: "Feature or fix description" },
-        taskType: { type: "string", enum: ["feature", "bug"], description: "Type of task" },
-        scope: { type: "array", items: { type: "string" }, description: "Files in scope" },
-        existingPatterns: { type: "array", items: { type: "string" }, description: "Existing patterns to follow" }
-      },
-      required: ["task", "taskType", "scope"]
-    },
-    execute: async (args) => {
-      const result = await engiImplementationPlan(args);
-      return { success: true, content: JSON.stringify(result, null, 2) };
-    }
-  },
-  {
-    name: "engi_poc_plan",
-    description: "Define minimum viable POC implementation",
-    inputSchema: {
-      type: "object",
-      properties: {
-        goal: { type: "string", description: "POC goal description" },
-        constraints: { type: "array", items: { type: "string" }, description: "Known constraints" },
-        existingCode: { type: "array", items: { type: "string" }, description: "Existing code to leverage" }
-      },
-      required: ["goal"]
-    },
-    execute: async (args) => {
-      const result = await engiPOCPlan(args);
-      return { success: true, content: JSON.stringify(result, null, 2) };
-    }
-  },
-  {
-    name: "engi_impact_analyze",
-    description: "Estimate blast radius of change",
-    inputSchema: {
-      type: "object",
-      properties: {
-        scope: { type: "array", items: { type: "string" }, description: "Files being changed" },
-        changeType: { type: "string", enum: ["add", "modify", "delete"], description: "Type of change" }
-      },
-      required: ["scope", "changeType"]
-    },
-    execute: async (args) => {
-      const result = await engiImpactAnalyze(args);
-      return { success: true, content: JSON.stringify(result, null, 2) };
-    }
-  },
-  {
-    name: "engi_test_select",
-    description: "Choose minimum useful test set",
-    inputSchema: {
-      type: "object",
-      properties: {
-        scope: { type: "array", items: { type: "string" }, description: "Files being changed" },
-        changeType: { type: "string", enum: ["add", "modify", "delete"], description: "Type of change" }
-      },
-      required: ["scope"]
-    },
-    execute: async (args) => {
-      const result = await engiTestSelect(args);
-      return { success: true, content: JSON.stringify(result, null, 2) };
-    }
-  },
-  {
-    name: "engi_doc_context_build",
-    description: "Build compact context for docs generation",
-    inputSchema: {
-      type: "object",
-      properties: {
-        feature: { type: "string", description: "Feature or change to document" },
-        changedFiles: { type: "array", items: { type: "string" }, description: "Files that changed" },
-        audience: { type: "string", enum: ["junior", "senior", "pm", "qa", "api"], description: "Target audience" }
+      execute: async (args) => {
+        const result = await engiRepoScopeFind(args);
+        return { success: true, content: JSON.stringify(result, null, 2) };
       }
     },
-    execute: async (args) => {
-      const result = await engiDocContextBuild(args);
-      return { success: true, content: JSON.stringify(result, null, 2) };
-    }
-  },
-  {
-    name: "engi_doc_update_plan",
-    description: "Identify which docs must change",
-    inputSchema: {
-      type: "object",
-      properties: {
-        changedFiles: { type: "array", items: { type: "string" }, description: "Files that changed" },
-        existingDocs: { type: "array", items: { type: "string" }, description: "Existing docs" }
+    {
+      name: "engi_flow_summarize",
+      description: "Explain existing implementation flow",
+      inputSchema: {
+        type: "object",
+        properties: {
+          scope: { type: "array", items: { type: "string" }, description: "File paths to include" },
+          entryPoint: { type: "string", description: "Entry point file" },
+          verbosity: { type: "string", enum: ["minimal", "standard", "detailed"], description: "Verbosity level" }
+        }
       },
-      required: ["changedFiles"]
-    },
-    execute: async (args) => {
-      const result = await engiDocUpdatePlan(args);
-      return { success: true, content: JSON.stringify(result, null, 2) };
-    }
-  },
-  {
-    name: "engi_memory_checkpoint",
-    description: "Store compact task state outside conversation context",
-    inputSchema: {
-      type: "object",
-      properties: {
-        taskId: { type: "string", description: "Unique task identifier" },
-        taskType: { type: "string", enum: ["analysis", "feature", "bug", "poc", "documentation", "mixed"], description: "Type of task" },
-        files: { type: "array", items: { type: "string" }, description: "Files in scope" },
-        symbols: { type: "array", items: { type: "string" }, description: "Symbols in scope" },
-        modules: { type: "array", items: { type: "string" }, description: "Modules in scope" },
-        decisions: { type: "array", items: { type: "object", properties: { description: { type: "string" }, rationale: { type: "string" } } }, description: "Decisions made" },
-        risks: { type: "array", items: { type: "string" }, description: "Identified risks" },
-        pendingValidations: { type: "array", items: { type: "string" }, description: "Pending validations" },
-        pendingDocs: { type: "array", items: { type: "string" }, description: "Pending docs" },
-        notes: { type: "string", description: "Additional notes" }
-      },
-      required: ["taskId", "taskType", "files"]
-    },
-    execute: async (args) => {
-      const result = await engiMemoryCheckpoint(args);
-      return { success: true, content: JSON.stringify(result, null, 2) };
-    }
-  },
-  {
-    name: "engi_memory_restore",
-    description: "Restore compact previously saved task state",
-    inputSchema: {
-      type: "object",
-      properties: {
-        id: { type: "string", description: "Checkpoint ID to restore" },
-        taskId: { type: "string", description: "Task ID to restore latest checkpoint" }
+      execute: async (args) => {
+        const result = await engiFlowSummarize(args);
+        return { success: true, content: JSON.stringify(result, null, 2) };
       }
     },
-    execute: async (args) => {
-      const result = await engiMemoryRestore(args);
-      return { success: true, content: JSON.stringify(result, null, 2) };
+    {
+      name: "engi_bug_trace_compact",
+      description: "Trace likely bug causes from symptom description",
+      inputSchema: {
+        type: "object",
+        properties: {
+          symptom: { type: "string", description: "Bug symptom description" },
+          scope: { type: "array", items: { type: "string" }, description: "Files to investigate" }
+        },
+        required: ["symptom"]
+      },
+      execute: async (args) => {
+        const result = await engiBugTraceCompact(args);
+        return { success: true, content: JSON.stringify(result, null, 2) };
+      }
+    },
+    {
+      name: "engi_implementation_plan",
+      description: "Build implementation plan for new feature or fix",
+      inputSchema: {
+        type: "object",
+        properties: {
+          task: { type: "string", description: "Feature or fix description" },
+          taskType: { type: "string", enum: ["feature", "bug"], description: "Type of task" },
+          scope: { type: "array", items: { type: "string" }, description: "Files in scope" },
+          existingPatterns: { type: "array", items: { type: "string" }, description: "Existing patterns to follow" }
+        },
+        required: ["task", "taskType", "scope"]
+      },
+      execute: async (args) => {
+        const result = await engiImplementationPlan(args);
+        return { success: true, content: JSON.stringify(result, null, 2) };
+      }
+    },
+    {
+      name: "engi_poc_plan",
+      description: "Define minimum viable POC implementation",
+      inputSchema: {
+        type: "object",
+        properties: {
+          goal: { type: "string", description: "POC goal description" },
+          constraints: { type: "array", items: { type: "string" }, description: "Known constraints" },
+          existingCode: { type: "array", items: { type: "string" }, description: "Existing code to leverage" }
+        },
+        required: ["goal"]
+      },
+      execute: async (args) => {
+        const result = await engiPOCPlan(args);
+        return { success: true, content: JSON.stringify(result, null, 2) };
+      }
+    },
+    {
+      name: "engi_impact_analyze",
+      description: "Estimate blast radius of change",
+      inputSchema: {
+        type: "object",
+        properties: {
+          scope: { type: "array", items: { type: "string" }, description: "Files being changed" },
+          changeType: { type: "string", enum: ["add", "modify", "delete"], description: "Type of change" }
+        },
+        required: ["scope", "changeType"]
+      },
+      execute: async (args) => {
+        const result = await engiImpactAnalyze(args);
+        return { success: true, content: JSON.stringify(result, null, 2) };
+      }
+    },
+    {
+      name: "engi_test_select",
+      description: "Choose minimum useful test set",
+      inputSchema: {
+        type: "object",
+        properties: {
+          scope: { type: "array", items: { type: "string" }, description: "Files being changed" },
+          changeType: { type: "string", enum: ["add", "modify", "delete"], description: "Type of change" }
+        },
+        required: ["scope"]
+      },
+      execute: async (args) => {
+        const result = await engiTestSelect(args);
+        return { success: true, content: JSON.stringify(result, null, 2) };
+      }
+    },
+    {
+      name: "engi_doc_context_build",
+      description: "Build compact context for docs generation",
+      inputSchema: {
+        type: "object",
+        properties: {
+          feature: { type: "string", description: "Feature or change to document" },
+          changedFiles: { type: "array", items: { type: "string" }, description: "Files that changed" },
+          audience: { type: "string", enum: ["junior", "senior", "pm", "qa", "api"], description: "Target audience" }
+        }
+      },
+      execute: async (args) => {
+        const result = await engiDocContextBuild(args);
+        return { success: true, content: JSON.stringify(result, null, 2) };
+      }
+    },
+    {
+      name: "engi_doc_update_plan",
+      description: "Identify which docs must change",
+      inputSchema: {
+        type: "object",
+        properties: {
+          changedFiles: { type: "array", items: { type: "string" }, description: "Files that changed" },
+          existingDocs: { type: "array", items: { type: "string" }, description: "Existing docs" }
+        },
+        required: ["changedFiles"]
+      },
+      execute: async (args) => {
+        const result = await engiDocUpdatePlan(args);
+        return { success: true, content: JSON.stringify(result, null, 2) };
+      }
+    },
+    {
+      name: "engi_memory_checkpoint",
+      description: "Store compact task state outside conversation context",
+      inputSchema: {
+        type: "object",
+        properties: {
+          taskId: { type: "string", description: "Unique task identifier" },
+          taskType: { type: "string", enum: ["analysis", "feature", "bug", "poc", "documentation", "mixed"], description: "Type of task" },
+          files: { type: "array", items: { type: "string" }, description: "Files in scope" },
+          symbols: { type: "array", items: { type: "string" }, description: "Symbols in scope" },
+          modules: { type: "array", items: { type: "string" }, description: "Modules in scope" },
+          decisions: { type: "array", items: { type: "object", properties: { description: { type: "string" }, rationale: { type: "string" } } }, description: "Decisions made" },
+          risks: { type: "array", items: { type: "string" }, description: "Identified risks" },
+          pendingValidations: { type: "array", items: { type: "string" }, description: "Pending validations" },
+          pendingDocs: { type: "array", items: { type: "string" }, description: "Pending docs" },
+          notes: { type: "string", description: "Additional notes" }
+        },
+        required: ["taskId", "taskType", "files"]
+      },
+      execute: async (args) => {
+        const result = await engiMemoryCheckpoint(args);
+        return { success: true, content: JSON.stringify(result, null, 2) };
+      }
+    },
+    {
+      name: "engi_memory_restore",
+      description: "Restore compact previously saved task state",
+      inputSchema: {
+        type: "object",
+        properties: {
+          id: { type: "string", description: "Checkpoint ID to restore" },
+          taskId: { type: "string", description: "Task ID to restore latest checkpoint" }
+        }
+      },
+      execute: async (args) => {
+        const result = await engiMemoryRestore(args);
+        return { success: true, content: JSON.stringify(result, null, 2) };
+      }
     }
-  }
-];
+  ];
+});
 
 // src/native-tools/index.ts
-var tools = [
-  {
-    name: "fetch_web_content",
-    description: "Fetch URL and extract clean content. Optimized for LLM (strips nav/ads, converts to markdown).",
-    inputSchema: {
-      type: "object",
-      properties: {
-        url: { type: "string", description: "URL to fetch" },
-        max_tokens: { type: "integer", description: "Max tokens output (default: 4000)" }
-      },
-      required: ["url"]
-    },
-    async execute(args) {
-      const result = await fetchWebContent(args.url, args.max_tokens || 4000);
-      return { success: result.success, content: result.content, error: result.error };
-    }
-  },
-  {
-    name: "quick_fetch",
-    description: "Ultra-fast fetch for quick lookups. Returns title + summary only.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        url: { type: "string", description: "URL to fetch" }
-      },
-      required: ["url"]
-    },
-    async execute(args) {
-      const result = await quickFetch(args.url);
-      return { success: result.success, content: result.content, error: result.error };
-    }
-  },
-  {
-    name: "open_in_browser",
-    description: "Open URL in default browser. Use when user wants to see results visually or needs interactive web content.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        url: { type: "string", description: "URL to open in browser" },
-        search: { type: "string", description: "Search query to open in Google (alternative to url)" }
-      },
-      required: []
-    },
-    async execute(args) {
-      try {
-        let url = args.url;
-        if (!url && args.search) {
-          url = `https://www.google.com/search?q=${encodeURIComponent(args.search)}`;
-        }
-        if (!url) {
-          return { success: false, content: "", error: "Provide url or search parameter" };
-        }
-        const { execSync: execSync2 } = await import("node:child_process");
-        const opener = process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
-        execSync2(`${opener} "${url}"`, { stdio: "ignore" });
-        return { success: true, content: `Opened in browser: ${url}` };
-      } catch (e) {
-        return { success: false, content: "", error: e.message };
-      }
-    }
-  },
-  {
-    name: "fetch_structured",
-    description: "Fetch and extract structured data (article metadata, product info, tables, links).",
-    inputSchema: {
-      type: "object",
-      properties: {
-        url: { type: "string" },
-        extraction_type: { type: "string", enum: ["article", "product", "table", "links"] },
-        max_tokens: { type: "integer" }
-      },
-      required: ["url", "extraction_type"]
-    },
-    async execute(args) {
-      const result = await fetchStructured(args.url, args.extraction_type, args.max_tokens);
-      return { success: result.success, content: result.content, error: result.error };
-    }
-  },
-  {
-    name: "fetch_with_selectors",
-    description: "Fetch URL and extract using CSS selectors.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        url: { type: "string" },
-        selectors: { type: "object" },
-        max_tokens: { type: "integer" }
-      },
-      required: ["url", "selectors"]
-    },
-    async execute(args) {
-      const result = await fetchWithSelectors(args.url, args.selectors, args.max_tokens);
-      return { success: result.success, content: result.content, error: result.error };
-    }
-  },
-  {
-    name: "scrape_freedium",
-    description: "Scrape Medium via Freedium.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        url: { type: "string" },
-        max_tokens: { type: "integer" }
-      },
-      required: ["url"]
-    },
-    async execute(args) {
-      const result = await scrapeFreedium(args.url, args.max_tokens);
-      return { success: result.success, content: result.content, error: result.error };
-    }
-  },
-  {
-    name: "webclaw_extract_article",
-    description: "Extract article content.",
-    inputSchema: { type: "object", properties: { url: { type: "string" } }, required: ["url"] },
-    async execute(args) {
-      const result = await webclawExtractArticle(args.url);
-      return { success: result.success, content: result.content, error: result.error };
-    }
-  },
-  {
-    name: "webclaw_extract_product",
-    description: "Extract e-commerce product info.",
-    inputSchema: { type: "object", properties: { url: { type: "string" } }, required: ["url"] },
-    async execute(args) {
-      const result = await webclawExtractProduct(args.url);
-      return { success: result.success, content: result.content, error: result.error };
-    }
-  },
-  {
-    name: "webclaw_crawl",
-    description: "Crawl with CSS selectors.",
-    inputSchema: {
-      type: "object",
-      properties: { url: { type: "string" }, selectors: { type: "object" } },
-      required: ["url", "selectors"]
-    },
-    async execute(args) {
-      const result = await webclawCrawl(args.url, args.selectors);
-      return { success: result.success, content: result.content, error: result.error };
-    }
-  },
-  {
-    name: "searxng_search",
-    description: "Web search via SearXNG. Supports categories, engines, time range.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        query: { type: "string", description: "Search query" },
-        limit: { type: "integer", description: "Max results (default: 10)" }
-      },
-      required: ["query"]
-    },
-    async execute(args) {
-      const result = await searxngSearch(args.query, args.limit || 10);
-      if (result.success && result.results) {
-        return {
-          success: true,
-          content: JSON.stringify({ results: result.results })
-        };
-      }
-      return { success: false, content: "", error: result.error };
-    }
-  },
-  {
-    name: "search_images",
-    description: "Image search via SearXNG.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        query: { type: "string" },
-        limit: { type: "integer" }
-      },
-      required: ["query"]
-    },
-    async execute(args) {
-      const result = await searchImages(args.query, args.limit || 10);
-      if (result.success && result.results) {
-        return { success: true, content: JSON.stringify({ results: result.results }) };
-      }
-      return { success: false, content: "", error: result.error };
-    }
-  },
-  {
-    name: "search_news",
-    description: "News search via SearXNG.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        query: { type: "string" },
-        time_range: { type: "string", enum: ["day", "week", "month", "year"] }
-      },
-      required: ["query"]
-    },
-    async execute(args) {
-      const result = await searchNews(args.query, args.time_range);
-      if (result.success && result.results) {
-        return { success: true, content: JSON.stringify({ results: result.results }) };
-      }
-      return { success: false, content: "", error: result.error };
-    }
-  },
-  {
-    name: "searxng_health",
-    description: "Check SearXNG health.",
-    inputSchema: { type: "object", properties: {} },
-    async execute() {
-      const result = await searxngHealth();
-      return { success: result.success, content: result.success ? "OK" : "DOWN", error: result.error };
-    }
-  },
-  {
-    name: "hackernews_top",
-    description: "Top HN stories.",
-    inputSchema: { type: "object", properties: { limit: { type: "integer" } } },
-    async execute(args) {
-      const result = await hackernewsTop(args.limit || 10);
-      if (result.success && result.results) {
-        return { success: true, content: JSON.stringify({ results: result.results }) };
-      }
-      return { success: false, content: "", error: result.error };
-    }
-  },
-  {
-    name: "hackernews_new",
-    description: "Newest HN stories.",
-    inputSchema: { type: "object", properties: { limit: { type: "integer" } } },
-    async execute(args) {
-      const result = await hackernewsNew(args.limit || 10);
-      if (result.success && result.results) {
-        return { success: true, content: JSON.stringify({ results: result.results }) };
-      }
-      return { success: false, content: "", error: result.error };
-    }
-  },
-  {
-    name: "hackernews_best",
-    description: "Best HN stories.",
-    inputSchema: { type: "object", properties: { limit: { type: "integer" } } },
-    async execute(args) {
-      const result = await hackernewsBest(args.limit || 10);
-      if (result.success && result.results) {
-        return { success: true, content: JSON.stringify({ results: result.results }) };
-      }
-      return { success: false, content: "", error: result.error };
-    }
-  },
-  {
-    name: "hackernews_get_comments",
-    description: "Get story comments.",
-    inputSchema: {
-      type: "object",
-      properties: { story_id: { type: "integer" }, limit: { type: "integer" } },
-      required: ["story_id"]
-    },
-    async execute(args) {
-      const result = await hackernewsComments(args.story_id, args.limit || 20);
-      if (result.success && result.results) {
-        return { success: true, content: JSON.stringify({ results: result.results }) };
-      }
-      return { success: false, content: "", error: result.error };
-    }
-  },
-  {
-    name: "file_read",
-    description: "Read file contents.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        path: { type: "string", description: "File path" },
-        max_size: { type: "integer", description: "Max bytes (default: 10MB)" }
-      },
-      required: ["path"]
-    },
-    async execute(args) {
-      const result = await fileRead(args.path, args.max_size);
-      return {
-        success: result.success,
-        content: result.content || "",
-        error: result.error
-      };
-    }
-  },
-  {
-    name: "file_write",
-    description: "Write content to a file.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        path: { type: "string", description: "File path" },
-        content: { type: "string", description: "Content to write" }
-      },
-      required: ["path", "content"]
-    },
-    async execute(args) {
-      const result = await fileWrite(args.path, args.content);
-      return {
-        success: result.success,
-        content: result.path || "",
-        error: result.error
-      };
-    }
-  },
-  {
-    name: "file_list",
-    description: "List directory contents.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        path: { type: "string", description: "Directory path (default: .)" },
-        max_items: { type: "integer" }
-      }
-    },
-    async execute(args) {
-      const result = await fileList(args.path || ".", args.max_items);
-      return {
-        success: result.success,
-        content: JSON.stringify(result.items),
-        error: result.error
-      };
-    }
-  },
-  {
-    name: "file_search",
-    description: "Search files by name pattern.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        directory: { type: "string" },
-        pattern: { type: "string" },
-        max_results: { type: "integer" }
-      },
-      required: ["directory", "pattern"]
-    },
-    async execute(args) {
-      const result = await fileSearch(args.directory, args.pattern, args.max_results);
-      return {
-        success: result.success,
-        content: JSON.stringify(result.files),
-        error: result.error
-      };
-    }
-  },
-  {
-    name: "file_grep",
-    description: "Search within files using grep.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        directory: { type: "string" },
-        query: { type: "string", description: "Search pattern" },
-        max_results: { type: "integer" },
-        file_pattern: { type: "string" }
-      },
-      required: ["directory", "query"]
-    },
-    async execute(args) {
-      const result = await fileGrep(args.directory, args.query, args.max_results, args.file_pattern || "*");
-      return {
-        success: result.success,
-        content: JSON.stringify(result.files),
-        error: result.error
-      };
-    }
-  },
-  {
-    name: "file_glob",
-    description: "Find files matching glob patterns.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        directory: { type: "string" },
-        patterns: { type: "array", items: { type: "string" } },
-        max_results: { type: "integer" }
-      },
-      required: ["directory", "patterns"]
-    },
-    async execute(args) {
-      const result = await fileGlob(args.directory, args.patterns, args.max_results);
-      return {
-        success: result.success,
-        content: JSON.stringify(result.files),
-        error: result.error
-      };
-    }
-  },
-  {
-    name: "run_code",
-    description: "Run code sandbox (Python, JS, Bash).",
-    inputSchema: {
-      type: "object",
-      properties: {
-        code: { type: "string" },
-        language: { type: "string", enum: ["python", "javascript", "bash"] },
-        timeout: { type: "integer" }
-      },
-      required: ["code", "language"]
-    },
-    async execute(args) {
-      const result = await runCode(args.code, args.language, args.timeout || 30);
-      return {
-        success: result.success,
-        content: result.output,
-        error: result.error
-      };
-    }
-  },
-  {
-    name: "run_python_snippet",
-    description: "Run Python with common imports.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        code: { type: "string" },
-        timeout: { type: "integer" }
-      },
-      required: ["code"]
-    },
-    async execute(args) {
-      const result = await runPythonSnippet(args.code, args.timeout);
-      return {
-        success: result.success,
-        content: result.output,
-        error: result.error
-      };
-    }
-  },
-  {
-    name: "run_command",
-    description: "Execute shell command. Supports any command with bash shell. Use for file ops, servers, scripts, etc.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        command: { type: "string", description: "Shell command to execute (full command with args)" },
-        cwd: { type: "string", description: "Working directory (optional, defaults to current)" },
-        background: { type: "boolean", description: "Run in background with nohup (default: false)" },
-        timeout: { type: "integer", description: "Timeout in seconds (default: 30)" }
-      },
-      required: ["command"]
-    },
-    async execute(args) {
-      const { execSync: execSync2, spawn: spawn2 } = await import("node:child_process");
-      const cmd = args.command;
-      const workingDir = args.cwd || process.cwd();
-      const timeout = args.timeout || 30;
-      const runBackground = args.background || false;
-      const dangerous = ["rm -rf", "dd", "mkfs", ":(){", "fork bomb", "> /dev/", "curl | bash", "wget -O- |"];
-      const isDangerous = dangerous.some((d) => cmd.toLowerCase().includes(d));
-      if (isDangerous) {
-        return { success: false, content: "", error: `⚠️  Dangerous command detected: "${cmd.slice(0, 50)}..."
-
-To execute dangerous commands, run directly in your terminal.` };
-      }
-      let fullCmd = cmd;
-      if (cmd.startsWith("cd ") && !cmd.includes("&&")) {
-        const match = cmd.match(/^cd\s+(.+)$/);
-        if (match) {
-          const targetDir = match[1].replace(/^~/, process.env.HOME || "~");
-          try {
-            const { statSync: statSync2 } = await import("node:fs");
-            statSync2(targetDir);
-            return { success: true, content: `Directory changed to: ${targetDir}` };
-          } catch {
-            return { success: false, content: "", error: `Directory not found: ${targetDir}` };
-          }
-        }
-      }
-      try {
-        if (runBackground || cmd.endsWith(" &")) {
-          const cleanCmd = cmd.replace(/\s*&\s*$/, "").trim();
-          spawn2(cleanCmd, [], {
-            shell: true,
-            cwd: workingDir,
-            detached: true,
-            stdio: "ignore"
-          }).unref();
-          return { success: true, content: `Started in background: ${cleanCmd}` };
-        }
-        const output = execSync2(`/bin/bash -c ${JSON.stringify(cmd)}`, {
-          encoding: "utf-8",
-          timeout: timeout * 1000,
-          cwd: workingDir,
-          maxBuffer: 10485760
-        });
-        return { success: true, content: output };
-      } catch (e) {
-        if (e.killed) {
-          return { success: false, content: "", error: `Command timed out after ${timeout}s` };
-        }
-        return { success: false, content: "", error: e.message };
-      }
-    }
-  },
-  {
-    name: "github_repo",
-    description: "Get repo info.",
-    inputSchema: {
-      type: "object",
-      properties: { owner: { type: "string" }, repo: { type: "string" } },
-      required: ["owner", "repo"]
-    },
-    async execute(args) {
-      const result = await githubRepo(args.owner, args.repo);
-      return { success: result.success, content: result.output, error: result.error };
-    }
-  },
-  {
-    name: "github_readme",
-    description: "Get repo README.",
-    inputSchema: {
-      type: "object",
-      properties: { owner: { type: "string" }, repo: { type: "string" } },
-      required: ["owner", "repo"]
-    },
-    async execute(args) {
-      const result = await githubReadme(args.owner, args.repo);
-      return { success: result.success, content: result.output, error: result.error };
-    }
-  },
-  {
-    name: "github_issues",
-    description: "List repo issues.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        owner: { type: "string" },
-        repo: { type: "string" },
-        state: { type: "string", enum: ["open", "closed", "all"] }
-      },
-      required: ["owner", "repo"]
-    },
-    async execute(args) {
-      const result = await githubIssues(args.owner, args.repo, args.state || "open");
-      return { success: result.success, content: result.output, error: result.error };
-    }
-  },
-  {
-    name: "github_commits",
-    description: "List recent commits.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        owner: { type: "string" },
-        repo: { type: "string" },
-        limit: { type: "integer" }
-      },
-      required: ["owner", "repo"]
-    },
-    async execute(args) {
-      const result = await githubCommits(args.owner, args.repo, args.limit || 20);
-      return { success: result.success, content: result.output, error: result.error };
-    }
-  },
-  {
-    name: "github_search_repos",
-    description: "Search repos.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        query: { type: "string" },
-        limit: { type: "integer" }
-      },
-      required: ["query"]
-    },
-    async execute(args) {
-      const result = await githubSearchRepos(args.query, args.limit || 10);
-      return { success: result.success, content: result.output, error: result.error };
-    }
-  },
-  {
-    name: "youtube_transcript",
-    description: "Get transcript from video.",
-    inputSchema: { type: "object", properties: { url: { type: "string" } }, required: ["url"] },
-    async execute(args) {
-      const result = await youtubeTranscript(args.url);
-      return { success: result.success, content: result.output, error: result.error };
-    }
-  },
-  {
-    name: "youtube_video_info",
-    description: "Get video metadata.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        video_id: { type: "string" },
-        url: { type: "string" }
-      }
-    },
-    async execute(args) {
-      const result = await youtubeVideoInfo(args.video_id, args.url);
-      return { success: result.success, content: result.output, error: result.error };
-    }
-  },
-  {
-    name: "youtube_search",
-    description: "Search videos.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        query: { type: "string" },
-        limit: { type: "integer" }
-      },
-      required: ["query"]
-    },
-    async execute(args) {
-      const result = await youtubeSearch(args.query, args.limit || 10);
-      return { success: result.success, content: result.output, error: result.error };
-    }
-  },
-  {
-    name: "youtube_summarize",
-    description: "Summarize transcript.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        transcript: { type: "string" },
-        max_words: { type: "integer" }
-      },
-      required: ["transcript"]
-    },
-    async execute(args) {
-      const result = await youtubeSummarize(args.transcript, args.max_words || 500);
-      return { success: result.success, content: result.output, error: result.error };
-    }
-  },
-  {
-    name: "pandas_create",
-    description: "Create DataFrame from data.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        data: { type: "string", description: "JSON data" },
-        name: { type: "string" }
-      },
-      required: ["data"]
-    },
-    async execute(args) {
-      const result = await pandasCreate(args.data, args.name);
-      return { success: result.success, content: result.output, error: result.error };
-    }
-  },
-  {
-    name: "pandas_filter",
-    description: "Filter data.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        data: { type: "array" },
-        conditions: { type: "string" }
-      },
-      required: ["data", "conditions"]
-    },
-    async execute(args) {
-      const result = await pandasFilter(args.data, args.conditions);
-      return { success: result.success, content: result.output, error: result.error };
-    }
-  },
-  {
-    name: "pandas_aggregate",
-    description: "Aggregate/group data.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        data: { type: "array" },
-        group_by: { type: "array", items: { type: "string" } },
-        aggregations: { type: "object" }
-      },
-      required: ["data", "group_by", "aggregations"]
-    },
-    async execute(args) {
-      const result = await pandasAggregate(args.data, args.group_by, args.aggregations);
-      return { success: result.success, content: result.output, error: result.error };
-    }
-  },
-  {
-    name: "plot_line",
-    description: "Generate line plot.",
-    inputSchema: {
-      type: "object",
-      properties: { x: { type: "array" }, y: { type: "array" }, title: { type: "string" } },
-      required: ["x", "y"]
-    },
-    async execute(args) {
-      return {
-        success: true,
-        content: `Line chart: ${args.title || "Plot"}
-X: ${args.x.slice(0, 5)}
-Y: ${args.y.slice(0, 5)}
-(Use run_code with matplotlib to render)`
-      };
-    }
-  },
-  {
-    name: "plot_bar",
-    description: "Generate bar chart.",
-    inputSchema: {
-      type: "object",
-      properties: { categories: { type: "array" }, values: { type: "array" }, title: { type: "string" } },
-      required: ["categories", "values"]
-    },
-    async execute(args) {
-      return {
-        success: true,
-        content: `Bar chart: ${args.title || "Plot"}
-Categories: ${args.categories.slice(0, 5)}
-Values: ${args.values.slice(0, 5)}
-(Use run_code with matplotlib to render)`
-      };
-    }
-  },
-  ...engiTools
-];
 function getTool(name) {
   return tools.find((t) => t.name === name);
 }
@@ -5545,10 +4903,728 @@ function getFormattedTools() {
     inputSchema: t.inputSchema
   }));
 }
+var tools;
+var init_native_tools = __esm(() => {
+  init_files();
+  init_code();
+  init_search();
+  init_github();
+  init_tools();
+  tools = [
+    {
+      name: "fetch_web_content",
+      description: "Fetch URL and extract clean content. Optimized for LLM (strips nav/ads, converts to markdown).",
+      inputSchema: {
+        type: "object",
+        properties: {
+          url: { type: "string", description: "URL to fetch" },
+          max_tokens: { type: "integer", description: "Max tokens output (default: 4000)" }
+        },
+        required: ["url"]
+      },
+      async execute(args) {
+        const result = await fetchWebContent(args.url, args.max_tokens || 4000);
+        return { success: result.success, content: result.content, error: result.error };
+      }
+    },
+    {
+      name: "quick_fetch",
+      description: "Ultra-fast fetch for quick lookups. Returns title + summary only.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          url: { type: "string", description: "URL to fetch" }
+        },
+        required: ["url"]
+      },
+      async execute(args) {
+        const result = await quickFetch(args.url);
+        return { success: result.success, content: result.content, error: result.error };
+      }
+    },
+    {
+      name: "open_in_browser",
+      description: "Open URL in default browser. Use when user wants to see results visually or needs interactive web content.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          url: { type: "string", description: "URL to open in browser" },
+          search: { type: "string", description: "Search query to open in Google (alternative to url)" }
+        },
+        required: []
+      },
+      async execute(args) {
+        try {
+          let url = args.url;
+          if (!url && args.search) {
+            url = `https://www.google.com/search?q=${encodeURIComponent(args.search)}`;
+          }
+          if (!url) {
+            return { success: false, content: "", error: "Provide url or search parameter" };
+          }
+          const { execSync: execSync2 } = await import("node:child_process");
+          const opener = process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
+          execSync2(`${opener} "${url}"`, { stdio: "ignore" });
+          return { success: true, content: `Opened in browser: ${url}` };
+        } catch (e) {
+          return { success: false, content: "", error: e.message };
+        }
+      }
+    },
+    {
+      name: "fetch_structured",
+      description: "Fetch and extract structured data (article metadata, product info, tables, links).",
+      inputSchema: {
+        type: "object",
+        properties: {
+          url: { type: "string" },
+          extraction_type: { type: "string", enum: ["article", "product", "table", "links"] },
+          max_tokens: { type: "integer" }
+        },
+        required: ["url", "extraction_type"]
+      },
+      async execute(args) {
+        const result = await fetchStructured(args.url, args.extraction_type, args.max_tokens);
+        return { success: result.success, content: result.content, error: result.error };
+      }
+    },
+    {
+      name: "fetch_with_selectors",
+      description: "Fetch URL and extract using CSS selectors.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          url: { type: "string" },
+          selectors: { type: "object" },
+          max_tokens: { type: "integer" }
+        },
+        required: ["url", "selectors"]
+      },
+      async execute(args) {
+        const result = await fetchWithSelectors(args.url, args.selectors, args.max_tokens);
+        return { success: result.success, content: result.content, error: result.error };
+      }
+    },
+    {
+      name: "scrape_freedium",
+      description: "Scrape Medium via Freedium.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          url: { type: "string" },
+          max_tokens: { type: "integer" }
+        },
+        required: ["url"]
+      },
+      async execute(args) {
+        const result = await scrapeFreedium(args.url, args.max_tokens);
+        return { success: result.success, content: result.content, error: result.error };
+      }
+    },
+    {
+      name: "webclaw_extract_article",
+      description: "Extract article content.",
+      inputSchema: { type: "object", properties: { url: { type: "string" } }, required: ["url"] },
+      async execute(args) {
+        const result = await webclawExtractArticle(args.url);
+        return { success: result.success, content: result.content, error: result.error };
+      }
+    },
+    {
+      name: "webclaw_extract_product",
+      description: "Extract e-commerce product info.",
+      inputSchema: { type: "object", properties: { url: { type: "string" } }, required: ["url"] },
+      async execute(args) {
+        const result = await webclawExtractProduct(args.url);
+        return { success: result.success, content: result.content, error: result.error };
+      }
+    },
+    {
+      name: "webclaw_crawl",
+      description: "Crawl with CSS selectors.",
+      inputSchema: {
+        type: "object",
+        properties: { url: { type: "string" }, selectors: { type: "object" } },
+        required: ["url", "selectors"]
+      },
+      async execute(args) {
+        const result = await webclawCrawl(args.url, args.selectors);
+        return { success: result.success, content: result.content, error: result.error };
+      }
+    },
+    {
+      name: "searxng_search",
+      description: "Web search via SearXNG. Supports categories, engines, time range.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          query: { type: "string", description: "Search query" },
+          limit: { type: "integer", description: "Max results (default: 10)" }
+        },
+        required: ["query"]
+      },
+      async execute(args) {
+        const result = await searxngSearch(args.query, args.limit || 10);
+        if (result.success && result.results) {
+          return {
+            success: true,
+            content: JSON.stringify({ results: result.results })
+          };
+        }
+        return { success: false, content: "", error: result.error };
+      }
+    },
+    {
+      name: "search_images",
+      description: "Image search via SearXNG.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          query: { type: "string" },
+          limit: { type: "integer" }
+        },
+        required: ["query"]
+      },
+      async execute(args) {
+        const result = await searchImages(args.query, args.limit || 10);
+        if (result.success && result.results) {
+          return { success: true, content: JSON.stringify({ results: result.results }) };
+        }
+        return { success: false, content: "", error: result.error };
+      }
+    },
+    {
+      name: "search_news",
+      description: "News search via SearXNG.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          query: { type: "string" },
+          time_range: { type: "string", enum: ["day", "week", "month", "year"] }
+        },
+        required: ["query"]
+      },
+      async execute(args) {
+        const result = await searchNews(args.query, args.time_range);
+        if (result.success && result.results) {
+          return { success: true, content: JSON.stringify({ results: result.results }) };
+        }
+        return { success: false, content: "", error: result.error };
+      }
+    },
+    {
+      name: "searxng_health",
+      description: "Check SearXNG health.",
+      inputSchema: { type: "object", properties: {} },
+      async execute() {
+        const result = await searxngHealth();
+        return { success: result.success, content: result.success ? "OK" : "DOWN", error: result.error };
+      }
+    },
+    {
+      name: "hackernews_top",
+      description: "Top HN stories.",
+      inputSchema: { type: "object", properties: { limit: { type: "integer" } } },
+      async execute(args) {
+        const result = await hackernewsTop(args.limit || 10);
+        if (result.success && result.results) {
+          return { success: true, content: JSON.stringify({ results: result.results }) };
+        }
+        return { success: false, content: "", error: result.error };
+      }
+    },
+    {
+      name: "hackernews_new",
+      description: "Newest HN stories.",
+      inputSchema: { type: "object", properties: { limit: { type: "integer" } } },
+      async execute(args) {
+        const result = await hackernewsNew(args.limit || 10);
+        if (result.success && result.results) {
+          return { success: true, content: JSON.stringify({ results: result.results }) };
+        }
+        return { success: false, content: "", error: result.error };
+      }
+    },
+    {
+      name: "hackernews_best",
+      description: "Best HN stories.",
+      inputSchema: { type: "object", properties: { limit: { type: "integer" } } },
+      async execute(args) {
+        const result = await hackernewsBest(args.limit || 10);
+        if (result.success && result.results) {
+          return { success: true, content: JSON.stringify({ results: result.results }) };
+        }
+        return { success: false, content: "", error: result.error };
+      }
+    },
+    {
+      name: "hackernews_get_comments",
+      description: "Get story comments.",
+      inputSchema: {
+        type: "object",
+        properties: { story_id: { type: "integer" }, limit: { type: "integer" } },
+        required: ["story_id"]
+      },
+      async execute(args) {
+        const result = await hackernewsComments(args.story_id, args.limit || 20);
+        if (result.success && result.results) {
+          return { success: true, content: JSON.stringify({ results: result.results }) };
+        }
+        return { success: false, content: "", error: result.error };
+      }
+    },
+    {
+      name: "file_read",
+      description: "Read file contents.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          path: { type: "string", description: "File path" },
+          max_size: { type: "integer", description: "Max bytes (default: 10MB)" }
+        },
+        required: ["path"]
+      },
+      async execute(args) {
+        const result = await fileRead(args.path, args.max_size);
+        return {
+          success: result.success,
+          content: result.content || "",
+          error: result.error
+        };
+      }
+    },
+    {
+      name: "file_write",
+      description: "Write content to a file.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          path: { type: "string", description: "File path" },
+          content: { type: "string", description: "Content to write" }
+        },
+        required: ["path", "content"]
+      },
+      async execute(args) {
+        const result = await fileWrite(args.path, args.content);
+        return {
+          success: result.success,
+          content: result.path || "",
+          error: result.error
+        };
+      }
+    },
+    {
+      name: "file_list",
+      description: "List directory contents.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          path: { type: "string", description: "Directory path (default: .)" },
+          max_items: { type: "integer" }
+        }
+      },
+      async execute(args) {
+        const result = await fileList(args.path || ".", args.max_items);
+        return {
+          success: result.success,
+          content: JSON.stringify(result.items),
+          error: result.error
+        };
+      }
+    },
+    {
+      name: "file_search",
+      description: "Search files by name pattern.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          directory: { type: "string" },
+          pattern: { type: "string" },
+          max_results: { type: "integer" }
+        },
+        required: ["directory", "pattern"]
+      },
+      async execute(args) {
+        const result = await fileSearch(args.directory, args.pattern, args.max_results);
+        return {
+          success: result.success,
+          content: JSON.stringify(result.files),
+          error: result.error
+        };
+      }
+    },
+    {
+      name: "file_grep",
+      description: "Search within files using grep.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          directory: { type: "string" },
+          query: { type: "string", description: "Search pattern" },
+          max_results: { type: "integer" },
+          file_pattern: { type: "string" }
+        },
+        required: ["directory", "query"]
+      },
+      async execute(args) {
+        const result = await fileGrep(args.directory, args.query, args.max_results, args.file_pattern || "*");
+        return {
+          success: result.success,
+          content: JSON.stringify(result.files),
+          error: result.error
+        };
+      }
+    },
+    {
+      name: "file_glob",
+      description: "Find files matching glob patterns.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          directory: { type: "string" },
+          patterns: { type: "array", items: { type: "string" } },
+          max_results: { type: "integer" }
+        },
+        required: ["directory", "patterns"]
+      },
+      async execute(args) {
+        const result = await fileGlob(args.directory, args.patterns, args.max_results);
+        return {
+          success: result.success,
+          content: JSON.stringify(result.files),
+          error: result.error
+        };
+      }
+    },
+    {
+      name: "run_code",
+      description: "Run code sandbox (Python, JS, Bash).",
+      inputSchema: {
+        type: "object",
+        properties: {
+          code: { type: "string" },
+          language: { type: "string", enum: ["python", "javascript", "bash"] },
+          timeout: { type: "integer" }
+        },
+        required: ["code", "language"]
+      },
+      async execute(args) {
+        const result = await runCode(args.code, args.language, args.timeout || 30);
+        return {
+          success: result.success,
+          content: result.output,
+          error: result.error
+        };
+      }
+    },
+    {
+      name: "run_python_snippet",
+      description: "Run Python with common imports.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          code: { type: "string" },
+          timeout: { type: "integer" }
+        },
+        required: ["code"]
+      },
+      async execute(args) {
+        const result = await runPythonSnippet(args.code, args.timeout);
+        return {
+          success: result.success,
+          content: result.output,
+          error: result.error
+        };
+      }
+    },
+    {
+      name: "run_command",
+      description: "Execute shell command. Supports any command with bash shell. Use for file ops, servers, scripts, etc.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          command: { type: "string", description: "Shell command to execute (full command with args)" },
+          cwd: { type: "string", description: "Working directory (optional, defaults to current)" },
+          background: { type: "boolean", description: "Run in background with nohup (default: false)" },
+          timeout: { type: "integer", description: "Timeout in seconds (default: 30)" }
+        },
+        required: ["command"]
+      },
+      async execute(args) {
+        const { execSync: execSync2, spawn: spawn2 } = await import("node:child_process");
+        const cmd = args.command;
+        const workingDir = args.cwd || process.cwd();
+        const timeout = args.timeout || 30;
+        const runBackground = args.background || false;
+        const dangerous = ["rm -rf", "dd", "mkfs", ":(){", "fork bomb", "> /dev/", "curl | bash", "wget -O- |"];
+        const isDangerous = dangerous.some((d) => cmd.toLowerCase().includes(d));
+        if (isDangerous) {
+          return { success: false, content: "", error: `⚠️  Dangerous command detected: "${cmd.slice(0, 50)}..."
+
+To execute dangerous commands, run directly in your terminal.` };
+        }
+        let fullCmd = cmd;
+        if (cmd.startsWith("cd ") && !cmd.includes("&&")) {
+          const match = cmd.match(/^cd\s+(.+)$/);
+          if (match) {
+            const targetDir = match[1].replace(/^~/, process.env.HOME || "~");
+            try {
+              const { statSync: statSync2 } = await import("node:fs");
+              statSync2(targetDir);
+              return { success: true, content: `Directory changed to: ${targetDir}` };
+            } catch {
+              return { success: false, content: "", error: `Directory not found: ${targetDir}` };
+            }
+          }
+        }
+        try {
+          if (runBackground || cmd.endsWith(" &")) {
+            const cleanCmd = cmd.replace(/\s*&\s*$/, "").trim();
+            spawn2(cleanCmd, [], {
+              shell: true,
+              cwd: workingDir,
+              detached: true,
+              stdio: "ignore"
+            }).unref();
+            return { success: true, content: `Started in background: ${cleanCmd}` };
+          }
+          const output = execSync2(`/bin/bash -c ${JSON.stringify(cmd)}`, {
+            encoding: "utf-8",
+            timeout: timeout * 1000,
+            cwd: workingDir,
+            maxBuffer: 10485760
+          });
+          return { success: true, content: output };
+        } catch (e) {
+          if (e.killed) {
+            return { success: false, content: "", error: `Command timed out after ${timeout}s` };
+          }
+          return { success: false, content: "", error: e.message };
+        }
+      }
+    },
+    {
+      name: "github_repo",
+      description: "Get repo info.",
+      inputSchema: {
+        type: "object",
+        properties: { owner: { type: "string" }, repo: { type: "string" } },
+        required: ["owner", "repo"]
+      },
+      async execute(args) {
+        const result = await githubRepo(args.owner, args.repo);
+        return { success: result.success, content: result.output, error: result.error };
+      }
+    },
+    {
+      name: "github_readme",
+      description: "Get repo README.",
+      inputSchema: {
+        type: "object",
+        properties: { owner: { type: "string" }, repo: { type: "string" } },
+        required: ["owner", "repo"]
+      },
+      async execute(args) {
+        const result = await githubReadme(args.owner, args.repo);
+        return { success: result.success, content: result.output, error: result.error };
+      }
+    },
+    {
+      name: "github_issues",
+      description: "List repo issues.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          owner: { type: "string" },
+          repo: { type: "string" },
+          state: { type: "string", enum: ["open", "closed", "all"] }
+        },
+        required: ["owner", "repo"]
+      },
+      async execute(args) {
+        const result = await githubIssues(args.owner, args.repo, args.state || "open");
+        return { success: result.success, content: result.output, error: result.error };
+      }
+    },
+    {
+      name: "github_commits",
+      description: "List recent commits.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          owner: { type: "string" },
+          repo: { type: "string" },
+          limit: { type: "integer" }
+        },
+        required: ["owner", "repo"]
+      },
+      async execute(args) {
+        const result = await githubCommits(args.owner, args.repo, args.limit || 20);
+        return { success: result.success, content: result.output, error: result.error };
+      }
+    },
+    {
+      name: "github_search_repos",
+      description: "Search repos.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          query: { type: "string" },
+          limit: { type: "integer" }
+        },
+        required: ["query"]
+      },
+      async execute(args) {
+        const result = await githubSearchRepos(args.query, args.limit || 10);
+        return { success: result.success, content: result.output, error: result.error };
+      }
+    },
+    {
+      name: "youtube_transcript",
+      description: "Get transcript from video.",
+      inputSchema: { type: "object", properties: { url: { type: "string" } }, required: ["url"] },
+      async execute(args) {
+        const result = await youtubeTranscript(args.url);
+        return { success: result.success, content: result.output, error: result.error };
+      }
+    },
+    {
+      name: "youtube_video_info",
+      description: "Get video metadata.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          video_id: { type: "string" },
+          url: { type: "string" }
+        }
+      },
+      async execute(args) {
+        const result = await youtubeVideoInfo(args.video_id, args.url);
+        return { success: result.success, content: result.output, error: result.error };
+      }
+    },
+    {
+      name: "youtube_search",
+      description: "Search videos.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          query: { type: "string" },
+          limit: { type: "integer" }
+        },
+        required: ["query"]
+      },
+      async execute(args) {
+        const result = await youtubeSearch(args.query, args.limit || 10);
+        return { success: result.success, content: result.output, error: result.error };
+      }
+    },
+    {
+      name: "youtube_summarize",
+      description: "Summarize transcript.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          transcript: { type: "string" },
+          max_words: { type: "integer" }
+        },
+        required: ["transcript"]
+      },
+      async execute(args) {
+        const result = await youtubeSummarize(args.transcript, args.max_words || 500);
+        return { success: result.success, content: result.output, error: result.error };
+      }
+    },
+    {
+      name: "pandas_create",
+      description: "Create DataFrame from data.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          data: { type: "string", description: "JSON data" },
+          name: { type: "string" }
+        },
+        required: ["data"]
+      },
+      async execute(args) {
+        const result = await pandasCreate(args.data, args.name);
+        return { success: result.success, content: result.output, error: result.error };
+      }
+    },
+    {
+      name: "pandas_filter",
+      description: "Filter data.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          data: { type: "array" },
+          conditions: { type: "string" }
+        },
+        required: ["data", "conditions"]
+      },
+      async execute(args) {
+        const result = await pandasFilter(args.data, args.conditions);
+        return { success: result.success, content: result.output, error: result.error };
+      }
+    },
+    {
+      name: "pandas_aggregate",
+      description: "Aggregate/group data.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          data: { type: "array" },
+          group_by: { type: "array", items: { type: "string" } },
+          aggregations: { type: "object" }
+        },
+        required: ["data", "group_by", "aggregations"]
+      },
+      async execute(args) {
+        const result = await pandasAggregate(args.data, args.group_by, args.aggregations);
+        return { success: result.success, content: result.output, error: result.error };
+      }
+    },
+    {
+      name: "plot_line",
+      description: "Generate line plot.",
+      inputSchema: {
+        type: "object",
+        properties: { x: { type: "array" }, y: { type: "array" }, title: { type: "string" } },
+        required: ["x", "y"]
+      },
+      async execute(args) {
+        return {
+          success: true,
+          content: `Line chart: ${args.title || "Plot"}
+X: ${args.x.slice(0, 5)}
+Y: ${args.y.slice(0, 5)}
+(Use run_code with matplotlib to render)`
+        };
+      }
+    },
+    {
+      name: "plot_bar",
+      description: "Generate bar chart.",
+      inputSchema: {
+        type: "object",
+        properties: { categories: { type: "array" }, values: { type: "array" }, title: { type: "string" } },
+        required: ["categories", "values"]
+      },
+      async execute(args) {
+        return {
+          success: true,
+          content: `Bar chart: ${args.title || "Plot"}
+Categories: ${args.categories.slice(0, 5)}
+Values: ${args.values.slice(0, 5)}
+(Use run_code with matplotlib to render)`
+        };
+      }
+    },
+    ...engiTools
+  ];
+});
 
 // src/utils/notifications.ts
-var NOTIFY_ENABLED = process.env.BEAST_NOTIFY !== "false";
-var NOTIFY_SOUND = process.env.BEAST_NOTIFY_SOUND !== "false";
 function playBell() {
   if (NOTIFY_ENABLED && NOTIFY_SOUND) {
     process.stdout.write("\x07");
@@ -5557,17 +5633,455 @@ function playBell() {
 function onResponseReady() {
   playBell();
 }
+var NOTIFY_ENABLED, NOTIFY_SOUND;
+var init_notifications = __esm(() => {
+  NOTIFY_ENABLED = process.env.BEAST_NOTIFY !== "false";
+  NOTIFY_SOUND = process.env.BEAST_NOTIFY_SOUND !== "false";
+});
+
+// src/agents/index.ts
+var exports_agents = {};
+__export(exports_agents, {
+  updateMemory: () => updateMemory,
+  updateAgent: () => updateAgent,
+  setActiveAgent: () => setActiveAgent,
+  saveMemory: () => saveMemory,
+  registerDefaultAgents: () => registerDefaultAgents,
+  registerAgentType: () => registerAgentType,
+  parseAgentContext: () => parseAgentContext,
+  loadMemory: () => loadMemory,
+  listAgents: () => listAgents,
+  getAgent: () => getAgent,
+  getActiveAgent: () => getActiveAgent,
+  deleteAgent: () => deleteAgent,
+  createWorkerAgent: () => createWorkerAgent,
+  createAgent: () => createAgent,
+  buildAgentSystemMessage: () => buildAgentSystemMessage,
+  WorkerAgent: () => WorkerAgent,
+  Coordinator: () => Coordinator,
+  AgentSession: () => AgentSession
+});
+import { existsSync as existsSync5, readFileSync as readFileSync4, writeFileSync as writeFileSync4, mkdirSync as mkdirSync2 } from "node:fs";
+import { resolve as resolve2 } from "node:path";
+function getAgentsDir() {
+  return resolve2(process.env.HOME ?? "~", ".beast-cli", "agents");
+}
+function getAgentsPath() {
+  return resolve2(getAgentsDir(), "agents.json");
+}
+function getMemoryPath() {
+  return resolve2(getAgentsDir(), "memory.json");
+}
+function ensureDir() {
+  const dir = getAgentsDir();
+  if (!existsSync5(dir))
+    mkdirSync2(dir, { recursive: true });
+}
+function loadStore() {
+  ensureDir();
+  try {
+    if (existsSync5(getAgentsPath())) {
+      return JSON.parse(readFileSync4(getAgentsPath(), "utf-8"));
+    }
+  } catch {}
+  return { agents: [] };
+}
+function saveStore(store) {
+  ensureDir();
+  writeFileSync4(getAgentsPath(), JSON.stringify(store, null, 2), "utf-8");
+}
+function listAgents() {
+  return loadStore().agents;
+}
+function getAgent(name) {
+  const store = loadStore();
+  return store.agents.find((a) => a.name.toLowerCase() === name.toLowerCase() || a.name.toLowerCase().replace(/\s+/g, "-") === name.toLowerCase());
+}
+function createAgent(data) {
+  const store = loadStore();
+  const agent = {
+    ...data,
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  };
+  store.agents.push(agent);
+  saveStore(store);
+  return agent;
+}
+function updateAgent(id, updates) {
+  const store = loadStore();
+  const idx = store.agents.findIndex((a) => a.id === id);
+  if (idx === -1)
+    return null;
+  store.agents[idx] = { ...store.agents[idx], ...updates, updatedAt: Date.now() };
+  saveStore(store);
+  return store.agents[idx];
+}
+function deleteAgent(id) {
+  const store = loadStore();
+  const before = store.agents.length;
+  store.agents = store.agents.filter((a) => a.id !== id);
+  if (store.agents.length < before) {
+    if (store.activeAgent) {
+      const stillExists = store.agents.some((a) => a.name === store.activeAgent);
+      if (!stillExists)
+        store.activeAgent = undefined;
+    }
+    saveStore(store);
+    return true;
+  }
+  return false;
+}
+function getActiveAgent() {
+  const store = loadStore();
+  if (!store.activeAgent)
+    return;
+  return getAgent(store.activeAgent);
+}
+function setActiveAgent(name) {
+  const store = loadStore();
+  store.activeAgent = name;
+  saveStore(store);
+}
+function loadMemory() {
+  try {
+    if (existsSync5(getMemoryPath())) {
+      return JSON.parse(readFileSync4(getMemoryPath(), "utf-8"));
+    }
+  } catch {}
+  return { facts: [], preferences: {}, context: "", updatedAt: Date.now() };
+}
+function saveMemory(memory) {
+  ensureDir();
+  writeFileSync4(getMemoryPath(), JSON.stringify(memory, null, 2), "utf-8");
+}
+function updateMemory(updates) {
+  const memory = loadMemory();
+  const updated = { ...memory, ...updates, updatedAt: Date.now() };
+  saveMemory(updated);
+  return updated;
+}
+function parseAgentContext(prompt) {
+  const store = loadStore();
+  const instructions = [];
+  const usedAgents = [];
+  let activeAgent;
+  if (store.activeAgent) {
+    activeAgent = getAgent(store.activeAgent);
+    if (activeAgent) {
+      instructions.push(`[AGENT: ${activeAgent.name}]
+${activeAgent.instructions}`);
+      usedAgents.push(activeAgent);
+    }
+  }
+  const matches = [...prompt.matchAll(AGENT_REF_REGEX)];
+  for (const match of matches) {
+    const name = match[1];
+    const agent = getAgent(name);
+    if (agent && !usedAgents.some((a) => a.id === agent.id)) {
+      instructions.push(`[AGENT: ${agent.name}]
+${agent.instructions}`);
+      usedAgents.push(agent);
+    }
+  }
+  const cleanedPrompt = prompt.replace(AGENT_REF_REGEX, "").replace(/\s+/g, " ").trim();
+  return { cleanedPrompt, agentInstructions: instructions, usedAgents, activeAgent };
+}
+function buildAgentSystemMessage(context) {
+  const parts = [];
+  if (context.agentInstructions.length > 0) {
+    parts.push(`You have access to the following custom agents:
+` + context.agentInstructions.join(`
+
+`));
+  }
+  const memory = loadMemory();
+  if (memory.context || memory.facts.length > 0) {
+    const memParts = [];
+    if (memory.context)
+      memParts.push(`Project Context: ${memory.context}`);
+    if (memory.facts.length > 0)
+      memParts.push(`Known Facts: ${memory.facts.map((f) => `• ${f}`).join(`
+`)}`);
+    if (Object.keys(memory.preferences).length > 0) {
+      memParts.push(`Preferences: ${Object.entries(memory.preferences).map(([k, v]) => `${k}=${v}`).join(", ")}`);
+    }
+    parts.push(`[MEMORY]
+` + memParts.join(`
+`));
+  }
+  return parts.join(`
+
+`);
+}
+
+class Coordinator {
+  agents = new Map;
+  messageQueue = [];
+  onMessage;
+  constructor(onMessage) {
+    this.onMessage = onMessage;
+  }
+  registerAgent(config) {
+    const instance = {
+      config,
+      status: "idle"
+    };
+    this.agents.set(config.id, instance);
+    console.log(`[Coordinator] Registered agent: ${config.name} (${config.role})`);
+    return config.id;
+  }
+  spawnWorker(config) {
+    const id = `worker-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    return this.registerAgent({
+      ...config,
+      id,
+      role: "worker"
+    });
+  }
+  sendMessage(to, type, payload) {
+    const msg = {
+      id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      from: "coordinator",
+      to,
+      type,
+      payload,
+      timestamp: Date.now()
+    };
+    this.messageQueue.push(msg);
+    if (this.onMessage) {
+      this.onMessage(msg);
+    }
+    this.handleMessage(msg);
+  }
+  handleMessage(msg) {
+    const agent = this.agents.get(msg.to);
+    if (!agent)
+      return;
+    switch (msg.type) {
+      case "task":
+        agent.status = "running";
+        agent.startedAt = new Date;
+        console.log(`[Coordinator] Task assigned to ${agent.config.name}`);
+        break;
+      case "stop":
+        agent.status = "completed";
+        agent.completedAt = new Date;
+        console.log(`[Coordinator] ${agent.config.name} stopped`);
+        break;
+      case "result":
+        agent.result = msg.payload;
+        agent.status = "completed";
+        agent.completedAt = new Date;
+        console.log(`[Coordinator] Result received from ${agent.config.name}`);
+        break;
+      case "error":
+        agent.status = "failed";
+        agent.result = msg.payload;
+        console.log(`[Coordinator] Error from ${agent.config.name}: ${msg.payload}`);
+        break;
+    }
+  }
+  getAgent(id) {
+    return this.agents.get(id);
+  }
+  getAllAgents() {
+    return Array.from(this.agents.values());
+  }
+  getAgentsByRole(role) {
+    return Array.from(this.agents.values()).filter((a) => a.config.role === role);
+  }
+  stopAgent(id) {
+    this.sendMessage(id, "stop", { reason: "coordinator-stop" });
+  }
+  stopAllWorkers() {
+    const workers = this.getAgentsByRole("worker");
+    for (const worker of workers) {
+      this.stopAgent(worker.config.id);
+    }
+  }
+  broadcast(type, payload) {
+    const workers = this.getAgentsByRole("worker");
+    for (const worker of workers) {
+      this.sendMessage(worker.config.id, type, payload);
+    }
+  }
+  synthesizeResults() {
+    const workers = this.getAgentsByRole("worker");
+    const succeeded = [];
+    const failed = [];
+    let totalDuration = 0;
+    for (const worker of workers) {
+      if (worker.status === "completed" && worker.result) {
+        succeeded.push(worker.result);
+      } else if (worker.status === "failed") {
+        failed.push(worker.result);
+      }
+      if (worker.startedAt && worker.completedAt) {
+        totalDuration += worker.completedAt.getTime() - worker.startedAt.getTime();
+      }
+    }
+    return { succeeded, failed, totalDuration };
+  }
+}
+
+class WorkerAgent {
+  id;
+  name;
+  tools;
+  disallowedTools;
+  messageHandler;
+  constructor(config) {
+    this.id = config.id;
+    this.name = config.name;
+    this.tools = config.tools ?? ["*"];
+    this.disallowedTools = config.disallowedTools ?? [];
+    this.messageHandler = config.onMessage;
+  }
+  getId() {
+    return this.id;
+  }
+  getName() {
+    return this.name;
+  }
+  isToolAllowed(toolName) {
+    if (this.tools.includes("*"))
+      return true;
+    if (this.disallowedTools.includes(toolName))
+      return false;
+    return this.tools.includes(toolName);
+  }
+  getAllowedTools() {
+    if (this.tools.includes("*")) {
+      return ["*"];
+    }
+    return this.tools.filter((t) => !this.disallowedTools.includes(t));
+  }
+  async handleTask(task) {
+    console.log(`[Worker:${this.name}] Processing task`);
+    return {
+      agentId: this.id,
+      agentName: this.name,
+      task,
+      result: "Task completed",
+      completedAt: new Date().toISOString()
+    };
+  }
+  sendResult(coordinatorId, result) {
+    const msg = {
+      id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      from: this.id,
+      to: coordinatorId,
+      type: "result",
+      payload: result,
+      timestamp: Date.now()
+    };
+    if (this.messageHandler) {
+      this.messageHandler(msg);
+    }
+  }
+}
+function registerAgentType(type, factory) {
+  agentRegistry.set(type, factory);
+}
+function createWorkerAgent(type, config) {
+  const factory = agentRegistry.get(type);
+  if (!factory)
+    return null;
+  return factory(config);
+}
+
+class AgentSession {
+  coordinator;
+  workers = new Map;
+  sessionId;
+  constructor(sessionId) {
+    this.sessionId = sessionId;
+    this.coordinator = new Coordinator((msg) => this.onCoordinatorMessage(msg));
+  }
+  async initialize(config) {
+    this.coordinator.registerAgent({
+      id: `coord-${this.sessionId}`,
+      name: "main-coordinator",
+      role: "coordinator",
+      tools: config.coordinatorTools
+    });
+    for (let i = 0;i < config.workerCount; i++) {
+      const workerId = this.coordinator.spawnWorker({
+        name: `worker-${i + 1}`,
+        tools: config.workerTools,
+        prompt: `You are worker ${i + 1} in a multi-agent session.`
+      });
+      const worker = new WorkerAgent({
+        id: workerId,
+        name: `worker-${i + 1}`,
+        tools: config.workerTools,
+        onMessage: (msg) => this.coordinator.sendMessage(msg.to, msg.type, msg.payload)
+      });
+      this.workers.set(workerId, worker);
+    }
+    console.log(`[AgentSession] Initialized with ${config.workerCount} workers`);
+  }
+  onCoordinatorMessage(msg) {
+    if (msg.to === `coord-${this.sessionId}`) {
+      console.log(`[Session] Message received: ${msg.type} from ${msg.from}`);
+    }
+  }
+  assignTask(workerId, task) {
+    this.coordinator.sendMessage(workerId, "task", task);
+  }
+  assignToAll(task) {
+    this.coordinator.broadcast("task", task);
+  }
+  async waitForCompletion(timeout = 60000) {
+    const start = Date.now();
+    while (Date.now() - start < timeout) {
+      const workers = this.coordinator.getAgentsByRole("worker");
+      const allDone = workers.every((w) => w.status === "completed" || w.status === "failed");
+      if (allDone)
+        return true;
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+    return false;
+  }
+  getResults() {
+    return {
+      coordinator: this.coordinator,
+      results: this.coordinator.synthesizeResults(),
+      sessionId: this.sessionId
+    };
+  }
+  destroy() {
+    this.coordinator.stopAllWorkers();
+    this.workers.clear();
+    console.log(`[AgentSession] Session ${this.sessionId} destroyed`);
+  }
+}
+function registerDefaultAgents() {
+  registerAgentType("research", (config) => new WorkerAgent({
+    id: config.id,
+    name: config.name,
+    tools: ["Read", "Grep", "Glob", "WebFetch"]
+  }));
+  registerAgentType("builder", (config) => new WorkerAgent({
+    id: config.id,
+    name: config.name,
+    tools: ["Read", "Edit", "Write", "Bash", "Glob"]
+  }));
+  registerAgentType("tester", (config) => new WorkerAgent({
+    id: config.id,
+    name: config.name,
+    tools: ["Read", "Bash", "Glob"]
+  }));
+}
+var AGENT_REF_REGEX, agentRegistry;
+var init_agents = __esm(() => {
+  AGENT_REF_REGEX = /@([\w-]+)/g;
+  agentRegistry = new Map;
+});
 
 // src/providers/discover.ts
-var CODEX_OAUTH = {
-  CLIENT_ID: "app_EMoamEEZ73f0CkXaXp7hrann",
-  AUTHORIZE_URL: "https://auth.openai.com/oauth/authorize",
-  TOKEN_URL: "https://auth.openai.com/oauth/token",
-  REDIRECT_URI: "http://localhost:1455/auth/callback",
-  SCOPE: "openid profile email offline_access",
-  API_BASE_URL: "https://chatgpt.com/backend-api",
-  TOKEN_FILE: ".beast-cli/codex-auth.json"
-};
 async function fetchOllamaModels(baseUrl = "http://localhost:11434") {
   try {
     const res = await fetch(`${baseUrl}/api/tags`, { signal: AbortSignal.timeout(2000) });
@@ -5605,17 +6119,6 @@ async function fetchLocalModels(provider) {
       return [];
   }
 }
-var API_KEY_ENVS = {
-  anthropic: "ANTHROPIC_API_KEY",
-  openai: "OPENAI_API_KEY",
-  codex: "CODEX_API_KEY",
-  deepseek: "DEEPSEEK_API_KEY",
-  groq: "GROQ_API_KEY",
-  mistral: "MISTRAL_API_KEY",
-  openrouter: "OPENROUTER_API_KEY",
-  qwen: "DASHSCOPE_API_KEY",
-  gemini: "GEMINI_API_KEY"
-};
 function getApiKeyFromEnv(provider) {
   const envVar = API_KEY_ENVS[provider];
   if (!envVar)
@@ -5625,100 +6128,6 @@ function getApiKeyFromEnv(provider) {
 function isCloudProvider(provider) {
   return provider in API_KEY_ENVS;
 }
-var DEFAULT_MODEL = {
-  anthropic: "claude-sonnet-4-20250514",
-  openai: "gpt-5.4",
-  openrouter: "qwen/qwen3-32b",
-  deepseek: "deepseek-chat",
-  groq: "llama-3.3-70b-versatile",
-  mistral: "mistral-large-latest",
-  qwen: "qwen-plus",
-  gemini: "gemini-1.5-pro",
-  ollama: "llama3.2:latest",
-  lmstudio: "llama3.2:latest",
-  jan: "llama3.2:latest"
-};
-var CLOUD_MODELS = {
-  anthropic: [
-    "claude-opus-4-5",
-    "claude-sonnet-4-20250514",
-    "claude-haiku-4-20250514",
-    "claude-3-5-sonnet-latest"
-  ],
-  openai: [
-    "gpt-5.4",
-    "gpt-5.4-pro",
-    "gpt-5.4-mini",
-    "gpt-5.4-nano",
-    "gpt-5",
-    "gpt-5-mini",
-    "gpt-5-nano",
-    "gpt-5.2",
-    "gpt-5.2-pro",
-    "gpt-5-pro",
-    "gpt-4.1",
-    "gpt-4.1-mini",
-    "gpt-4.1-nano",
-    "o3-pro",
-    "o3",
-    "o4-mini",
-    "o3-deep-research",
-    "o4-mini-deep-research",
-    "o1-pro",
-    "o1",
-    "o3-mini",
-    "gpt-4o",
-    "gpt-4o-mini",
-    "gpt-4-turbo",
-    "gpt-4",
-    "gpt-3.5-turbo",
-    "gpt-5-codex",
-    "gpt-5.3-codex",
-    "gpt-5.2-codex",
-    "gpt-5.1-codex",
-    "gpt-5.1-codex-max",
-    "gpt-5.1-codex-mini"
-  ],
-  openrouter: [
-    "qwen/qwen3-32b",
-    "qwen/qwen3-14b",
-    "qwen/qwen3-8b",
-    "openrouter/auto",
-    "anthropic/claude-3-opus",
-    "openai/gpt-4o",
-    "google/gemini-pro-1.5",
-    "deepseek/deepseek-chat"
-  ],
-  deepseek: [
-    "deepseek-chat",
-    "deepseek-coder",
-    "deepseek-reasoner"
-  ],
-  groq: [
-    "llama-3.3-70b-versatile",
-    "mixtral-8x7b-32768",
-    "gemma2-9b-it",
-    "llama-3.1-8b-instant"
-  ],
-  mistral: [
-    "mistral-large-latest",
-    "mistral-small-latest",
-    "codestral-latest",
-    "mistral-nemo"
-  ],
-  qwen: [
-    "qwen-plus",
-    "qwen-max",
-    "qwen2.5-coder-32b",
-    "qwq-32b"
-  ],
-  gemini: [
-    "gemini-1.5-pro",
-    "gemini-1.5-flash",
-    "gemini-2.0-flash",
-    "gemini-2.0-flash-exp"
-  ]
-};
 async function detectAllProviders() {
   const results = [];
   const [ollamaModels, lmModels, janModels] = await Promise.all([
@@ -5823,48 +6232,165 @@ function isCodexTokenValid(token) {
     return false;
   return Date.now() < token.expiresAt - 5 * 60 * 1000;
 }
-var CODEX_MODELS = [
-  "gpt-5.2-codex",
-  "gpt-5.2-codex-low",
-  "gpt-5.2-codex-medium",
-  "gpt-5.2-codex-high",
-  "gpt-5.2-codex-xhigh",
-  "gpt-5.2",
-  "gpt-5.2-low",
-  "gpt-5.2-medium",
-  "gpt-5.2-high",
-  "gpt-5.2-xhigh",
-  "gpt-5.1-codex-max",
-  "gpt-5.1-codex",
-  "gpt-5.1-codex-mini",
-  "gpt-5.1",
-  "gpt-5.1-low",
-  "gpt-5.1-medium",
-  "gpt-5.1-high",
-  "gpt-5.1-xhigh",
-  "codex",
-  "gpt-4o",
-  "gpt-4o-mini",
-  "o3-mini",
-  "o3",
-  "o4-mini"
-];
+var CODEX_OAUTH, API_KEY_ENVS, DEFAULT_MODEL, CLOUD_MODELS, CODEX_MODELS;
+var init_discover = __esm(() => {
+  CODEX_OAUTH = {
+    CLIENT_ID: "app_EMoamEEZ73f0CkXaXp7hrann",
+    AUTHORIZE_URL: "https://auth.openai.com/oauth/authorize",
+    TOKEN_URL: "https://auth.openai.com/oauth/token",
+    REDIRECT_URI: "http://localhost:1455/auth/callback",
+    SCOPE: "openid profile email offline_access",
+    API_BASE_URL: "https://chatgpt.com/backend-api",
+    TOKEN_FILE: ".beast-cli/codex-auth.json"
+  };
+  API_KEY_ENVS = {
+    anthropic: "ANTHROPIC_API_KEY",
+    openai: "OPENAI_API_KEY",
+    codex: "CODEX_API_KEY",
+    deepseek: "DEEPSEEK_API_KEY",
+    groq: "GROQ_API_KEY",
+    mistral: "MISTRAL_API_KEY",
+    openrouter: "OPENROUTER_API_KEY",
+    qwen: "DASHSCOPE_API_KEY",
+    gemini: "GEMINI_API_KEY"
+  };
+  DEFAULT_MODEL = {
+    anthropic: "claude-sonnet-4-20250514",
+    openai: "gpt-5.4",
+    openrouter: "qwen/qwen3-32b",
+    deepseek: "deepseek-chat",
+    groq: "llama-3.3-70b-versatile",
+    mistral: "mistral-large-latest",
+    qwen: "qwen-plus",
+    gemini: "gemini-1.5-pro",
+    ollama: "llama3.2:latest",
+    lmstudio: "llama3.2:latest",
+    jan: "llama3.2:latest"
+  };
+  CLOUD_MODELS = {
+    anthropic: [
+      "claude-opus-4-5",
+      "claude-sonnet-4-20250514",
+      "claude-haiku-4-20250514",
+      "claude-3-5-sonnet-latest"
+    ],
+    openai: [
+      "gpt-5.4",
+      "gpt-5.4-pro",
+      "gpt-5.4-mini",
+      "gpt-5.4-nano",
+      "gpt-5",
+      "gpt-5-mini",
+      "gpt-5-nano",
+      "gpt-5.2",
+      "gpt-5.2-pro",
+      "gpt-5-pro",
+      "gpt-4.1",
+      "gpt-4.1-mini",
+      "gpt-4.1-nano",
+      "o3-pro",
+      "o3",
+      "o4-mini",
+      "o3-deep-research",
+      "o4-mini-deep-research",
+      "o1-pro",
+      "o1",
+      "o3-mini",
+      "gpt-4o",
+      "gpt-4o-mini",
+      "gpt-4-turbo",
+      "gpt-4",
+      "gpt-3.5-turbo",
+      "gpt-5-codex",
+      "gpt-5.3-codex",
+      "gpt-5.2-codex",
+      "gpt-5.1-codex",
+      "gpt-5.1-codex-max",
+      "gpt-5.1-codex-mini"
+    ],
+    openrouter: [
+      "qwen/qwen3-32b",
+      "qwen/qwen3-14b",
+      "qwen/qwen3-8b",
+      "openrouter/auto",
+      "anthropic/claude-3-opus",
+      "openai/gpt-4o",
+      "google/gemini-pro-1.5",
+      "deepseek/deepseek-chat"
+    ],
+    deepseek: [
+      "deepseek-chat",
+      "deepseek-coder",
+      "deepseek-reasoner"
+    ],
+    groq: [
+      "llama-3.3-70b-versatile",
+      "mixtral-8x7b-32768",
+      "gemma2-9b-it",
+      "llama-3.1-8b-instant"
+    ],
+    mistral: [
+      "mistral-large-latest",
+      "mistral-small-latest",
+      "codestral-latest",
+      "mistral-nemo"
+    ],
+    qwen: [
+      "qwen-plus",
+      "qwen-max",
+      "qwen2.5-coder-32b",
+      "qwq-32b"
+    ],
+    gemini: [
+      "gemini-1.5-pro",
+      "gemini-1.5-flash",
+      "gemini-2.0-flash",
+      "gemini-2.0-flash-exp"
+    ]
+  };
+  CODEX_MODELS = [
+    "gpt-5.2-codex",
+    "gpt-5.2-codex-low",
+    "gpt-5.2-codex-medium",
+    "gpt-5.2-codex-high",
+    "gpt-5.2-codex-xhigh",
+    "gpt-5.2",
+    "gpt-5.2-low",
+    "gpt-5.2-medium",
+    "gpt-5.2-high",
+    "gpt-5.2-xhigh",
+    "gpt-5.1-codex-max",
+    "gpt-5.1-codex",
+    "gpt-5.1-codex-mini",
+    "gpt-5.1",
+    "gpt-5.1-low",
+    "gpt-5.1-medium",
+    "gpt-5.1-high",
+    "gpt-5.1-xhigh",
+    "codex",
+    "gpt-4o",
+    "gpt-4o-mini",
+    "o3-mini",
+    "o3",
+    "o4-mini"
+  ];
+});
 
 // src/config/index.ts
-import { readFileSync as readFileSync4, existsSync as existsSync5, writeFileSync as writeFileSync4, mkdirSync as mkdirSync2 } from "node:fs";
-import { resolve as resolve2, dirname as dirname2 } from "node:path";
+import { readFileSync as readFileSync5, existsSync as existsSync6, writeFileSync as writeFileSync5, mkdirSync as mkdirSync3 } from "node:fs";
+import { resolve as resolve3, dirname as dirname2 } from "node:path";
 function getConfigDir() {
-  return resolve2(process.env.HOME ?? "~", ".beast-cli");
+  return resolve3(process.env.HOME ?? "~", ".beast-cli");
 }
 function getConfigPath() {
-  return resolve2(getConfigDir(), "session.json");
+  return resolve3(getConfigDir(), "session.json");
 }
 function saveSession(config) {
   try {
     const dir = getConfigDir();
-    if (!existsSync5(dir))
-      mkdirSync2(dir, { recursive: true });
-    writeFileSync4(getConfigPath(), JSON.stringify(config, null, 2), "utf-8");
+    if (!existsSync6(dir))
+      mkdirSync3(dir, { recursive: true });
+    writeFileSync5(getConfigPath(), JSON.stringify(config, null, 2), "utf-8");
   } catch (error) {
     console.warn("Failed to save session config:", error);
   }
@@ -5872,9 +6398,9 @@ function saveSession(config) {
 function loadSession() {
   try {
     const path4 = getConfigPath();
-    if (!existsSync5(path4))
+    if (!existsSync6(path4))
       return null;
-    const data = JSON.parse(readFileSync4(path4, "utf-8"));
+    const data = JSON.parse(readFileSync5(path4, "utf-8"));
     if (!data.provider || !data.model || !data.contextSize || !data.contextMax) {
       return null;
     }
@@ -5891,16 +6417,162 @@ function parseContextSize(size) {
     return num * 1024 * 1024 * 1024;
   return num;
 }
-var CONTEXT_SIZES = ["8K", "16K", "32K", "64K", "128K"];
+var CONTEXT_SIZES;
+var init_config = __esm(() => {
+  CONTEXT_SIZES = ["8K", "16K", "32K", "64K", "128K"];
+});
+
+// src/ui/banner.ts
+function termWidth2() {
+  try {
+    return process.stdout.columns || 80;
+  } catch {
+    return 80;
+  }
+}
+function renderCleanBanner2() {
+  if (!isColorEnabled2())
+    return "BEAST CLI - AI Coding Agent";
+  const width = termWidth2();
+  let logo;
+  if (width >= 60) {
+    logo = FULL_LOGO2;
+  } else if (width >= 40) {
+    logo = COMPACT_LOGO2;
+  } else {
+    logo = TINY_LOGO2;
+  }
+  if (width < 50) {
+    return logo;
+  }
+  const tagline = REVEAL_TAGLINE2 + `
+`;
+  const cardSep = "  ";
+  const cardLines = FEATURE_CARDS2.map((card) => {
+    return s2(card.label, card.color);
+  }).join(s2(cardSep, fg2.overlay));
+  return logo + tagline + `
+` + cardLines + `
+`;
+}
+var googlePurple3 = "\x1B[38;2;142;54;255m", googleBlue3 = "\x1B[38;2;70;130;255m", FULL_LOGO2, COMPACT_LOGO2, TINY_LOGO2, googlePurple22 = "\x1B[38;2;142;54;255m", googleBlue22 = "\x1B[38;2;70;130;255m", TEXT_LOGO2, FEATURE_CARDS2, REVEAL_TAGLINE2;
+var init_banner2 = __esm(() => {
+  init_colors2();
+  FULL_LOGO2 = `
+ ${googlePurple3}+==================================================================+${reset2}` + `
+ ${googlePurple3}|${reset2}  \uD83D\uDC09  ${s2("BEAST", googlePurple3, bold2)}   ${s2("CLI", googleBlue3, bold2)}    ${dim2}AI Coding Agent · 45+ Providers · 51+ Tools     ${googlePurple3}|${reset2}` + `
+ ${googlePurple3}+==================================================================+${reset2}
+`;
+  COMPACT_LOGO2 = `
+ ${googlePurple3}+----------------------------------------------+${reset2}` + `
+ ${googlePurple3}|${reset2}  \uD83D\uDC09  ${s2("BEAST", googlePurple3, bold2)}  ${s2("CLI", googleBlue3, bold2)}  ${dim2}AI Coding Agent                  ${googlePurple3}|${reset2}` + `
+ ${googlePurple3}+----------------------------------------------+${reset2}
+`;
+  TINY_LOGO2 = ` \uD83D\uDC09 ${s2("BEAST CLI", googlePurple3, bold2)} ${dim2}~ 
+`;
+  TEXT_LOGO2 = ` ${s2("BEAST", googlePurple22, bold2)} ${s2("CLI", googleBlue22, bold2)} `;
+  FEATURE_CARDS2 = [
+    { label: "Blazing Fast", color: fg2.warning },
+    { label: "Private & Local", color: fg2.success },
+    { label: "45+ Providers", color: fg2.sapphire },
+    { label: "51+ Tools", color: fg2.tool }
+  ];
+  REVEAL_TAGLINE2 = `${s2("·", fg2.overlay)} ${s2("45+ Providers", fg2.muted)} ` + `${s2("·", fg2.overlay)} ${s2("51+ Tools", fg2.muted)} ` + `${s2("·", fg2.overlay)} ${s2("Local AI Ready", fg2.muted)}`;
+});
+
+// src/ui/router.ts
+var exports_router = {};
+__export(exports_router, {
+  launchUI: () => launchUI,
+  launchRepl: () => launchRepl,
+  launchInk: () => launchInk
+});
+import { resolve as resolve4, dirname as dirname3 } from "node:path";
+import { fileURLToPath } from "node:url";
+import { spawn as spawn2 } from "node:child_process";
+function isInteractive() {
+  return process.stdin.isTTY === true;
+}
+function getInkSourcePath() {
+  const selfDir = dirname3(fileURLToPath(import.meta.url));
+  return resolve4(selfDir, "..", "src", "ui", "ink", "index.tsx");
+}
+async function launchRepl() {
+  const { repl } = await Promise.resolve().then(() => (init_src(), exports_src));
+  await repl();
+}
+async function launchInk() {
+  try {
+    const inkSource = getInkSourcePath();
+    const bunPath = process.env.BUN_INSTALL ? process.env.BUN_INSTALL + "/bin/bun" : "bun";
+    const child = spawn2(bunPath, ["--bun", "run", inkSource], {
+      stdio: "inherit",
+      env: { ...process.env, FORCE_COLOR: "1" }
+    });
+    child.on("exit", (code) => process.exit(code ?? 0));
+  } catch (err) {
+    console.error(s2(`
+Failed to launch Ink TUI: ` + String(err), fg2.error));
+    console.error(s2(`Falling back to REPL mode...
+`, fg2.warning));
+    await launchRepl();
+  }
+}
+async function promptMode() {
+  const readline = await import("readline");
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  return new Promise((resolve5) => {
+    console.log(renderCleanBanner2());
+    console.log();
+    console.log(`  ${s2("[1]", fg2.accent)} ${s2("Minimal REPL", fg2.primary)}   ${dim2}— fast, ASCII-safe, tab complete`);
+    console.log(`  ${s2("[2]", fg2.accent)} ${s2("Rich TUI", fg2.primary)}       ${dim2}— modern React/Ink with spinners & panels`);
+    console.log();
+    console.log(`  ${s2("Tip:", fg2.warning)} ${s2("Use", fg2.muted)} ${s2("--tui", fg2.accent)} ${s2("flag to skip this prompt", fg2.muted)}`);
+    console.log();
+    rl.question(s2("  Choose [1]", fg2.muted) + " ", (answer) => {
+      rl.close();
+      resolve5(answer.trim() === "2" ? "ink" : "repl");
+    });
+  });
+}
+async function launchUI(mode = "auto") {
+  if (process.argv.includes("--tui")) {
+    console.log(s2(`
+  Launching Rich TUI...`, fg2.accent));
+    await launchInk();
+    return;
+  }
+  if (!isInteractive()) {
+    await launchRepl();
+    return;
+  }
+  if (mode === "auto") {
+    const chosen = await promptMode();
+    if (chosen === "ink") {
+      await launchInk();
+    } else {
+      await launchRepl();
+    }
+    return;
+  }
+  mode === "ink" ? await launchInk() : await launchRepl();
+}
+var init_router = __esm(() => {
+  init_colors2();
+  init_banner2();
+});
 
 // src/index.ts
+var exports_src = {};
+__export(exports_src, {
+  repl: () => repl
+});
 import readline from "readline";
-var VERSION = "1.2.8";
 function question(prompt) {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  return new Promise((resolve3) => rl.question(prompt, (answer) => {
+  return new Promise((resolve5) => rl.question(prompt, (answer) => {
     rl.close();
-    resolve3(answer);
+    resolve5(answer);
   }));
 }
 async function numberedMenu(title, options) {
@@ -5915,59 +6587,46 @@ ${title}`);
     console.log("  Invalid selection. Try again.");
   }
 }
-var currentSpinner = null;
-var spinnerStarted = false;
-var spinnerFrame = 0;
-var spinnerLabel = "";
-var spinnerAnimation = [];
-var spinnerSpeed = 150;
-var THINKING_ANIMS = [
-  "(\u25D5\u203F\u25D5)\uD83D\uDC15",
-  "(=^\u30FB^=)",
-  "(\xA8)\uD83E\uDD8A",
-  "( @)\uD83D\uDC38",
-  "(*)",
-  "(\u25D5\u03C9\u25D5)\uD83D\uDC15",
-  "(=^\u30FB\u03C9\u30FB^=)",
-  "(\u25D5\u203F\u25D5)\uD83E\uDD8A",
-  "(\\/)\uD83D\uDC30",
-  " (=\u30FB)"
-];
-var SEARCH_ANIMS = ["><(((\xBA>", " <(\xBA)>", "><(((\xBA>", "  ~(``)~", "><(((\xBA>"];
-var TOOL_ANIMS = ["(\u25D5\u203F\u25D5)\uD83D\uDC15", "(=^\u30FB^=)", "(\xA8)\uD83E\uDD8A", "(*)", "=(\u30FB)"];
-var THINKING_DOTS = ["\u280B", "\u2819", "\u2839", "\u2838", "\u283C", "\u2834"];
-function startFunSpinner(state = "thinking") {
+function formatElapsed(ms) {
+  if (ms < 1000)
+    return `${ms}ms`;
+  const s3 = Math.floor(ms / 1000);
+  if (s3 < 60)
+    return `${s3}s`;
+  const m = Math.floor(s3 / 60);
+  return `${m}m ${s3 % 60}s`;
+}
+function formatProgressBar(filled, width = 12) {
+  const total = width * 4;
+  const f = Math.round(filled / 100 * total);
+  const bar = fg.success + "\u2588".repeat(Math.floor(f / 4)) + (f % 4 > 0 ? ["\u2591", "\u2592", "\u2593", "\u2588"][f % 4] : "") + fg.muted + "\u2591".repeat(width - Math.ceil(f / 4));
+  return bar + reset;
+}
+function writeSpinnerFrame(phase, task) {
+  const pulse = PULSE_FRAMES[phase % 4];
+  const elapsed = formatElapsed(Date.now() - spinnerStartTime);
+  const bar = formatProgressBar((phase % 20 + 1) * 5);
+  const line = `\r${s(spinnerLabel, spinnerColor)} ${s(pulse, fg.secondary)} ${s(spinnerTask, fg.muted)} ${bar} ${s(elapsed, fg.muted)}   `;
+  process.stderr.write(line);
+}
+function startFunSpinner(state = "thinking", task = "") {
   if (currentSpinner)
     clearInterval(currentSpinner);
   spinnerStarted = true;
   spinnerFrame = 0;
-  if (state === "searching") {
-    spinnerAnimation = SEARCH_ANIMS;
-    spinnerLabel = s("Searching", fg.info);
-    spinnerSpeed = 120;
-  } else if (state === "tool") {
-    spinnerAnimation = TOOL_ANIMS;
-    spinnerLabel = s("Running", fg.tool);
-    spinnerSpeed = 150;
-  } else if (state === "formatting") {
-    spinnerAnimation = ["\u2728", "\u2605", "\u2726", "\u2727", "\u2605"];
-    spinnerLabel = s("Formatting", fg.success);
-    spinnerSpeed = 200;
-  } else {
-    spinnerAnimation = THINKING_ANIMS;
-    spinnerLabel = s("Thinking", fg.accent);
-    spinnerSpeed = 150;
-  }
-  const char = spinnerAnimation[0];
-  const dot = THINKING_DOTS[0];
-  process.stderr.write(`\r${spinnerLabel} ${char} ${dot}  `);
+  spinnerPhase = 0;
+  spinnerStartTime = Date.now();
+  spinnerSpeed = 80;
+  const cfg = PHASE_STATES.find((p) => p.state === state) ?? PHASE_STATES[0];
+  spinnerLabel = cfg.label;
+  spinnerColor = cfg.color;
+  spinnerTask = task ? task : "";
+  writeSpinnerFrame(0, spinnerTask);
   currentSpinner = setInterval(() => {
     if (!spinnerStarted)
       return;
-    spinnerFrame = (spinnerFrame + 1) % spinnerAnimation.length;
-    const animChar = spinnerAnimation[spinnerFrame];
-    const dot2 = THINKING_DOTS[spinnerFrame % THINKING_DOTS.length];
-    process.stderr.write(`\r${spinnerLabel} ${animChar} ${dot2}  `);
+    spinnerPhase = (spinnerPhase + 1) % 20;
+    writeSpinnerFrame(spinnerPhase, spinnerTask);
   }, spinnerSpeed);
 }
 function stopFunSpinner(status = "done") {
@@ -5976,12 +6635,13 @@ function stopFunSpinner(status = "done") {
     currentSpinner = null;
   }
   spinnerStarted = false;
-  process.stderr.write("\r" + " ".repeat(60) + "\r");
+  const elapsed = formatElapsed(Date.now() - spinnerStartTime);
+  process.stderr.write("\r" + " ".repeat(90) + "\r");
   if (status === "done") {
-    process.stderr.write(s("\u2713 ", fg.success) + (spinnerLabel || "Done") + `
+    process.stderr.write(s("\u2713 ", fg.success) + (spinnerLabel || "Done") + (spinnerTask ? " " + s(spinnerTask, fg.muted) : "") + s(" \xB7 " + elapsed, fg.muted) + `
 `);
   } else if (status === "error") {
-    process.stderr.write(s("\u2717 ", fg.error) + `Error
+    process.stderr.write(s("\u2717 ", fg.error) + "Error" + s(" \xB7 " + elapsed, fg.muted) + `
 `);
   }
 }
@@ -5998,7 +6658,6 @@ function printUsage(usage) {
   process.stdout.write(`(${s("p:" + promptTokens, fg.sapphire)} ${s("c:" + completionTokens, fg.mauve)})
 `);
 }
-var nativeTools = [];
 async function connectMCP() {
   nativeTools = getFormattedTools();
   return nativeTools;
@@ -6181,6 +6840,9 @@ function printBanner(session) {
 ` + s("Commands:", fg.muted));
   console.log(helpPanel([
     { cmd: "/help", desc: "Show all commands" },
+    { cmd: "/clean", desc: "Clear all \u2014 history, memory, agents" },
+    { cmd: "/init", desc: "Create / update memory & agents" },
+    { cmd: "/agents", desc: "Manage custom agents" },
     { cmd: "/switch", desc: "Change provider/model/context" },
     { cmd: "/tools", desc: "List available tools" },
     { cmd: "/clear", desc: "Clear chat history" },
@@ -6189,7 +6851,41 @@ function printBanner(session) {
   console.log("");
 }
 async function repl(session) {
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  const SLASH_COMMANDS = [
+    "/help",
+    "/switch",
+    "/models",
+    "/model",
+    "/provider",
+    "/tools",
+    "/clear",
+    "/clean",
+    "/init",
+    "/agents",
+    "/login",
+    "/logout",
+    "/exit",
+    "/agents list",
+    "/agents create",
+    "/agents use",
+    "/agents delete",
+    "/agents info"
+  ];
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+    completer: (line) => {
+      const hits = SLASH_COMMANDS.filter((c2) => c2.startsWith(line));
+      if (line.startsWith("@")) {
+        try {
+          const agents = listAgents();
+          const agentHits = agents.map((a) => "@" + a.name).filter((n) => n.startsWith(line));
+          return [agentHits.length ? agentHits : hits, line];
+        } catch {}
+      }
+      return [hits.length ? hits : [], line];
+    }
+  });
   const promptUser = () => rl.question(`
 ` + s("> ", fg.accent), async (input) => {
     const trimmed = input.trim();
@@ -6215,6 +6911,9 @@ Commands:
   /provider <name>  Switch directly to provider
   /login          Authenticate ChatGPT Plus (Codex OAuth)
   /logout         Clear ChatGPT Plus authentication
+  /clean          Clear everything (history, memory, agents)
+  /init           Setup memory & create agents
+  /agents         Manage custom agents
   /tools          List available tools
   /clear          Clear chat history
   /exit           Exit
@@ -6388,6 +7087,198 @@ ${s("!", fg.warning)} Unknown provider: ${target}`);
       promptUser();
       return;
     }
+    if (trimmed === "/clean") {
+      session.messages = [];
+      try {
+        const { AgentStore, AgentMemory } = await Promise.resolve().then(() => (init_agents(), exports_agents));
+        updateAgent && updateAgent("", { instructions: "" });
+      } catch {}
+      const fs4 = await import("fs");
+      const path4 = await import("path");
+      const dir = path4.resolve(process.env.HOME ?? "~", ".beast-cli", "agents");
+      try {
+        fs4.rmSync(dir, { recursive: true, force: true });
+      } catch {}
+      console.log(`
+\u2705 Everything cleared \u2014 history, memory, and agents.`);
+      promptUser();
+      return;
+    }
+    if (trimmed === "/init") {
+      console.log(`
+` + s("\u2500\u2500\u2500 Memory & Agent Setup \u2500\u2500\u2500", fg.accent));
+      const memory2 = loadMemory();
+      console.log(`
+` + s("Project Context", fg.sapphire));
+      console.log("  Current: " + (memory2.context ? s(memory2.context, fg.muted) : s("(empty)", fg.overlay)));
+      const ctx = await question('  Enter project context (e.g. "Next.js app with PostgreSQL") > ');
+      if (ctx.trim()) {
+        memory2.context = ctx.trim();
+        memory2.updatedAt = Date.now();
+        saveMemory(memory2);
+        console.log("  " + s("\u2713", fg.success) + " Context saved.");
+      }
+      console.log(`
+` + s("Known Facts", fg.sapphire) + s(" (one per line, empty to finish)", fg.muted));
+      memory2.facts.forEach((f, i) => console.log(`  ${i + 1}. ${s(f, fg.muted)}`));
+      let moreFacts = true;
+      while (moreFacts) {
+        const fact = await question("  Fact (Enter to finish) > ");
+        if (!fact.trim()) {
+          moreFacts = false;
+        } else {
+          memory2.facts.push(fact.trim());
+        }
+      }
+      saveMemory(memory2);
+      console.log(`
+` + s("Quick-create an agent?", fg.sapphire));
+      const mkAgent = await question("  Name (or Enter to skip) > ");
+      if (mkAgent.trim()) {
+        const agName = mkAgent.trim();
+        const agDesc = await question("  Description > ");
+        const agInstr = await question("  Instructions (what this agent does) > ");
+        const ag = createAgent({ name: agName, description: agDesc.trim(), instructions: agInstr.trim() });
+        console.log("  " + s("\u2713", fg.success) + ` Agent "${agName}" created.`);
+      }
+      saveMemory(memory2);
+      console.log(`
+\u2705 Memory & agents initialized.`);
+      promptUser();
+      return;
+    }
+    if (trimmed === "/agents" || trimmed.startsWith("/agents ")) {
+      const args = trimmed.split(" ").slice(1);
+      const action = args[0] || "list";
+      if (action === "list" || action === "") {
+        const agents = listAgents();
+        const active = getActiveAgent();
+        console.log(`
+` + s("\u2500\u2500\u2500 Agents \u2500\u2500\u2500", fg.accent));
+        if (agents.length === 0) {
+          console.log("  " + s("No agents yet. Run", fg.muted) + " /agents create " + s("to make one.", fg.muted));
+        } else {
+          agents.forEach((a) => {
+            const isActive = active?.id === a.id;
+            const marker = isActive ? s(" \u25CF active", fg.success) : "";
+            console.log(`  ${s("\u25C6", fg.accent)} ${s(a.name, fg.sapphire)}${marker}`);
+            if (a.description)
+              console.log(`    ${s(a.description, fg.muted)}`);
+          });
+        }
+        console.log(`
+` + s("Commands:", fg.muted));
+        console.log("  /agents list              List all agents");
+        console.log("  /agents create            Create a new agent");
+        console.log("  /agents use <name>        Set agent as always-on");
+        console.log("  /agents delete <name>    Remove an agent");
+        console.log("  @<name>                   Use agent in a prompt");
+        promptUser();
+        return;
+      }
+      if (action === "create") {
+        const name = await question("  Agent name > ");
+        if (!name.trim()) {
+          console.log(`
+Cancelled.`);
+          promptUser();
+          return;
+        }
+        const desc = await question("  Description > ");
+        const instr = await question("  Instructions (what this agent does) > ");
+        if (!instr.trim()) {
+          console.log(`
+` + s("! Instructions required.", fg.warning));
+          promptUser();
+          return;
+        }
+        const ag = createAgent({ name: name.trim(), description: desc.trim(), instructions: instr.trim() });
+        console.log(`
+\u2705 Agent "` + ag.name + '" created. Use it with @' + ag.name);
+        promptUser();
+        return;
+      }
+      if (action === "use") {
+        const name = args.slice(1).join(" ");
+        if (!name) {
+          console.log(`
+` + s("Usage:", fg.muted) + " /agents use <name>");
+          promptUser();
+          return;
+        }
+        const ag = getAgent(name);
+        if (!ag) {
+          console.log(`
+` + s("! Agent not found:", fg.error) + " " + name);
+          promptUser();
+          return;
+        }
+        setActiveAgent(ag.name);
+        console.log(`
+\u2705 Active agent set to ` + s(ag.name, fg.sapphire) + s(" (always prepended to prompts)", fg.muted));
+        promptUser();
+        return;
+      }
+      if (action === "delete") {
+        const name = args.slice(1).join(" ");
+        if (!name) {
+          console.log(`
+` + s("Usage:", fg.muted) + " /agents delete <name>");
+          promptUser();
+          return;
+        }
+        const ag = getAgent(name);
+        if (!ag) {
+          console.log(`
+` + s("! Agent not found:", fg.error) + " " + name);
+          promptUser();
+          return;
+        }
+        deleteAgent(ag.id);
+        console.log(`
+\u2705 Agent "` + name + '" deleted.');
+        promptUser();
+        return;
+      }
+      if (action === "info") {
+        const name = args.slice(1).join(" ");
+        if (!name) {
+          console.log(`
+` + s("Usage:", fg.muted) + " /agents info <name>");
+          promptUser();
+          return;
+        }
+        const ag = getAgent(name);
+        if (!ag) {
+          console.log(`
+` + s("! Agent not found:", fg.error) + " " + name);
+          promptUser();
+          return;
+        }
+        console.log(`
+` + s("\u2500\u2500\u2500 " + ag.name + " \u2500\u2500\u2500", fg.accent));
+        if (ag.description)
+          console.log("  " + s("Description:", fg.sapphire) + " " + ag.description);
+        console.log("  " + s("Instructions:", fg.sapphire));
+        ag.instructions.split(`
+`).forEach((l) => console.log("    " + l));
+        if (ag.model)
+          console.log("  " + s("Model:", fg.sapphire) + " " + ag.model);
+        const d = new Date(ag.createdAt);
+        console.log("  " + s("Created:", fg.muted) + " " + d.toLocaleDateString());
+        promptUser();
+        return;
+      }
+      console.log(`
+` + s("Usage:", fg.muted));
+      console.log("  /agents list              List all agents");
+      console.log("  /agents create            Create a new agent");
+      console.log("  /agents use <name>       Set always-on agent");
+      console.log("  /agents delete <name>    Remove agent");
+      console.log("  /agents info <name>      Show agent details");
+      promptUser();
+      return;
+    }
     const REALTIME_KEYWORDS = [
       "price",
       "rate",
@@ -6456,7 +7347,45 @@ ${s("!", fg.warning)} Unknown provider: ${target}`);
         content: `You have access to ${nativeTools.length} native tools. Use them to get real-time data, search the web, read/write files, run code, fetch content, etc. Available tools: ${nativeTools.map((t) => `${t.name}: ${t.description ?? "no description"}`).join(", ")}`
       });
     }
-    agentMessages.push({ role: "user", content: trimmed });
+    const agentCtx = parseAgentContext(trimmed);
+    const systemParts = [];
+    if (agentCtx.agentInstructions.length > 0) {
+      systemParts.push(`You have access to the following custom agents:
+` + agentCtx.agentInstructions.join(`
+
+`));
+    }
+    const memory = loadMemory();
+    if (memory.context || memory.facts.length > 0) {
+      const memParts = [];
+      if (memory.context)
+        memParts.push(`Project Context: ${memory.context}`);
+      if (memory.facts.length > 0)
+        memParts.push(`Known Facts: ${memory.facts.map((f) => `\u2022 ${f}`).join(`
+`)}`);
+      if (Object.keys(memory.preferences).length > 0) {
+        memParts.push(`Preferences: ${Object.entries(memory.preferences).map(([k, v]) => `${k}=${v}`).join(", ")}`);
+      }
+      systemParts.push(`[MEMORY]
+` + memParts.join(`
+`));
+    }
+    if (systemParts.length > 0) {
+      const existingSystem = agentMessages.find((m) => m.role === "system");
+      if (existingSystem) {
+        existingSystem.content += `
+
+` + systemParts.join(`
+
+`);
+      } else {
+        agentMessages.unshift({ role: "system", content: systemParts.join(`
+
+`) });
+      }
+    }
+    const finalPrompt = agentCtx.cleanedPrompt || trimmed;
+    agentMessages.push({ role: "user", content: finalPrompt });
     startFunSpinner("thinking");
     try {
       const provider = await createProvider({
@@ -6588,6 +7517,7 @@ OPTIONS:
   --defaults         Use saved config or auto-select best option
   --switch           Reconfigure provider/model/context
   --setup            Auto-start MCP server
+  --tui              Launch modern React/Ink TUI (interactive picker by default)
   --help             Show this help
 
 SESSION COMMANDS:
@@ -6636,6 +7566,9 @@ async function main() {
       case "--switch":
         options.switch = true;
         break;
+      case "--tui":
+        options.tui = true;
+        break;
     }
   }
   if (options.help) {
@@ -6645,6 +7578,11 @@ async function main() {
   if (options.test) {
     console.log("Running tests...");
     process.exit(0);
+  }
+  if (options.tui) {
+    const { launchUI: launchUI2 } = await Promise.resolve().then(() => (init_router(), exports_router));
+    await launchUI2("auto");
+    return;
   }
   await connectMCP();
   console.log(renderCleanBanner());
@@ -6665,12 +7603,12 @@ async function main() {
   } else if (options.defaults) {
     const token = loadCodexToken();
     if (token && isCodexTokenValid(token)) {
-      session = { provider: "codex", model: "gpt-5.2-codex", apiKey: undefined, baseUrl: "https://chatgpt.com/backend-api", messages: [], contextMax: 128 * 1024 };
+      session = { provider: "codex", model: "gpt-5.2-codex", apiKey: undefined, baseUrl: "https://chatgpt.com/backend-api", messages: [], contextMax: 131072 };
       console.log(`\u2705 ChatGPT Plus (logged in)`);
     } else {
       const ollamaModels = await fetchOllamaModels();
       if (ollamaModels.length > 0) {
-        session = { provider: "ollama", model: ollamaModels[0], apiKey: undefined, baseUrl: "http://localhost:11434", messages: [], contextMax: 128 * 1024 };
+        session = { provider: "ollama", model: ollamaModels[0], apiKey: undefined, baseUrl: "http://localhost:11434", messages: [], contextMax: 131072 };
         console.log(`\u2705 Ollama (${ollamaModels[0]}) \u2014 Free & offline`);
       } else {
         session = await interactiveSetup(saved || undefined);
@@ -6687,4 +7625,32 @@ async function main() {
   saveSession({ provider: session.provider, model: session.model, contextSize: ctxSize, contextMax: session.contextMax || 32768, savedAt: Date.now() });
   await repl(session);
 }
-main().catch(console.error);
+var VERSION = "1.2.18", currentSpinner = null, spinnerStarted = false, spinnerFrame = 0, spinnerLabel = "", spinnerColor = "", spinnerStartTime = 0, spinnerSpeed = 80, spinnerPhase = 0, spinnerTask = "", PULSE_FRAMES, PHASE_STATES, nativeTools;
+var init_src = __esm(() => {
+  init_providers();
+  init_colors();
+  init_layout();
+  init_format();
+  init_tool_renderer();
+  init_banner();
+  init_tips();
+  init_native_tools();
+  init_notifications();
+  init_agents();
+  init_discover();
+  init_config();
+  PULSE_FRAMES = ["\u25D0", "\u25D3", "\u25D1", "\u25D2"];
+  PHASE_STATES = [
+    { state: "thinking", label: "Thinking", color: fg.accent },
+    { state: "searching", label: "Searching", color: fg.sapphire },
+    { state: "tool", label: "Running", color: fg.peach },
+    { state: "formatting", label: "Formatting", color: fg.success }
+  ];
+  nativeTools = [];
+  main().catch(console.error);
+});
+init_src();
+
+export {
+  repl
+};

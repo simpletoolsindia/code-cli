@@ -1,7 +1,7 @@
 // Beast CLI - Output Formatters (Clean)
 // Structured output: panels, tables, cards, badges
 
-import { s, fg, bg, box, bold, italic, isColorEnabled } from './colors.ts'
+import { s, fg, bg, bold, italic, isColorEnabled } from './colors.ts'
 
 // ── ANSI Strip Utility ───────────────────────────────────────────────────────
 export function stripAnsi(text: string): string {
@@ -16,19 +16,19 @@ export function drawBox(content: string, options: {
   padding?: number
   color?: string
 } = {}): string {
-  const { style = 'single', title, width = 60, padding = 1, color = fg.accent } = options
-  const b = box[style]
+  const { title, width = 60, padding = 1, color = fg.accent } = options
   const pad = ' '.repeat(padding)
 
   const lines = content.split('\n')
   const topLine = title
-    ? `${b.tl}${b.h.repeat(2)}${title}${b.h.repeat(Math.max(0, width - title.length - 2))}${b.tr}`
-    : `${b.tl}${b.h.repeat(width)}${b.tr}`
-  const bottomLine = `${b.bl}${b.h.repeat(width)}${b.br}`
+    ? `+== ${title}${'='.repeat(Math.max(0, width - title.length - 4))}+`
+    : `+${'='.repeat(width)}+`
+  const bottomLine = `+${'='.repeat(width)}+`
+  const midLine = `+${' '.repeat(width - 2)}+`
 
   let result = s(topLine, color) + '\n'
   for (const line of lines) {
-    result += `${b.v}${pad}${line}${' '.repeat(Math.max(0, width - stripAnsi(line).length - padding * 2))}${pad}${b.v}\n`
+    result += `|${pad}${line}${' '.repeat(Math.max(0, width - stripAnsi(line).length - padding * 2))}${pad}|\n`
   }
   result += s(bottomLine, color)
   return result
@@ -39,32 +39,30 @@ export function panel(content: string, options: {
   title?: string
   titleColor?: string
   width?: number
-  style?: 'round' | 'single' | 'polished' | 'heavy'
 } = {}): string {
-  const { title, titleColor = fg.accent, width = 70, style = 'round' } = options
-  const b = box[style] || box.round
+  const { title, titleColor = fg.accent, width = 70 } = options
 
   const rawLines = content.split('\n')
   const maxLen = rawLines.reduce((m, l) => Math.max(m, stripAnsi(l).length), 0)
   const w = Math.max(width, maxLen + 4)
 
-  let result = b.tl + '─'.repeat(w) + b.tr + '\n'
+  let result = `+${'-'.repeat(w)}+\n`
 
   if (title) {
     const titleLen = stripAnsi(title).length
     const pad1 = Math.floor((w - titleLen) / 2)
     const pad2 = w - titleLen - pad1
-    result += b.v + ' '.repeat(pad1) + title + ' '.repeat(pad2) + b.v + '\n'
-    result += b.v + '─'.repeat(w) + b.v + '\n'
+    result += `|${' '.repeat(pad1)}${title}${' '.repeat(pad2)}|\n`
+    result += `|${'-'.repeat(w)}|\n`
   }
 
   for (const ln of rawLines) {
     const len = stripAnsi(ln).length
     const pad = w - len - 2
-    result += b.v + ' ' + ln + ' '.repeat(Math.max(0, pad)) + ' ' + b.v + '\n'
+    result += `| ${ln}${' '.repeat(Math.max(0, pad))} |\n`
   }
 
-  result += b.bl + '─'.repeat(w) + b.br
+  result += `+${'-'.repeat(w)}+`
   return s(result, titleColor)
 }
 
@@ -83,33 +81,30 @@ export function renderTable(columns: TableColumn[], rows: TableRow[], options: {
   maxWidth?: number
   style?: 'single' | 'round' | 'polished'
 } = {}): string {
-  const { style = 'single' } = options
-  const b = box[style] || box.single
-
   const colWidths = columns.map(c => c.width)
 
-  // Polished: accent color for headers
-  let headerLine = b.v
-  let sepLine = b.v
+  // Polished: accent color for headers, ASCII-safe
+  let headerLine = '|'
+  let sepLine = '|'
   columns.forEach((col, i) => {
     const cell = col.header.padEnd(col.width)
-    headerLine += ` ${s(cell, fg.accent, bold)}${' '.repeat(col.width - stripAnsi(cell).length)} ${b.v}`
-    sepLine += `${b.h.repeat(col.width + 2)}${b.v}`
+    headerLine += ` ${s(cell, fg.accent, bold)}${' '.repeat(col.width - stripAnsi(cell).length)} |`
+    sepLine += `${'-'.repeat(col.width + 2)}|`
   })
   headerLine += '\n' + sepLine + '\n'
 
   let bodyLines = ''
   for (const row of rows) {
-    let rowLine = b.v
+    let rowLine = '|'
     columns.forEach((col, i) => {
       const cell = (row.cells[i] || '').padEnd(col.width)
-      rowLine += ` ${cell}${' '.repeat(col.width - stripAnsi(cell).length)} ${b.v}`
+      rowLine += ` ${cell}${' '.repeat(col.width - stripAnsi(cell).length)} |`
     })
     bodyLines += rowLine + '\n'
   }
 
-  const topLine = b.tl + colWidths.map(w => b.h.repeat(w + 2)).join(b.h) + b.tr + '\n'
-  const botLine = b.bl + colWidths.map(w => b.h.repeat(w + 2)).join(b.h) + b.br
+  const topLine = '+' + colWidths.map(w => '-'.repeat(w + 2)).join('+') + '+\n'
+  const botLine = '+' + colWidths.map(w => '-'.repeat(w + 2)).join('+') + '+'
 
   return s(topLine, fg.muted) + headerLine + bodyLines + s(botLine, fg.muted)
 }
@@ -163,21 +158,20 @@ export function toolCard(name: string, result: string, options: {
   const content = lines.join('\n') + (truncated ? '\n...' : '')
 
   const lineW = Math.min(maxWidth - 2, stripAnsi(content.split('\n')[0]).length + 4)
-  // Polished: use accent color instead of muted
-  return `${header}\n${s('┌' + '─'.repeat(lineW) + '┐', fg.accent)}\n` +
+  return `${header}\n${s('+' + '-'.repeat(lineW) + '+', fg.accent)}\n` +
     lines.map(l => `  ${l}`).join('\n') + '\n' +
-    s('└' + '─'.repeat(lineW) + '┘', fg.accent)
+    s('+' + '-'.repeat(lineW) + '+', fg.accent)
 }
 
 // ── Code Block ────────────────────────────────────────────────────────────────
 export function codeBlock(code: string, language?: string): string {
   const lang = language ? s(` ${language} `, fg.muted, italic) : ''
   const w = 50
-  return s('┌', fg.cyan) + '─'.repeat(w) + lang + s('┐', fg.cyan) + '\n' +
+  return s('+', fg.cyan) + '-'.repeat(w) + lang + s('+', fg.cyan) + '\n' +
     code.split('\n').map(l =>
-      s('│', fg.cyan) + ' ' + s(l, fg.code) + ' '.repeat(Math.max(0, w - l.length)) + s('│', fg.cyan)
+      s('|', fg.cyan) + ' ' + s(l, fg.code) + ' '.repeat(Math.max(0, w - l.length)) + s('|', fg.cyan)
     ).join('\n') + '\n' +
-    s('└', fg.cyan) + '─'.repeat(w) + '─'.repeat(stripAnsi(lang).length) + s('┘', fg.cyan)
+    s('+', fg.cyan) + '-'.repeat(w) + '-'.repeat(stripAnsi(lang).length) + s('+', fg.cyan)
 }
 
 // ── Badge ─────────────────────────────────────────────────────────────────────

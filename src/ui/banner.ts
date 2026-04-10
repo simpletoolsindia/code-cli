@@ -18,14 +18,14 @@ const googleBlue = '\x1b[38;2;70;130;255m'
 
 // ── Full ASCII Logo (for wide terminals >= 60 cols) ──────────────────────────
 const FULL_LOGO =
-  `\n ${googlePurple}╔══════════════════════════════════════════════════════════════════╗${reset}` +
-  `\n ${googlePurple}║${reset}  🐉  ${s('BEAST', googlePurple, bold)}   ${s('CLI', googleBlue, bold)}    ${dim}AI Coding Agent · 45+ Providers · 51+ Tools     ${googlePurple}║${reset}` +
-  `\n ${googlePurple}╚══════════════════════════════════════════════════════════════════╝${reset}\n`
+  `\n ${googlePurple}+==================================================================+${reset}` +
+  `\n ${googlePurple}|${reset}  🐉  ${s('BEAST', googlePurple, bold)}   ${s('CLI', googleBlue, bold)}    ${dim}AI Coding Agent · 45+ Providers · 51+ Tools     ${googlePurple}|${reset}` +
+  `\n ${googlePurple}+==================================================================+${reset}\n`
 
 const COMPACT_LOGO =
-  `\n ${googlePurple}┌────────────────────────────────────────────┐${reset}` +
-  `\n ${googlePurple}│${reset}  🐉  ${s('BEAST', googlePurple, bold)}  ${s('CLI', googleBlue, bold)}  ${dim}AI Coding Agent                  ${googlePurple}│${reset}` +
-  `\n ${googlePurple}└────────────────────────────────────────────┘${reset}\n`
+  `\n ${googlePurple}+----------------------------------------------+${reset}` +
+  `\n ${googlePurple}|${reset}  🐉  ${s('BEAST', googlePurple, bold)}  ${s('CLI', googleBlue, bold)}  ${dim}AI Coding Agent                  ${googlePurple}|${reset}` +
+  `\n ${googlePurple}+----------------------------------------------+${reset}\n`
 
 const TINY_LOGO = ` 🐉 ${s('BEAST CLI', googlePurple, bold)} ${dim}~ \n`
 
@@ -35,12 +35,11 @@ const googleBlue2 = '\x1b[38;2;70;130;255m'
 const TEXT_LOGO = ` ${s('BEAST', googlePurple2, bold)} ${s('CLI', googleBlue2, bold)} `
 
 // ── Polished Feature Highlights ─────────────────────────────────────────────
-// Inspired by polpo.sh: staggered reveal, clear hierarchy, subtle depth
 const FEATURE_CARDS = [
-  { icon: '⚡', label: 'Blazing Fast', color: fg.warning },
-  { icon: '🔒', label: 'Private & Local', color: fg.success },
-  { icon: '🌐', label: '45+ Providers', color: fg.sapphire },
-  { icon: '🔧', label: '51+ Tools', color: fg.tool },
+  { label: 'Blazing Fast', color: fg.warning },
+  { label: 'Private & Local', color: fg.success },
+  { label: '45+ Providers', color: fg.sapphire },
+  { label: '51+ Tools', color: fg.tool },
 ]
 
 // Staggered reveal tagline for wide terminals
@@ -72,11 +71,9 @@ export function renderCleanBanner(): string {
   const tagline = REVEAL_TAGLINE + '\n'
 
   // Feature highlights strip (like polpo.sh card layout)
-  const cardWidth = 22
   const cardSep = '  '
   const cardLines = FEATURE_CARDS.map(card => {
-    const label = card.label.padEnd(cardWidth - card.icon.length - 1)
-    return s(card.icon + ' ' + label, card.color)
+    return s(card.label, card.color)
   }).join(s(cardSep, fg.overlay))
 
   return logo + tagline + '\n' + cardLines + '\n'

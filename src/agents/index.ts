@@ -1,5 +1,33 @@
-// Multi-Agent Coordination System
+// Multi-Agent Coordination System + User Agent Management
 // Based on Claude Code's agent swarms and coordinator pattern
+// Also supports user-defined agents invoked via @name in prompts
+
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs'
+import { resolve } from 'node:path'
+
+// ── User Agent Types ─────────────────────────────────────────────────────────
+
+export interface UserAgent {
+  id: string
+  name: string
+  description: string
+  instructions: string
+  model?: string
+  createdAt: number
+  updatedAt: number
+}
+
+export interface AgentMemory {
+  facts: string[]
+  preferences: Record<string, string>
+  context: string
+  updatedAt: number
+}
+
+interface AgentStore {
+  agents: UserAgent[]
+  activeAgent?: string
+}
 
 export type AgentRole = 'coordinator' | 'worker' | 'observer'
 
@@ -22,7 +50,188 @@ export interface AgentInstance {
   completedAt?: Date
 }
 
-// Inter-agent message types
+// ── User Agent Storage ───────────────────────────────────────────────────────
+
+function getAgentsDir(): string {
+  return resolve(process.env.HOME ?? '~', '.beast-cli', 'agents')
+}
+
+function getAgentsPath(): string {
+  return resolve(getAgentsDir(), 'agents.json')
+}
+
+function getMemoryPath(): string {
+  return resolve(getAgentsDir(), 'memory.json')
+}
+
+function ensureDir(): void {
+  const dir = getAgentsDir()
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
+}
+
+function loadStore(): AgentStore {
+  ensureDir()
+  try {
+    if (existsSync(getAgentsPath())) {
+      return JSON.parse(readFileSync(getAgentsPath(), 'utf-8'))
+    }
+  } catch {}
+  return { agents: [] }
+}
+
+function saveStore(store: AgentStore): void {
+  ensureDir()
+  writeFileSync(getAgentsPath(), JSON.stringify(store, null, 2), 'utf-8')
+}
+
+export function listAgents(): UserAgent[] {
+  return loadStore().agents
+}
+
+export function getAgent(name: string): UserAgent | undefined {
+  const store = loadStore()
+  return store.agents.find(a =>
+    a.name.toLowerCase() === name.toLowerCase() ||
+    a.name.toLowerCase().replace(/\s+/g, '-') === name.toLowerCase()
+  )
+}
+
+export function createAgent(data: Omit<UserAgent, 'id' | 'createdAt' | 'updatedAt'>): UserAgent {
+  const store = loadStore()
+  const agent: UserAgent = {
+    ...data,
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  }
+  store.agents.push(agent)
+  saveStore(store)
+  return agent
+}
+
+export function updateAgent(id: string, updates: Partial<Omit<UserAgent, 'id' | 'createdAt'>>): UserAgent | null {
+  const store = loadStore()
+  const idx = store.agents.findIndex(a => a.id === id)
+  if (idx === -1) return null
+  store.agents[idx] = { ...store.agents[idx], ...updates, updatedAt: Date.now() }
+  saveStore(store)
+  return store.agents[idx]
+}
+
+export function deleteAgent(id: string): boolean {
+  const store = loadStore()
+  const before = store.agents.length
+  store.agents = store.agents.filter(a => a.id !== id)
+  if (store.agents.length < before) {
+    if (store.activeAgent) {
+      const stillExists = store.agents.some(a => a.name === store.activeAgent)
+      if (!stillExists) store.activeAgent = undefined
+    }
+    saveStore(store)
+    return true
+  }
+  return false
+}
+
+export function getActiveAgent(): UserAgent | undefined {
+  const store = loadStore()
+  if (!store.activeAgent) return undefined
+  return getAgent(store.activeAgent)
+}
+
+export function setActiveAgent(name: string | undefined): void {
+  const store = loadStore()
+  store.activeAgent = name
+  saveStore(store)
+}
+
+// ── Memory ─────────────────────────────────────────────────────────────────
+
+export function loadMemory(): AgentMemory {
+  try {
+    if (existsSync(getMemoryPath())) {
+      return JSON.parse(readFileSync(getMemoryPath(), 'utf-8'))
+    }
+  } catch {}
+  return { facts: [], preferences: {}, context: '', updatedAt: Date.now() }
+}
+
+export function saveMemory(memory: AgentMemory): void {
+  ensureDir()
+  writeFileSync(getMemoryPath(), JSON.stringify(memory, null, 2), 'utf-8')
+}
+
+export function updateMemory(updates: Partial<AgentMemory>): AgentMemory {
+  const memory = loadMemory()
+  const updated = { ...memory, ...updates, updatedAt: Date.now() }
+  saveMemory(updated)
+  return updated
+}
+
+// ── Prompt injection ────────────────────────────────────────────────────────
+
+const AGENT_REF_REGEX = /@([\w-]+)/g
+
+export interface AgentContext {
+  cleanedPrompt: string
+  agentInstructions: string[]
+  usedAgents: UserAgent[]
+  activeAgent?: UserAgent
+}
+
+export function parseAgentContext(prompt: string): AgentContext {
+  const store = loadStore()
+  const instructions: string[] = []
+  const usedAgents: UserAgent[] = []
+  let activeAgent: UserAgent | undefined
+
+  if (store.activeAgent) {
+    activeAgent = getAgent(store.activeAgent)
+    if (activeAgent) {
+      instructions.push(`[AGENT: ${activeAgent.name}]\n${activeAgent.instructions}`)
+      usedAgents.push(activeAgent)
+    }
+  }
+
+  const matches = [...prompt.matchAll(AGENT_REF_REGEX)]
+  for (const match of matches) {
+    const name = match[1]
+    const agent = getAgent(name)
+    if (agent && !usedAgents.some(a => a.id === agent.id)) {
+      instructions.push(`[AGENT: ${agent.name}]\n${agent.instructions}`)
+      usedAgents.push(agent)
+    }
+  }
+
+  const cleanedPrompt = prompt.replace(AGENT_REF_REGEX, '').replace(/\s+/g, ' ').trim()
+  return { cleanedPrompt, agentInstructions: instructions, usedAgents, activeAgent }
+}
+
+export function buildAgentSystemMessage(context: AgentContext): string {
+  const parts: string[] = []
+
+  if (context.agentInstructions.length > 0) {
+    parts.push(
+      'You have access to the following custom agents:\n' +
+      context.agentInstructions.join('\n\n')
+    )
+  }
+
+  const memory = loadMemory()
+  if (memory.context || memory.facts.length > 0) {
+    const memParts: string[] = []
+    if (memory.context) memParts.push(`Project Context: ${memory.context}`)
+    if (memory.facts.length > 0) memParts.push(`Known Facts: ${memory.facts.map(f => `• ${f}`).join('\n')}`)
+    if (Object.keys(memory.preferences).length > 0) {
+      memParts.push(`Preferences: ${Object.entries(memory.preferences).map(([k, v]) => `${k}=${v}`).join(', ')}`)
+    }
+    parts.push('[MEMORY]\n' + memParts.join('\n'))
+  }
+
+  return parts.join('\n\n')
+}
+
+// ── Inter-agent message types
 export type MessageType =
   | 'task'           // Assign task to worker
   | 'result'         // Return result from worker
@@ -276,8 +485,8 @@ export function registerAgentType(
   agentRegistry.set(type, factory)
 }
 
-// Create agent from type
-export function createAgent(type: string, config: AgentConfig): WorkerAgent | null {
+// Create worker agent from type
+export function createWorkerAgent(type: string, config: AgentConfig): WorkerAgent | null {
   const factory = agentRegistry.get(type)
   if (!factory) return null
   return factory(config)

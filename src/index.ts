@@ -18,6 +18,7 @@ import { Spinner } from './ui/spinner.ts'
 import { getFormattedTools, executeTool, getAllTools } from './native-tools/index.ts'
 import { funSpinner, FunSpinner, randomFunFact, thinkingMessage, toolRunningMessage } from './ui/fun-animations.ts'
 import { notifications, playBell, playAlertBeeps, onResponseReady, onWaitingForInput, onError, onTaskComplete, onPermissionRequest, showNotification } from './utils/notifications.ts'
+import { listAgents, getAgent, createAgent, updateAgent, deleteAgent, getActiveAgent, setActiveAgent, loadMemory, saveMemory, updateMemory, parseAgentContext, buildAgentSystemMessage } from './agents/index.ts'
 import type { ToolCall } from './providers/index.ts'
 import {
   detectAllProviders,
@@ -49,7 +50,7 @@ import { statSync } from 'node:fs'
 import readline from 'node:readline'
 
 // Version
-const VERSION = '1.2.8'
+const VERSION = '1.2.18'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -61,6 +62,7 @@ interface CLIOptions {
   setup?: boolean
   defaults?: boolean
   switch?: boolean  // Force re-select provider/model
+  tui?: boolean    // Launch UI mode picker
 }
 
 interface MCPTool {
@@ -96,57 +98,70 @@ async function numberedMenu(title: string, options: string[]): Promise<number> {
   }
 }
 
-// ── Fun Spinner (animated ASCII characters) ────────────────────────────────
+// ── Polished Progress Spinner (bulletty-inspired) ──────────────────────────
 
 let currentSpinner: ReturnType<typeof setInterval> | null = null
 let spinnerStarted = false
 let spinnerFrame = 0
 let spinnerLabel = ''
-let spinnerAnimation: string[] = []
-let spinnerSpeed = 150
+let spinnerColor = ''
+let spinnerStartTime = 0
+let spinnerSpeed = 80
+let spinnerPhase = 0
+let spinnerTask = ''
 
-// Different characters for different states
-const THINKING_ANIMS = ['(◕‿◕)🐕', '(=^・^=)', '(¨)🦊', '( @)🐸', '(*)',
-                        '(◕ω◕)🐕', '(=^・ω・^=)', '(◕‿◕)🦊', '(\\/)🐰', ' (=・)']
-const SEARCH_ANIMS = ['><(((º>', ' <(º)>', '><(((º>', '  ~(``)~', '><(((º>']
-const TOOL_ANIMS = ['(◕‿◕)🐕', '(=^・^=)', '(¨)🦊', '(*)', '=(・)']
-const THINKING_DOTS = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴']
+// Polished frames: subtle pulse/dots that feel premium
+const PULSE_FRAMES = ['◐', '◓', '◑', '◒']
+const PHASE_STATES = [
+  { state: 'thinking', label: 'Thinking',  color: fg.accent },
+  { state: 'searching', label: 'Searching', color: fg.sapphire },
+  { state: 'tool',     label: 'Running',   color: fg.peach },
+  { state: 'formatting', label: 'Formatting', color: fg.success },
+]
 
-function startFunSpinner(state: 'thinking' | 'searching' | 'tool' | 'formatting' = 'thinking'): void {
+function formatElapsed(ms: number): string {
+  if (ms < 1000) return `${ms}ms`
+  const s = Math.floor(ms / 1000)
+  if (s < 60) return `${s}s`
+  const m = Math.floor(s / 60)
+  return `${m}m ${s % 60}s`
+}
+
+function formatProgressBar(filled: number, width = 12): string {
+  const total = width * 4
+  const f = Math.round((filled / 100) * total)
+  const bar = fg.success + '█'.repeat(Math.floor(f / 4)) +
+    (f % 4 > 0 ? ['░', '▒', '▓', '█'][f % 4] : '') +
+    fg.muted + '░'.repeat(width - Math.ceil(f / 4))
+  return bar + reset
+}
+
+function writeSpinnerFrame(phase: number, task: string): void {
+  const pulse = PULSE_FRAMES[phase % 4]
+  const elapsed = formatElapsed(Date.now() - spinnerStartTime)
+  const bar = formatProgressBar(((phase % 20) + 1) * 5)
+  const line = `\r${s(spinnerLabel, spinnerColor)} ${s(pulse, fg.secondary)} ${s(spinnerTask, fg.muted)} ${bar} ${s(elapsed, fg.muted)}   `
+  process.stderr.write(line)
+}
+
+function startFunSpinner(state: 'thinking' | 'searching' | 'tool' | 'formatting' = 'thinking', task = ''): void {
   if (currentSpinner) clearInterval(currentSpinner)
   spinnerStarted = true
   spinnerFrame = 0
+  spinnerPhase = 0
+  spinnerStartTime = Date.now()
+  spinnerSpeed = 80
 
-  // Select animation based on state
-  if (state === 'searching') {
-    spinnerAnimation = SEARCH_ANIMS
-    spinnerLabel = s('Searching', fg.info)
-    spinnerSpeed = 120
-  } else if (state === 'tool') {
-    spinnerAnimation = TOOL_ANIMS
-    spinnerLabel = s('Running', fg.tool)
-    spinnerSpeed = 150
-  } else if (state === 'formatting') {
-    spinnerAnimation = ['✨', '★', '✦', '✧', '★']
-    spinnerLabel = s('Formatting', fg.success)
-    spinnerSpeed = 200
-  } else {
-    spinnerAnimation = THINKING_ANIMS
-    spinnerLabel = s('Thinking', fg.accent)
-    spinnerSpeed = 150
-  }
+  const cfg = PHASE_STATES.find(p => p.state === state) ?? PHASE_STATES[0]
+  spinnerLabel = cfg.label
+  spinnerColor = cfg.color
+  spinnerTask = task ? task : ''
 
-  // Write initial frame
-  const char = spinnerAnimation[0]
-  const dot = THINKING_DOTS[0]
-  process.stderr.write(`\r${spinnerLabel} ${char} ${dot}  `)
-
+  writeSpinnerFrame(0, spinnerTask)
   currentSpinner = setInterval(() => {
     if (!spinnerStarted) return
-    spinnerFrame = (spinnerFrame + 1) % spinnerAnimation.length
-    const animChar = spinnerAnimation[spinnerFrame]
-    const dot = THINKING_DOTS[spinnerFrame % THINKING_DOTS.length]
-    process.stderr.write(`\r${spinnerLabel} ${animChar} ${dot}  `)
+    spinnerPhase = (spinnerPhase + 1) % 20
+    writeSpinnerFrame(spinnerPhase, spinnerTask)
   }, spinnerSpeed)
 }
 
@@ -157,13 +172,13 @@ function stopFunSpinner(status: 'done' | 'error' | 'skip' = 'done'): void {
   }
   spinnerStarted = false
 
-  // Clear the line
-  process.stderr.write('\r' + ' '.repeat(60) + '\r')
+  const elapsed = formatElapsed(Date.now() - spinnerStartTime)
+  process.stderr.write('\r' + ' '.repeat(90) + '\r')
 
   if (status === 'done') {
-    process.stderr.write(s('✓ ', fg.success) + (spinnerLabel || 'Done') + '\n')
+    process.stderr.write(s('✓ ', fg.success) + (spinnerLabel || 'Done') + (spinnerTask ? ' ' + s(spinnerTask, fg.muted) : '') + s(' · ' + elapsed, fg.muted) + '\n')
   } else if (status === 'error') {
-    process.stderr.write(s('✗ ', fg.error) + 'Error\n')
+    process.stderr.write(s('✗ ', fg.error) + 'Error' + s(' · ' + elapsed, fg.muted) + '\n')
   }
 }
 
@@ -419,6 +434,9 @@ function printBanner(session: Session) {
   console.log('\n' + s('Commands:', fg.muted))
   console.log(helpPanel([
     { cmd: '/help', desc: 'Show all commands' },
+    { cmd: '/clean', desc: 'Clear all — history, memory, agents' },
+    { cmd: '/init', desc: 'Create / update memory & agents' },
+    { cmd: '/agents', desc: 'Manage custom agents' },
     { cmd: '/switch', desc: 'Change provider/model/context' },
     { cmd: '/tools', desc: 'List available tools' },
     { cmd: '/clear', desc: 'Clear chat history' },
@@ -429,8 +447,30 @@ function printBanner(session: Session) {
 
 // ── REPL ─────────────────────────────────────────────────────────────────────
 
-async function repl(session: Session) {
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
+export async function repl(session: Session) {
+  // Build completion list for tab complete
+  const SLASH_COMMANDS = [
+    '/help', '/switch', '/models', '/model', '/provider', '/tools',
+    '/clear', '/clean', '/init', '/agents', '/login', '/logout', '/exit',
+    '/agents list', '/agents create', '/agents use', '/agents delete', '/agents info',
+  ]
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+    completer: (line: string) => {
+      const hits = SLASH_COMMANDS.filter(c => c.startsWith(line))
+      // Add agent names if line starts with @ or /agents use
+      if (line.startsWith('@')) {
+        try {
+          const agents = listAgents()
+          const agentHits = agents.map(a => '@' + a.name).filter(n => n.startsWith(line))
+          return [agentHits.length ? agentHits : hits, line]
+        } catch {}
+      }
+      return [hits.length ? hits : [], line]
+    },
+  })
 
   // Polished REPL prompt with Google-style `>` with accent color
   const promptUser = () => rl.question('\n' + s('> ', fg.accent), async (input) => {
@@ -455,6 +495,9 @@ Commands:
   /provider <name>  Switch directly to provider
   /login          Authenticate ChatGPT Plus (Codex OAuth)
   /logout         Clear ChatGPT Plus authentication
+  /clean          Clear everything (history, memory, agents)
+  /init           Setup memory & create agents
+  /agents         Manage custom agents
   /tools          List available tools
   /clear          Clear chat history
   /exit           Exit
@@ -604,6 +647,145 @@ Commands:
       promptUser(); return
     }
 
+    // ── /clean ────────────────────────────────────────────────────────────────
+    if (trimmed === '/clean') {
+      session.messages = []
+      try {
+        const { AgentStore, AgentMemory } = await import('./agents/index.ts')
+        updateAgent && updateAgent('', { instructions: '' } as any)
+      } catch {}
+      const fs = await import('node:fs')
+      const path = await import('node:path')
+      const dir = path.resolve(process.env.HOME ?? '~', '.beast-cli', 'agents')
+      try { fs.rmSync(dir, { recursive: true, force: true }) } catch {}
+      console.log('\n✅ Everything cleared — history, memory, and agents.')
+      promptUser(); return
+    }
+
+    // ── /init ─────────────────────────────────────────────────────────────────
+    if (trimmed === '/init') {
+      console.log('\n' + s('─── Memory & Agent Setup ───', fg.accent))
+
+      const memory = loadMemory()
+      console.log('\n' + s('Project Context', fg.sapphire))
+      console.log('  Current: ' + (memory.context ? s(memory.context, fg.muted) : s('(empty)', fg.overlay)))
+      const ctx = await question('  Enter project context (e.g. "Next.js app with PostgreSQL") > ')
+      if (ctx.trim()) {
+        memory.context = ctx.trim()
+        memory.updatedAt = Date.now()
+        saveMemory(memory)
+        console.log('  ' + s('✓', fg.success) + ' Context saved.')
+      }
+
+      console.log('\n' + s('Known Facts', fg.sapphire) + s(' (one per line, empty to finish)', fg.muted))
+      memory.facts.forEach((f: string, i: number) => console.log(`  ${i + 1}. ${s(f, fg.muted)}`))
+      let moreFacts = true
+      while (moreFacts) {
+        const fact = await question('  Fact (Enter to finish) > ')
+        if (!fact.trim()) { moreFacts = false }
+        else { memory.facts.push(fact.trim()) }
+      }
+      saveMemory(memory)
+
+      console.log('\n' + s('Quick-create an agent?', fg.sapphire))
+      const mkAgent = await question('  Name (or Enter to skip) > ')
+      if (mkAgent.trim()) {
+        const agName = mkAgent.trim()
+        const agDesc = await question('  Description > ')
+        const agInstr = await question('  Instructions (what this agent does) > ')
+        const ag = createAgent({ name: agName, description: agDesc.trim(), instructions: agInstr.trim() })
+        console.log('  ' + s('✓', fg.success) + ` Agent "${agName}" created.`)
+      }
+
+      saveMemory(memory)
+      console.log('\n✅ Memory & agents initialized.')
+      promptUser(); return
+    }
+
+    // ── /agents ───────────────────────────────────────────────────────────────
+    if (trimmed === '/agents' || trimmed.startsWith('/agents ')) {
+      const args = trimmed.split(' ').slice(1)
+      const action = args[0] || 'list'
+
+      if (action === 'list' || action === '') {
+        const agents = listAgents()
+        const active = getActiveAgent()
+        console.log('\n' + s('─── Agents ───', fg.accent))
+        if (agents.length === 0) {
+          console.log('  ' + s('No agents yet. Run', fg.muted) + ' /agents create ' + s('to make one.', fg.muted))
+        } else {
+          agents.forEach(a => {
+            const isActive = active?.id === a.id
+            const marker = isActive ? s(' ● active', fg.success) : ''
+            console.log(`  ${s('◆', fg.accent)} ${s(a.name, fg.sapphire)}${marker}`)
+            if (a.description) console.log(`    ${s(a.description, fg.muted)}`)
+          })
+        }
+        console.log('\n' + s('Commands:', fg.muted))
+        console.log('  /agents list              List all agents')
+        console.log('  /agents create            Create a new agent')
+        console.log('  /agents use <name>        Set agent as always-on')
+        console.log('  /agents delete <name>    Remove an agent')
+        console.log('  @<name>                   Use agent in a prompt')
+        promptUser(); return
+      }
+
+      if (action === 'create') {
+        const name = await question('  Agent name > ')
+        if (!name.trim()) { console.log('\nCancelled.'); promptUser(); return }
+        const desc = await question('  Description > ')
+        const instr = await question('  Instructions (what this agent does) > ')
+        if (!instr.trim()) { console.log('\n' + s('! Instructions required.', fg.warning)); promptUser(); return }
+        const ag = createAgent({ name: name.trim(), description: desc.trim(), instructions: instr.trim() })
+        console.log('\n✅ Agent "' + ag.name + '" created. Use it with @' + ag.name)
+        promptUser(); return
+      }
+
+      if (action === 'use') {
+        const name = args.slice(1).join(' ')
+        if (!name) { console.log('\n' + s('Usage:', fg.muted) + ' /agents use <name>'); promptUser(); return }
+        const ag = getAgent(name)
+        if (!ag) { console.log('\n' + s('! Agent not found:', fg.error) + ' ' + name); promptUser(); return }
+        setActiveAgent(ag.name)
+        console.log('\n✅ Active agent set to ' + s(ag.name, fg.sapphire) + s(' (always prepended to prompts)', fg.muted))
+        promptUser(); return
+      }
+
+      if (action === 'delete') {
+        const name = args.slice(1).join(' ')
+        if (!name) { console.log('\n' + s('Usage:', fg.muted) + ' /agents delete <name>'); promptUser(); return }
+        const ag = getAgent(name)
+        if (!ag) { console.log('\n' + s('! Agent not found:', fg.error) + ' ' + name); promptUser(); return }
+        deleteAgent(ag.id)
+        console.log('\n✅ Agent "' + name + '" deleted.')
+        promptUser(); return
+      }
+
+      if (action === 'info') {
+        const name = args.slice(1).join(' ')
+        if (!name) { console.log('\n' + s('Usage:', fg.muted) + ' /agents info <name>'); promptUser(); return }
+        const ag = getAgent(name)
+        if (!ag) { console.log('\n' + s('! Agent not found:', fg.error) + ' ' + name); promptUser(); return }
+        console.log('\n' + s('─── ' + ag.name + ' ───', fg.accent))
+        if (ag.description) console.log('  ' + s('Description:', fg.sapphire) + ' ' + ag.description)
+        console.log('  ' + s('Instructions:', fg.sapphire))
+        ag.instructions.split('\n').forEach((l: string) => console.log('    ' + l))
+        if (ag.model) console.log('  ' + s('Model:', fg.sapphire) + ' ' + ag.model)
+        const d = new Date(ag.createdAt)
+        console.log('  ' + s('Created:', fg.muted) + ' ' + d.toLocaleDateString())
+        promptUser(); return
+      }
+
+      // Default: show usage
+      console.log('\n' + s('Usage:', fg.muted))
+      console.log('  /agents list              List all agents')
+      console.log('  /agents create            Create a new agent')
+      console.log('  /agents use <name>       Set always-on agent')
+      console.log('  /agents delete <name>    Remove agent')
+      console.log('  /agents info <name>      Show agent details')
+      promptUser(); return
+    }
+
     // ── Real-time query detection ───────────────────────────────────────────
 
     const REALTIME_KEYWORDS = [
@@ -649,7 +831,40 @@ Commands:
       })
     }
 
-    agentMessages.push({ role: 'user' as const, content: trimmed })
+    // Parse @agentname references from prompt
+    const agentCtx = parseAgentContext(trimmed)
+    const systemParts: string[] = []
+
+    if (agentCtx.agentInstructions.length > 0) {
+      systemParts.push(
+        'You have access to the following custom agents:\n' +
+        agentCtx.agentInstructions.join('\n\n')
+      )
+    }
+
+    const memory = loadMemory()
+    if (memory.context || memory.facts.length > 0) {
+      const memParts: string[] = []
+      if (memory.context) memParts.push(`Project Context: ${memory.context}`)
+      if (memory.facts.length > 0) memParts.push(`Known Facts: ${memory.facts.map((f: string) => `• ${f}`).join('\n')}`)
+      if (Object.keys(memory.preferences).length > 0) {
+        memParts.push(`Preferences: ${Object.entries(memory.preferences).map(([k, v]) => `${k}=${v}`).join(', ')}`)
+      }
+      systemParts.push('[MEMORY]\n' + memParts.join('\n'))
+    }
+
+    if (systemParts.length > 0) {
+      const existingSystem = agentMessages.find(m => m.role === 'system')
+      if (existingSystem) {
+        existingSystem.content += '\n\n' + systemParts.join('\n\n')
+      } else {
+        agentMessages.unshift({ role: 'system', content: systemParts.join('\n\n') })
+      }
+    }
+
+    // Use cleaned prompt (strips @mentions)
+    const finalPrompt = agentCtx.cleanedPrompt || trimmed
+    agentMessages.push({ role: 'user' as const, content: finalPrompt })
 
     startFunSpinner('thinking')
     try {
@@ -804,6 +1019,7 @@ OPTIONS:
   --defaults         Use saved config or auto-select best option
   --switch           Reconfigure provider/model/context
   --setup            Auto-start MCP server
+  --tui              Launch modern React/Ink TUI (interactive picker by default)
   --help             Show this help
 
 SESSION COMMANDS:
@@ -839,11 +1055,19 @@ async function main() {
       case '--setup': options.setup = true; break
       case '--defaults': options.defaults = true; break
       case '--switch': options.switch = true; break
+      case '--tui': options.tui = true; break
     }
   }
 
   if (options.help) { printHelp(); process.exit(0) }
   if (options.test) { console.log('Running tests...'); process.exit(0) }
+
+  // --tui: launch UI router (mode picker → REPL or Ink)
+  if (options.tui) {
+    const { launchUI } = await import('./ui/router.ts')
+    await launchUI('auto')
+    return
+  }
 
   // Connect MCP (silent, no noisy output)
   await connectMCP()
