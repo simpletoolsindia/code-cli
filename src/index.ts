@@ -7,12 +7,12 @@
 
 import { createProvider } from './providers/index.ts'
 import { TCPTransport } from './mcp/index.ts'
-import { s, fg, dim, bold, reset, green, cyan, yellow, red, icon, box } from './ui/colors.ts'
+import { s, fg, dim, bold, reset, icon } from './ui/colors.ts'
 import { renderHeader, renderFooter, renderCompactHeader, contextBar } from './ui/layout.ts'
 import { inlineList, helpPanel, panel, withProgress } from './ui/format.ts'
 import { renderToolResult } from './ui/tool-renderer.ts'
 import { beastSpinner } from './ui/beast-loader.ts'
-import { renderLionBanner } from './ui/banner.ts'
+import { renderCleanBanner } from './ui/banner.ts'
 import { tipBanner, randomTip } from './ui/tips.ts'
 import { Spinner } from './ui/spinner.ts'
 import { getFormattedTools, executeTool, getAllTools } from './native-tools/index.ts'
@@ -20,37 +20,34 @@ import type { ToolCall } from './providers/index.ts'
 import {
   detectAllProviders,
   fetchLocalModels,
+  fetchOllamaModels,
   getApiKeyFromEnv,
   isCloudProvider,
   DEFAULT_MODEL,
   CLOUD_MODELS,
   getBaseUrl,
   loadCodexToken,
+  isCodexTokenValid,
   clearCodexToken,
   CODEX_MODELS,
   type ProviderInfo,
 } from './providers/discover.ts'
-import { loadConfig, saveConfig } from './config/index.ts'
+import {
+  loadSession,
+  saveSession,
+  clearSession,
+  parseContextSize,
+  CONTEXT_SIZES,
+  saveConfig,
+  loadConfig,
+} from './config/index.ts'
 import { execSync } from 'child_process'
 import path from 'node:path'
 import { statSync } from 'node:fs'
 import readline from 'node:readline'
 
 // Version
-const VERSION = '1.2.4'
-
-// Color codes
-const dim = '\x1b[2m'
-const reset = '\x1b[0m'
-const bold = '\x1b[1m'
-const green = '\x1b[32m'
-const cyan = '\x1b[36m'
-const yellow = '\x1b[33m'
-const red = '\x1b[31m'
-
-// MCP Server URL
-const MCP_SERVER_HOST = process.env.MCP_HOST || 'localhost'
-const MCP_SERVER_PORT = parseInt(process.env.MCP_PORT || '7710')
+const VERSION = '1.2.8'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -60,7 +57,8 @@ interface CLIOptions {
   help?: boolean
   test?: boolean
   setup?: boolean
-  defaults?: boolean  // Use default provider/model without prompting
+  defaults?: boolean
+  switch?: boolean  // Force re-select provider/model
 }
 
 interface MCPTool {
@@ -74,7 +72,7 @@ interface Session {
   model: string
   apiKey?: string
   baseUrl: string
-  contextMax?: number   // context window size in tokens (e.g. 32768)
+  contextMax?: number
   messages: { role: string; content: string; toolCalls?: ToolCall[]; toolCallId?: string }[]
 }
 
@@ -96,26 +94,24 @@ async function numberedMenu(title: string, options: string[]): Promise<number> {
   }
 }
 
-async function maskedPrompt(promptText: string): Promise<string> {
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
-  return new Promise(resolve => {
-    rl.question(promptText, answer => { rl.close(); resolve(answer) })
-  })
-}
+// ── Spinner with single-line updates ────────────────────────────────────────
 
-// Animated spinner
 const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
 let spinnerHandle: ReturnType<typeof setInterval> | null = null
 let spinnerLabel = ''
+let spinnerStarted = false
 
 function startSpinner(label: string): void {
   if (spinnerHandle) clearInterval(spinnerHandle)
   spinnerLabel = label
+  spinnerStarted = true
   let frame = 0
-  process.stdout.write(`\r${label} ${SPINNER_FRAMES[frame]}  `)
+  // Write to stderr so stdout stays clean for actual output
+  process.stderr.write(`\r${label} ${SPINNER_FRAMES[frame]}  `)
   spinnerHandle = setInterval(() => {
+    if (!spinnerStarted) return
     frame = (frame + 1) % SPINNER_FRAMES.length
-    process.stdout.write(`\r${label} ${SPINNER_FRAMES[frame]}  `)
+    process.stderr.write(`\r${label} ${SPINNER_FRAMES[frame]}  `)
   }, 80)
 }
 
@@ -124,126 +120,44 @@ function stopSpinner(done = false, label = ''): void {
     clearInterval(spinnerHandle)
     spinnerHandle = null
   }
+  spinnerStarted = false
+  // Clear the line
+  process.stderr.write('\r' + ' '.repeat(60) + '\r')
   if (done) {
-    process.stdout.write(`\r${label || spinnerLabel} ${s('✓', fg.success)}\n`)
-  } else {
-    process.stdout.write('\r' + ' '.repeat(50) + '\r')
+    process.stderr.write(`${label} ${s('✓', fg.success)}\n`)
   }
 }
 
-// Streaming write — writes text char by char with styled cursor
+function clearLine(): void {
+  process.stderr.write('\r' + ' '.repeat(60) + '\r')
+}
+
+// Streaming write — prints response in a clean panel
 function streamText(text: string): void {
-  process.stdout.write('\n')
   process.stdout.write(panel(text, { title: '🤖 Response', titleColor: fg.assistant, width: 70 }))
   process.stdout.write('\n')
 }
 
-// Print token usage in a compact line
+// Print token usage compact
 function printUsage(usage?: { promptTokens: number; completionTokens: number; totalTokens: number }): void {
   if (!usage) return
   const { promptTokens, completionTokens, totalTokens } = usage
-  process.stdout.write(`\n${s('⚡ ' + totalTokens.toLocaleString() + ' tokens', fg.secondary)} `)
-  process.stdout.write(`(${s('p:' + promptTokens, fg.muted)} ${s('c:' + completionTokens, fg.muted)})\n`)
+  process.stdout.write(`${s('⚡ ', fg.secondary)}${s(totalTokens.toLocaleString(), fg.mauve)} tokens `)
+  process.stdout.write(`(${s('p:' + promptTokens, fg.blue)} ${s('c:' + completionTokens, fg.mauve)})\n`)
 }
 
 // ── MCP Server ────────────────────────────────────────────────────────────────
 
-async function checkMCPServer(): Promise<{ available: boolean; toolCount: number; tools: MCPTool[] }> {
-  // Always return native tools available (no MCP needed)
+async function checkMCPServer(): Promise<{ available: boolean; toolCount: number }> {
   const nativeTools = getFormattedTools()
-  return { available: true, toolCount: nativeTools.length, tools: nativeTools as MCPTool[] }
+  return { available: true, toolCount: nativeTools.length }
 }
-
-async function startColima(): Promise<boolean> {
-  console.log('   🐋 Checking Docker runtime...')
-  try {
-    execSync('docker info', { stdio: 'pipe' })
-    console.log('   ✅ Docker is running')
-    return true
-  } catch {
-    console.log('   🔄 Docker not running, trying to start Colima...')
-  }
-  try {
-    execSync('colima --version', { stdio: 'pipe' })
-  } catch {
-    console.log('   ⚠️  Colima not found. Install: brew install colima')
-    return false
-  }
-  try {
-    execSync('colima list', { stdio: 'pipe' })
-    const status = execSync('colima list 2>/dev/null', { encoding: 'utf8' })
-    if (status.includes('Running')) { console.log('   ✅ Colima is already running'); return true }
-  } catch {}
-  try {
-    console.log('   🚀 Starting Colima (this may take a minute)...')
-    execSync('colima start --arch aarch64 --cpu 4 --memory 4 --disk 50', { stdio: 'pipe', timeout: 180000 })
-    console.log('   ✅ Colima started successfully!')
-    return true
-  } catch (e: any) {
-    console.log(`   ⚠️  Failed to start Colima: ${e.message}`)
-    return false
-  }
-}
-
-function findComposeFile(): string | null {
-  let dir = process.cwd()
-  const root = '/'
-  while (dir !== root) {
-    const composePath = path.join(dir, 'extra_skills_mcp_tools', 'docker-compose.local.yml')
-    try { if (statSync(composePath).isFile()) return composePath } catch {}
-    dir = path.dirname(dir)
-  }
-  const fallbacks = ['/Users/sridhar/code/extra_skills_mcp_tools/docker-compose.local.yml']
-  for (const p of fallbacks) { try { if (statSync(p).isFile()) return p } catch {} }
-  return null
-}
-
-async function autoStartMCP(): Promise<boolean> {
-  console.log('   🔧 MCP: Not found, checking Docker...')
-  const dockerReady = await startColima()
-  if (!dockerReady) { console.log('   ⚠️  Docker unavailable. MCP tools will be limited.'); return false }
-  const composePath = findComposeFile()
-  if (!composePath) {
-    console.log('   ⚠️  MCP server not found.')
-    console.log('   💡 Clone: git clone https://github.com/simpletoolsindia/extra_skills_mcp_tools')
-    return false
-  }
-  try {
-    const status = execSync('docker inspect -f "{{.State.Status}}" mcp-server 2>/dev/null', { encoding: 'utf8' }).trim()
-    if (status === 'running' || status === 'healthy') { console.log('   ✅ MCP server already running'); return true }
-  } catch {}
-  try {
-    execSync(`docker compose -f "${composePath}" up -d 2>/dev/null`, { stdio: 'pipe', timeout: 120000 })
-    console.log('   ✅ MCP server container started!')
-    await new Promise(r => setTimeout(r, 3000))
-    return true
-  } catch (e: any) {
-    console.log(`   ⚠️  Could not start MCP from ${composePath}: ${e.message}`)
-  }
-  return false
-}
-
-// ── MCP Tool Calling ──────────────────────────────────────────────────────────
 
 let nativeTools: MCPTool[] = []
 
 async function connectMCP(): Promise<MCPTool[]> {
-  // Always use native tools — no TCP connection needed
   nativeTools = getFormattedTools() as MCPTool[]
   return nativeTools
-}
-
-async function callMCPTool(name: string, args: Record<string, unknown>): Promise<string> {
-  // Use native tool execution instead of MCP TCP
-  const result = await executeTool(name, args)
-  if (result.success) {
-    return result.content
-  }
-  return `Error: ${result.error}`
-}
-
-function formatMCPTools(): { name: string; description?: string; inputSchema: Record<string, unknown> }[] {
-  return nativeTools.length > 0 ? nativeTools as MCPTool[] : getFormattedTools() as MCPTool[]
 }
 
 // ── Provider & Model selection ───────────────────────────────────────────────
@@ -256,7 +170,7 @@ async function selectProvider(providers: ProviderInfo[]): Promise<string> {
   const byId: string[] = []
 
   for (const p of online) {
-    const models = p.isCloud ? `${p.models.length} models` : `${p.models.length} models`
+    const models = `${p.models.length} models`
     const auth = p.id === 'codex' ? ' · OAuth' : ''
     choices.push(`● ${p.name} (${p.shortName}) — ${models}${auth}`)
     byId.push(p.id)
@@ -281,7 +195,6 @@ async function selectModelForProvider(provider: string, defaultModel?: string): 
       console.log('   [WARN] No models found. Is Ollama running?')
       return DEFAULT_MODEL[provider] ?? 'llama3.2'
     }
-    // Pre-select if defaultModel matches
     if (defaultModel) {
       const idx = models.indexOf(defaultModel)
       if (idx >= 0) {
@@ -300,8 +213,7 @@ async function selectModelForProvider(provider: string, defaultModel?: string): 
     if (n >= 1 && n <= models.length) return models[n-1]
     return models[0]
   } else {
-    const models = CLOUD_MODELS[provider] ?? []
-    // Pre-select if defaultModel matches
+    const models = CLOUD_MODELS[provider] ?? CODEX_MODELS
     if (defaultModel) {
       const idx = models.indexOf(defaultModel)
       if (idx >= 0) {
@@ -322,8 +234,21 @@ async function selectModelForProvider(provider: string, defaultModel?: string): 
   }
 }
 
+async function selectContextSize(defaultSize?: string): Promise<{ size: string; max: number }> {
+  console.log(`${dim}Context window size:${reset}`)
+  CONTEXT_SIZES.forEach((size, i) => {
+    const marker = defaultSize === size ? ' ←' : ''
+    console.log(`  [${i+1}] ${size} tokens${marker}`)
+  })
+  let defaultIdx = defaultSize ? CONTEXT_SIZES.indexOf(defaultSize) : 2
+  if (defaultIdx < 0) defaultIdx = 2
+  const ctxIdx = await question(`  > [${defaultIdx + 1}] `) || String(defaultIdx + 1)
+  const idx = parseInt(ctxIdx) - 1
+  const size = CONTEXT_SIZES[idx] || '32K'
+  return { size, max: parseContextSize(size) }
+}
+
 async function promptApiKey(provider: string): Promise<string | null> {
-  // Codex uses OAuth, not API key
   if (provider === 'codex') {
     console.log(`\n🔑 ChatGPT Plus: A browser will open for you to sign in.`)
     return 'codex-oauth'
@@ -332,16 +257,15 @@ async function promptApiKey(provider: string): Promise<string | null> {
   const env = getApiKeyFromEnv(provider)
   if (env) return env
 
-  // User-friendly error messages with signup links
   const providerHelp: Record<string, string> = {
-    anthropic: 'Sign up at https://console.anthropic.com/',
-    openai: 'Sign up at https://platform.openai.com/',
-    groq: 'Sign up at https://console.groq.com/',
-    deepseek: 'Sign up at https://platform.deepseek.com/',
-    mistral: 'Sign up at https://console.mistral.ai/',
-    openrouter: 'Sign up at https://openrouter.ai/',
-    gemini: 'Sign up at https://aistudio.google.com/',
-    qwen: 'Sign up at https://dashscope.console.aliyun.com/',
+    anthropic: 'https://console.anthropic.com/',
+    openai: 'https://platform.openai.com/',
+    groq: 'https://console.groq.com/',
+    deepseek: 'https://platform.deepseek.com/',
+    mistral: 'https://console.mistral.ai/',
+    openrouter: 'https://openrouter.ai/',
+    gemini: 'https://aistudio.google.com/',
+    qwen: 'https://dashscope.console.aliyun.com/',
   }
 
   console.log(`\n⚠️  To use ${provider}, you need a free API key.`)
@@ -351,76 +275,71 @@ async function promptApiKey(provider: string): Promise<string | null> {
   return null
 }
 
+// ── Validate saved model exists ─────────────────────────────────────────────
+
+async function validateSavedConfig(session: ReturnType<typeof buildSessionFromSaved>): Promise<boolean> {
+  if (session.provider === 'codex') {
+    const token = loadCodexToken()
+    return token !== null && isCodexTokenValid(token)
+  }
+  if (isCloudProvider(session.provider)) {
+    return getApiKeyFromEnv(session.provider) !== null
+  }
+  // Local provider - check if model still exists
+  const models = await fetchLocalModels(session.provider)
+  return models.includes(session.model)
+}
+
 // ── Interactive setup ───────────────────────────────────────────────────────
 
-async function interactiveSetup(): Promise<Session> {
-  const reset = '\x1b[0m'
-  const bold = '\x1b[1m'
-  const dim = '\x1b[2m'
-  const green = '\x1b[32m'
-  const cyan = '\x1b[36m'
-  const yellow = '\x1b[33m'
+async function interactiveSetup(saved?: ReturnType<typeof loadSession>): Promise<Session> {
+  console.log(`\n${s('🐉 Beast CLI', fg.accent, bold)} ${s(`v${VERSION}`, fg.muted)} ${s('·', fg.muted)} ${s('45+ Providers', fg.secondary)} ${s('·', fg.muted)} ${s('39 Tools', fg.secondary)}`)
 
-  console.log(`\n${s('🐉 Beast CLI', fg.accent, bold)} ${s(`v${VERSION}`, fg.muted)} ${s('·', fg.muted)} ${s('45+ Providers', fg.secondary)} ${s('·', fg.muted)} ${s('39 Tools', fg.secondary)} ${s('·', fg.muted)} ${s('Local AI Ready', fg.secondary)}`)
-
-  console.log(`${dim}📡 Detecting services...${reset}`)
   const providers = await detectAllProviders()
+  console.log(`${s('✓', fg.success)} MCP: ${nativeTools.length} tools | ${s('✓', fg.success)} Ollama: ${providers.find(p=>p.id==='ollama')?.models.length || 0} models`)
 
-  // Connect MCP
-  const mcp = await checkMCPServer()
-  nativeTools = mcp.tools
-  console.log(`${green}✓${reset} MCP: ${mcp.toolCount} tools | ${green}✓${reset} Ollama: ${providers.find(p=>p.id==='ollama')?.models.length || 0} models`)
-
-  console.log('')
+  // Select provider
   const provider = await selectProvider(providers)
 
+  // API key if needed
   let apiKey: string | undefined
   if (isCloudProvider(provider)) {
     const key = await promptApiKey(provider)
     if (!key) {
-      console.log(`   ${yellow}⚠${reset} No API key`)
+      console.log(`   ${s('⚠', fg.warning)} No API key`)
       process.exit(1)
     }
     apiKey = key
   }
 
-  console.log('')
-  const model = await selectModelForProvider(provider)
-  const baseUrl = getBaseUrl(provider)
+  // Select model
+  const model = await selectModelForProvider(provider, saved?.model)
 
-  // Ask context size
-  console.log('')
-  const contextSizes = ['8K', '16K', '32K', '64K', '128K']
-  console.log(`${dim}Context window size:${reset}`)
-  contextSizes.forEach((size, i) => console.log(`  ${dim}[${i+1}]${reset} ${size} tokens`))
-  const ctxIdx = await question('  > ') || '3'
-  const contextSize = contextSizes[parseInt(ctxIdx)-1] || '32K'
+  // Select context size
+  const { size, max } = await selectContextSize(saved?.contextSize)
 
   console.log(`
-${green}✓${reset} Provider: ${bold}${provider}${reset}
-${green}✓${reset} Model: ${bold}${model}${reset}
-${green}✓${reset} Context: ${bold}${contextSize} tokens${reset}
+${s('✓', fg.success)} Provider: ${bold}${provider}${reset}
+${s('✓', fg.success)} Model: ${bold}${model}${reset}
+${s('✓', fg.success)} Context: ${bold}${size} tokens${reset}
 `)
 
-  return { provider, model, apiKey, baseUrl, messages: [], contextMax: parseContextSize(contextSize) }
+  return { provider, model, apiKey, baseUrl: getBaseUrl(provider), messages: [], contextMax: max }
 }
 
-// ── Session builder (CLI flags) ─────────────────────────────────────────────
-
-function buildSession(provider: string, model: string): Session {
-  const apiKey = getApiKeyFromEnv(provider)
-  return { provider, model, apiKey, baseUrl: getBaseUrl(provider), messages: [], contextMax: 32768 }
-}
-
-function parseContextSize(size: string): number {
-  const num = parseInt(size.replace(/K|B$/i, ''))
-  if (size.toUpperCase().endsWith('K')) return num * 1024
-  if (size.toUpperCase().endsWith('B')) return num * 1024 * 1024 * 1024
-  return num
+function buildSessionFromSaved(saved: ReturnType<typeof loadSession>): Session | null {
+  if (!saved) return null
+  return {
+    provider: saved.provider,
+    model: saved.model,
+    apiKey: getApiKeyFromEnv(saved.provider),
+    baseUrl: getBaseUrl(saved.provider),
+    messages: [],
+    contextMax: saved.contextMax,
+  }
 }
 
 function estimateContextUsed(messages: Session['messages']): number {
-  // Rough estimate: ~4 chars per token, average 50 chars per message
   const avgTokensPerMsg = 50 / 4
   return Math.round(messages.length * avgTokensPerMsg)
 }
@@ -429,31 +348,24 @@ function estimateContextUsed(messages: Session['messages']): number {
 
 function printBanner(session: Session) {
   const toolCount = nativeTools.length
-
-  // Compact 2-line header instead of 8-line ASCII art
   console.log(renderHeader({
     version: VERSION,
     provider: session.provider,
     model: session.model,
     toolsCount: toolCount,
   }))
-
-  // Inline status + shortcuts
   console.log('\n' + inlineList([
     { icon: icon.prompt, label: 'Type', value: 'your request' },
     { icon: icon.tool, label: toolCount + ' tools', value: 'available' },
   ]))
-
   console.log('\n' + s('Commands:', fg.muted))
   console.log(helpPanel([
     { cmd: '/help', desc: 'Show all commands' },
-    { cmd: '/tools', desc: 'List available MCP tools' },
-    { cmd: '/model', desc: 'Switch model' },
-    { cmd: '/provider', desc: 'Change provider' },
+    { cmd: '/switch', desc: 'Change provider/model/context' },
+    { cmd: '/tools', desc: 'List available tools' },
     { cmd: '/clear', desc: 'Clear chat history' },
     { cmd: '/exit', desc: 'Quit Beast CLI' },
   ]))
-
   console.log('')
 }
 
@@ -465,7 +377,6 @@ async function repl(session: Session) {
   const promptUser = () => rl.question('\n❯ ', async (input) => {
     const trimmed = input.trim()
 
-    // ── Commands ──────────────────────────────────────────────────────────────
     if (!trimmed) { promptUser(); return }
 
     if (trimmed === 'exit' || trimmed === 'quit') {
@@ -476,18 +387,35 @@ async function repl(session: Session) {
     if (trimmed === '/help') {
       console.log(`
 Commands:
-  /help         Show this help
-  /models       List available models for current provider
-  /model        Interactively switch model
-  /model <name> Switch to model by name or number
-  /provider     Interactively switch provider
+  /help           Show this help
+  /switch         Reconfigure provider/model/context
+  /models         List available models for current provider
+  /model          Interactively switch model
+  /model <name>   Switch to model by name or number
+  /provider       Interactively switch provider
   /provider <name>  Switch directly to provider
-  /login        Authenticate ChatGPT Plus (Codex OAuth)
-  /logout       Clear ChatGPT Plus authentication
-  /tools        List available MCP tools
-  /clear        Clear chat history
-  /exit         Exit
+  /login          Authenticate ChatGPT Plus (Codex OAuth)
+  /logout         Clear ChatGPT Plus authentication
+  /tools          List available tools
+  /clear          Clear chat history
+  /exit           Exit
 `)
+      promptUser(); return
+    }
+
+    // /switch - reconfigure everything
+    if (trimmed === '/switch') {
+      const newSession = await interactiveSetup()
+      Object.assign(session, newSession)
+      // Save the new config
+      saveSession({
+        provider: session.provider,
+        model: session.model,
+        contextSize: session.contextMax ? (session.contextMax >= 1024 ? Math.round(session.contextMax / 1024) + 'K' : String(session.contextMax)) : '32K',
+        contextMax: session.contextMax || 32768,
+        savedAt: Date.now(),
+      })
+      printBanner(session)
       promptUser(); return
     }
 
@@ -542,7 +470,8 @@ Commands:
     if (trimmed === '/model') {
       const model = await selectModelForProvider(session.provider, session.model)
       session.model = model
-      saveConfig({ provider: session.provider, model })
+      const ctxSize = session.contextMax ? (session.contextMax >= 1024 ? Math.round(session.contextMax / 1024) + 'K' : String(session.contextMax)) : '32K'
+      saveSession({ provider: session.provider, model, contextSize: ctxSize, contextMax: session.contextMax || 32768, savedAt: Date.now() })
       console.log(`\n✅ Model switched to: ${model}`)
       promptUser(); return
     }
@@ -550,7 +479,7 @@ Commands:
     if (trimmed.startsWith('/model ')) {
       const target = trimmed.slice(7).trim()
       const models = isCloudProvider(session.provider)
-        ? CLOUD_MODELS[session.provider] ?? []
+        ? (CLOUD_MODELS[session.provider] ?? CODEX_MODELS)
         : await fetchLocalModels(session.provider)
       const n = parseInt(target)
       if (n >= 1 && n <= models.length) session.model = models[n - 1]
@@ -560,26 +489,28 @@ Commands:
         console.log(`   Run /models to see available models.`)
         promptUser(); return
       }
-      saveConfig({ provider: session.provider, model: session.model })
+      const ctxSize = session.contextMax ? (session.contextMax >= 1024 ? Math.round(session.contextMax / 1024) + 'K' : String(session.contextMax)) : '32K'
+      saveSession({ provider: session.provider, model: session.model, contextSize: ctxSize, contextMax: session.contextMax || 32768, savedAt: Date.now() })
       console.log(`\n✅ Model switched to: ${session.model}`)
       promptUser(); return
     }
 
     if (trimmed === '/provider') {
-      const config = loadConfig()
       const providers = await detectAllProviders()
-      const newProvider = await selectProvider(providers, config)
+      const newProvider = await selectProvider(providers)
       if (isCloudProvider(newProvider)) {
         const key = await promptApiKey(newProvider)
         if (!key) { console.log('\n⚠️  Provider switch cancelled.'); promptUser(); return }
         session.apiKey = key
       }
       const newModel = await selectModelForProvider(newProvider)
+      const { size, max } = await selectContextSize()
       session.provider = newProvider
       session.model = newModel
       session.baseUrl = getBaseUrl(newProvider)
-      saveConfig({ provider: newProvider, model: newModel })
-      console.log(`\n✓ Provider: ${newProvider} | Model: ${newModel}`)
+      session.contextMax = max
+      saveSession({ provider: newProvider, model: newModel, contextSize: size, contextMax: max, savedAt: Date.now() })
+      printBanner(session)
       promptUser(); return
     }
 
@@ -598,10 +529,12 @@ Commands:
         session.apiKey = key
       }
       const newModel = await selectModelForProvider(target)
+      const { size, max } = await selectContextSize()
       session.provider = target
       session.model = newModel
       session.baseUrl = getBaseUrl(target)
-      saveConfig({ provider: target, model: newModel })
+      session.contextMax = max
+      saveSession({ provider: target, model: newModel, contextSize: size, contextMax: max, savedAt: Date.now() })
       printBanner(session)
       promptUser(); return
     }
@@ -614,50 +547,42 @@ Commands:
 
     // ── Real-time query detection ───────────────────────────────────────────
 
-// Keywords that signal a query needs live web data
-const REALTIME_KEYWORDS = [
-  'price', 'rate', 'rates', 'weather', 'news', 'today', 'current',
-  'latest', 'now', 'recent', 'gold', 'silver', 'petrol', 'dollar',
-  'rupee', 'inflation', 'gdp', 'stock', 'market', 'trending',
-  'score', 'match', 'result', 'election', 'government', 'policy',
-]
+    const REALTIME_KEYWORDS = [
+      'price', 'rate', 'rates', 'weather', 'news', 'today', 'current',
+      'latest', 'now', 'recent', 'gold', 'silver', 'petrol', 'dollar',
+      'rupee', 'inflation', 'gdp', 'stock', 'market', 'trending',
+      'score', 'match', 'result', 'election', 'government', 'policy',
+    ]
 
-// Check if a query looks like it needs real-time data
-function looksLikeRealTimeQuery(query: string): boolean {
-  const lower = query.toLowerCase()
-  return REALTIME_KEYWORDS.some(kw => lower.includes(kw))
-}
+    function looksLikeRealTimeQuery(query: string): boolean {
+      const lower = query.toLowerCase()
+      return REALTIME_KEYWORDS.some(kw => lower.includes(kw))
+    }
 
-// Check if a response from a non-tool-calling model is an "I don't know" apology
-function isApologyOrNoAccess(response: string): boolean {
-  const lower = response.toLowerCase()
-  const noDataPhrases = [
-    "don't have access", "do not have access",
-    "no real-time", "not have real-time", "don't have real-time",
-    "can't access", "cannot access",
-    "don't have current", "no up-to-date", "don't have up-to-date",
-    "don't know current", "don't have the ability to",
-    "don't have browsing", "no browsing ability",
-    "only have knowledge", "training data", "my knowledge",
-    "截止", "我的知识", "我没有实时",
-  ]
-  return noDataPhrases.some(phrase => lower.includes(phrase))
-}
+    function isApologyOrNoAccess(response: string): boolean {
+      const lower = response.toLowerCase()
+      const noDataPhrases = [
+        "don't have access", "do not have access",
+        "no real-time", "not have real-time", "don't have real-time",
+        "can't access", "cannot access",
+        "don't have current", "no up-to-date", "don't have up-to-date",
+        "don't know current", "don't have the ability to",
+        "don't have browsing", "no browsing ability",
+        "only have knowledge", "training data", "my knowledge",
+      ]
+      return noDataPhrases.some(phrase => lower.includes(phrase))
+    }
 
-// Detect providers that natively support tool calling (vs. local Ollama-style)
-function providerSupportsNativeTools(sessionProvider: string): boolean {
-  // ollama, lmstudio, jan are local providers where models may not support tool calling
-  // For cloud providers and others, assume native tool calling works
-  const noNativeToolSupport = ['ollama']
-  return !noNativeToolSupport.includes(sessionProvider)
-}
+    function providerSupportsNativeTools(sessionProvider: string): boolean {
+      const noNativeToolSupport = ['ollama']
+      return !noNativeToolSupport.includes(sessionProvider)
+    }
 
-// ── Agent Loop ───────────────────────────────────────────────────────────
-    const MAX_TOOL_CALLS = 20 // safety limit
+    // ── Agent Loop ───────────────────────────────────────────────────────────
+    const MAX_TOOL_CALLS = 20
     let toolCallCount = 0
     const agentMessages = [...session.messages]
 
-    // Add system message if tools are available
     if (nativeTools.length > 0) {
       agentMessages.unshift({
         role: 'system',
@@ -667,7 +592,7 @@ function providerSupportsNativeTools(sessionProvider: string): boolean {
 
     agentMessages.push({ role: 'user' as const, content: trimmed })
 
-    beastSpinner.start('Beast is thinking')
+    startSpinner('Thinking')
     try {
       const provider = await createProvider({
         provider: session.provider as any,
@@ -676,9 +601,8 @@ function providerSupportsNativeTools(sessionProvider: string): boolean {
         baseUrl: session.baseUrl || undefined,
       })
 
-      // Agent loop: keep calling LLM until no more tool calls
       while (toolCallCount < MAX_TOOL_CALLS) {
-        const tools = nativeTools.length > 0 ? formatMCPTools() : undefined
+        const tools = nativeTools.length > 0 ? nativeTools : undefined
 
         const response = await provider.create({
           messages: agentMessages,
@@ -686,21 +610,17 @@ function providerSupportsNativeTools(sessionProvider: string): boolean {
           maxTokens: 16384,
         })
 
-        // Thinking done
-        beastSpinner.stop('done')
+        stopSpinner(true)
 
-        // Print usage on first response
         if (toolCallCount === 0) {
           printUsage(response.usage)
         }
 
-        // If no tool calls, check for auto-fallback (local models that don't support tools)
         if (!response.toolCalls || response.toolCalls.length === 0) {
           const noNativeTools = !providerSupportsNativeTools(session.provider)
           const needsRealTime = looksLikeRealTimeQuery(trimmed)
           const looksLikeApology = response.content ? isApologyOrNoAccess(response.content) : false
 
-          // Auto-fallback: local model + real-time query + "I don't know" → call searxng_search
           if (noNativeTools && needsRealTime && looksLikeApology) {
             console.log(s('\n🔍 Auto-detected real-time query', fg.info) + s(' — fetching live data...', fg.secondary))
 
@@ -714,21 +634,19 @@ function providerSupportsNativeTools(sessionProvider: string): boolean {
             const truncated = resultText.length > 200 ? resultText.slice(0, 200) + '...' : resultText
             console.log(s('  📤 Result:', fg.tool) + ' ' + s(truncated, fg.secondary) + '\n')
 
-            // Feed search results back to LLM for formatting
             agentMessages.push({ role: 'assistant', content: response.content })
             agentMessages.push({
               role: 'user',
               content: `Search results for "${searchQuery}":\n${resultText}\n\nPlease provide a clear, concise answer based on these results.`,
             })
 
-            // Second LLM call to format the results
-            beastSpinner.start('Formatting response')
+            startSpinner('Formatting')
             const formatted = await provider.create({
               messages: agentMessages,
               tools: undefined,
               maxTokens: 16384,
             })
-            beastSpinner.stop('done')
+            stopSpinner(true)
 
             if (formatted.content) {
               streamText(formatted.content)
@@ -738,7 +656,6 @@ function providerSupportsNativeTools(sessionProvider: string): boolean {
             break
           }
 
-          // Normal case: no tool calls, just print and done
           if (response.content) {
             streamText(response.content)
           }
@@ -752,67 +669,54 @@ function providerSupportsNativeTools(sessionProvider: string): boolean {
           const toolName = tc.name
           const toolArgs = tc.arguments ?? {}
 
-          // Tool call header with styled args
           process.stdout.write('\n')
           const argsStr = JSON.stringify(toolArgs)
           const argsDisplay = argsStr.length > 60 ? argsStr.slice(0, 60) + '...' : argsStr
           process.stdout.write(s('🔧 ' + toolName, fg.tool) + ' ' + s(argsDisplay, fg.muted) + '\n')
 
-          // Progress bar during tool execution
           const toolResult = await withProgress(
             `Running ${toolName}`,
             executeTool(toolName, toolArgs),
           )
 
-          // Render structured (truncated) tool result
           console.log(renderToolResult(toolName, toolResult))
 
-          // Add assistant tool call message
           agentMessages.push({
             role: 'assistant',
             content: response.content,
             toolCalls: [tc],
           })
-          // Add tool result message
           agentMessages.push({
             role: 'user',
             content: toolResult.content,
             toolCallId: tc.id,
           })
         }
-
-        // Continue loop for next LLM turn
       }
 
       if (toolCallCount >= MAX_TOOL_CALLS) {
         console.log(s(`\n⚠️  Reached tool call limit (${MAX_TOOL_CALLS}). Truncating.`, fg.warning))
       }
 
-      // Update session history
       session.messages = agentMessages
       if (session.messages.length > 40) {
         session.messages = session.messages.slice(-40)
       }
 
-      // Show tip + context bar after every complete response
       process.stdout.write(tipBanner())
       if (session.contextMax) {
         const used = estimateContextUsed(agentMessages)
         process.stdout.write(contextBar({ used, max: session.contextMax }) + '\n')
       }
     } catch (e) {
-      beastSpinner.stop('error')
+      stopSpinner(false)
       console.log(`\n${s('❌ Error:', fg.error)} ${e}`)
-      // Remove failed user message from history (guard against empty)
       if (session.messages.length > 0) session.messages.pop()
     }
 
-    // Safe promptUser restart — check readline is still open
     try {
       if (!rl.closed) promptUser()
-    } catch {
-      // readline closed, exit gracefully
-    }
+    } catch {}
   })
 
   promptUser()
@@ -821,7 +725,7 @@ function providerSupportsNativeTools(sessionProvider: string): boolean {
 // ── Main ─────────────────────────────────────────────────────────────────────
 
 function printHelp() {
-  console.log('\n' + renderLionBanner())
+  console.log(renderCleanBanner())
   console.log(`
 🐉 Beast CLI v${VERSION} - AI Coding Agent
 
@@ -829,27 +733,30 @@ USAGE:
   beast [options]
 
 OPTIONS:
-  --provider <name>  LLM provider (ollama, lmstudio, anthropic, openai, deepseek, etc.)
+  --provider <name>  LLM provider (ollama, codex, anthropic, openai, etc.)
   --model <name>     Model name
-  --defaults         Use default provider (no prompts) — great for beginners!
+  --defaults         Use saved config or auto-select best option
+  --switch           Reconfigure provider/model/context
   --setup            Auto-start MCP server
   --help             Show this help
 
 SESSION COMMANDS:
-  /provider       Switch provider (interactive)
+  /switch        Reconfigure everything (provider, model, context)
+  /provider      Switch provider (interactive)
   /provider <name>  Switch to provider by name
-  /model          Switch model (interactive)
-  /model <name>   Switch to model by name or number
-  /models         List available models
-  /tools          List available MCP tools
-  /clear          Clear chat history
-  /help           Show this help
-  /exit           Exit
+  /model         Switch model (interactive)
+  /model <name>  Switch to model by name or number
+  /models        List available models
+  /tools         List available tools
+  /clear         Clear chat history
+  /help          Show this help
+  /exit          Exit
 
 EXAMPLES:
-  beast                          # Interactive setup
-  beast --provider ollama         # Use Ollama with model picker
-  beast --provider openai --model gpt-4o  # Use OpenAI directly
+  beast                          # Use saved config or auto-select
+  beast --defaults               # Quick start with best option
+  beast --switch                 # Reconfigure from scratch
+  beast --provider ollama        # Use Ollama with model picker
 `)
 }
 
@@ -865,49 +772,66 @@ async function main() {
       case '--test': options.test = true; break
       case '--setup': options.setup = true; break
       case '--defaults': options.defaults = true; break
+      case '--switch': options.switch = true; break
     }
   }
 
   if (options.help) { printHelp(); process.exit(0) }
   if (options.test) { console.log('Running tests...'); process.exit(0) }
-  if (options.setup) { await autoStartMCP(); process.exit(0) }
 
-  console.log(renderLionBanner())
-
-  // Connect MCP
-  startSpinner('🔧 Connecting MCP')
+  // Connect MCP (silent, no noisy output)
   await connectMCP()
-  stopSpinner(nativeTools.length > 0, '🔧 MCP')
 
-  console.log(renderLionBanner())
+  // Clean banner
+  console.log(renderCleanBanner())
 
   let session: Session
-  if (options.defaults) {
-    // Check what's available and use the best option
+
+  // Check for saved config first
+  const saved = loadSession()
+  const savedValid = saved ? await validateSavedConfig(buildSessionFromSaved(saved)!) : false
+
+  if (options.switch) {
+    // Force reconfigure
+    session = await interactiveSetup(saved || undefined)
+  } else if (options.provider && options.model) {
+    // CLI flags override
+    session = {
+      provider: options.provider,
+      model: options.model,
+      apiKey: getApiKeyFromEnv(options.provider),
+      baseUrl: getBaseUrl(options.provider),
+      messages: [],
+      contextMax: 32768,
+    }
+  } else if (options.defaults) {
+    // Auto-select best option
     const token = loadCodexToken()
-    if (token) {
-      // ChatGPT Plus is logged in - use it!
-      session = buildSession('codex', 'gpt-5.2-codex')
-      console.log(`${green}✓${reset} Using ChatGPT Plus (you're logged in!)`)
+    if (token && isCodexTokenValid(token)) {
+      session = { provider: 'codex', model: 'gpt-5.2-codex', apiKey: undefined, baseUrl: 'https://chatgpt.com/backend-api', messages: [], contextMax: 128 * 1024 }
+      console.log(`${s('✓', fg.success)} ChatGPT Plus (logged in)`)
     } else {
-      // No ChatGPT - check for Ollama (free & works offline)
-      console.log(`${dim}📡 Checking available AI...${reset}`)
       const ollamaModels = await fetchOllamaModels()
       if (ollamaModels.length > 0) {
-        session = buildSession('ollama', ollamaModels[0])
-        console.log(`${green}✓${reset} Using Ollama (${ollamaModels[0]}) - Free & works offline!`)
+        session = { provider: 'ollama', model: ollamaModels[0], apiKey: undefined, baseUrl: 'http://localhost:11434', messages: [], contextMax: 128 * 1024 }
+        console.log(`${s('✓', fg.success)} Ollama (${ollamaModels[0]}) — Free & offline`)
       } else {
-        // Fall back to ChatGPT with OAuth prompt
-        session = buildSession('codex', 'gpt-5.2-codex')
-        console.log(`${yellow}💡${reset} Tip: ChatGPT Plus OAuth needs browser login first time.`)
-        console.log(`${dim}   Or install Ollama for free offline AI: https://ollama.com${reset}`)
+        session = await interactiveSetup(saved || undefined)
       }
     }
-  } else if (options.provider && options.model) {
-    session = buildSession(options.provider, options.model)
+  } else if (saved && savedValid) {
+    // Use saved config
+    session = buildSessionFromSaved(saved)!
+    const ctxStr = saved.contextMax ? (saved.contextMax >= 1024 ? Math.round(saved.contextMax / 1024) + 'K' : String(saved.contextMax)) : '32K'
+    console.log(`${s('✓', fg.success)} Using saved config: ${session.provider} / ${session.model} / ${ctxStr}`)
   } else {
-    session = await interactiveSetup()
+    // No saved config or invalid - run setup once and save
+    session = await interactiveSetup(saved || undefined)
   }
+
+  // Save session for next time (if not already saved)
+  const ctxSize = session.contextMax ? (session.contextMax >= 1024 ? Math.round(session.contextMax / 1024) + 'K' : '32K') : '32K'
+  saveSession({ provider: session.provider, model: session.model, contextSize: ctxSize, contextMax: session.contextMax || 32768, savedAt: Date.now() })
 
   await repl(session)
 }

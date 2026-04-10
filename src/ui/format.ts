@@ -237,6 +237,7 @@ export async function withProgress<T>(
     const filled = Math.round(estimated * 24)
     const barColor = pct > 80 ? fg.warning : pct > 50 ? fg.accent : fg.success
     const bar = s('█'.repeat(filled), barColor) + s('░'.repeat(24 - filled), fg.muted)
+    // Single-line update via stderr
     process.stderr.write(`\r  ${s(label, fg.secondary)} ${bar} ${s(pct + '%', barColor)}   `)
     if (onTick) onTick(elapsed)
   }, 300)
@@ -244,11 +245,14 @@ export async function withProgress<T>(
   try {
     const result = await promise
     clearInterval(ticker)
-    process.stderr.write(`\r  ${s('✓', fg.success)} ${s(label, fg.secondary)} ${s('done', fg.success)}` + ' '.repeat(20) + '\n')
+    // Clear the line
+    process.stderr.write('\r' + ' '.repeat(60) + '\r')
+    process.stderr.write(s('✓ ', fg.success) + s(label, fg.secondary) + '\n')
     return result
   } catch (e) {
     clearInterval(ticker)
-    process.stderr.write(`\r  ${s('✗', fg.error)} ${s(label, fg.secondary)} ${s('failed', fg.error)}` + '\n')
+    process.stderr.write('\r' + ' '.repeat(60) + '\r')
+    process.stderr.write(s('✗ ', fg.error) + s(label, fg.secondary) + '\n')
     throw e
   }
 }

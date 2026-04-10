@@ -1,38 +1,31 @@
-// Beast CLI - ASCII Art Banner Generator
-// Renders the lion logo as ASCII art on startup
+// Beast CLI - Modern Clean Banner
 
-import { s, fg, reset } from './colors.ts'
-import { execSync } from 'child_process'
-import path from 'node:path'
+import { s, fg, bold, reset } from './colors.ts'
 
-const LION_IMAGE_PATH = path.join(process.cwd(), 'lion.png')
+// Clean 2-line modern logo (no image dependencies)
+export function renderCleanBanner(): string {
+  return `${fg.accent}
+   ██████╗ ██╗     ███████╗██╗  ██╗
+  ██╔════╝ ██║     ██╔════╝╚██╗██╔╝
+  ██║  ███╗██║     █████╗   ╚███╔╝
+  ██║   ██║██║     ██╔══╝   ██╔██╗
+  ╚██████╔╝███████╗███████╗██╔╝ ██╗
+   ╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝${reset}
 
-export function renderLionBanner(): string {
-  try {
-    // Use chafa to render the image as ANSI art
-    const output = execSync(
-      `chafa --colors=16 --stretch --size=72x26 "${LION_IMAGE_PATH}" 2>/dev/null`,
-      { encoding: 'utf8', timeout: 5000 }
-    )
-    // Strip the terminal hide/show cursor escape sequences
-    return output.replace(/\x1b\?25[hl]\n?/g, '').trim()
-  } catch {
-    // Fallback: simple text banner if chafa fails
-    return fallbackBanner()
-  }
+${s('AI Coding Agent', fg.muted)} ${s('·', fg.overlay)} ${s('45+ Providers', fg.muted)} ${s('·', fg.overlay)} ${s('39 Tools', fg.muted)} ${s('·', fg.overlay)} ${s('Local AI Ready', fg.muted)}`
 }
 
-function fallbackBanner(): string {
-  return `${fg.accent}       ╱╲
-      ╱  ╲
-     ╱ ══ ╲
-    ╱  ══  ╲
-   ╱   ══   ╲
-  ╱    ══    ╲
-  ╲    ══    ╱
-   ╲   ══   ╱
-    ╲  ══  ╱
-     ╲ ══ ╱
-      ╲  ╱
-       ╲╱${reset}`
+// Single-line compact header
+export function renderCompactBanner(): string {
+  return `${s('🐉', fg.accent)} ${s('Beast CLI', fg.accent, bold)} ${s('v1.2.8', fg.muted)}`
+}
+
+// Fallback (never used, but kept for compatibility)
+export function renderLionBanner(): string {
+  return renderCleanBanner()
+}
+
+// Minimal logo for inline use
+export function miniLogo(): string {
+  return s('🐉', fg.accent)
 }

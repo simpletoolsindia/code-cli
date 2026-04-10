@@ -3,12 +3,15 @@
 import { readFileSync, existsSync, writeFileSync, mkdirSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'
 
-export interface BeastConfig {
-  // General
+export interface BeastSessionConfig {
   provider?: string
   model?: string
-  apiKey?: string
+  contextSize?: string  // '8K', '16K', '32K', '64K', '128K'
+  contextMax?: number   // numeric tokens
+}
 
+// Full beast config
+export interface BeastConfig extends BeastSessionConfig {
   // Permission
   defaultMode?: 'plan' | 'default' | 'acceptEdits' | 'auto' | 'bypass' | 'dontAsk'
 
@@ -21,13 +24,7 @@ export interface BeastConfig {
   toolTimeout?: number
 
   // UI settings
-  theme?: 'dark' | 'light' | 'terminal'
-  showTimestamps?: boolean
-  verbose?: boolean
-
-  // Git settings
-  autoCommit?: boolean
-  commitMessage?: string
+  theme?: string
 
   // MCP settings
   mcpServers?: Record<string, {
@@ -37,74 +34,99 @@ export interface BeastConfig {
   }>
 }
 
-// Environment variable expansion
+// ── Config file paths ──────────────────────────────────────────────────────
+
+function getConfigDir(): string {
+  return resolve(process.env.HOME ?? '~', '.beast-cli')
+}
+
+function getConfigPath(): string {
+  return resolve(getConfigDir(), 'session.json')
+}
+
+// ── Session config (lightweight JSON for provider/model) ───────────────────
+
+export interface SessionConfig {
+  provider: string
+  model: string
+  contextSize: string
+  contextMax: number
+  savedAt: number  // timestamp
+}
+
+export function saveSession(config: SessionConfig): void {
+  try {
+    const dir = getConfigDir()
+    if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
+    writeFileSync(getConfigPath(), JSON.stringify(config, null, 2), 'utf-8')
+  } catch (error) {
+    console.warn('Failed to save session config:', error)
+  }
+}
+
+export function loadSession(): SessionConfig | null {
+  try {
+    const path = getConfigPath()
+    if (!existsSync(path)) return null
+    const data = JSON.parse(readFileSync(path, 'utf-8'))
+    // Validate required fields
+    if (!data.provider || !data.model || !data.contextSize || !data.contextMax) {
+      return null
+    }
+    return data as SessionConfig
+  } catch {
+    return null
+  }
+}
+
+export function clearSession(): void {
+  try {
+    const path = getConfigPath()
+    if (existsSync(path)) {
+      writeFileSync(path, JSON.stringify({ clearedAt: Date.now() }), 'utf-8')
+    }
+  } catch {}
+}
+
+// ── Legacy YAML config (for backward compat) ───────────────────────────────
+
 function expandEnvVars(value: string): string {
   return value.replace(/\$\{(\w+)\}/g, (_, varName) => {
     return process.env[varName] ?? ''
   })
 }
 
-// Parse YAML-like config (simple implementation)
 function parseConfig(content: string): Partial<BeastConfig> {
   const config: Record<string, unknown> = {}
-
-  // Simple key: value parsing
   const lines = content.split('\n')
   for (const line of lines) {
-    // Skip comments and empty lines
     if (line.trim().startsWith('#') || !line.trim()) continue
-
-    // Parse key: value
     const match = line.match(/^(\w+):\s*(.+)$/)
     if (match) {
       const key = match[1]
       let value: unknown = match[2].trim()
-
-      // Handle quoted strings
       if (value.startsWith('"') && value.endsWith('"')) {
         value = value.slice(1, -1)
       } else if (value.startsWith("'") && value.endsWith("'")) {
         value = value.slice(1, -1)
-      }
-
-      // Handle numbers
-      else if (!isNaN(Number(value))) {
+      } else if (!isNaN(Number(value))) {
         value = Number(value)
-      }
-
-      // Handle booleans
-      else if (value === 'true') {
+      } else if (value === 'true') {
         value = true
       } else if (value === 'false') {
         value = false
       }
-
-      // Handle nested objects (simple, no indent handling)
-      else if (value.startsWith('{') && value.endsWith('}')) {
-        try {
-          value = JSON.parse(value)
-        } catch {
-          // Keep as string
-        }
-      }
-
-      // Expand environment variables
       if (typeof value === 'string') {
         value = expandEnvVars(value)
       }
-
       config[key] = value
     }
   }
-
   return config as Partial<BeastConfig>
 }
 
-// Save config to file (merges updates into existing config)
 export function saveConfig(updates: Partial<BeastConfig>, configPath?: string): void {
   const filePath = configPath ?? resolve(process.env.HOME ?? '~', '.beast-cli.yml')
-
-  // Read existing config
   let existing: Partial<BeastConfig> = {}
   if (existsSync(filePath)) {
     try {
@@ -112,11 +134,7 @@ export function saveConfig(updates: Partial<BeastConfig>, configPath?: string): 
       existing = parseConfig(content)
     } catch {}
   }
-
-  // Merge
   const merged = { ...existing, ...updates }
-
-  // Serialize back to YAML-like format
   const lines: string[] = ['# Beast CLI configuration', '']
   for (const [key, value] of Object.entries(merged)) {
     if (value !== undefined && value !== null) {
@@ -129,7 +147,6 @@ export function saveConfig(updates: Partial<BeastConfig>, configPath?: string): 
       }
     }
   }
-
   try {
     const dir = dirname(filePath)
     if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
@@ -139,79 +156,53 @@ export function saveConfig(updates: Partial<BeastConfig>, configPath?: string): 
   }
 }
 
-// Load config from file
 export function loadConfig(configPath?: string): BeastConfig {
   const paths = [
     configPath ?? '.beast-cli.yml',
     configPath ?? '.beast-cli.yaml',
     resolve(process.env.HOME ?? '~', '.beast-cli.yml'),
   ]
-
   for (const path of paths) {
     if (existsSync(path)) {
       try {
         const content = readFileSync(path, 'utf-8')
         const parsed = parseConfig(content)
-
-        // Merge with defaults
-        return {
-          ...defaultConfig,
-          ...parsed,
-        }
+        return { ...defaultConfig, ...parsed }
       } catch (error) {
         console.warn(`Failed to load config from ${path}:`, error)
       }
     }
   }
-
   return defaultConfig
 }
 
-// Default configuration
 export const defaultConfig: BeastConfig = {
-  model: 'claude-3-5-sonnet-20241022',
   defaultMode: 'default',
   temperature: 0.7,
   maxTokens: 16384,
   maxToolResultChars: 10_000,
   toolTimeout: 30_000,
   theme: 'dark',
-  showTimestamps: true,
-  verbose: false,
-  autoCommit: false,
+  contextSize: '32K',
+  contextMax: 32768,
 }
 
-// Validate config
-export function validateConfig(config: BeastConfig): string[] {
-  const errors: string[] = []
-
-  // Validate mode
-  const validModes = ['plan', 'default', 'acceptEdits', 'auto', 'bypass', 'dontAsk']
-  if (config.defaultMode && !validModes.includes(config.defaultMode)) {
-    errors.push(`Invalid defaultMode: ${config.defaultMode}`)
-  }
-
-  // Validate theme
-  const validThemes = ['dark', 'light', 'terminal']
-  if (config.theme && !validThemes.includes(config.theme)) {
-    errors.push(`Invalid theme: ${config.theme}`)
-  }
-
-  // Validate numbers
-  if (config.temperature !== undefined && (config.temperature < 0 || config.temperature > 2)) {
-    errors.push('temperature must be between 0 and 2')
-  }
-
-  if (config.maxTokens !== undefined && config.maxTokens < 1) {
-    errors.push('maxTokens must be positive')
-  }
-
-  return errors
+// Context size helpers
+export function parseContextSize(size: string): number {
+  const num = parseInt(size.replace(/K|B$/i, ''))
+  if (size.toUpperCase().endsWith('K')) return num * 1024
+  if (size.toUpperCase().endsWith('B')) return num * 1024 * 1024 * 1024
+  return num
 }
 
-export default {
-  loadConfig,
-  saveConfig,
-  validateConfig,
-  defaultConfig,
+export function formatContextSize(tokens: number): string {
+  if (tokens >= 1024) {
+    return Math.round(tokens / 1024) + 'K'
+  }
+  return String(tokens)
 }
+
+// ── Context window sizes ────────────────────────────────────────────────────
+export const CONTEXT_SIZES = ['8K', '16K', '32K', '64K', '128K']
+
+export default { loadConfig, saveConfig, loadSession, saveSession, clearSession, parseContextSize, formatContextSize }
