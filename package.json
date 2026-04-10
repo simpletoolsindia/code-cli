@@ -1,6 +1,6 @@
 {
   "name": "@simpletoolsindia/beast-cli",
-  "version": "1.2.5",
+  "version": "1.2.8",
   "description": "🐉 AI Coding Agent for Power Users - 51+ native tools, RAG-based code intelligence, multi-theme TUI",
   "main": "bin/beast.js",
   "type": "module",
@@ -25,8 +25,19 @@
     "bun": ">=1.0.0"
   },
   "keywords": [
-    "ai", "claude", "openai", "gemini", "llm", "coding", "agent", "cli", "tui",
-    "developer-tools", "catppuccin", "rag", "code-intelligence"
+    "ai",
+    "claude",
+    "openai",
+    "gemini",
+    "llm",
+    "coding",
+    "agent",
+    "cli",
+    "tui",
+    "developer-tools",
+    "catppuccin",
+    "rag",
+    "code-intelligence"
   ],
   "author": {
     "name": "SimpleTools India",

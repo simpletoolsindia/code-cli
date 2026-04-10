@@ -1,52 +1,76 @@
 # 🐉 Beast CLI
 
-**AI Coding Agent for Power Users**
+**AI Coding Assistant in Your Terminal**
 
-> 51+ native tools, RAG-based code intelligence, multi-theme TUI, and support for 45+ AI providers.
+> Ask questions, write code, search the web, and more — all from the command line.
 
 [![npm version](https://img.shields.io/npm/v/@simpletoolsindia/beast-cli)](https://www.npmjs.com/package/@simpletoolsindia/beast-cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
 
-## ✨ Overview
+## ✨ What is Beast CLI?
 
-Beast CLI is a terminal AI coding assistant built for developers who want powerful AI assistance without leaving the terminal.
+Beast CLI is an **AI assistant in your terminal**. Instead of opening a website or app, you can chat with AI directly from your command line.
 
-- **🧠 RAG Code Intelligence** - TF-IDF + RAG-based retrieval understands your codebase
-- **🔧 51+ Native Tools** - File ops, web search, GitHub, code execution
-- **🧠 12 Engineering Tools** - Task classification, bug tracing, flow analysis
-- **🌈 9 Themes** - Catppuccin, Dracula, Nord, Tokyo Night, and more
-- **🤖 45+ Providers** - Claude, GPT, Gemini, Groq, Ollama, LM Studio
-- **💾 Smart Context** - Auto-compact at 95%, session persistence, memory checkpoints
-- **🔒 Permission System** - Auto-approve safe commands, banned list protection
+**Use it to:**
+- 💬 Ask coding questions
+- 🔍 Search the web for information
+- 📝 Write and edit code
+- 🛠️ Run terminal commands
+- 📚 Explain how code works
+
+**You can use:**
+- 🤖 **Free AI models** (like Ollama) — runs on YOUR computer
+- 💳 **ChatGPT Plus** — use your existing $20/month subscription (NEW!)
+- 💰 **Paid AI APIs** — OpenAI, Claude, Gemini, and more
 
 ---
 
-## ⚡ Installation
+## 🚀 Getting Started (First Time Setup)
 
-### npm
+### Step 1: Install Node.js (Required)
+
+**Windows/Mac/Linux:**
+1. Go to [nodejs.org](https://nodejs.org)
+2. Download the **LTS** version (big green button)
+3. Run the installer — click "Next" through all options
+4. Restart your terminal after installation
+
+### Step 2: Install Beast CLI
+
+Open your terminal and run:
 
 ```bash
 npm install -g @simpletoolsindia/beast-cli
 ```
 
-### Bun
+### Step 3: Start Using Beast
 
 ```bash
-bun add -g @simpletoolsindia/beast-cli
+# Recommended for beginners — uses ChatGPT Plus automatically!
+beast --defaults
+
+# Or just run with prompts:
+beast
 ```
 
-### One-Line Installer
+That's it! Beast will guide you through choosing an AI model.
+
+---
+
+## ⚡ Quick Install (If You Already Have Node.js)
 
 ```bash
+# If you have npm
+npm install -g @simpletoolsindia/beast-cli
+
+# If you have Bun
+bun add -g @simpletoolsindia/beast-cli
+
+# Or use the one-line installer
 curl -fsSL https://raw.githubusercontent.com/simpletoolsindia/code-cli/main/install.sh | bash
 ```
-
-### Requirements
-
-- Node.js 18+ or Bun 1.0+
-- macOS / Linux / Windows (WSL)
 
 ---
 
@@ -59,7 +83,8 @@ beast
 # Use specific provider and model
 beast --provider ollama --model llama3.2
 beast --provider anthropic --model claude-sonnet-4-20250514
-beast --provider openai --model gpt-4o
+beast --provider openai --model gpt-5.4     # Latest GPT-5
+beast --provider openai --model o3          # o-series reasoning
 ```
 
 ---
@@ -69,10 +94,12 @@ beast --provider openai --model gpt-4o
 ### Environment Variables
 
 ```bash
+export OPENAI_API_KEY=sk-...           # For GPT-5, o-series (get from platform.openai.com)
 export ANTHROPIC_API_KEY=sk-ant-...    # For Claude
-export OPENAI_API_KEY=sk-...           # For GPT
-export GEMINI_API_KEY=...               # For Gemini
+export GEMINI_API_KEY=...              # For Gemini
 export GROQ_API_KEY=...                # For Groq
+export DEEPSEEK_API_KEY=...            # For DeepSeek
+export MISTRAL_API_KEY=...            # For Mistral
 ```
 
 ### Config File
@@ -80,8 +107,8 @@ export GROQ_API_KEY=...                # For Groq
 Create `~/.beast-cli.yml`:
 
 ```yaml
-provider: anthropic
-model: claude-sonnet-4-20250514
+provider: openai
+model: gpt-5.4
 theme: catppuccin-mocha
 temperature: 0.7
 maxTokens: 16384
@@ -158,14 +185,76 @@ beast --theme dracula
 
 | Provider | Models |
 |----------|--------|
-| **Anthropic** | Claude 3.5, 3.7, Opus, Sonnet, Haiku |
-| **OpenAI** | GPT-4o, GPT-4.1, O1, O3 |
+| **ChatGPT Plus** (OAuth) | GPT-5.2-codex, o3, o4-mini, GPT-5.1 — **Free with Plus!** |
+| **OpenAI API** | GPT-5.4, o3-pro, GPT-4.1, GPT-4o, Codex |
+| **Anthropic** | Claude Opus 4, Sonnet 4, Haiku 4 |
 | **Google** | Gemini 2.0, 2.5 |
 | **Groq** | Llama 4, QWQ-32b |
+| **DeepSeek** | DeepSeek Chat, Coder |
+| **Mistral** | Mistral Large, Codestral |
 | **Ollama** | Local models (llama3.2, mistral, etc.) |
 | **LM Studio** | Local models |
-| **Azure** | OpenAI on Azure |
-| **AWS Bedrock** | Claude on AWS |
+| **Jan** | Local models |
+| **OpenRouter** | 75+ models via single API |
+
+---
+
+## 🔑 Using ChatGPT Plus/Pro with Beast CLI
+
+Beast CLI supports **two ways** to use GPT-5 models:
+
+### Option A: ChatGPT Plus OAuth (Free with Plus subscription!) ✅
+
+**No API billing needed** — use your existing ChatGPT Plus/Pro subscription:
+
+```bash
+beast
+# Select provider: 3) ChatGPT Plus (CHT) — OAuth
+beast --provider codex --model gpt-5.2-codex
+```
+
+**First-time OAuth login:**
+```bash
+beast
+# When prompted, a browser window opens for ChatGPT login
+# After login, tokens are saved automatically
+```
+
+**Commands:**
+```bash
+/login    # Re-authenticate ChatGPT Plus
+/logout   # Clear ChatGPT authentication
+```
+
+> **Models available via ChatGPT Plus OAuth:** GPT-5.2, GPT-5.2-codex, GPT-5.1-codex, GPT-5.1, o3, o4-mini, and more. See full list with `/models` after selecting ChatGPT Plus.
+
+### Option B: OpenAI API (Pay-as-you-go)
+
+Use any OpenAI model with an API key from [platform.openai.com](https://platform.openai.com):
+
+```bash
+export OPENAI_API_KEY=sk-...
+beast --provider openai --model gpt-5.4
+```
+
+| Model | Best For | Pricing |
+|-------|----------|---------|
+| `gpt-5.4` | General use, latest frontier | $1.25/M input |
+| `gpt-5.4-pro` | Maximum intelligence | $15/M input |
+| `o3` | Complex reasoning, coding | $15/M input |
+| `o3-pro` | Advanced reasoning | $60/M input |
+| `o4-mini` | Fast reasoning | $3/M input |
+| `gpt-4.1` | Smart non-reasoning | $2/M input |
+| `gpt-5-codex` | Code generation | $3/M input |
+
+### Which should I use?
+
+| | ChatGPT Plus OAuth | OpenAI API |
+|---|---|---|
+| **Cost** | Free (with $20/mo Plus) | $1-5/month |
+| **Auth** | Browser OAuth login | API key |
+| **Models** | GPT-5.2, o3, Codex | All OpenAI models |
+| **Best for** | Daily CLI use | Full API access |
 
 ---
 

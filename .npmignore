@@ -1,0 +1,27 @@
+# Source
+src/
+*.ts
+
+# Tests & docs
+test-*.ts
+test-*.tsx
+docs/
+*.md
+*.html
+*.sh
+
+# Planning & reports
+.planning/
+*.report.md
+*.db
+
+# Development
+demo-*
+*.jsx
+.env
+.gitignore
+CONTRIBUTING.md
+LICENSE
+
+# CI/CD
+.github/

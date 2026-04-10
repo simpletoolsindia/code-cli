@@ -18,152 +18,34 @@ var __export = (target, all) => {
 var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
 var __require = /* @__PURE__ */ createRequire(import.meta.url);
 
-// src/native-tools/search.ts
-var exports_search = {};
-__export(exports_search, {
-  searxngSearch: () => searxngSearch,
-  searxngHealth: () => searxngHealth,
-  searchNews: () => searchNews,
-  searchImages: () => searchImages,
-  hackernewsTop: () => hackernewsTop,
-  hackernewsNew: () => hackernewsNew,
-  hackernewsComments: () => hackernewsComments,
-  hackernewsBest: () => hackernewsBest
-});
-async function searxngSearch(query, limit = 10, categories, engines, timeRange) {
-  try {
-    const params = new URLSearchParams({
-      q: query,
-      format: "json",
-      engines: engines?.join(",") || "",
-      categories: categories || "general",
-      pageno: "1",
-      ...timeRange ? { time_range: timeRange } : {}
-    });
-    const response = await fetch(`${SEARX_URL}/search?${params}`, {
-      headers: {
-        "User-Agent": "BeastCLI/1.0",
-        Accept: "application/json"
-      },
-      signal: AbortSignal.timeout(15000)
-    });
-    if (!response.ok) {
-      return { success: false, error: `Search failed: ${response.status}` };
-    }
-    const data = await response.json();
-    const results = [];
-    for (const r of (data.results || []).slice(0, limit)) {
-      results.push({
-        title: r.title || "",
-        url: r.url || r.link || "",
-        snippet: r.content || r.snippet || "",
-        engine: r.engine || "",
-        published: r.published || ""
-      });
-    }
-    return { success: true, results };
-  } catch (e) {
-    return { success: false, error: e.message };
-  }
-}
-async function searchImages(query, limit = 10) {
-  return searxngSearch(query, limit, "images");
-}
-async function searchNews(query, timeRange) {
-  return searxngSearch(query, 10, "news", undefined, timeRange);
-}
-async function searxngHealth() {
-  try {
-    const response = await fetch(`${SEARX_URL}/health`, {
-      signal: AbortSignal.timeout(5000)
-    });
-    return { success: response.ok };
-  } catch (e) {
-    return { success: false, error: e.message };
-  }
-}
-async function hackernewsTop(limit = 10) {
-  return hackernewsFetch("topstories", limit);
-}
-async function hackernewsNew(limit = 10) {
-  return hackernewsFetch("newstories", limit);
-}
-async function hackernewsBest(limit = 10) {
-  return hackernewsFetch("beststories", limit);
-}
-async function hackernewsComments(storyId, limit = 20) {
-  try {
-    const storyRes = await fetch(`https://hacker-news.firebaseio.com/v0/item/${storyId}.json`);
-    if (!storyRes.ok)
-      return { success: false, error: "Story not found" };
-    const story = await storyRes.json();
-    const comments = [];
-    if (story.kids) {
-      for (const kid of story.kids.slice(0, limit)) {
-        const commentRes = await fetch(`https://hacker-news.firebaseio.com/v0/item/${kid}.json`);
-        if (commentRes.ok) {
-          const comment = await commentRes.json();
-          comments.push({
-            title: comment.text || "",
-            url: `https://news.ycombinator.com/item?id=${kid}`,
-            snippet: (comment.text || "").slice(0, 300)
-          });
-        }
-      }
-    }
-    return {
-      success: true,
-      results: [
-        {
-          title: story.title || "",
-          url: story.url || `https://news.ycombinator.com/item?id=${storyId}`,
-          snippet: `${story.score || 0} points | ${story.descendants || 0} comments`
-        },
-        ...comments.map((c3) => ({ title: c3.title, url: c3.url, snippet: c3.snippet }))
-      ]
-    };
-  } catch (e) {
-    return { success: false, error: e.message };
-  }
-}
-async function hackernewsFetch(endpoint, limit) {
-  try {
-    const idsRes = await fetch(`https://hacker-news.firebaseio.com/v0/${endpoint}.json`);
-    if (!idsRes.ok)
-      return { success: false, error: "Failed to fetch stories" };
-    const ids = await idsRes.json();
-    const results = [];
-    for (const id of ids.slice(0, limit)) {
-      const itemRes = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`);
-      if (itemRes.ok) {
-        const item = await itemRes.json();
-        if (item && item.type === "story") {
-          results.push({
-            title: item.title || "",
-            url: item.url || `https://news.ycombinator.com/item?id=${id}`,
-            snippet: `${item.score || 0} points | ${item.descendants || 0} comments | by ${item.by || "unknown"}`
-          });
-        }
-      }
-    }
-    return { success: true, results };
-  } catch (e) {
-    return { success: false, error: e.message };
-  }
-}
-var SEARX_URL;
-var init_search = __esm(() => {
-  SEARX_URL = process.env.SEARX_URL || "https://search.sridharhomelab.in";
-});
-
 // src/providers/index.ts
-var providers = new Map;
+var exports_providers = {};
+__export(exports_providers, {
+  registerProvider: () => registerProvider,
+  getProvider: () => getProvider,
+  estimateTokens: () => estimateTokens,
+  detectModelFamily: () => detectModelFamily,
+  default: () => providers_default,
+  createProvider: () => createProvider,
+  calculateCost: () => calculateCost
+});
+function registerProvider(name, factory) {
+  providers.set(name, factory);
+}
+async function getProvider(name) {
+  const factory = providers.get(name);
+  if (!factory)
+    return null;
+  return factory();
+}
 async function createProvider(config) {
   switch (config.provider) {
     case "anthropic":
       return createAnthropicProvider(config);
     case "openai":
       return createOpenAIProvider(config);
+    case "codex":
+      return createCodexProvider(config);
     case "openrouter":
       return createOpenRouterProvider(config);
     case "ollama":
@@ -182,6 +64,8 @@ async function createProvider(config) {
       return createJanProvider(config);
     case "qwen":
       return createQwenProvider(config);
+    case "mlx":
+      return createMLXProvider(config);
     default:
       throw new Error(`Unknown provider: ${config.provider}`);
   }
@@ -192,11 +76,11 @@ async function createAnthropicProvider(config) {
   return {
     name: "anthropic",
     models: [
+      "claude-opus-4-5",
       "claude-sonnet-4-20250514",
-      "claude-3-5-sonnet-20241022",
-      "claude-3-5-haiku-20241022",
-      "claude-3-opus-20240229",
-      "claude-3-haiku-20240307"
+      "claude-haiku-4-20250514",
+      "claude-3-5-sonnet-latest",
+      "claude-3-5-haiku-latest"
     ],
     apiFormat: "anthropic",
     async create(request) {
@@ -273,7 +157,40 @@ async function createOpenAIProvider(config) {
   const OpenAI = await import("openai");
   return {
     name: config.provider,
-    models: [],
+    models: [
+      "gpt-5.4",
+      "gpt-5.4-pro",
+      "gpt-5.4-mini",
+      "gpt-5.4-nano",
+      "gpt-5",
+      "gpt-5-mini",
+      "gpt-5-nano",
+      "gpt-5.2",
+      "gpt-5.2-pro",
+      "gpt-5-pro",
+      "gpt-4.1",
+      "gpt-4.1-mini",
+      "gpt-4.1-nano",
+      "o3-pro",
+      "o3",
+      "o4-mini",
+      "o3-deep-research",
+      "o4-mini-deep-research",
+      "o1-pro",
+      "o1",
+      "o3-mini",
+      "gpt-4o",
+      "gpt-4o-mini",
+      "gpt-4-turbo",
+      "gpt-4",
+      "gpt-3.5-turbo",
+      "gpt-5-codex",
+      "gpt-5.3-codex",
+      "gpt-5.2-codex",
+      "gpt-5.1-codex",
+      "gpt-5.1-codex-max",
+      "gpt-5.1-codex-mini"
+    ],
     apiFormat: "openai",
     async create(request) {
       const client = new OpenAI.OpenAI({ apiKey: config.apiKey, baseURL: config.baseUrl });
@@ -345,6 +262,395 @@ async function createOpenAIProvider(config) {
         },
         finishReason: choice.finish_reason
       };
+    }
+  };
+}
+async function createCodexProvider(config) {
+  const { createHash, randomBytes } = await import("crypto");
+  const http = await import("node:http");
+  const { URL } = await import("node:url");
+  function base64url(buf) {
+    return buf.toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+  }
+  async function generatePKCE() {
+    const verifier = base64url(randomBytes(32));
+    const hash = createHash("sha256").update(verifier).digest();
+    const challenge = base64url(hash);
+    return { verifier, challenge };
+  }
+  function generateState() {
+    return base64url(randomBytes(16));
+  }
+  const CODEX_CLIENT_ID = "app_EMoamEEZ73f0CkXaXp7hrann";
+  const AUTH_URL = "https://auth.openai.com/oauth/authorize";
+  const TOKEN_URL = "https://auth.openai.com/oauth/token";
+  const REDIRECT_URI = "http://localhost:1455/auth/callback";
+  const SCOPE = "openid profile email offline_access";
+  const API_BASE = "https://chatgpt.com/backend-api/codex";
+  function getTokenPath() {
+    const home = process.env.HOME || process.env.USERPROFILE || "~";
+    return `${home}/.beast-cli/codex-auth.json`;
+  }
+  function loadToken() {
+    try {
+      const { readFileSync, existsSync } = __require("node:fs");
+      const path = getTokenPath();
+      if (existsSync(path)) {
+        return JSON.parse(readFileSync(path, "utf-8"));
+      }
+    } catch {}
+    return null;
+  }
+  function saveToken(token) {
+    try {
+      const { readFileSync, writeFileSync, existsSync, mkdirSync } = __require("node:fs");
+      const path = getTokenPath();
+      const dir = __require("node:path").dirname(path);
+      if (!existsSync(dir))
+        mkdirSync(dir, { recursive: true });
+      writeFileSync(path, JSON.stringify(token, null, 2), { mode: 384 });
+    } catch (e) {
+      console.error("Failed to save Codex token:", e);
+    }
+  }
+  function isTokenValid(token) {
+    return !!(token.accessToken && Date.now() < token.expiresAt - 300000);
+  }
+  function decodeJWT(token) {
+    try {
+      const parts = token.split(".");
+      if (parts.length < 2)
+        return null;
+      return JSON.parse(Buffer.from(parts[1], "base64").toString("utf-8"));
+    } catch {
+      return null;
+    }
+  }
+  async function refreshToken(token) {
+    try {
+      const res = await fetch(TOKEN_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          grant_type: "refresh_token",
+          refresh_token: token.refreshToken,
+          client_id: CODEX_CLIENT_ID
+        })
+      });
+      if (!res.ok)
+        return null;
+      const data = await res.json();
+      return {
+        accessToken: data.access_token,
+        refreshToken: data.refresh_token || token.refreshToken,
+        expiresAt: Date.now() + data.expires_in * 1000,
+        accountId: token.accountId
+      };
+    } catch {
+      return null;
+    }
+  }
+  async function waitForCallback(pkce, state) {
+    return new Promise((resolve, reject) => {
+      const server = http.createServer((req, res) => {
+        const url = new URL(req.url || "/", REDIRECT_URI);
+        if (url.pathname === "/auth/callback") {
+          const code = url.searchParams.get("code");
+          const returnedState = url.searchParams.get("state");
+          const error = url.searchParams.get("error");
+          res.writeHead(200, { "Content-Type": "text/html" });
+          if (error) {
+            res.end("<html><body><h1>Auth Error</h1><p>You can close this window.</p></body></html>");
+            server.close();
+            reject(new Error("OAuth error: " + error));
+            return;
+          }
+          if (code && returnedState === state) {
+            res.end("<html><body><h1>Authenticated!</h1><p>You can close this window.</p></body></html>");
+            server.close();
+            resolve(code);
+          } else {
+            res.end("<html><body><h1>Invalid state</h1><p>You can close this window.</p></body></html>");
+            server.close();
+            reject(new Error("Invalid OAuth state"));
+          }
+        }
+      });
+      server.listen(1455, () => {
+        console.log("   \uD83C\uDF10 Opening browser for ChatGPT OAuth...");
+      });
+      setTimeout(() => {
+        server.close();
+        reject(new Error("OAuth timeout"));
+      }, 300000);
+    });
+  }
+  async function exchangeCode(code, verifier) {
+    const res = await fetch(TOKEN_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        grant_type: "authorization_code",
+        client_id: CODEX_CLIENT_ID,
+        code,
+        code_verifier: verifier,
+        redirect_uri: REDIRECT_URI
+      })
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`Token exchange failed: ${err}`);
+    }
+    const data = await res.json();
+    return {
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token,
+      expiresAt: Date.now() + data.expires_in * 1000,
+      accountId: undefined
+    };
+  }
+  async function getValidToken() {
+    let token = loadToken();
+    if (!token || !isTokenValid(token)) {
+      const { verifier, challenge } = await generatePKCE();
+      const state = generateState();
+      const authUrl = new URL(AUTH_URL);
+      authUrl.searchParams.set("response_type", "code");
+      authUrl.searchParams.set("client_id", CODEX_CLIENT_ID);
+      authUrl.searchParams.set("redirect_uri", REDIRECT_URI);
+      authUrl.searchParams.set("scope", SCOPE);
+      authUrl.searchParams.set("code_challenge", challenge);
+      authUrl.searchParams.set("code_challenge_method", "S256");
+      authUrl.searchParams.set("state", state);
+      console.log("   \uD83C\uDF10 Opening browser for ChatGPT Plus/Pro login...");
+      console.log("   \uD83D\uDCCB Auth URL:", authUrl.toString());
+      const { execSync } = __require("child_process");
+      try {
+        const opener = process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
+        execSync(`${opener} "${authUrl.toString()}"`, { stdio: "ignore" });
+      } catch {}
+      const code = await waitForCallback({ verifier }, state);
+      token = await exchangeCode(code, verifier);
+      const payload = decodeJWT(token.accessToken);
+      if (payload && typeof payload === "object") {
+        const auth = payload["https://api.openai.com/auth"];
+        if (auth?.chatgpt_account_id) {
+          token.accountId = auth.chatgpt_account_id;
+        }
+      }
+      saveToken(token);
+      console.log("   ✅ ChatGPT OAuth authenticated!");
+    } else if (token.expiresAt - Date.now() < 600000) {
+      const refreshed = await refreshToken(token);
+      if (refreshed) {
+        token = refreshed;
+        saveToken(token);
+      }
+    }
+    return token;
+  }
+  return {
+    name: "codex",
+    models: [
+      "gpt-5.2-codex",
+      "gpt-5.2-codex-low",
+      "gpt-5.2-codex-medium",
+      "gpt-5.2-codex-high",
+      "gpt-5.2-codex-xhigh",
+      "gpt-5.2",
+      "gpt-5.2-low",
+      "gpt-5.2-medium",
+      "gpt-5.2-high",
+      "gpt-5.2-xhigh",
+      "gpt-5.1-codex-max",
+      "gpt-5.1-codex",
+      "gpt-5.1-codex-mini",
+      "gpt-5.1",
+      "gpt-5.1-low",
+      "gpt-5.1-medium",
+      "gpt-5.1-high",
+      "gpt-5.1-xhigh",
+      "codex",
+      "gpt-4o",
+      "gpt-4o-mini",
+      "o3-mini",
+      "o3",
+      "o4-mini"
+    ],
+    apiFormat: "custom",
+    async create(request) {
+      const token = await getValidToken();
+      const systemMessage = request.messages.find((m) => m.role === "system");
+      const otherMessages = request.messages.filter((m) => m.role !== "system");
+      const conversationParts = [];
+      for (const m of otherMessages) {
+        if (m.role === "user") {
+          conversationParts.push(`User: ${m.content}`);
+        } else if (m.role === "assistant") {
+          if (m.toolCalls) {
+            for (const tc of m.toolCalls) {
+              conversationParts.push(`Assistant calls tool ${tc.name}(${JSON.stringify(tc.arguments)})`);
+            }
+          }
+          if (m.content) {
+            conversationParts.push(`Assistant: ${m.content}`);
+          }
+        } else if (m.toolCallId) {
+          conversationParts.push(`Tool result: ${m.content}`);
+        }
+      }
+      const conversationText = conversationParts.join(`
+`);
+      const body = {
+        model: request.model || "gpt-5.2-codex",
+        instructions: systemMessage?.content || "You are a helpful coding assistant.",
+        input: [{ role: "user", content: conversationText || "Hello" }],
+        store: false,
+        stream: true
+      };
+      if (request.temperature !== undefined) {
+        body.temperature = request.temperature;
+      }
+      const response = await fetch(`${API_BASE}/responses`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token.accessToken}`,
+          "OpenAI-Beta": "responses=experimental",
+          "chatgpt-account-id": token.accountId || ""
+        },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(120000)
+      });
+      if (response.status === 401) {
+        saveToken({ accessToken: "", refreshToken: "", expiresAt: 0 });
+        return this.create(request);
+      }
+      if (!response.ok || !response.body) {
+        const err = await response.text();
+        throw new Error(`ChatGPT API error ${response.status}: ${err.slice(0, 200)}`);
+      }
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder;
+      let buffer = "";
+      let content = "";
+      let done = false;
+      try {
+        while (!done) {
+          const { done: readerDone, value } = await reader.read();
+          done = readerDone;
+          if (value) {
+            buffer += decoder.decode(value, { stream: !done });
+            const lines = buffer.split(`
+`);
+            buffer = lines.pop() || "";
+            for (const line of lines) {
+              if (line.startsWith("data: ")) {
+                const data = line.slice(6);
+                if (data === "[DONE]")
+                  continue;
+                try {
+                  const event = JSON.parse(data);
+                  const text = event.output_text?.text || event.text?.text || event.content_text || event.delta || "";
+                  if (text)
+                    content += text;
+                } catch {}
+              }
+            }
+          }
+        }
+      } finally {
+        reader.releaseLock();
+      }
+      return {
+        content,
+        model: request.model || "gpt-5.2-codex",
+        usage: undefined,
+        finishReason: "stop"
+      };
+    },
+    async* createStream(request) {
+      const token = await getValidToken();
+      const systemMessage = request.messages.find((m) => m.role === "system");
+      const otherMessages = request.messages.filter((m) => m.role !== "system");
+      const conversationParts = [];
+      for (const m of otherMessages) {
+        if (m.role === "user") {
+          conversationParts.push(`User: ${m.content}`);
+        } else if (m.role === "assistant") {
+          if (m.toolCalls) {
+            for (const tc of m.toolCalls) {
+              conversationParts.push(`Assistant calls tool ${tc.name}(${JSON.stringify(tc.arguments)})`);
+            }
+          }
+          if (m.content) {
+            conversationParts.push(`Assistant: ${m.content}`);
+          }
+        } else if (m.toolCallId) {
+          conversationParts.push(`Tool result: ${m.content}`);
+        }
+      }
+      const conversationText = conversationParts.join(`
+`);
+      const body = {
+        model: request.model || "gpt-5.2-codex",
+        instructions: systemMessage?.content || "You are a helpful coding assistant.",
+        input: [{ role: "user", content: conversationText || "Hello" }],
+        stream: true
+      };
+      if (request.tools && request.tools.length > 0) {
+        body.tools = request.tools.map((t) => ({
+          type: "function",
+          function: { name: t.name, description: t.description, parameters: t.inputSchema }
+        }));
+      }
+      if (request.temperature !== undefined) {
+        body.temperature = request.temperature;
+      }
+      const response = await fetch(`${API_BASE}/responses`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token.accessToken}`,
+          "OpenAI-Beta": "responses=experimental",
+          "chatgpt-account-id": token.accountId || ""
+        },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(120000)
+      });
+      if (!response.ok || !response.body) {
+        const err = await response.text();
+        throw new Error(`ChatGPT API error ${response.status}: ${err.slice(0, 200)}`);
+      }
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder;
+      let buffer = "";
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done)
+            break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split(`
+`);
+          buffer = lines.pop() || "";
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              const data = line.slice(6);
+              if (data === "[DONE]")
+                break;
+              try {
+                const event = JSON.parse(data);
+                if (event.output_text?.text) {
+                  yield { content: event.output_text.text, model: event.model || request.model };
+                }
+              } catch {}
+            }
+          }
+        }
+      } finally {
+        reader.releaseLock();
+      }
     }
   };
 }
@@ -483,32 +789,41 @@ async function createOllamaProvider(config) {
       const response = await fetch(`${baseUrl}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(120000)
       });
       if (!response.ok) {
         const error = await response.text();
-        throw new Error(`Ollama error: ${response.status} - ${error}`);
+        throw new Error(`Ollama error ${response.status}: ${error.slice(0, 150)}`);
       }
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch {
+        const raw = await response.text();
+        throw new Error(`Ollama returned invalid JSON. Model may be producing malformed output. Raw: ${raw.slice(0, 200)}`);
+      }
       const toolCalls = [];
-      if (data.message?.tool_calls) {
-        for (const tc of data.message.tool_calls) {
-          let args = {};
-          const rawArgs = tc.function?.arguments;
-          if (typeof rawArgs === "string") {
-            try {
-              args = JSON.parse(rawArgs);
-            } catch {}
-          } else if (rawArgs && typeof rawArgs === "object") {
-            args = rawArgs;
+      try {
+        if (data.message?.tool_calls) {
+          for (const tc of data.message.tool_calls) {
+            let args = {};
+            const rawArgs = tc.function?.arguments;
+            if (typeof rawArgs === "string") {
+              try {
+                args = JSON.parse(rawArgs);
+              } catch {}
+            } else if (rawArgs && typeof rawArgs === "object") {
+              args = rawArgs;
+            }
+            toolCalls.push({
+              id: tc.id ?? `ollama_${Date.now()}`,
+              name: tc.function?.name ?? "unknown",
+              arguments: args
+            });
           }
-          toolCalls.push({
-            id: tc.id ?? `ollama_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-            name: tc.function.name,
-            arguments: args
-          });
         }
-      }
+      } catch {}
       return {
         content: data.message?.content ?? "",
         toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
@@ -788,6 +1103,353 @@ async function createQwenProvider(config) {
     }
   };
 }
+async function createMLXProvider(config) {
+  return {
+    name: "mlx",
+    models: [],
+    apiFormat: "openai",
+    async create(request) {
+      const client = new (await import("openai")).OpenAI({
+        apiKey: "mlx",
+        baseURL: config.baseUrl ?? "http://localhost:8080/v1"
+      });
+      const messages = request.messages.map((m) => {
+        if (m.toolCalls) {
+          return {
+            role: "assistant",
+            content: m.content || null,
+            tool_calls: m.toolCalls.map((tc) => ({
+              id: tc.id,
+              type: "function",
+              function: { name: tc.name, arguments: JSON.stringify(tc.arguments) }
+            }))
+          };
+        } else if (m.toolCallId) {
+          return {
+            role: "tool",
+            tool_call_id: m.toolCallId,
+            content: m.content
+          };
+        } else {
+          return {
+            role: m.role,
+            content: m.content,
+            name: m.name
+          };
+        }
+      });
+      const response = await client.chat.completions.create({
+        model: request.model ?? config.model ?? "local-model",
+        max_tokens: request.maxTokens ?? config.maxTokens ?? 512,
+        temperature: request.temperature ?? config.temperature ?? 0.7,
+        messages,
+        tools: request.tools?.map((t) => ({
+          type: "function",
+          function: {
+            name: t.name,
+            description: t.description,
+            parameters: t.inputSchema
+          }
+        }))
+      });
+      const choice = response.choices[0];
+      const msg = choice.message;
+      const toolCalls = [];
+      if (msg.tool_calls) {
+        for (const tc of msg.tool_calls) {
+          if (tc.function) {
+            let args = {};
+            try {
+              args = JSON.parse(tc.function.arguments);
+            } catch {}
+            toolCalls.push({
+              id: tc.id,
+              name: tc.function.name,
+              arguments: args
+            });
+          }
+        }
+      }
+      return {
+        content: msg.content ?? "",
+        toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
+        model: response.model,
+        usage: {
+          promptTokens: response.usage?.prompt_tokens ?? 0,
+          completionTokens: response.usage?.completion_tokens ?? 0,
+          totalTokens: response.usage?.total_tokens ?? 0
+        },
+        finishReason: choice.finish_reason
+      };
+    },
+    async* createStream(request) {
+      const client = new (await import("openai")).OpenAI({
+        apiKey: "mlx",
+        baseURL: config.baseUrl ?? "http://localhost:8080/v1"
+      });
+      const messages = request.messages.map((m) => {
+        if (m.toolCalls) {
+          return {
+            role: "assistant",
+            content: m.content || null,
+            tool_calls: m.toolCalls.map((tc) => ({
+              id: tc.id,
+              type: "function",
+              function: { name: tc.name, arguments: JSON.stringify(tc.arguments) }
+            }))
+          };
+        } else if (m.toolCallId) {
+          return {
+            role: "tool",
+            tool_call_id: m.toolCallId,
+            content: m.content
+          };
+        } else {
+          return {
+            role: m.role,
+            content: m.content,
+            name: m.name
+          };
+        }
+      });
+      const stream = await client.chat.completions.create({
+        model: request.model ?? config.model ?? "local-model",
+        max_tokens: request.maxTokens ?? config.maxTokens ?? 512,
+        temperature: request.temperature ?? config.temperature ?? 0.7,
+        messages,
+        tools: request.tools?.map((t) => ({
+          type: "function",
+          function: {
+            name: t.name,
+            description: t.description,
+            parameters: t.inputSchema
+          }
+        })),
+        stream: true
+      });
+      for await (const chunk of stream) {
+        const choice = chunk.choices[0];
+        if (choice.delta?.content) {
+          yield {
+            content: choice.delta.content,
+            model: chunk.model
+          };
+        }
+      }
+    }
+  };
+}
+function detectModelFamily(model) {
+  const lower = model.toLowerCase();
+  if (lower.includes("claude-3") || lower.includes("gpt-5") || lower.includes("gemini-1.5") || lower.includes("llama-3.1")) {
+    return "next_gen";
+  }
+  if (lower.includes("gemma") || lower.includes("phi-3") || lower.includes("llama3-8b") || lower.includes("codellama")) {
+    return "xs";
+  }
+  return "generic";
+}
+function estimateTokens(text) {
+  return Math.ceil(text.length / 4);
+}
+function calculateCost(provider, model, usage) {
+  const rates = {
+    anthropic: {
+      "claude-opus-4-5": { input: 15, output: 75 },
+      "claude-sonnet-4-20250514": { input: 3, output: 15 },
+      "claude-haiku-4-20250514": { input: 0.8, output: 4 },
+      "claude-3-5-sonnet-latest": { input: 3, output: 15 }
+    },
+    openai: {
+      "gpt-5.4": { input: 1.25, output: 10 },
+      "gpt-5.4-pro": { input: 15, output: 120 },
+      "gpt-5.4-mini": { input: 0.25, output: 2 },
+      "gpt-5.4-nano": { input: 0.05, output: 0.4 },
+      "gpt-5": { input: 1.25, output: 10 },
+      "gpt-5-mini": { input: 0.25, output: 2 },
+      "gpt-5-nano": { input: 0.05, output: 0.4 },
+      "gpt-5.2": { input: 1.25, output: 10 },
+      "gpt-5.2-pro": { input: 15, output: 120 },
+      "gpt-5-pro": { input: 15, output: 120 },
+      "gpt-4.1": { input: 2, output: 8 },
+      "gpt-4.1-mini": { input: 0.4, output: 1.6 },
+      "gpt-4.1-nano": { input: 0.1, output: 1.4 },
+      "o3-pro": { input: 60, output: 400 },
+      o3: { input: 15, output: 60 },
+      "o4-mini": { input: 3, output: 12 },
+      "o1-pro": { input: 60, output: 400 },
+      o1: { input: 15, output: 60 },
+      "o3-mini": { input: 3, output: 12 },
+      "gpt-4o": { input: 5, output: 15 },
+      "gpt-4o-mini": { input: 0.15, output: 0.6 },
+      "gpt-4-turbo": { input: 10, output: 30 },
+      "gpt-4": { input: 30, output: 60 },
+      "gpt-3.5-turbo": { input: 0.5, output: 1.5 },
+      "gpt-5-codex": { input: 3, output: 15 },
+      "gpt-5.1-codex": { input: 3, output: 15 }
+    },
+    openrouter: {
+      default: { input: 0.5, output: 1.5 }
+    }
+  };
+  const modelRates = rates[provider]?.[model] ?? rates[provider]?.["default"] ?? { input: 1, output: 2 };
+  const inputCost = usage.promptTokens / 1e6 * modelRates.input;
+  const outputCost = usage.completionTokens / 1e6 * modelRates.output;
+  return inputCost + outputCost;
+}
+var providers, providers_default;
+var init_providers = __esm(() => {
+  providers = new Map;
+  providers_default = {
+    createProvider,
+    registerProvider,
+    getProvider,
+    detectModelFamily,
+    estimateTokens,
+    calculateCost
+  };
+});
+
+// src/native-tools/search.ts
+var exports_search = {};
+__export(exports_search, {
+  searxngSearch: () => searxngSearch,
+  searxngHealth: () => searxngHealth,
+  searchNews: () => searchNews,
+  searchImages: () => searchImages,
+  hackernewsTop: () => hackernewsTop,
+  hackernewsNew: () => hackernewsNew,
+  hackernewsComments: () => hackernewsComments,
+  hackernewsBest: () => hackernewsBest
+});
+async function searxngSearch(query, limit = 10, categories, engines, timeRange) {
+  try {
+    const params = new URLSearchParams({
+      q: query,
+      format: "json",
+      engines: engines?.join(",") || "",
+      categories: categories || "general",
+      pageno: "1",
+      ...timeRange ? { time_range: timeRange } : {}
+    });
+    const response = await fetch(`${SEARX_URL}/search?${params}`, {
+      headers: {
+        "User-Agent": "BeastCLI/1.0",
+        Accept: "application/json"
+      },
+      signal: AbortSignal.timeout(15000)
+    });
+    if (!response.ok) {
+      return { success: false, error: `Search failed: ${response.status}` };
+    }
+    const data = await response.json();
+    const results = [];
+    for (const r of (data.results || []).slice(0, limit)) {
+      results.push({
+        title: r.title || "",
+        url: r.url || r.link || "",
+        snippet: r.content || r.snippet || "",
+        engine: r.engine || "",
+        published: r.published || ""
+      });
+    }
+    return { success: true, results };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+}
+async function searchImages(query, limit = 10) {
+  return searxngSearch(query, limit, "images");
+}
+async function searchNews(query, timeRange) {
+  return searxngSearch(query, 10, "news", undefined, timeRange);
+}
+async function searxngHealth() {
+  try {
+    const response = await fetch(`${SEARX_URL}/health`, {
+      signal: AbortSignal.timeout(5000)
+    });
+    return { success: response.ok };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+}
+async function hackernewsTop(limit = 10) {
+  return hackernewsFetch("topstories", limit);
+}
+async function hackernewsNew(limit = 10) {
+  return hackernewsFetch("newstories", limit);
+}
+async function hackernewsBest(limit = 10) {
+  return hackernewsFetch("beststories", limit);
+}
+async function hackernewsComments(storyId, limit = 20) {
+  try {
+    const storyRes = await fetch(`https://hacker-news.firebaseio.com/v0/item/${storyId}.json`);
+    if (!storyRes.ok)
+      return { success: false, error: "Story not found" };
+    const story = await storyRes.json();
+    const comments = [];
+    if (story.kids) {
+      for (const kid of story.kids.slice(0, limit)) {
+        const commentRes = await fetch(`https://hacker-news.firebaseio.com/v0/item/${kid}.json`);
+        if (commentRes.ok) {
+          const comment = await commentRes.json();
+          comments.push({
+            title: comment.text || "",
+            url: `https://news.ycombinator.com/item?id=${kid}`,
+            snippet: (comment.text || "").slice(0, 300)
+          });
+        }
+      }
+    }
+    return {
+      success: true,
+      results: [
+        {
+          title: story.title || "",
+          url: story.url || `https://news.ycombinator.com/item?id=${storyId}`,
+          snippet: `${story.score || 0} points | ${story.descendants || 0} comments`
+        },
+        ...comments.map((c3) => ({ title: c3.title, url: c3.url, snippet: c3.snippet }))
+      ]
+    };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+}
+async function hackernewsFetch(endpoint, limit) {
+  try {
+    const idsRes = await fetch(`https://hacker-news.firebaseio.com/v0/${endpoint}.json`);
+    if (!idsRes.ok)
+      return { success: false, error: "Failed to fetch stories" };
+    const ids = await idsRes.json();
+    const results = [];
+    for (const id of ids.slice(0, limit)) {
+      const itemRes = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`);
+      if (itemRes.ok) {
+        const item = await itemRes.json();
+        if (item && item.type === "story") {
+          results.push({
+            title: item.title || "",
+            url: item.url || `https://news.ycombinator.com/item?id=${id}`,
+            snippet: `${item.score || 0} points | ${item.descendants || 0} comments | by ${item.by || "unknown"}`
+          });
+        }
+      }
+    }
+    return { success: true, results };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+}
+var SEARX_URL;
+var init_search = __esm(() => {
+  SEARX_URL = process.env.SEARX_URL || "https://search.sridharhomelab.in";
+});
+
+// src/index.ts
+init_providers();
 
 // src/ui/colors.ts
 var reset = "\x1B[0m";
@@ -4944,7 +5606,16 @@ function getFormattedTools() {
 }
 
 // src/providers/discover.ts
-async function fetchOllamaModels(baseUrl = "http://localhost:11434") {
+var CODEX_OAUTH = {
+  CLIENT_ID: "app_EMoamEEZ73f0CkXaXp7hrann",
+  AUTHORIZE_URL: "https://auth.openai.com/oauth/authorize",
+  TOKEN_URL: "https://auth.openai.com/oauth/token",
+  REDIRECT_URI: "http://localhost:1455/auth/callback",
+  SCOPE: "openid profile email offline_access",
+  API_BASE_URL: "https://chatgpt.com/backend-api",
+  TOKEN_FILE: ".beast-cli/codex-auth.json"
+};
+async function fetchOllamaModels2(baseUrl = "http://localhost:11434") {
   try {
     const res = await fetch(`${baseUrl}/api/tags`, { signal: AbortSignal.timeout(2000) });
     if (!res.ok)
@@ -4972,7 +5643,7 @@ async function fetchJanModels(baseUrl = "http://localhost:1337") {
 async function fetchLocalModels(provider) {
   switch (provider) {
     case "ollama":
-      return fetchOllamaModels();
+      return fetchOllamaModels2();
     case "lmstudio":
       return fetchLMStudioModels();
     case "jan":
@@ -4984,6 +5655,7 @@ async function fetchLocalModels(provider) {
 var API_KEY_ENVS = {
   anthropic: "ANTHROPIC_API_KEY",
   openai: "OPENAI_API_KEY",
+  codex: "CODEX_API_KEY",
   deepseek: "DEEPSEEK_API_KEY",
   groq: "GROQ_API_KEY",
   mistral: "MISTRAL_API_KEY",
@@ -5002,7 +5674,7 @@ function isCloudProvider(provider) {
 }
 var DEFAULT_MODEL = {
   anthropic: "claude-sonnet-4-20250514",
-  openai: "gpt-4o",
+  openai: "gpt-5.4",
   openrouter: "qwen/qwen3-32b",
   deepseek: "deepseek-chat",
   groq: "llama-3.3-70b-versatile",
@@ -5021,12 +5693,38 @@ var CLOUD_MODELS = {
     "claude-3-5-sonnet-latest"
   ],
   openai: [
+    "gpt-5.4",
+    "gpt-5.4-pro",
+    "gpt-5.4-mini",
+    "gpt-5.4-nano",
+    "gpt-5",
+    "gpt-5-mini",
+    "gpt-5-nano",
+    "gpt-5.2",
+    "gpt-5.2-pro",
+    "gpt-5-pro",
+    "gpt-4.1",
+    "gpt-4.1-mini",
+    "gpt-4.1-nano",
+    "o3-pro",
+    "o3",
+    "o4-mini",
+    "o3-deep-research",
+    "o4-mini-deep-research",
+    "o1-pro",
+    "o1",
+    "o3-mini",
     "gpt-4o",
     "gpt-4o-mini",
     "gpt-4-turbo",
+    "gpt-4",
     "gpt-3.5-turbo",
-    "o1",
-    "o1-mini"
+    "gpt-5-codex",
+    "gpt-5.3-codex",
+    "gpt-5.2-codex",
+    "gpt-5.1-codex",
+    "gpt-5.1-codex-max",
+    "gpt-5.1-codex-mini"
   ],
   openrouter: [
     "qwen/qwen3-32b",
@@ -5071,7 +5769,7 @@ var CLOUD_MODELS = {
 async function detectAllProviders() {
   const results = [];
   const [ollamaModels, lmModels, janModels] = await Promise.all([
-    fetchOllamaModels(),
+    fetchOllamaModels2(),
     fetchLMStudioModels(),
     fetchJanModels()
   ]);
@@ -5108,6 +5806,7 @@ async function detectAllProviders() {
   const cloudProviders = [
     { id: "anthropic", name: "Claude", shortName: "CLA", status: "offline", models: CLOUD_MODELS["anthropic"], isCloud: true },
     { id: "openai", name: "GPT / OpenAI", shortName: "GPT", status: "offline", models: CLOUD_MODELS["openai"], isCloud: true },
+    { id: "codex", name: "ChatGPT Plus", shortName: "CHT", status: "offline", models: CODEX_MODELS, isCloud: true },
     { id: "openrouter", name: "OpenRouter", shortName: "ORR", status: "offline", models: CLOUD_MODELS["openrouter"], isCloud: true },
     { id: "deepseek", name: "DeepSeek", shortName: "DSK", status: "offline", models: CLOUD_MODELS["deepseek"], isCloud: true },
     { id: "groq", name: "Groq", shortName: "GRQ", status: "offline", models: CLOUD_MODELS["groq"], isCloud: true },
@@ -5118,6 +5817,11 @@ async function detectAllProviders() {
   for (const p of cloudProviders) {
     if (getApiKeyFromEnv(p.id)) {
       p.status = "online";
+    } else if (p.id === "codex") {
+      const token = loadCodexToken();
+      if (token && isCodexTokenValid(token)) {
+        p.status = "online";
+      }
     }
     results.push(p);
   }
@@ -5131,10 +5835,67 @@ function getBaseUrl(provider) {
       return "http://localhost:1234/v1";
     case "jan":
       return "http://localhost:1337/v1";
+    case "codex":
+      return CODEX_OAUTH.API_BASE_URL;
     default:
       return "";
   }
 }
+function getCodexTokenPath() {
+  const home = process.env.HOME || process.env.USERPROFILE || "~";
+  return `${home}/.beast-cli/codex-auth.json`;
+}
+function loadCodexToken() {
+  try {
+    const path5 = getCodexTokenPath();
+    const fs4 = __require("node:fs");
+    if (fs4.existsSync(path5)) {
+      const data = JSON.parse(fs4.readFileSync(path5, "utf-8"));
+      return data;
+    }
+  } catch {}
+  return null;
+}
+function clearCodexToken() {
+  try {
+    const path5 = getCodexTokenPath();
+    const fs4 = __require("node:fs");
+    if (fs4.existsSync(path5)) {
+      fs4.unlinkSync(path5);
+    }
+  } catch {}
+}
+function isCodexTokenValid(token) {
+  if (!token.accessToken)
+    return false;
+  return Date.now() < token.expiresAt - 5 * 60 * 1000;
+}
+var CODEX_MODELS = [
+  "gpt-5.2-codex",
+  "gpt-5.2-codex-low",
+  "gpt-5.2-codex-medium",
+  "gpt-5.2-codex-high",
+  "gpt-5.2-codex-xhigh",
+  "gpt-5.2",
+  "gpt-5.2-low",
+  "gpt-5.2-medium",
+  "gpt-5.2-high",
+  "gpt-5.2-xhigh",
+  "gpt-5.1-codex-max",
+  "gpt-5.1-codex",
+  "gpt-5.1-codex-mini",
+  "gpt-5.1",
+  "gpt-5.1-low",
+  "gpt-5.1-medium",
+  "gpt-5.1-high",
+  "gpt-5.1-xhigh",
+  "codex",
+  "gpt-4o",
+  "gpt-4o-mini",
+  "o3-mini",
+  "o3",
+  "o4-mini"
+];
 
 // src/config/index.ts
 import { readFileSync as readFileSync4, existsSync as existsSync5, writeFileSync as writeFileSync4, mkdirSync as mkdirSync2 } from "node:fs";
@@ -5254,6 +6015,8 @@ import readline from "readline";
 var VERSION = "1.2.4";
 var dim2 = "\x1B[2m";
 var reset3 = "\x1B[0m";
+var green = "\x1B[32m";
+var yellow = "\x1B[33m";
 var MCP_SERVER_HOST = process.env.MCP_HOST || "localhost";
 var MCP_SERVER_PORT = parseInt(process.env.MCP_PORT || "7710");
 function question(prompt) {
@@ -5274,15 +6037,6 @@ ${title}`);
       return n - 1;
     console.log("  Invalid selection. Try again.");
   }
-}
-async function maskedPrompt(promptText) {
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  return new Promise((resolve3) => {
-    rl.question(promptText, (answer) => {
-      rl.close();
-      resolve3(answer);
-    });
-  });
 }
 var SPINNER_FRAMES = ["\u280B", "\u2819", "\u2839", "\u2838", "\u283C", "\u2834", "\u2826", "\u2827", "\u2807", "\u280F"];
 var spinnerHandle = null;
@@ -5427,12 +6181,13 @@ async function selectProvider(providers2) {
   const choices = [];
   const byId = [];
   for (const p of online) {
-    const models = p.isCloud ? `${CLOUD_MODELS[p.id]?.length ?? 0} models` : `${p.models.length} models`;
-    choices.push(`\u25CF ${p.name} (${p.shortName}) \u2014 ${models}`);
+    const models = p.isCloud ? `${p.models.length} models` : `${p.models.length} models`;
+    const auth = p.id === "codex" ? " \xB7 OAuth" : "";
+    choices.push(`\u25CF ${p.name} (${p.shortName}) \u2014 ${models}${auth}`);
     byId.push(p.id);
   }
   for (const p of offline) {
-    const note = p.isCloud ? " (needs API key)" : " (offline)";
+    const note = p.id === "codex" ? " (needs OAuth login)" : p.isCloud ? " (needs API key)" : " (offline)";
     choices.push(`\u25CB ${p.name} (${p.shortName})${note}`);
     byId.push(p.id);
   }
@@ -5491,29 +6246,30 @@ async function selectModelForProvider(provider, defaultModel) {
   }
 }
 async function promptApiKey(provider) {
+  if (provider === "codex") {
+    console.log(`
+\uD83D\uDD11 ChatGPT Plus: A browser will open for you to sign in.`);
+    return "codex-oauth";
+  }
   const env = getApiKeyFromEnv(provider);
   if (env)
     return env;
-  const envName = {
-    anthropic: "ANTHROPIC_API_KEY",
-    openai: "OPENAI_API_KEY",
-    deepseek: "DEEPSEEK_API_KEY",
-    groq: "GROQ_API_KEY",
-    mistral: "MISTRAL_API_KEY",
-    openrouter: "OPENROUTER_API_KEY",
-    qwen: "DASHSCOPE_API_KEY",
-    gemini: "GEMINI_API_KEY"
+  const providerHelp = {
+    anthropic: "Sign up at https://console.anthropic.com/",
+    openai: "Sign up at https://platform.openai.com/",
+    groq: "Sign up at https://console.groq.com/",
+    deepseek: "Sign up at https://platform.deepseek.com/",
+    mistral: "Sign up at https://console.mistral.ai/",
+    openrouter: "Sign up at https://openrouter.ai/",
+    gemini: "Sign up at https://aistudio.google.com/",
+    qwen: "Sign up at https://dashscope.console.aliyun.com/"
   };
   console.log(`
-\u26A0\uFE0F  ${provider} requires an API key.`);
-  console.log(`    Set env var: export ${envName[provider]}=<your-key>`);
-  const key = await maskedPrompt(`    Enter API key (or press Enter to skip): `);
-  const trimmed = key.trim();
-  if (trimmed) {
-    saveConfig({ provider, apiKey: trimmed, model: undefined });
-    console.log(`    \u2705 Saved to ~/.beast-cli.yml`);
-  }
-  return trimmed || null;
+\u26A0\uFE0F  To use ${provider}, you need a free API key.`);
+  console.log(`    1. Visit: ${providerHelp[provider] || "the provider website"}`);
+  console.log(`    2. Create an account and get your API key`);
+  console.log(`    3. Set it with: export ${provider.toUpperCase()}_API_KEY=your-key-here`);
+  return null;
 }
 async function interactiveSetup() {
   const reset4 = "\x1B[0m";
@@ -5621,6 +6377,8 @@ Commands:
   /model <name> Switch to model by name or number
   /provider     Interactively switch provider
   /provider <name>  Switch directly to provider
+  /login        Authenticate ChatGPT Plus (Codex OAuth)
+  /logout       Clear ChatGPT Plus authentication
   /tools        List available MCP tools
   /clear        Clear chat history
   /exit         Exit
@@ -5628,8 +6386,34 @@ Commands:
       promptUser();
       return;
     }
+    if (trimmed === "/login") {
+      console.log(`
+\uD83D\uDD11 Initiating ChatGPT Plus OAuth login...`);
+      const { createProvider: createProvider2 } = await Promise.resolve().then(() => (init_providers(), exports_providers));
+      try {
+        await createProvider2({ provider: "codex", model: "gpt-5.2-codex" });
+        console.log(`
+\u2705 ChatGPT Plus authenticated!`);
+      } catch (e) {
+        console.log(`
+\u274C Login failed: ${e.message}`);
+      }
+      promptUser();
+      return;
+    }
+    if (trimmed === "/logout") {
+      clearCodexToken();
+      console.log(`
+\u2705 ChatGPT Plus logout complete.`);
+      promptUser();
+      return;
+    }
     if (trimmed === "/models") {
-      if (isCloudProvider(session.provider)) {
+      if (session.provider === "codex") {
+        console.log(`
+Available ChatGPT Plus models (${CODEX_MODELS.length}):`);
+        CODEX_MODELS.forEach((m, i) => console.log(`  [${i + 1}] ${m}`));
+      } else if (isCloudProvider(session.provider)) {
         const models = CLOUD_MODELS[session.provider] ?? [];
         console.log(`
 Available models for ${session.provider}:`);
@@ -5946,6 +6730,7 @@ USAGE:
 OPTIONS:
   --provider <name>  LLM provider (ollama, lmstudio, anthropic, openai, deepseek, etc.)
   --model <name>     Model name
+  --defaults         Use default provider (no prompts) \u2014 great for beginners!
   --setup            Auto-start MCP server
   --help             Show this help
 
@@ -5987,6 +6772,9 @@ async function main() {
       case "--setup":
         options.setup = true;
         break;
+      case "--defaults":
+        options.defaults = true;
+        break;
     }
   }
   if (options.help) {
@@ -6007,7 +6795,24 @@ async function main() {
   stopSpinner(nativeTools.length > 0, "\uD83D\uDD27 MCP");
   console.log(renderLionBanner());
   let session;
-  if (options.provider && options.model) {
+  if (options.defaults) {
+    const token = loadCodexToken();
+    if (token) {
+      session = buildSession("codex", "gpt-5.2-codex");
+      console.log(`${green}\u2713${reset3} Using ChatGPT Plus (you're logged in!)`);
+    } else {
+      console.log(`${dim2}\uD83D\uDCE1 Checking available AI...${reset3}`);
+      const ollamaModels = await fetchOllamaModels();
+      if (ollamaModels.length > 0) {
+        session = buildSession("ollama", ollamaModels[0]);
+        console.log(`${green}\u2713${reset3} Using Ollama (${ollamaModels[0]}) - Free & works offline!`);
+      } else {
+        session = buildSession("codex", "gpt-5.2-codex");
+        console.log(`${yellow}\uD83D\uDCA1${reset3} Tip: ChatGPT Plus OAuth needs browser login first time.`);
+        console.log(`${dim2}   Or install Ollama for free offline AI: https://ollama.com${reset3}`);
+      }
+    }
+  } else if (options.provider && options.model) {
     session = buildSession(options.provider, options.model);
   } else {
     session = await interactiveSetup();

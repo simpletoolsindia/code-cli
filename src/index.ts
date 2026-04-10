@@ -25,6 +25,9 @@ import {
   DEFAULT_MODEL,
   CLOUD_MODELS,
   getBaseUrl,
+  loadCodexToken,
+  clearCodexToken,
+  CODEX_MODELS,
   type ProviderInfo,
 } from './providers/discover.ts'
 import { loadConfig, saveConfig } from './config/index.ts'
@@ -57,6 +60,7 @@ interface CLIOptions {
   help?: boolean
   test?: boolean
   setup?: boolean
+  defaults?: boolean  // Use default provider/model without prompting
 }
 
 interface MCPTool {
@@ -252,12 +256,13 @@ async function selectProvider(providers: ProviderInfo[]): Promise<string> {
   const byId: string[] = []
 
   for (const p of online) {
-    const models = p.isCloud ? `${CLOUD_MODELS[p.id]?.length ?? 0} models` : `${p.models.length} models`
-    choices.push(`● ${p.name} (${p.shortName}) — ${models}`)
+    const models = p.isCloud ? `${p.models.length} models` : `${p.models.length} models`
+    const auth = p.id === 'codex' ? ' · OAuth' : ''
+    choices.push(`● ${p.name} (${p.shortName}) — ${models}${auth}`)
     byId.push(p.id)
   }
   for (const p of offline) {
-    const note = p.isCloud ? ' (needs API key)' : ' (offline)'
+    const note = p.id === 'codex' ? ' (needs OAuth login)' : p.isCloud ? ' (needs API key)' : ' (offline)'
     choices.push(`○ ${p.name} (${p.shortName})${note}`)
     byId.push(p.id)
   }
@@ -318,26 +323,32 @@ async function selectModelForProvider(provider: string, defaultModel?: string): 
 }
 
 async function promptApiKey(provider: string): Promise<string | null> {
+  // Codex uses OAuth, not API key
+  if (provider === 'codex') {
+    console.log(`\n🔑 ChatGPT Plus: A browser will open for you to sign in.`)
+    return 'codex-oauth'
+  }
+
   const env = getApiKeyFromEnv(provider)
   if (env) return env
 
-  const envName: Record<string, string> = {
-    anthropic: 'ANTHROPIC_API_KEY', openai: 'OPENAI_API_KEY',
-    deepseek: 'DEEPSEEK_API_KEY', groq: 'GROQ_API_KEY',
-    mistral: 'MISTRAL_API_KEY', openrouter: 'OPENROUTER_API_KEY',
-    qwen: 'DASHSCOPE_API_KEY', gemini: 'GEMINI_API_KEY',
+  // User-friendly error messages with signup links
+  const providerHelp: Record<string, string> = {
+    anthropic: 'Sign up at https://console.anthropic.com/',
+    openai: 'Sign up at https://platform.openai.com/',
+    groq: 'Sign up at https://console.groq.com/',
+    deepseek: 'Sign up at https://platform.deepseek.com/',
+    mistral: 'Sign up at https://console.mistral.ai/',
+    openrouter: 'Sign up at https://openrouter.ai/',
+    gemini: 'Sign up at https://aistudio.google.com/',
+    qwen: 'Sign up at https://dashscope.console.aliyun.com/',
   }
 
-  console.log(`\n⚠️  ${provider} requires an API key.`)
-  console.log(`    Set env var: export ${envName[provider]}=<your-key>`)
-  const key = await maskedPrompt(`    Enter API key (or press Enter to skip): `)
-  const trimmed = key.trim()
-
-  if (trimmed) {
-    saveConfig({ provider, apiKey: trimmed, model: undefined })
-    console.log(`    ✅ Saved to ~/.beast-cli.yml`)
-  }
-  return trimmed || null
+  console.log(`\n⚠️  To use ${provider}, you need a free API key.`)
+  console.log(`    1. Visit: ${providerHelp[provider] || 'the provider website'}`)
+  console.log(`    2. Create an account and get your API key`)
+  console.log(`    3. Set it with: export ${provider.toUpperCase()}_API_KEY=your-key-here`)
+  return null
 }
 
 // ── Interactive setup ───────────────────────────────────────────────────────
@@ -471,6 +482,8 @@ Commands:
   /model <name> Switch to model by name or number
   /provider     Interactively switch provider
   /provider <name>  Switch directly to provider
+  /login        Authenticate ChatGPT Plus (Codex OAuth)
+  /logout       Clear ChatGPT Plus authentication
   /tools        List available MCP tools
   /clear        Clear chat history
   /exit         Exit
@@ -478,8 +491,29 @@ Commands:
       promptUser(); return
     }
 
+    if (trimmed === '/login') {
+      console.log('\n🔑 Initiating ChatGPT Plus OAuth login...')
+      const { createProvider } = await import('./providers/index.ts')
+      try {
+        await createProvider({ provider: 'codex', model: 'gpt-5.2-codex' })
+        console.log('\n✅ ChatGPT Plus authenticated!')
+      } catch (e: any) {
+        console.log(`\n❌ Login failed: ${e.message}`)
+      }
+      promptUser(); return
+    }
+
+    if (trimmed === '/logout') {
+      clearCodexToken()
+      console.log('\n✅ ChatGPT Plus logout complete.')
+      promptUser(); return
+    }
+
     if (trimmed === '/models') {
-      if (isCloudProvider(session.provider)) {
+      if (session.provider === 'codex') {
+        console.log(`\nAvailable ChatGPT Plus models (${CODEX_MODELS.length}):`)
+        CODEX_MODELS.forEach((m, i) => console.log(`  [${i + 1}] ${m}`))
+      } else if (isCloudProvider(session.provider)) {
         const models = CLOUD_MODELS[session.provider] ?? []
         console.log(`\nAvailable models for ${session.provider}:`)
         models.forEach((m, i) => console.log(`  [${i + 1}] ${m}`))
@@ -797,6 +831,7 @@ USAGE:
 OPTIONS:
   --provider <name>  LLM provider (ollama, lmstudio, anthropic, openai, deepseek, etc.)
   --model <name>     Model name
+  --defaults         Use default provider (no prompts) — great for beginners!
   --setup            Auto-start MCP server
   --help             Show this help
 
@@ -829,6 +864,7 @@ async function main() {
       case '--model': options.model = args[++i]; break
       case '--test': options.test = true; break
       case '--setup': options.setup = true; break
+      case '--defaults': options.defaults = true; break
     }
   }
 
@@ -846,7 +882,28 @@ async function main() {
   console.log(renderLionBanner())
 
   let session: Session
-  if (options.provider && options.model) {
+  if (options.defaults) {
+    // Check what's available and use the best option
+    const token = loadCodexToken()
+    if (token) {
+      // ChatGPT Plus is logged in - use it!
+      session = buildSession('codex', 'gpt-5.2-codex')
+      console.log(`${green}✓${reset} Using ChatGPT Plus (you're logged in!)`)
+    } else {
+      // No ChatGPT - check for Ollama (free & works offline)
+      console.log(`${dim}📡 Checking available AI...${reset}`)
+      const ollamaModels = await fetchOllamaModels()
+      if (ollamaModels.length > 0) {
+        session = buildSession('ollama', ollamaModels[0])
+        console.log(`${green}✓${reset} Using Ollama (${ollamaModels[0]}) - Free & works offline!`)
+      } else {
+        // Fall back to ChatGPT with OAuth prompt
+        session = buildSession('codex', 'gpt-5.2-codex')
+        console.log(`${yellow}💡${reset} Tip: ChatGPT Plus OAuth needs browser login first time.`)
+        console.log(`${dim}   Or install Ollama for free offline AI: https://ollama.com${reset}`)
+      }
+    }
+  } else if (options.provider && options.model) {
     session = buildSession(options.provider, options.model)
   } else {
     session = await interactiveSetup()
