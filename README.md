@@ -6,6 +6,20 @@
 
 [![npm version](https://img.shields.io/npm/v/@simpletoolsindia/beast-cli)](https://www.npmjs.com/package/@simpletoolsindia/beast-cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Documentation](https://img.shields.io/badge/docs-simpletoolsindia.github.io-blue)](https://simpletoolsindia.github.io/code-cli/)
+
+---
+
+## 📚 Documentation
+
+**Full documentation at:** [https://simpletoolsindia.github.io/code-cli/](https://simpletoolsindia.github.io/code-cli/)
+
+Includes:
+- Installation guide
+- All REPL commands
+- Provider configuration
+- Theme customization
+- Engineering tools
 
 ---
 
@@ -168,6 +182,7 @@ Available themes:
 - `catppuccin-mocha` (default)
 - `catppuccin-frappe`
 - `catppuccin-latte`
+- `claude` (warm editorial style)
 - `dracula`
 - `nord`
 - `tokyonight`
