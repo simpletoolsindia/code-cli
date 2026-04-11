@@ -21890,34 +21890,34 @@ __export(exports_agents, {
   Coordinator: () => Coordinator,
   AgentSession: () => AgentSession
 });
-import { existsSync as existsSync5, readFileSync as readFileSync4, writeFileSync as writeFileSync5, mkdirSync as mkdirSync2 } from "node:fs";
-import { resolve as resolve3, join as join6 } from "node:path";
+import { existsSync as existsSync7, readFileSync as readFileSync6, writeFileSync as writeFileSync6, mkdirSync as mkdirSync2 } from "node:fs";
+import { resolve as resolve4, join as join6 } from "node:path";
 function getAgentsDir() {
   return join6(getHomeDir(), ".beast-cli", "agents");
 }
 function getAgentsPath() {
-  return resolve3(getAgentsDir(), "agents.json");
+  return resolve4(getAgentsDir(), "agents.json");
 }
 function getMemoryPath() {
-  return resolve3(getAgentsDir(), "memory.json");
+  return resolve4(getAgentsDir(), "memory.json");
 }
 function ensureDir() {
   const dir = getAgentsDir();
-  if (!existsSync5(dir))
+  if (!existsSync7(dir))
     mkdirSync2(dir, { recursive: true });
 }
 function loadStore() {
   ensureDir();
   try {
-    if (existsSync5(getAgentsPath())) {
-      return JSON.parse(readFileSync4(getAgentsPath(), "utf-8"));
+    if (existsSync7(getAgentsPath())) {
+      return JSON.parse(readFileSync6(getAgentsPath(), "utf-8"));
     }
   } catch {}
   return { agents: [] };
 }
 function saveStore(store) {
   ensureDir();
-  writeFileSync5(getAgentsPath(), JSON.stringify(store, null, 2), "utf-8");
+  writeFileSync6(getAgentsPath(), JSON.stringify(store, null, 2), "utf-8");
 }
 function listAgents() {
   return loadStore().agents;
@@ -21975,15 +21975,15 @@ function setActiveAgent(name) {
 }
 function loadMemory() {
   try {
-    if (existsSync5(getMemoryPath())) {
-      return JSON.parse(readFileSync4(getMemoryPath(), "utf-8"));
+    if (existsSync7(getMemoryPath())) {
+      return JSON.parse(readFileSync6(getMemoryPath(), "utf-8"));
     }
   } catch {}
   return { facts: [], preferences: {}, context: "", updatedAt: Date.now() };
 }
 function saveMemory(memory) {
   ensureDir();
-  writeFileSync5(getMemoryPath(), JSON.stringify(memory, null, 2), "utf-8");
+  writeFileSync6(getMemoryPath(), JSON.stringify(memory, null, 2), "utf-8");
 }
 function updateMemory(updates) {
   const memory = loadMemory();
@@ -22377,29 +22377,29 @@ __export(exports_router, {
   launchRepl: () => launchRepl,
   launchInk: () => launchInk
 });
-import { resolve as resolve5, dirname as dirname3 } from "node:path";
+import { resolve as resolve6, dirname as dirname3 } from "node:path";
 import { fileURLToPath } from "node:url";
-import { spawn as spawn3 } from "node:child_process";
+import { spawn as spawn4 } from "node:child_process";
 function isInteractive() {
   return process.stdin.isTTY === true;
 }
 function getInkSourcePath() {
   const selfDir = dirname3(fileURLToPath(import.meta.url));
-  return resolve5(selfDir, "..", "src", "ui", "ink", "index.tsx");
+  return resolve6(selfDir, "..", "src", "ui", "ink", "index.tsx");
 }
 function getTerminalSourcePath() {
   const selfDir = dirname3(fileURLToPath(import.meta.url));
-  return resolve5(selfDir, "..", "src", "ui", "terminal", "index.ts");
+  return resolve6(selfDir, "..", "src", "ui", "terminal", "index.ts");
 }
 async function launchRepl() {
   try {
     const { dirname: dirname4 } = await import("node:path");
     const { fileURLToPath: fileURLToPath2 } = await import("node:url");
-    const { spawn: spawn4 } = await import("node:child_process");
+    const { spawn: spawn5 } = await import("node:child_process");
     const selfDir = dirname4(fileURLToPath2(import.meta.url));
     const srcEntry = selfDir + "/../index.ts";
     const bunPath = process.env.BUN_INSTALL ? process.env.BUN_INSTALL + "/bin/bun" : "bun";
-    const child = spawn4(bunPath, ["--bun", "run", srcEntry, "--defaults"], {
+    const child = spawn5(bunPath, ["--bun", "run", srcEntry, "--defaults"], {
       stdio: "inherit",
       env: { ...process.env, FORCE_COLOR: "1" }
     });
@@ -22414,7 +22414,7 @@ async function launchInk() {
   try {
     const inkSource = getInkSourcePath();
     const bunPath = process.env.BUN_INSTALL ? process.env.BUN_INSTALL + "/bin/bun" : "bun";
-    const child = spawn3(bunPath, ["--bun", "run", inkSource], {
+    const child = spawn4(bunPath, ["--bun", "run", inkSource], {
       stdio: "inherit",
       env: { ...process.env, FORCE_COLOR: "1" }
     });
@@ -22431,7 +22431,7 @@ async function launchTerminal() {
   try {
     const termSource = getTerminalSourcePath();
     const bunPath = process.env.BUN_INSTALL ? process.env.BUN_INSTALL + "/bin/bun" : "bun";
-    const child = spawn3(bunPath, ["--bun", "run", termSource], {
+    const child = spawn4(bunPath, ["--bun", "run", termSource], {
       stdio: "inherit",
       env: { ...process.env, FORCE_COLOR: "1" }
     });
@@ -22445,9 +22445,9 @@ Failed to launch Terminal TUI: ` + String(err), fg2.error));
   }
 }
 async function promptMode() {
-  const readline = await import("readline");
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  return new Promise((resolve6) => {
+  const readline2 = await import("readline");
+  const rl = readline2.createInterface({ input: process.stdin, output: process.stdout });
+  return new Promise((resolve7) => {
     console.log(renderCleanBanner2());
     console.log();
     console.log(`  ${s2("[1]", fg2.accent)} ${s2("Minimal REPL", fg2.primary)}   ${dim2}— fast, ASCII-safe, tab complete`);
@@ -22463,11 +22463,11 @@ async function promptMode() {
       rl.close();
       const choice = answer.trim();
       if (isWindows4 && choice === "3") {
-        resolve6("terminal");
+        resolve7("terminal");
       } else if (choice === "2") {
-        resolve6("ink");
+        resolve7("ink");
       } else {
-        resolve6("repl");
+        resolve7("repl");
       }
     });
   });
@@ -22491,8 +22491,8 @@ async function launchUI(mode = "auto") {
   }
   if (mode === "auto") {
     if (isWindows4) {
-      const readline = await import("readline");
-      const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+      const readline2 = await import("readline");
+      const rl = readline2.createInterface({ input: process.stdin, output: process.stdout });
       console.log(renderCleanBanner2());
       console.log();
       console.log(s2("  ⚠️  Windows detected - using Terminal TUI for best experience", fg2.warning));
@@ -22500,13 +22500,13 @@ async function launchUI(mode = "auto") {
       console.log(`  ${s2("[1]", fg2.accent)} ${s2("Terminal TUI", fg2.primary)} ${dim2}— Windows optimized, colors & mouse`);
       console.log(`  ${s2("[2]", fg2.accent)} ${s2("Minimal REPL", fg2.primary)} ${dim2}— fast, ASCII-safe`);
       console.log();
-      return new Promise((resolve6) => {
+      return new Promise((resolve7) => {
         rl.question(s2("  Choose [1]", fg2.muted) + " ", (answer) => {
           rl.close();
           if (answer.trim() === "2") {
-            launchRepl().then(resolve6);
+            launchRepl().then(resolve7);
           } else {
-            launchTerminal().then(resolve6);
+            launchTerminal().then(resolve7);
           }
         });
       });
@@ -22869,7 +22869,7 @@ function stripAnsi2(text) {
 }
 
 // src/ui/tool-renderer.ts
-var MAX_RESULT_LINES = 2;
+var MAX_RESULT_LINES = 8;
 var MAX_LINE_WIDTH = 120;
 function truncateResult(content, maxLines = MAX_RESULT_LINES) {
   const lines = content.split(`
@@ -22884,9 +22884,14 @@ function truncateResult(content, maxLines = MAX_RESULT_LINES) {
     return l.slice(0, MAX_LINE_WIDTH - 3) + "...";
   });
   const remaining = lines.length - maxLines;
-  return truncated.join(`
-`) + `
-` + s2(`... (${remaining} more lines)`, fg2.muted);
+  const text = visible.join(`
+`);
+  if (remaining > 0) {
+    return text + `
+` + s2(`  ... ${remaining} more lines`, fg2.muted) + "  " + s2("[e] expand", fg2.accent) + "  " + s2("[c] copy", fg2.sapphire) + `
+`;
+  }
+  return text;
 }
 function renderToolResult(name, result) {
   if (!result.success) {
@@ -26955,6 +26960,506 @@ function getFormattedTools() {
   }));
 }
 
+// src/approval/index.ts
+init_colors();
+
+// src/diff/index.ts
+function generateDiff(oldContent, newContent, filePath, contextLines = 3) {
+  const oldLines = oldContent.split(`
+`);
+  const newLines = newContent.split(`
+`);
+  const lcs = computeLCS(oldLines, newLines);
+  const changes = buildChangeList(oldLines, newLines, lcs);
+  if (changes.length === 0) {
+    return { diff: "", additions: 0, removals: 0 };
+  }
+  const hunks = buildHunks(oldLines, newLines, changes, contextLines);
+  let additions = 0;
+  let removals = 0;
+  const diffLines = [];
+  diffLines.push(`--- a/${filePath}`);
+  diffLines.push(`+++ b/${filePath}`);
+  for (const hunk of hunks) {
+    diffLines.push(`@@ -${hunk.oldStart},${hunk.oldLines} +${hunk.newStart},${hunk.newLines} @@`);
+    for (const line of hunk.lines) {
+      switch (line.type) {
+        case "add":
+          diffLines.push(`+${line.content}`);
+          additions++;
+          break;
+        case "remove":
+          diffLines.push(`-${line.content}`);
+          removals++;
+          break;
+        case "context":
+          diffLines.push(` ${line.content}`);
+          break;
+      }
+    }
+  }
+  return {
+    diff: diffLines.join(`
+`),
+    additions,
+    removals
+  };
+}
+function formatDiffStats(additions, removals) {
+  const parts = [];
+  if (additions > 0)
+    parts.push(`+${additions}`);
+  if (removals > 0)
+    parts.push(`-${removals}`);
+  return parts.join(" ") || "no changes";
+}
+function computeLCS(oldLines, newLines) {
+  const m = oldLines.length;
+  const n = newLines.length;
+  const dp = Array(m + 1).fill(0).map(() => Array(n + 1).fill(0));
+  for (let i = 1;i <= m; i++) {
+    for (let j = 1;j <= n; j++) {
+      if (oldLines[i - 1] === newLines[j - 1]) {
+        dp[i][j] = dp[i - 1][j - 1] + 1;
+      } else {
+        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+      }
+    }
+  }
+  return dp;
+}
+function buildChangeList(oldLines, newLines, lcs) {
+  const changes = [];
+  let i = oldLines.length;
+  let j = newLines.length;
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && oldLines[i - 1] === newLines[j - 1]) {
+      changes.unshift({ type: "equal", oldIdx: i - 1, newIdx: j - 1 });
+      i--;
+      j--;
+    } else if (j > 0 && (i === 0 || lcs[i][j - 1] >= lcs[i - 1][j])) {
+      changes.unshift({ type: "add", oldIdx: -1, newIdx: j - 1 });
+      j--;
+    } else if (i > 0) {
+      changes.unshift({ type: "remove", oldIdx: i - 1, newIdx: -1 });
+      i--;
+    }
+  }
+  return changes;
+}
+function buildHunks(oldLines, newLines, changes, contextLines) {
+  if (changes.length === 0)
+    return [];
+  const hunks = [];
+  let i = 0;
+  while (i < changes.length) {
+    while (i < changes.length && changes[i].type === "equal") {
+      i++;
+    }
+    if (i >= changes.length)
+      break;
+    const hunkStart = i;
+    let oldCount = 0;
+    let newCount = 0;
+    let contextStart = hunkStart;
+    while (contextStart > 0 && changes[contextStart - 1].type === "equal") {
+      contextStart--;
+    }
+    const extStart = Math.max(0, contextStart - contextLines);
+    const hunkChanges = [];
+    for (let k = extStart;k < changes.length; k++) {
+      const c2 = changes[k];
+      if (c2.type === "equal") {
+        let contextAfter = 0;
+        let checkK = k + 1;
+        while (checkK < changes.length && changes[checkK].type === "equal") {
+          contextAfter++;
+          checkK++;
+        }
+        if (contextAfter >= contextLines) {
+          break;
+        }
+      }
+      hunkChanges.push(c2);
+      if (c2.type !== "add")
+        oldCount++;
+      if (c2.type !== "remove")
+        newCount++;
+    }
+    const hunkLines = [];
+    let lastOldIdx = -1;
+    let lastNewIdx = -1;
+    for (const c2 of hunkChanges) {
+      if (c2.type === "equal") {
+        hunkLines.push({ type: "context", content: oldLines[c2.oldIdx] });
+        lastOldIdx = c2.oldIdx;
+        lastNewIdx = c2.newIdx;
+      } else if (c2.type === "remove") {
+        hunkLines.push({ type: "remove", content: oldLines[c2.oldIdx] });
+        lastOldIdx = c2.oldIdx;
+      } else {
+        hunkLines.push({ type: "add", content: newLines[c2.newIdx] });
+        lastNewIdx = c2.newIdx;
+      }
+    }
+    const firstChange = hunkChanges.find((c2) => c2.type !== "equal") || hunkChanges[0];
+    const firstEqual = hunkChanges.find((c2) => c2.type === "equal");
+    const oldStart = firstEqual ? firstEqual.oldIdx + 1 : firstChange.oldIdx >= 0 ? firstChange.oldIdx + 1 : 1;
+    const newStart = firstEqual ? firstEqual.newIdx + 1 : firstChange.newIdx >= 0 ? firstChange.newIdx + 1 : 1;
+    hunks.push({
+      oldStart,
+      oldLines: Math.max(1, oldCount),
+      newStart,
+      newLines: Math.max(1, newCount),
+      lines: hunkLines
+    });
+    i = hunkStart + hunkChanges.length;
+  }
+  return hunks;
+}
+
+// src/editor/index.ts
+import { spawn as spawn3 } from "node:child_process";
+import { tmpdir as tmpdir3 } from "node:os";
+import { resolve as resolve3 } from "node:path";
+import { existsSync as existsSync5, readFileSync as readFileSync4, writeFileSync as writeFileSync5, unlinkSync as unlinkSync3, mkdtempSync } from "node:fs";
+function getEditor() {
+  return process.env.BEAST_EDITOR || process.env.VISUAL || process.env.EDITOR || "vim";
+}
+function parseEditorCommand(command) {
+  const parts = command.split(/\s+/);
+  const program = parts[0];
+  const args = parts.slice(1);
+  return { program, args };
+}
+async function reviewPatch(patch, originalFile) {
+  const patchFile = resolve3(tmpdir3(), `patch-${Date.now()}.diff`);
+  const content = `# Review changes for: ${originalFile}
+# If the changes look correct, save and exit.
+# To reject changes, delete the content and save.
+#
+# --- Original
+# +++ Modified
+${patch}
+`;
+  writeFileSync5(patchFile, content, "utf-8");
+  return new Promise((resolve4) => {
+    const editor = getEditor();
+    const { program, args } = parseEditorCommand(editor);
+    const proc = spawn3(program, [...args, patchFile], {
+      stdio: "inherit"
+    });
+    proc.on("close", (code) => {
+      try {
+        unlinkSync3(patchFile);
+      } catch {}
+      resolve4(code === 0);
+    });
+  });
+}
+
+// src/approval/index.ts
+import { readFileSync as readFileSync5, existsSync as existsSync6 } from "node:fs";
+import readline from "node:readline";
+function getOldContent(path4) {
+  try {
+    if (!existsSync6(path4))
+      return null;
+    return readFileSync5(path4, "utf-8");
+  } catch {
+    return null;
+  }
+}
+function formatDiffDisplay(diff, path4) {
+  const stats = s2(formatDiffStats(diff.additions, diff.removals), fg2.muted);
+  const lines = [];
+  lines.push(`
+${s2("─".repeat(60), fg2.muted)}`);
+  lines.push(`${s2("\uD83D\uDCC4", fg2.accent)} ${s2(path4, fg2.primary)} ${s2(`(${stats})`, fg2.muted)}`);
+  const diffLines = diff.diff.split(`
+`).slice(2);
+  const hunks = diffLines.filter((l) => l.startsWith("@@")).length;
+  if (hunks > 1) {
+    lines.push(`${s2("⚠", fg2.warning)} ${hunks} changes across ${diff.additions + diff.removals} lines`);
+  }
+  const MAX_SHOW = 20;
+  const shown = diffLines.slice(0, MAX_SHOW);
+  for (const line of shown) {
+    if (line.startsWith("@@")) {
+      lines.push(s2(line, fg2.accent));
+    } else if (line.startsWith("+")) {
+      lines.push(s2(line, fg2.success));
+    } else if (line.startsWith("-")) {
+      lines.push(s2(line, fg2.error));
+    } else if (line.startsWith(" ")) {
+      lines.push(dim2 + line + reset2);
+    }
+  }
+  if (diffLines.length > MAX_SHOW) {
+    lines.push(s2(`... (${diffLines.length - MAX_SHOW} more lines, review in editor for full diff)`, fg2.muted));
+  }
+  lines.push(s2("─".repeat(60), fg2.muted));
+  return lines.join(`
+`);
+}
+async function quickApproval(ctx) {
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  let diff = null;
+  if (ctx.oldContent && ctx.newContent) {
+    diff = generateDiff(ctx.oldContent, ctx.newContent, ctx.path);
+    if (diff.additions === 0 && diff.removals === 0) {
+      return { approved: true, reason: "approved" };
+    }
+  }
+  return new Promise((resolve4) => {
+    const rl2 = readline.createInterface({ input: process.stdin, output: process.stdout });
+    if (diff) {
+      process.stdout.write(formatDiffDisplay(diff, ctx.path) + `
+`);
+    }
+    process.stdout.write(`
+${s2("⚠", fg2.warning)} ${s2(ctx.description, fg2.primary)}
+`);
+    process.stdout.write(`${s2("[y]", fg2.success)} ${s2("Approve", fg2.primary)}  `);
+    process.stdout.write(`${s2("[e]", fg2.accent)} ${s2("Review in editor", fg2.primary)}  `);
+    process.stdout.write(`${s2("[n]", fg2.error)} ${s2("Reject", fg2.primary)}
+`);
+    process.stdout.write(`${s2("[Enter]", fg2.muted)} to approve, ${s2("q", fg2.warning)} to cancel > `);
+    rl2.question("", async (answer) => {
+      rl2.close();
+      const trimmed = answer.trim().toLowerCase();
+      if (trimmed === "q" || trimmed === "n") {
+        resolve4({ approved: false, reason: "rejected" });
+        return;
+      }
+      if (trimmed === "e") {
+        if (diff) {
+          const approved = await reviewPatch(diff.diff, ctx.path);
+          resolve4({ approved, reason: approved ? "external_edit" : "rejected", diff: diff ?? undefined });
+        } else {
+          resolve4({ approved: false, reason: "rejected", error: "No diff to review" });
+        }
+        return;
+      }
+      resolve4({ approved: true, reason: "approved", diff: diff ?? undefined });
+    });
+  });
+}
+async function batchApproval(files) {
+  const results = new Map;
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  process.stdout.write(`
+${s2("⚠", fg2.warning)} ${files.length} file(s) need approval:
+`);
+  for (const file of files) {
+    let diff = null;
+    if (file.oldContent && file.newContent) {
+      diff = generateDiff(file.oldContent, file.newContent, file.path);
+    }
+    if (diff && diff.additions === 0 && diff.removals === 0) {
+      results.set(file.path, { approved: true, reason: "approved" });
+      continue;
+    }
+    if (diff) {
+      process.stdout.write(formatDiffDisplay(diff, file.path) + `
+`);
+    }
+    process.stdout.write(`${s2("⚠", fg2.warning)} ${file.reason}
+`);
+    process.stdout.write(`  ${s2("[y]", fg2.success)} Approve  ${s2("[n]", fg2.error)} Reject  ${s2("[a]", fg2.warning)} Approve all  ${s2("[q]", fg2.error)} Cancel all
+`);
+    process.stdout.write(`  > `);
+    const answer = await new Promise((r) => rl.question("", (r2) => {
+      r(r2.trim());
+    }));
+    rl.close();
+    const lower = answer.toLowerCase();
+    if (lower === "q") {
+      results.set(file.path, { approved: false, reason: "rejected" });
+      for (const f of files.slice(files.indexOf(file) + 1)) {
+        results.set(f.path, { approved: false, reason: "rejected" });
+      }
+      return results;
+    }
+    if (lower === "a") {
+      results.set(file.path, { approved: true, reason: "approved" });
+      for (const f of files.slice(files.indexOf(file) + 1)) {
+        results.set(f.path, { approved: true, reason: "approved" });
+      }
+      return results;
+    }
+    if (lower === "n") {
+      results.set(file.path, { approved: false, reason: "rejected" });
+    } else {
+      results.set(file.path, { approved: true, reason: "approved", diff: diff ?? undefined });
+    }
+  }
+  return results;
+}
+var approval_default = {
+  ApprovalContext,
+  ApprovalResult,
+  getOldContent,
+  formatDiffDisplay,
+  quickApproval,
+  batchApproval
+};
+
+// src/diff/index.ts
+function generateDiff2(oldContent, newContent, filePath, contextLines = 3) {
+  const oldLines = oldContent.split(`
+`);
+  const newLines = newContent.split(`
+`);
+  const lcs = computeLCS2(oldLines, newLines);
+  const changes = buildChangeList2(oldLines, newLines, lcs);
+  if (changes.length === 0) {
+    return { diff: "", additions: 0, removals: 0 };
+  }
+  const hunks = buildHunks2(oldLines, newLines, changes, contextLines);
+  let additions = 0;
+  let removals = 0;
+  const diffLines = [];
+  diffLines.push(`--- a/${filePath}`);
+  diffLines.push(`+++ b/${filePath}`);
+  for (const hunk of hunks) {
+    diffLines.push(`@@ -${hunk.oldStart},${hunk.oldLines} +${hunk.newStart},${hunk.newLines} @@`);
+    for (const line of hunk.lines) {
+      switch (line.type) {
+        case "add":
+          diffLines.push(`+${line.content}`);
+          additions++;
+          break;
+        case "remove":
+          diffLines.push(`-${line.content}`);
+          removals++;
+          break;
+        case "context":
+          diffLines.push(` ${line.content}`);
+          break;
+      }
+    }
+  }
+  return {
+    diff: diffLines.join(`
+`),
+    additions,
+    removals
+  };
+}
+function formatDiffStats2(additions, removals) {
+  const parts = [];
+  if (additions > 0)
+    parts.push(`+${additions}`);
+  if (removals > 0)
+    parts.push(`-${removals}`);
+  return parts.join(" ") || "no changes";
+}
+function computeLCS2(oldLines, newLines) {
+  const m = oldLines.length;
+  const n = newLines.length;
+  const dp = Array(m + 1).fill(0).map(() => Array(n + 1).fill(0));
+  for (let i = 1;i <= m; i++) {
+    for (let j = 1;j <= n; j++) {
+      if (oldLines[i - 1] === newLines[j - 1]) {
+        dp[i][j] = dp[i - 1][j - 1] + 1;
+      } else {
+        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+      }
+    }
+  }
+  return dp;
+}
+function buildChangeList2(oldLines, newLines, lcs) {
+  const changes = [];
+  let i = oldLines.length;
+  let j = newLines.length;
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && oldLines[i - 1] === newLines[j - 1]) {
+      changes.unshift({ type: "equal", oldIdx: i - 1, newIdx: j - 1 });
+      i--;
+      j--;
+    } else if (j > 0 && (i === 0 || lcs[i][j - 1] >= lcs[i - 1][j])) {
+      changes.unshift({ type: "add", oldIdx: -1, newIdx: j - 1 });
+      j--;
+    } else if (i > 0) {
+      changes.unshift({ type: "remove", oldIdx: i - 1, newIdx: -1 });
+      i--;
+    }
+  }
+  return changes;
+}
+function buildHunks2(oldLines, newLines, changes, contextLines) {
+  if (changes.length === 0)
+    return [];
+  const hunks = [];
+  let i = 0;
+  while (i < changes.length) {
+    while (i < changes.length && changes[i].type === "equal") {
+      i++;
+    }
+    if (i >= changes.length)
+      break;
+    const hunkStart = i;
+    let oldCount = 0;
+    let newCount = 0;
+    let contextStart = hunkStart;
+    while (contextStart > 0 && changes[contextStart - 1].type === "equal") {
+      contextStart--;
+    }
+    const extStart = Math.max(0, contextStart - contextLines);
+    const hunkChanges = [];
+    for (let k = extStart;k < changes.length; k++) {
+      const c2 = changes[k];
+      if (c2.type === "equal") {
+        let contextAfter = 0;
+        let checkK = k + 1;
+        while (checkK < changes.length && changes[checkK].type === "equal") {
+          contextAfter++;
+          checkK++;
+        }
+        if (contextAfter >= contextLines) {
+          break;
+        }
+      }
+      hunkChanges.push(c2);
+      if (c2.type !== "add")
+        oldCount++;
+      if (c2.type !== "remove")
+        newCount++;
+    }
+    const hunkLines = [];
+    let lastOldIdx = -1;
+    let lastNewIdx = -1;
+    for (const c2 of hunkChanges) {
+      if (c2.type === "equal") {
+        hunkLines.push({ type: "context", content: oldLines[c2.oldIdx] });
+        lastOldIdx = c2.oldIdx;
+        lastNewIdx = c2.newIdx;
+      } else if (c2.type === "remove") {
+        hunkLines.push({ type: "remove", content: oldLines[c2.oldIdx] });
+        lastOldIdx = c2.oldIdx;
+      } else {
+        hunkLines.push({ type: "add", content: newLines[c2.newIdx] });
+        lastNewIdx = c2.newIdx;
+      }
+    }
+    const firstChange = hunkChanges.find((c2) => c2.type !== "equal") || hunkChanges[0];
+    const firstEqual = hunkChanges.find((c2) => c2.type === "equal");
+    const oldStart = firstEqual ? firstEqual.oldIdx + 1 : firstChange.oldIdx >= 0 ? firstChange.oldIdx + 1 : 1;
+    const newStart = firstEqual ? firstEqual.newIdx + 1 : firstChange.newIdx >= 0 ? firstChange.newIdx + 1 : 1;
+    hunks.push({
+      oldStart,
+      oldLines: Math.max(1, oldCount),
+      newStart,
+      newLines: Math.max(1, newCount),
+      lines: hunkLines
+    });
+    i = hunkStart + hunkChanges.length;
+  }
+  return hunks;
+}
+
 // src/utils/notifications.ts
 var NOTIFY_ENABLED = process.env.BEAST_NOTIFY !== "false";
 var NOTIFY_SOUND = process.env.BEAST_NOTIFY_SOUND !== "false";
@@ -27264,20 +27769,20 @@ var CODEX_MODELS = [
 
 // src/config/index.ts
 init_platform2();
-import { readFileSync as readFileSync5, existsSync as existsSync6, writeFileSync as writeFileSync6, mkdirSync as mkdirSync3 } from "node:fs";
-import { resolve as resolve4, dirname as dirname2, join as join7 } from "node:path";
+import { readFileSync as readFileSync7, existsSync as existsSync8, writeFileSync as writeFileSync7, mkdirSync as mkdirSync3 } from "node:fs";
+import { resolve as resolve5, dirname as dirname2, join as join7 } from "node:path";
 function getConfigDir() {
   return join7(getHomeDir(), ".beast-cli");
 }
 function getConfigPath() {
-  return resolve4(getConfigDir(), "session.json");
+  return resolve5(getConfigDir(), "session.json");
 }
 function saveSession(config) {
   try {
     const dir = getConfigDir();
-    if (!existsSync6(dir))
+    if (!existsSync8(dir))
       mkdirSync3(dir, { recursive: true });
-    writeFileSync6(getConfigPath(), JSON.stringify(config, null, 2), "utf-8");
+    writeFileSync7(getConfigPath(), JSON.stringify(config, null, 2), "utf-8");
   } catch (error) {
     console.warn("Failed to save session config:", error);
   }
@@ -27285,9 +27790,9 @@ function saveSession(config) {
 function loadSession() {
   try {
     const path4 = getConfigPath();
-    if (!existsSync6(path4))
+    if (!existsSync8(path4))
       return null;
-    const data = JSON.parse(readFileSync5(path4, "utf-8"));
+    const data = JSON.parse(readFileSync7(path4, "utf-8"));
     if (!data.provider || !data.model || !data.contextSize || !data.contextMax) {
       return null;
     }
@@ -27307,13 +27812,13 @@ function parseContextSize(size) {
 var CONTEXT_SIZES = ["8K", "16K", "32K", "64K", "128K"];
 
 // src/index.ts
-import readline from "readline";
+import readline2 from "readline";
 var VERSION3 = "1.2.18";
 function question(prompt) {
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  return new Promise((resolve6) => rl.question(prompt, (answer) => {
+  const rl = readline2.createInterface({ input: process.stdin, output: process.stdout });
+  return new Promise((resolve7) => rl.question(prompt, (answer) => {
     rl.close();
-    resolve6(answer);
+    resolve7(answer);
   }));
 }
 async function numberedMenu(title, options) {
@@ -27629,7 +28134,7 @@ async function repl(session) {
     "/agents delete",
     "/agents info"
   ];
-  const rl = readline.createInterface({
+  const rl = readline2.createInterface({
     input: process.stdin,
     output: process.stdout,
     completer: (line) => {
@@ -28217,6 +28722,60 @@ Please provide a clear, concise answer based on these results.`
           const argsDisplay = argsStr.length > 60 ? argsStr.slice(0, 60) + "..." : argsStr;
           process.stdout.write(s("\uD83D\uDD27 " + toolName, fg.tool) + " " + s(argsDisplay, fg.muted) + `
 `);
+          if (toolName === "file_write") {
+            const filePath = toolArgs.path;
+            const newContent = toolArgs.content;
+            const oldContent = getOldContent(filePath);
+            if (oldContent && oldContent !== newContent) {
+              const diff = generateDiff2(oldContent, newContent, filePath);
+              if (diff.additions > 0 || diff.removals > 0) {
+                const stats = formatDiffStats2(diff.additions, diff.removals);
+                process.stdout.write(`
+${s("\uD83D\uDCC4", fg.accent)} ${s(filePath, fg.primary)} ${s("(" + stats + ")", fg.muted)}
+`);
+                const diffLines = diff.diff.split(`
+`).slice(2);
+                const MAX_DIFF = 20;
+                for (const line of diffLines.slice(0, MAX_DIFF)) {
+                  if (line.startsWith("@@")) {
+                    process.stdout.write(s(line, fg.accent) + `
+`);
+                  } else if (line.startsWith("+")) {
+                    process.stdout.write(s(line, fg.success) + `
+`);
+                  } else if (line.startsWith("-")) {
+                    process.stdout.write(s(line, fg.error) + `
+`);
+                  } else if (line.startsWith(" ")) {
+                    process.stdout.write(dim + line + reset + `
+`);
+                  }
+                }
+                if (diffLines.length > MAX_DIFF) {
+                  process.stdout.write(s(`  ... (${diffLines.length - MAX_DIFF} more lines)`, fg.muted) + `
+`);
+                }
+                const approval = await quickApproval({
+                  tool: "file_write",
+                  path: filePath,
+                  oldContent,
+                  newContent,
+                  description: `Write ${diff.additions + diff.removals} line change to ${filePath}?`
+                });
+                if (!approval.approved) {
+                  process.stdout.write(s(`
+\u2717 Rejected`, fg.error) + ` \u2014 file not written
+`);
+                  agentMessages.push({ role: "assistant", content: response.content, toolCalls: [tc] });
+                  agentMessages.push({ role: "user", content: "Tool call rejected by user." });
+                  continue;
+                }
+                process.stdout.write(s(`
+\u2713 Approved`, fg.success) + ` \u2014 proceeding with write
+`);
+              }
+            }
+          }
           startFunSpinner("tool");
           const toolResult = await executeTool(toolName, toolArgs);
           stopFunSpinner(toolResult.success ? "done" : "error");
