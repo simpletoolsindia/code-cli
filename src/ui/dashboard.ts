@@ -1,7 +1,7 @@
 // Beast CLI - Dashboard TUI Components
 // Inspired by: k9s (breadcrumb nav), btop++ (expandable), gh-dash (context), WTF (modules)
 
-import { s, fg, icon, box, bold, dim, mocha, isColorEnabled, progress } from './colors.ts'
+import { s, fg, icon, box, bold, dim, mocha, isColorEnabled, progress, boxAscii } from './colors.ts'
 
 // ── Dashboard Widget Container ───────────────────────────────────────────────
 
@@ -12,6 +12,23 @@ export interface WidgetOptions {
   height?: number
   borderStyle?: 'round' | 'single' | 'heavy' | 'soft'
   collapsible?: boolean
+}
+
+/**
+ * Get box chars with Windows/ASCII fallback
+ */
+function getWidgetBoxChars(style: string) {
+  // Use Unicode box if available, otherwise ASCII fallback
+  const b = box[style as keyof typeof box] || box.round
+  const fallback = boxAscii[style as keyof typeof boxAscii] || boxAscii.round
+  return {
+    tl: b.tl || fallback.tl,
+    tr: b.tr || fallback.tr,
+    bl: b.bl || fallback.bl,
+    br: b.br || fallback.br,
+    h: b.h || fallback.h,
+    v: b.v || fallback.v,
+  }
 }
 
 /**
@@ -27,7 +44,7 @@ export function widget(content: string, opts: WidgetOptions = {}): string {
     collapsible = false
   } = opts
 
-  const b = box[borderStyle]
+  const b = getWidgetBoxChars(borderStyle)
   const topLine = s(`${b.tl} ${b.h.repeat(width - 2)} ${b.tr}`, fg.surface1)
 
   if (!title) {
