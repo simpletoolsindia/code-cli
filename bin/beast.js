@@ -697,6 +697,7 @@ async function createOpenRouterProvider(config) {
   return {
     name: "openrouter",
     models: [
+      "qwen/qwen3.6-plus",
       "qwen/qwen3-32b",
       "qwen/qwen3-14b",
       "qwen/qwen3-8b",
@@ -27953,7 +27954,7 @@ function isCloudProvider(provider) {
 var DEFAULT_MODEL = {
   anthropic: "claude-sonnet-4-20250514",
   openai: "gpt-5.4",
-  openrouter: "qwen/qwen3-8b",
+  openrouter: "qwen/qwen3.6-plus",
   deepseek: "deepseek-chat",
   groq: "llama-3.3-70b-versatile",
   mistral: "mistral-large-latest",
@@ -28005,6 +28006,7 @@ var CLOUD_MODELS = {
     "gpt-5.1-codex-mini"
   ],
   openrouter: [
+    "qwen/qwen3.6-plus",
     "qwen/qwen3-32b",
     "qwen/qwen3-14b",
     "qwen/qwen3-8b",

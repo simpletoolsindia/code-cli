@@ -754,6 +754,7 @@ async function createOpenRouterProvider(config: LLMConfig): Promise<LLMProvider>
   return {
     name: 'openrouter',
     models: [
+      'qwen/qwen3.6-plus',
       'qwen/qwen3-32b',
       'qwen/qwen3-14b',
       'qwen/qwen3-8b',
