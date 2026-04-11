@@ -18,7 +18,7 @@ import { getApiKeyFromEnv, getBaseUrl } from '../../providers/discover.ts'
 interface Message {
   role: 'user' | 'assistant' | 'system' | 'tool'
   content: string
-  toolCalls?: Array<{ name: string; arguments?: Record<string, unknown>; result?: string }>
+  toolCalls?: Array<{ id: string; name: string; arguments?: Record<string, unknown>; result?: string }>
 }
 
 // Detect theme from environment
@@ -108,6 +108,7 @@ const BeastApp: React.FC = () => {
             role: 'assistant' as const,
             content: state.streamedText || (state.phase === 'error' ? `Error: ${state.error}` : ''),
             toolCalls: state.toolCalls.map(tc => ({
+              id: tc.id,
               name: tc.name,
               arguments: tc.arguments,
               result: tc.result,
@@ -152,8 +153,8 @@ const BeastApp: React.FC = () => {
         <Box flexDirection="column">
           {state.toolCalls
             .filter(tc => tc.status === 'running')
-            .map((tc, i) => (
-              <ToolPanel key={i} name={tc.name} args={tc.arguments} status={tc.status} />
+            .map(tc => (
+              <ToolPanel key={tc.id} name={tc.name} args={tc.arguments} status={tc.status} />
             ))}
         </Box>
       )}

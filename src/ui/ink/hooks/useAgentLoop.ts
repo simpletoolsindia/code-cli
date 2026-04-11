@@ -8,6 +8,7 @@ import { getApiKeyFromEnv, getBaseUrl } from '../../../providers/discover.ts'
 export type Phase = 'idle' | 'thinking' | 'streaming' | 'done' | 'error'
 
 interface ToolCallState {
+  id: string
   name: string
   arguments: Record<string, unknown>
   result?: string
@@ -133,15 +134,15 @@ export function useAgentLoop(options: UseAgentLoopOptions) {
 
           setState(s => ({
             ...s,
-            toolCalls: [...s.toolCalls, { name: tc.name, arguments: tc.arguments || {}, status: 'running' }],
+            toolCalls: [...s.toolCalls, { id: toolId, name: tc.name, arguments: tc.arguments || {}, status: 'running' }],
           }))
 
           try {
             const result = await withTimeout(executeTool(tc.name, tc.arguments || {}), TIMEOUT_MS)
             setState(s => ({
               ...s,
-              toolCalls: s.toolCalls.map((t, i) =>
-                i === s.toolCalls.length - 1
+              toolCalls: s.toolCalls.map(t =>
+                t.id === toolId
                   ? { ...t, result: result.content, status: result.success ? 'done' : 'error' }
                   : t
               ),
@@ -151,8 +152,8 @@ export function useAgentLoop(options: UseAgentLoopOptions) {
           } catch (toolErr: any) {
             setState(s => ({
               ...s,
-              toolCalls: s.toolCalls.map((t, i) =>
-                i === s.toolCalls.length - 1
+              toolCalls: s.toolCalls.map(t =>
+                t.id === toolId
                   ? { ...t, result: toolErr.message, status: 'error' }
                   : t
               ),

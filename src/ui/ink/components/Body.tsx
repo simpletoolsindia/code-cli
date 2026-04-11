@@ -4,6 +4,7 @@ import { Text, Box, Static } from 'ink'
 import { getTheme } from '../theme.ts'
 
 interface ToolCall {
+  id: string
   name: string
   arguments?: Record<string, unknown>
   result?: string
@@ -128,8 +129,8 @@ function MessageContent({ role, content, toolCalls }: Message & { role: string }
       {toolCalls && toolCalls.length > 0 && (
         <Box flexDirection="column" marginTop={1} borderStyle="single" paddingX={1}>
           <Text color={theme.accent} bold>Tool Calls:</Text>
-          {toolCalls.map((tc, i) => (
-            <Box key={i} flexDirection="column" paddingLeft={2}>
+          {toolCalls.map(tc => (
+            <Box key={tc.id} flexDirection="column" paddingLeft={2}>
               <Text color={theme.tool} bold>
                 {'  ├─'} {tc.name}
               </Text>
