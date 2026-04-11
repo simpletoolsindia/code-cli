@@ -16,6 +16,10 @@ import { renderCleanBanner } from './ui/banner.ts'
 import { tipBanner, randomTip, contextualTip } from './ui/tips.ts'
 import { Spinner } from './ui/spinner.ts'
 import { getFormattedTools, executeTool, getAllTools } from './native-tools/index.ts'
+import { quickApproval, getOldContent } from './approval/index.ts'
+import { generateDiff, formatDiffStats } from './diff/index.ts'
+import { quickApproval, getOldContent, type ApprovalResult } from './approval/index.ts'
+import { generateDiff, formatDiffStats } from './diff/index.ts'
 import { funSpinner, FunSpinner, randomFunFact, thinkingMessage, toolRunningMessage } from './ui/fun-animations.ts'
 import { notifications, playBell, playAlertBeeps, onResponseReady, onWaitingForInput, onError, onTaskComplete, onPermissionRequest, showNotification } from './utils/notifications.ts'
 import { listAgents, getAgent, createAgent, updateAgent, deleteAgent, getActiveAgent, setActiveAgent, loadMemory, saveMemory, updateMemory, parseAgentContext, buildAgentSystemMessage } from './agents/index.ts'
@@ -950,10 +954,60 @@ Commands:
           const toolName = tc.name
           const toolArgs = tc.arguments ?? {}
 
-                    process.stdout.write('\n')
+          process.stdout.write('\n')
           const argsStr = JSON.stringify(toolArgs)
           const argsDisplay = argsStr.length > 60 ? argsStr.slice(0, 60) + '...' : argsStr
           process.stdout.write(s('🔧 ' + toolName, fg.tool) + ' ' + s(argsDisplay, fg.muted) + '\n')
+
+          // ── Approval + Diff for file_write ─────────────────────────────────
+          if (toolName === 'file_write') {
+            const filePath = toolArgs.path as string
+            const newContent = toolArgs.content as string
+            const oldContent = getOldContent(filePath)
+
+            if (oldContent && oldContent !== newContent) {
+              const diff = generateDiff(oldContent, newContent, filePath)
+
+              if (diff.additions > 0 || diff.removals > 0) {
+                // Show diff inline
+                const stats = formatDiffStats(diff.additions, diff.removals)
+                process.stdout.write(`\n${s('📄', fg.accent)} ${s(filePath, fg.primary)} ${s('(' + stats + ')', fg.muted)}\n`)
+                const diffLines = diff.diff.split('\n').slice(2)
+                const MAX_DIFF = 20
+                for (const line of diffLines.slice(0, MAX_DIFF)) {
+                  if (line.startsWith('@@')) {
+                    process.stdout.write(s(line, fg.accent) + '\n')
+                  } else if (line.startsWith('+')) {
+                    process.stdout.write(s(line, fg.success) + '\n')
+                  } else if (line.startsWith('-')) {
+                    process.stdout.write(s(line, fg.error) + '\n')
+                  } else if (line.startsWith(' ')) {
+                    process.stdout.write(dim + line + reset + '\n')
+                  }
+                }
+                if (diffLines.length > MAX_DIFF) {
+                  process.stdout.write(s(`  ... (${diffLines.length - MAX_DIFF} more lines)`, fg.muted) + '\n')
+                }
+
+                // Approval prompt
+                const approval = await quickApproval({
+                  tool: 'file_write',
+                  path: filePath,
+                  oldContent,
+                  newContent,
+                  description: `Write ${diff.additions + diff.removals} line change to ${filePath}?`,
+                })
+
+                if (!approval.approved) {
+                  process.stdout.write(s('\n✗ Rejected', fg.error) + ` — file not written\n`)
+                  agentMessages.push({ role: 'assistant', content: response.content, toolCalls: [tc] })
+                  agentMessages.push({ role: 'user', content: 'Tool call rejected by user.' })
+                  continue
+                }
+                process.stdout.write(s('\n✓ Approved', fg.success) + ' — proceeding with write\n')
+              }
+            }
+          }
 
           // Start fun spinner for tool execution
           startFunSpinner('tool')
