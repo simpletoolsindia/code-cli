@@ -77,7 +77,7 @@ export function isCloudProvider(provider: string): boolean {
 export const DEFAULT_MODEL: Record<string, string> = {
   anthropic: 'claude-sonnet-4-20250514',
   openai: 'gpt-5.4',
-  openrouter: 'qwen/qwen3-32b',
+  openrouter: 'qwen/qwen3-8b',
   deepseek: 'deepseek-chat',
   groq: 'llama-3.3-70b-versatile',
   mistral: 'mistral-large-latest',
@@ -137,13 +137,17 @@ export const CLOUD_MODELS: Record<string, string[]> = {
     'gpt-5.1-codex-mini',
   ],
   openrouter: [
+    // Qwen free tier models (via OpenRouter)
     'qwen/qwen3-32b',
     'qwen/qwen3-14b',
     'qwen/qwen3-8b',
+    'qwen/qwq-32b',
+    // Auto-select
     'openrouter/auto',
-    'anthropic/claude-3-opus',
-    'openai/gpt-4o',
-    'google/gemini-pro-1.5',
+    // Other popular free models
+    'meta-llama/llama-3.1-8b-instruct',
+    'anthropic/claude-3-haiku',
+    'google/gemini-2.0-flash-exp',
     'deepseek/deepseek-chat',
   ],
   deepseek: [

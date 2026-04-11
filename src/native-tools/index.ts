@@ -8,6 +8,7 @@ import * as code from './code.ts'
 import * as search from './search.ts'
 import * as github from './github.ts'
 import * as youtube from './youtube.ts'
+import * as browser from './browser.ts'
 import { engiTools } from '../engi/tools.ts'
 
 export interface NativeTool {
@@ -880,6 +881,142 @@ const tools: NativeTool[] = [
       } catch (e: any) {
         return { success: false, content: '', error: e.message }
       }
+    },
+  },
+  // Browser (Headless Playwright)
+  {
+    name: 'browser_navigate',
+    description: 'Navigate to URL with headless browser. Returns full page HTML after DOM ready. Supports waitForSelector for dynamic content.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        url: { type: 'string', description: 'URL to navigate to' },
+        waitForSelector: { type: 'string', description: 'CSS selector to wait for before returning' },
+        timeout: { type: 'integer', description: 'Timeout in ms (default: 15000)' },
+      },
+      required: ['url'],
+    },
+    async execute(args) {
+      const result = await browser.browser_navigate(
+        args.url as string,
+        args.waitForSelector as string | undefined,
+        args.timeout as number || 15000
+      )
+      return { success: result.success, content: result.content, error: result.error, url: result.url, title: result.title }
+    },
+  },
+  {
+    name: 'browser_screenshot',
+    description: 'Take screenshot of page or element. Returns base64 PNG if screenshot captured.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        url: { type: 'string', description: 'URL to screenshot' },
+        selector: { type: 'string', description: 'CSS selector for element screenshot (optional)' },
+        fullPage: { type: 'boolean', description: 'Screenshot entire page (default: false)' },
+      },
+      required: ['url'],
+    },
+    async execute(args) {
+      const result = await browser.browser_screenshot(
+        args.url as string,
+        args.selector as string | undefined,
+        args.fullPage as boolean || false
+      )
+      return {
+        success: result.success,
+        content: result.content || '',
+        screenshot: result.screenshot,
+        error: result.error,
+      }
+    },
+  },
+  {
+    name: 'browser_click',
+    description: 'Click element and optionally wait for navigation.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        url: { type: 'string', description: 'URL to navigate to first' },
+        selector: { type: 'string', description: 'CSS selector of element to click' },
+        waitForNavigation: { type: 'boolean', description: 'Wait for page navigation after click (default: true)' },
+      },
+      required: ['url', 'selector'],
+    },
+    async execute(args) {
+      const result = await browser.browser_click(
+        args.url as string,
+        args.selector as string,
+        args.waitForNavigation as boolean !== false
+      )
+      return { success: result.success, content: result.content, error: result.error, url: result.url }
+    },
+  },
+  {
+    name: 'browser_type',
+    description: 'Type text into input field and optionally submit.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        url: { type: 'string', description: 'URL to navigate to first' },
+        selector: { type: 'string', description: 'CSS selector of input field' },
+        text: { type: 'string', description: 'Text to type' },
+        submit: { type: 'boolean', description: 'Click after typing (default: false)' },
+      },
+      required: ['url', 'selector', 'text'],
+    },
+    async execute(args) {
+      const result = await browser.browser_type(
+        args.url as string,
+        args.selector as string,
+        args.text as string,
+        args.submit as boolean || false
+      )
+      return { success: result.success, content: result.content, error: result.error, url: result.url }
+    },
+  },
+  {
+    name: 'browser_evaluate',
+    description: 'Run JavaScript in browser context. Useful for extracting dynamic data.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        url: { type: 'string', description: 'URL to navigate to' },
+        code: { type: 'string', description: 'JavaScript code to execute (function body, no function keyword needed)' },
+      },
+      required: ['url', 'code'],
+    },
+    async execute(args) {
+      const result = await browser.browser_evaluate(args.url as string, args.code as string)
+      return { success: result.success, content: result.content, error: result.error }
+    },
+  },
+  {
+    name: 'browser_extract',
+    description: 'Extract multiple elements by CSS selectors in one go. Returns JSON with all extracted values.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        url: { type: 'string', description: 'URL to navigate to' },
+        selectors: { type: 'object', description: 'Key-value pairs: field name -> CSS selector', additionalProperties: { type: 'string' } },
+      },
+      required: ['url', 'selectors'],
+    },
+    async execute(args) {
+      const result = await browser.browser_extract(
+        args.url as string,
+        args.selectors as Record<string, string>
+      )
+      return { success: result.success, content: result.content, error: result.error, url: result.url }
+    },
+  },
+  {
+    name: 'browser_health',
+    description: 'Check if Playwright/headless browser is available.',
+    inputSchema: { type: 'object', properties: {} },
+    async execute() {
+      const result = await browser.browser_health()
+      return { success: result.success, content: result.success ? 'Playwright browser: OK' : 'Playwright browser: unavailable', error: result.error }
     },
   },
   ...engiTools,

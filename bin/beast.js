@@ -696,7 +696,16 @@ async function createOpenRouterProvider(config) {
   const OpenAI = await import("openai");
   return {
     name: "openrouter",
-    models: ["openai/gpt-4o", "anthropic/claude-3.5-sonnet", "google/gemini-pro", "meta-llama/llama-3-70b-instruct"],
+    models: [
+      "qwen/qwen3-32b",
+      "qwen/qwen3-14b",
+      "qwen/qwen3-8b",
+      "qwen/qwq-32b",
+      "openrouter/auto",
+      "meta-llama/llama-3.1-8b-instruct",
+      "google/gemini-2.0-flash-exp",
+      "deepseek/deepseek-chat"
+    ],
     apiFormat: "openrouter",
     async create(request) {
       const client = new OpenAI.OpenAI({
@@ -21788,9 +21797,9 @@ __export(exports_tts, {
   DEFAULT_FORMAT: () => DEFAULT_FORMAT
 });
 import { spawn as spawn2 } from "node:child_process";
-import { writeFileSync as writeFileSync4, unlinkSync as unlinkSync2 } from "node:fs";
+import { writeFileSync as writeFileSync5, unlinkSync as unlinkSync2 } from "node:fs";
 import { tmpdir as tmpdir2 } from "node:os";
-import { join as join5 } from "node:path";
+import { join as join6 } from "node:path";
 async function listVoices3() {
   const { listVoicesUniversal } = await Promise.resolve().then(() => (init_dist(), exports_dist));
   const voices = await listVoicesUniversal();
@@ -21811,9 +21820,9 @@ async function generateAudio(text, options = {}) {
 }
 async function speak(text, options = {}) {
   const audioBuffer = await generateAudio(text, options);
-  const tempFile = join5(tmpdir2(), `beast-tts-${Date.now()}.mp3`);
+  const tempFile = join6(tmpdir2(), `beast-tts-${Date.now()}.mp3`);
   try {
-    writeFileSync4(tempFile, audioBuffer);
+    writeFileSync5(tempFile, audioBuffer);
     await playAudioFile(tempFile);
   } finally {
     try {
@@ -21846,20 +21855,20 @@ async function playAudioFile(filePath) {
 }
 function loadTTSConfig() {
   try {
-    const { existsSync: existsSync5, readFileSync: readFileSync4 } = __require("node:fs");
-    const path4 = join5(getHomeDir(), ".beast-cli", "tts.json");
-    if (existsSync5(path4))
+    const { existsSync: existsSync6, readFileSync: readFileSync4 } = __require("node:fs");
+    const path4 = join6(getHomeDir(), ".beast-cli", "tts.json");
+    if (existsSync6(path4))
       return JSON.parse(readFileSync4(path4, "utf-8"));
   } catch {}
   return { enabled: false, defaultVoice: DEFAULT_VOICE2, autoPlay: true };
 }
 function saveTTSConfig(config) {
   try {
-    const { existsSync: existsSync5, mkdirSync: mkdirSync2, writeFileSync: writeFileSync5 } = __require("node:fs");
-    const dir = join5(getHomeDir(), ".beast-cli");
-    if (!existsSync5(dir))
-      mkdirSync2(dir, { recursive: true });
-    writeFileSync5(join5(dir, "tts.json"), JSON.stringify(config, null, 2));
+    const { existsSync: existsSync6, mkdirSync: mkdirSync3, writeFileSync: writeFileSync6 } = __require("node:fs");
+    const dir = join6(getHomeDir(), ".beast-cli");
+    if (!existsSync6(dir))
+      mkdirSync3(dir, { recursive: true });
+    writeFileSync6(join6(dir, "tts.json"), JSON.stringify(config, null, 2));
   } catch {}
 }
 var DEFAULT_VOICE2 = "en-US-AriaNeural", DEFAULT_SPEED = "+0%", DEFAULT_PITCH = "+0Hz", DEFAULT_FORMAT = "audio-24khz-48kbitrate-mono-mp3";
@@ -21890,10 +21899,10 @@ __export(exports_agents, {
   Coordinator: () => Coordinator,
   AgentSession: () => AgentSession
 });
-import { existsSync as existsSync7, readFileSync as readFileSync6, writeFileSync as writeFileSync6, mkdirSync as mkdirSync2 } from "node:fs";
-import { resolve as resolve4, join as join6 } from "node:path";
+import { existsSync as existsSync8, readFileSync as readFileSync6, writeFileSync as writeFileSync7, mkdirSync as mkdirSync3 } from "node:fs";
+import { resolve as resolve4, join as join7 } from "node:path";
 function getAgentsDir() {
-  return join6(getHomeDir(), ".beast-cli", "agents");
+  return join7(getHomeDir(), ".beast-cli", "agents");
 }
 function getAgentsPath() {
   return resolve4(getAgentsDir(), "agents.json");
@@ -21903,13 +21912,13 @@ function getMemoryPath() {
 }
 function ensureDir() {
   const dir = getAgentsDir();
-  if (!existsSync7(dir))
-    mkdirSync2(dir, { recursive: true });
+  if (!existsSync8(dir))
+    mkdirSync3(dir, { recursive: true });
 }
 function loadStore() {
   ensureDir();
   try {
-    if (existsSync7(getAgentsPath())) {
+    if (existsSync8(getAgentsPath())) {
       return JSON.parse(readFileSync6(getAgentsPath(), "utf-8"));
     }
   } catch {}
@@ -21917,7 +21926,7 @@ function loadStore() {
 }
 function saveStore(store) {
   ensureDir();
-  writeFileSync6(getAgentsPath(), JSON.stringify(store, null, 2), "utf-8");
+  writeFileSync7(getAgentsPath(), JSON.stringify(store, null, 2), "utf-8");
 }
 function listAgents() {
   return loadStore().agents;
@@ -21975,7 +21984,7 @@ function setActiveAgent(name) {
 }
 function loadMemory() {
   try {
-    if (existsSync7(getMemoryPath())) {
+    if (existsSync8(getMemoryPath())) {
       return JSON.parse(readFileSync6(getMemoryPath(), "utf-8"));
     }
   } catch {}
@@ -21983,7 +21992,7 @@ function loadMemory() {
 }
 function saveMemory(memory) {
   ensureDir();
-  writeFileSync6(getMemoryPath(), JSON.stringify(memory, null, 2), "utf-8");
+  writeFileSync7(getMemoryPath(), JSON.stringify(memory, null, 2), "utf-8");
 }
 function updateMemory(updates) {
   const memory = loadMemory();
@@ -24450,6 +24459,290 @@ function extractVideoId(input) {
   return null;
 }
 
+// src/native-tools/browser.ts
+import { execSync as execSync4 } from "node:child_process";
+import { mkdirSync as mkdirSync2, writeFileSync as writeFileSync3 } from "node:fs";
+import { join as join3 } from "node:path";
+async function runPlaywright(script) {
+  const projectRoot = process.cwd();
+  const scriptsDir = join3(projectRoot, ".playwright-scripts");
+  mkdirSync2(scriptsDir, { recursive: true });
+  const scriptPath = join3(scriptsDir, `playwright-script-${Date.now()}.mjs`);
+  writeFileSync3(scriptPath, script);
+  try {
+    const result = execSync4(`node ${scriptPath}`, { encoding: "utf-8", timeout: 30000, maxBuffer: 5 * 1024 * 1024, cwd: projectRoot });
+    return result;
+  } finally {
+    try {
+      const { unlinkSync: unlinkSync2 } = __require("node:fs");
+      unlinkSync2(scriptPath);
+    } catch {}
+  }
+}
+async function browser_navigate(url, waitForSelector, timeout = 15000) {
+  try {
+    const script = `
+import { chromium } from 'playwright';
+
+const browser = await chromium.launch({
+  headless: true,
+  args: ['--no-sandbox', '--disable-dev-shm-usage'],
+  executablePath: '/home/sridhar/.cache/ms-playwright/chromium_headless_shell-1208/chrome-linux/headless_shell',
+});
+const context = await browser.newContext({
+  userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+});
+const page = await context.newPage();
+page.setDefaultTimeout(${timeout});
+
+await page.goto('${url.replace(/'/g, "\\'")}', { waitUntil: 'domcontentloaded' });
+${waitForSelector ? `await page.waitForSelector('${waitForSelector}', { timeout: ${timeout} });` : ""}
+
+const title = await page.title();
+const content = await page.content();
+
+console.log(JSON.stringify({
+  url: page.url(),
+  title,
+  content: content.slice(0, 80000)
+}));
+
+await browser.close();
+`;
+    const result = await runPlaywright(script);
+    const data = JSON.parse(result.trim());
+    return {
+      success: true,
+      url: data.url,
+      title: data.title,
+      content: data.content || ""
+    };
+  } catch (e) {
+    return { success: false, content: "", error: e.message };
+  }
+}
+async function browser_screenshot(url, selector, fullPage = false) {
+  try {
+    const selectorPart = selector ? `await page.waitForSelector('${selector}', { timeout: 10000 }); const element = await page.locator('${selector}'); const screenshot = await element.screenshot({ path: imgPath });` : `const screenshot = await page.screenshot({ path: imgPath, fullPage: ${fullPage} });`;
+    const script = `
+import { chromium } from 'playwright';
+
+const imgPath = '/tmp/beast-browser/screenshot-${Date.now()}.png';
+const browser = await chromium.launch({
+  headless: true,
+  args: ['--no-sandbox', '--disable-dev-shm-usage'],
+  executablePath: '/home/sridhar/.cache/ms-playwright/chromium_headless_shell-1208/chrome-linux/headless_shell',
+});
+const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+
+await page.goto('${url.replace(/'/g, "\\'")}', { waitUntil: 'domcontentloaded' });
+${selectorPart}
+
+const base64 = require('fs').readFileSync(imgPath).toString('base64');
+console.log(JSON.stringify({ success: true, screenshot: base64, path: imgPath }));
+await browser.close();
+`;
+    const result = await runPlaywright(script);
+    const data = JSON.parse(result.trim());
+    return {
+      success: true,
+      content: `Screenshot saved: ${data.path}`,
+      url,
+      screenshot: data.screenshot
+    };
+  } catch (e) {
+    return { success: false, content: "", error: e.message };
+  }
+}
+async function browser_click(url, selector, waitForNavigation = true) {
+  try {
+    const script = `
+import { chromium } from 'playwright';
+
+const browser = await chromium.launch({
+  headless: true,
+  args: ['--no-sandbox', '--disable-dev-shm-usage'],
+  executablePath: '/home/sridhar/.cache/ms-playwright/chromium_headless_shell-1208/chrome-linux/headless_shell',
+});
+const page = await browser.newPage();
+
+await page.goto('${url.replace(/'/g, "\\'")}', { waitUntil: 'domcontentloaded' });
+await page.waitForSelector('${selector}', { timeout: 15000 });
+
+if (${waitForNavigation}) {
+  await Promise.all([
+    page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
+    page.click('${selector}')
+  ]);
+} else {
+  await page.click('${selector}');
+  await page.waitForTimeout(2000);
+}
+
+console.log(JSON.stringify({
+  url: page.url(),
+  title: await page.title(),
+  content: (await page.content()).slice(0, 80000)
+}));
+
+await browser.close();
+`;
+    const result = await runPlaywright(script);
+    const data = JSON.parse(result.trim());
+    return {
+      success: true,
+      url: data.url,
+      title: data.title,
+      content: data.content || ""
+    };
+  } catch (e) {
+    return { success: false, content: "", error: e.message };
+  }
+}
+async function browser_type(url, selector, text, submit = false) {
+  try {
+    const script = `
+import { chromium } from 'playwright';
+
+const browser = await chromium.launch({
+  headless: true,
+  args: ['--no-sandbox', '--disable-dev-shm-usage'],
+  executablePath: '/home/sridhar/.cache/ms-playwright/chromium_headless_shell-1208/chrome-linux/headless_shell',
+});
+const page = await browser.newPage();
+
+await page.goto('${url.replace(/'/g, "\\'")}', { waitUntil: 'domcontentloaded' });
+await page.waitForSelector('${selector}', { timeout: 15000 });
+await page.fill('${selector}', '${text.replace(/'/g, "\\'")}');
+
+if (${submit}) {
+  await Promise.all([
+    page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
+    page.click('${selector}'),
+  ]);
+} else {
+  await page.waitForTimeout(1000);
+}
+
+console.log(JSON.stringify({
+  url: page.url(),
+  title: await page.title(),
+  content: (await page.content()).slice(0, 80000)
+}));
+
+await browser.close();
+`;
+    const result = await runPlaywright(script);
+    const data = JSON.parse(result.trim());
+    return {
+      success: true,
+      url: data.url,
+      title: data.title,
+      content: data.content || ""
+    };
+  } catch (e) {
+    return { success: false, content: "", error: e.message };
+  }
+}
+async function browser_evaluate(url, jsCode) {
+  try {
+    const escapedCode = jsCode.replace(/'/g, "\\'").replace(/\n/g, "\\n");
+    const script = `
+import { chromium } from 'playwright';
+
+const browser = await chromium.launch({
+  headless: true,
+  args: ['--no-sandbox', '--disable-dev-shm-usage'],
+  executablePath: '/home/sridhar/.cache/ms-playwright/chromium_headless_shell-1208/chrome-linux/headless_shell',
+});
+const page = await browser.newPage();
+
+await page.goto('${url.replace(/'/g, "\\'")}', { waitUntil: 'domcontentloaded' });
+const result = await page.evaluate(function() {
+  ${jsCode}
+});
+
+console.log(JSON.stringify({
+  success: true,
+  result: typeof result === 'object' ? JSON.stringify(result) : String(result)
+}));
+
+await browser.close();
+`;
+    const result = await runPlaywright(script);
+    const data = JSON.parse(result.trim());
+    return {
+      success: true,
+      content: `JS Result: ${data.result}`
+    };
+  } catch (e) {
+    return { success: false, content: "", error: e.message };
+  }
+}
+async function browser_extract(url, selectors) {
+  try {
+    const selectorsJson = JSON.stringify(selectors).replace(/'/g, "\\'");
+    const script = `
+import { chromium } from 'playwright';
+
+const browser = await chromium.launch({
+  headless: true,
+  args: ['--no-sandbox', '--disable-dev-shm-usage'],
+  executablePath: '/home/sridhar/.cache/ms-playwright/chromium_headless_shell-1208/chrome-linux/headless_shell',
+});
+const page = await browser.newPage();
+
+await page.goto('${url.replace(/'/g, "\\'")}', { waitUntil: 'domcontentloaded' });
+
+const selectors = ${selectorsJson};
+const extracted = {};
+
+for (const [key, selector] of Object.entries(selectors)) {
+  try {
+    const elements = await page.locator(selector).all();
+    if (elements.length === 1) {
+      extracted[key] = await elements[0].textContent() || '';
+    } else if (elements.length > 1) {
+      extracted[key] = await Promise.all(elements.map(e => e.textContent()));
+    }
+  } catch (e) {
+    extracted[key] = 'NOT FOUND';
+  }
+}
+
+console.log(JSON.stringify({ success: true, extracted, url: page.url() }));
+await browser.close();
+`;
+    const result = await runPlaywright(script);
+    const data = JSON.parse(result.trim());
+    return {
+      success: true,
+      content: JSON.stringify(data.extracted, null, 2),
+      url: data.url
+    };
+  } catch (e) {
+    return { success: false, content: "", error: e.message };
+  }
+}
+async function browser_health() {
+  try {
+    const script = `
+import { chromium } from 'playwright';
+const browser = await chromium.launch({
+  headless: true,
+  args: ['--no-sandbox', '--disable-dev-shm-usage'],
+  executablePath: '/home/sridhar/.cache/ms-playwright/chromium_headless_shell-1208/chrome-linux/headless_shell',
+});
+await browser.close();
+console.log(JSON.stringify({ success: true }));
+`;
+    await runPlaywright(script);
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+}
+
 // src/engi/indexer.ts
 import * as fs from "fs";
 import * as fsPromises from "fs/promises";
@@ -26201,9 +26494,9 @@ var tools = [
         if (!url2) {
           return { success: false, content: "", error: "Provide url or search parameter" };
         }
-        const { execSync: execSync4 } = await import("node:child_process");
+        const { execSync: execSync5 } = await import("node:child_process");
         const opener = process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
-        execSync4(`${opener} "${url2}"`, { stdio: "ignore" });
+        execSync5(`${opener} "${url2}"`, { stdio: "ignore" });
         return { success: true, content: `Opened in browser: ${url2}` };
       } catch (e) {
         return { success: false, content: "", error: e.message };
@@ -26590,7 +26883,7 @@ var tools = [
       required: ["command"]
     },
     async execute(args) {
-      const { execSync: execSync4, spawn: spawn3 } = await import("node:child_process");
+      const { execSync: execSync5, spawn: spawn3 } = await import("node:child_process");
       const cmd = args.command;
       const workingDir = args.cwd || process.cwd();
       const timeout = args.timeout || 30;
@@ -26630,14 +26923,14 @@ To execute dangerous commands, run directly in your terminal.` };
         }
         let output;
         if (isWin) {
-          output = execSync4(`cmd.exe /c ${cmd}`, {
+          output = execSync5(`cmd.exe /c ${cmd}`, {
             encoding: "utf-8",
             timeout: timeout * 1000,
             cwd: workingDir,
             maxBuffer: 10485760
           });
         } else {
-          output = execSync4(`/bin/bash -c ${JSON.stringify(cmd)}`, {
+          output = execSync5(`/bin/bash -c ${JSON.stringify(cmd)}`, {
             encoding: "utf-8",
             timeout: timeout * 1000,
             cwd: workingDir,
@@ -26936,6 +27229,121 @@ ${lines.join(`
       }
     }
   },
+  {
+    name: "browser_navigate",
+    description: "Navigate to URL with headless browser. Returns full page HTML after DOM ready. Supports waitForSelector for dynamic content.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        url: { type: "string", description: "URL to navigate to" },
+        waitForSelector: { type: "string", description: "CSS selector to wait for before returning" },
+        timeout: { type: "integer", description: "Timeout in ms (default: 15000)" }
+      },
+      required: ["url"]
+    },
+    async execute(args) {
+      const result = await browser_navigate(args.url, args.waitForSelector, args.timeout || 15000);
+      return { success: result.success, content: result.content, error: result.error, url: result.url, title: result.title };
+    }
+  },
+  {
+    name: "browser_screenshot",
+    description: "Take screenshot of page or element. Returns base64 PNG if screenshot captured.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        url: { type: "string", description: "URL to screenshot" },
+        selector: { type: "string", description: "CSS selector for element screenshot (optional)" },
+        fullPage: { type: "boolean", description: "Screenshot entire page (default: false)" }
+      },
+      required: ["url"]
+    },
+    async execute(args) {
+      const result = await browser_screenshot(args.url, args.selector, args.fullPage || false);
+      return {
+        success: result.success,
+        content: result.content || "",
+        screenshot: result.screenshot,
+        error: result.error
+      };
+    }
+  },
+  {
+    name: "browser_click",
+    description: "Click element and optionally wait for navigation.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        url: { type: "string", description: "URL to navigate to first" },
+        selector: { type: "string", description: "CSS selector of element to click" },
+        waitForNavigation: { type: "boolean", description: "Wait for page navigation after click (default: true)" }
+      },
+      required: ["url", "selector"]
+    },
+    async execute(args) {
+      const result = await browser_click(args.url, args.selector, args.waitForNavigation !== false);
+      return { success: result.success, content: result.content, error: result.error, url: result.url };
+    }
+  },
+  {
+    name: "browser_type",
+    description: "Type text into input field and optionally submit.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        url: { type: "string", description: "URL to navigate to first" },
+        selector: { type: "string", description: "CSS selector of input field" },
+        text: { type: "string", description: "Text to type" },
+        submit: { type: "boolean", description: "Click after typing (default: false)" }
+      },
+      required: ["url", "selector", "text"]
+    },
+    async execute(args) {
+      const result = await browser_type(args.url, args.selector, args.text, args.submit || false);
+      return { success: result.success, content: result.content, error: result.error, url: result.url };
+    }
+  },
+  {
+    name: "browser_evaluate",
+    description: "Run JavaScript in browser context. Useful for extracting dynamic data.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        url: { type: "string", description: "URL to navigate to" },
+        code: { type: "string", description: "JavaScript code to execute (function body, no function keyword needed)" }
+      },
+      required: ["url", "code"]
+    },
+    async execute(args) {
+      const result = await browser_evaluate(args.url, args.code);
+      return { success: result.success, content: result.content, error: result.error };
+    }
+  },
+  {
+    name: "browser_extract",
+    description: "Extract multiple elements by CSS selectors in one go. Returns JSON with all extracted values.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        url: { type: "string", description: "URL to navigate to" },
+        selectors: { type: "object", description: "Key-value pairs: field name -> CSS selector", additionalProperties: { type: "string" } }
+      },
+      required: ["url", "selectors"]
+    },
+    async execute(args) {
+      const result = await browser_extract(args.url, args.selectors);
+      return { success: result.success, content: result.content, error: result.error, url: result.url };
+    }
+  },
+  {
+    name: "browser_health",
+    description: "Check if Playwright/headless browser is available.",
+    inputSchema: { type: "object", properties: {} },
+    async execute() {
+      const result = await browser_health();
+      return { success: result.success, content: result.success ? "Playwright browser: OK" : "Playwright browser: unavailable", error: result.error };
+    }
+  },
   ...engiTools
 ];
 function getTool(name) {
@@ -27122,7 +27530,7 @@ function buildHunks(oldLines, newLines, changes, contextLines) {
 import { spawn as spawn3 } from "node:child_process";
 import { tmpdir as tmpdir3 } from "node:os";
 import { resolve as resolve3 } from "node:path";
-import { existsSync as existsSync5, readFileSync as readFileSync4, writeFileSync as writeFileSync5, unlinkSync as unlinkSync3, mkdtempSync } from "node:fs";
+import { existsSync as existsSync6, readFileSync as readFileSync4, writeFileSync as writeFileSync6, unlinkSync as unlinkSync3, mkdtempSync } from "node:fs";
 function getEditor() {
   return process.env.BEAST_EDITOR || process.env.VISUAL || process.env.EDITOR || "vim";
 }
@@ -27142,7 +27550,7 @@ async function reviewPatch(patch, originalFile) {
 # +++ Modified
 ${patch}
 `;
-  writeFileSync5(patchFile, content, "utf-8");
+  writeFileSync6(patchFile, content, "utf-8");
   return new Promise((resolve4) => {
     const editor = getEditor();
     const { program, args } = parseEditorCommand(editor);
@@ -27159,11 +27567,11 @@ ${patch}
 }
 
 // src/approval/index.ts
-import { readFileSync as readFileSync5, existsSync as existsSync6 } from "node:fs";
+import { readFileSync as readFileSync5, existsSync as existsSync7 } from "node:fs";
 import readline from "node:readline";
 function getOldContent(path4) {
   try {
-    if (!existsSync6(path4))
+    if (!existsSync7(path4))
       return null;
     return readFileSync5(path4, "utf-8");
   } catch {
@@ -27545,7 +27953,7 @@ function isCloudProvider(provider) {
 var DEFAULT_MODEL = {
   anthropic: "claude-sonnet-4-20250514",
   openai: "gpt-5.4",
-  openrouter: "qwen/qwen3-32b",
+  openrouter: "qwen/qwen3-8b",
   deepseek: "deepseek-chat",
   groq: "llama-3.3-70b-versatile",
   mistral: "mistral-large-latest",
@@ -27600,10 +28008,11 @@ var CLOUD_MODELS = {
     "qwen/qwen3-32b",
     "qwen/qwen3-14b",
     "qwen/qwen3-8b",
+    "qwen/qwq-32b",
     "openrouter/auto",
-    "anthropic/claude-3-opus",
-    "openai/gpt-4o",
-    "google/gemini-pro-1.5",
+    "meta-llama/llama-3.1-8b-instruct",
+    "anthropic/claude-3-haiku",
+    "google/gemini-2.0-flash-exp",
     "deepseek/deepseek-chat"
   ],
   deepseek: [
@@ -27769,10 +28178,10 @@ var CODEX_MODELS = [
 
 // src/config/index.ts
 init_platform2();
-import { readFileSync as readFileSync7, existsSync as existsSync8, writeFileSync as writeFileSync7, mkdirSync as mkdirSync3 } from "node:fs";
-import { resolve as resolve5, dirname as dirname2, join as join7 } from "node:path";
+import { readFileSync as readFileSync7, existsSync as existsSync9, writeFileSync as writeFileSync8, mkdirSync as mkdirSync4 } from "node:fs";
+import { resolve as resolve5, dirname as dirname2, join as join8 } from "node:path";
 function getConfigDir() {
-  return join7(getHomeDir(), ".beast-cli");
+  return join8(getHomeDir(), ".beast-cli");
 }
 function getConfigPath() {
   return resolve5(getConfigDir(), "session.json");
@@ -27780,9 +28189,9 @@ function getConfigPath() {
 function saveSession(config) {
   try {
     const dir = getConfigDir();
-    if (!existsSync8(dir))
-      mkdirSync3(dir, { recursive: true });
-    writeFileSync7(getConfigPath(), JSON.stringify(config, null, 2), "utf-8");
+    if (!existsSync9(dir))
+      mkdirSync4(dir, { recursive: true });
+    writeFileSync8(getConfigPath(), JSON.stringify(config, null, 2), "utf-8");
   } catch (error) {
     console.warn("Failed to save session config:", error);
   }
@@ -27790,7 +28199,7 @@ function saveSession(config) {
 function loadSession() {
   try {
     const path4 = getConfigPath();
-    if (!existsSync8(path4))
+    if (!existsSync9(path4))
       return null;
     const data = JSON.parse(readFileSync7(path4, "utf-8"));
     if (!data.provider || !data.model || !data.contextSize || !data.contextMax) {

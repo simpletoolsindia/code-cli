@@ -753,7 +753,16 @@ async function createOpenRouterProvider(config: LLMConfig): Promise<LLMProvider>
 
   return {
     name: 'openrouter',
-    models: ['openai/gpt-4o', 'anthropic/claude-3.5-sonnet', 'google/gemini-pro', 'meta-llama/llama-3-70b-instruct'],
+    models: [
+      'qwen/qwen3-32b',
+      'qwen/qwen3-14b',
+      'qwen/qwen3-8b',
+      'qwen/qwq-32b',
+      'openrouter/auto',
+      'meta-llama/llama-3.1-8b-instruct',
+      'google/gemini-2.0-flash-exp',
+      'deepseek/deepseek-chat',
+    ],
     apiFormat: 'openrouter',
 
     async create(request: LLMRequest): Promise<LLMResponse> {
