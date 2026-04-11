@@ -1106,6 +1106,77 @@ const TOOL_ALIASES: Record<string, string> = {
   'goto': 'browser_navigate',
 }
 
+// ── Argument Transforms ────────────────────────────────────────────────────
+// Transform arguments when aliasing tools with different parameter formats
+
+interface ArgTransform {
+  from: string   // original parameter name
+  to: string     // target parameter name
+  transform: (val: unknown) => unknown  // optional value transformation
+}
+
+const ARG_TRANSFORMS: Record<string, ArgTransform[]> = {
+  // google:search uses queries: ["query"] but searxng_search uses query: "query"
+  'searxng_search': [
+    { from: 'queries', to: 'query', transform: (v) => Array.isArray(v) ? v[0] : v },
+    { from: 'searchQuery', to: 'query', transform: (v) => v },
+    { from: 'queryString', to: 'query', transform: (v) => v },
+    { from: 'q', to: 'query', transform: (v) => v },
+  ],
+  // fetch_web_content uses url but other tools might use link or href
+  'fetch_web_content': [
+    { from: 'url', to: 'url', transform: (v) => v },
+    { from: 'link', to: 'url', transform: (v) => v },
+    { from: 'href', to: 'url', transform: (v) => v },
+    { from: 'pageUrl', to: 'url', transform: (v) => v },
+  ],
+}
+
+/**
+ * Transform arguments based on the target tool name
+ * Handles parameter name differences between aliases
+ */
+function transformArgs(originalName: string, targetTool: string, args: Record<string, unknown>): Record<string, unknown> {
+  const transforms = ARG_TRANSFORMS[targetTool]
+  if (!transforms) return args
+
+  const result = { ...args }
+
+  for (const t of transforms) {
+    if (result[t.from] !== undefined) {
+      // Rename the key and apply transformation
+      const value = result[t.from]
+      delete result[t.from]
+      result[t.to] = t.transform(value)
+    }
+  }
+
+  return result
+}
+
+/**
+ * Get the original tool name that was aliased
+ */
+function getOriginalAlias(name: string): string | undefined {
+  if (TOOL_ALIASES[name]) return name
+
+  const lowerName = name.toLowerCase()
+  for (const [alias, canonical] of Object.entries(TOOL_ALIASES)) {
+    if (alias.toLowerCase() === lowerName) {
+      return alias
+    }
+  }
+
+  // Check partial match
+  for (const [alias, canonical] of Object.entries(TOOL_ALIASES)) {
+    if (lowerName.includes(alias.toLowerCase())) {
+      return alias
+    }
+  }
+
+  return undefined
+}
+
 /**
  * Normalize a tool name by checking aliases
  * Returns the canonical tool name if found, otherwise returns original
@@ -1166,13 +1237,22 @@ export async function executeTool(
   name: string,
   args: Record<string, unknown>
 ): Promise<ToolResult> {
+  const normalizedName = normalizeToolName(name)
   const tool = getTool(name)
+
   if (!tool) {
+    // Tool not found even after normalization
     return { success: false, content: '', error: `Unknown tool: ${name}` }
   }
 
+  // Transform arguments if this is an aliased tool
+  const originalAlias = getOriginalAlias(name)
+  const transformedArgs = originalAlias
+    ? transformArgs(originalAlias, normalizedName, args)
+    : args
+
   try {
-    return await tool.execute(args)
+    return await tool.execute(transformedArgs)
   } catch (e: any) {
     return { success: false, content: '', error: e.message }
   }

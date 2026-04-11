@@ -27425,6 +27425,50 @@ var TOOL_ALIASES = {
   visit: "browser_navigate",
   goto: "browser_navigate"
 };
+var ARG_TRANSFORMS = {
+  searxng_search: [
+    { from: "queries", to: "query", transform: (v) => Array.isArray(v) ? v[0] : v },
+    { from: "searchQuery", to: "query", transform: (v) => v },
+    { from: "queryString", to: "query", transform: (v) => v },
+    { from: "q", to: "query", transform: (v) => v }
+  ],
+  fetch_web_content: [
+    { from: "url", to: "url", transform: (v) => v },
+    { from: "link", to: "url", transform: (v) => v },
+    { from: "href", to: "url", transform: (v) => v },
+    { from: "pageUrl", to: "url", transform: (v) => v }
+  ]
+};
+function transformArgs(originalName, targetTool, args) {
+  const transforms = ARG_TRANSFORMS[targetTool];
+  if (!transforms)
+    return args;
+  const result = { ...args };
+  for (const t of transforms) {
+    if (result[t.from] !== undefined) {
+      const value = result[t.from];
+      delete result[t.from];
+      result[t.to] = t.transform(value);
+    }
+  }
+  return result;
+}
+function getOriginalAlias(name) {
+  if (TOOL_ALIASES[name])
+    return name;
+  const lowerName = name.toLowerCase();
+  for (const [alias, canonical] of Object.entries(TOOL_ALIASES)) {
+    if (alias.toLowerCase() === lowerName) {
+      return alias;
+    }
+  }
+  for (const [alias, canonical] of Object.entries(TOOL_ALIASES)) {
+    if (lowerName.includes(alias.toLowerCase())) {
+      return alias;
+    }
+  }
+  return;
+}
 function normalizeToolName(name) {
   if (TOOL_ALIASES[name]) {
     return TOOL_ALIASES[name];
@@ -27458,12 +27502,15 @@ function getTool(name) {
   return tools.find((t) => t.name === normalized);
 }
 async function executeTool(name, args) {
+  const normalizedName = normalizeToolName(name);
   const tool = getTool(name);
   if (!tool) {
     return { success: false, content: "", error: `Unknown tool: ${name}` };
   }
+  const originalAlias = getOriginalAlias(name);
+  const transformedArgs = originalAlias ? transformArgs(originalAlias, normalizedName, args) : args;
   try {
-    return await tool.execute(args);
+    return await tool.execute(transformedArgs);
   } catch (e) {
     return { success: false, content: "", error: e.message };
   }
@@ -29046,7 +29093,30 @@ Cancelled.`);
       "bse",
       "nse",
       "share",
-      "trading"
+      "trading",
+      "minister",
+      "minister of",
+      "cabinet",
+      "cm",
+      "chief minister",
+      "governor",
+      "mla",
+      "mp",
+      "parliament",
+      "legislative",
+      "election result",
+      "election results",
+      "vote",
+      "voting",
+      "who is",
+      "who was",
+      "who are",
+      "current",
+      "latest",
+      "appointed",
+      "resigned",
+      "elected",
+      "incumbent"
     ];
     function looksLikeRealTimeQuery(query) {
       const lower = query.toLowerCase();
@@ -29057,9 +29127,12 @@ Cancelled.`);
       const noDataPhrases = [
         "don't have access",
         "do not have access",
+        "not have real-time",
         "no real-time",
         "not have real-time",
         "don't have real-time",
+        "do not have real-time",
+        "do not have current",
         "cannot provide",
         "cannot give",
         "cannot tell",
@@ -29083,7 +29156,13 @@ Cancelled.`);
         "i can't",
         "not have access to",
         "do not have",
-        "don't have the"
+        "don't have the",
+        "do not have the",
+        "don't have any",
+        "do not have any",
+        "do not have information",
+        "don't have information",
+        "don't have up-to-date"
       ];
       return noDataPhrases.some((phrase) => lower.includes(phrase));
     }

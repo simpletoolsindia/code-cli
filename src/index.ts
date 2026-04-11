@@ -812,6 +812,12 @@ Commands:
       'score', 'match', 'result', 'election', 'government', 'policy',
       'commodity', 'bitcoin', 'crypto', 'forex', 'sensex', 'nifty',
       'bse', 'nse', 'share', 'trading',
+      // Political/government queries
+      'minister', 'minister of', 'cabinet', 'cm', 'chief minister',
+      'governor', 'mla', 'mp', 'parliament', 'legislative',
+      'election result', 'election results', 'vote', 'voting',
+      'who is', 'who was', 'who are', 'current', 'latest',
+      'appointed', 'resigned', 'elected', 'incumbent',
     ]
 
     function looksLikeRealTimeQuery(query: string): boolean {
@@ -822,8 +828,9 @@ Commands:
     function isApologyOrNoAccess(response: string): boolean {
       const lower = response.toLowerCase()
       const noDataPhrases = [
-        "don't have access", "do not have access",
+        "don't have access", "do not have access", "not have real-time",
         "no real-time", "not have real-time", "don't have real-time",
+        "do not have real-time", "do not have current",
         "cannot provide", "cannot give", "cannot tell", "can't provide", "can't give", "can't tell",
         "can't access", "cannot access",
         "don't have current", "no up-to-date", "don't have up-to-date",
@@ -831,7 +838,9 @@ Commands:
         "don't have browsing", "no browsing ability",
         "only have knowledge", "training data", "my knowledge",
         "i don't have", "i cannot", "i can't", "not have access to",
-        "do not have", "don't have the",
+        "do not have", "don't have the", "do not have the",
+        "don't have any", "do not have any", "do not have information",
+        "don't have information", "don't have up-to-date",
       ]
       return noDataPhrases.some(phrase => lower.includes(phrase))
     }
