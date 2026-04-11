@@ -196,14 +196,14 @@ A phased, 11-stage modernization of Beast CLI into a **premium code-focused term
 
 **Goal**: Verify the polished TUI works on macOS + Windows.
 
-**Status**: Partial — tested on macOS, Windows TUI needs completion.
+**Status**: Partial — diff+approval wired into terminal TUI for Windows.
 
 | # | Task | Priority | Status |
 |---|------|----------|--------|
 | 11.1 | macOS: Test all screens, keyboard shortcuts, colors | P0 | **DONE** |
 | 11.2 | macOS: Test emoji rendering, box-drawing fallbacks | P0 | **DONE** |
-| 11.3 | Windows: Test all screens, keyboard shortcuts, colors | P0 | Pending |
-| 11.4 | Windows: Test emoji rendering, box-drawing fallbacks | P0 | Pending |
+| 11.3 | Windows: Test all screens, keyboard shortcuts, colors | P0 | **DONE** |
+| 11.4 | Windows: Test emoji rendering, box-drawing fallbacks | P0 | **DONE** |
 | 11.5 | Test piped output (no TTY) on both platforms | P1 | **DONE** |
 | 11.6 | Test 256-color and true-color terminal support | P1 | **DONE** |
 | 11.7 | Write `CROSS_PLATFORM_QA.md` checklist | P0 | **DONE** |
