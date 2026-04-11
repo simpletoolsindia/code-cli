@@ -39831,8 +39831,8 @@ var ALL_TIPS = [
   { cmd: "/agents", tip: "Manage custom agents \u2014 create, use, delete, or info", category: "command" },
   { cmd: "/models", tip: "List all available models for your current provider", category: "command" },
   { cmd: "/switch", tip: "Reconfigure provider, model, and context size interactively", category: "command" },
-  { cmd: "/login", tip: "Authenticate with ChatGPT Plus OAuth for free access", category: "command" },
-  { cmd: "/logout", tip: "Clear ChatGPT Plus authentication", category: "command" },
+  { cmd: "/login", tip: "Authenticate with ChatGPT Plus OAuth for API access", category: "command" },
+  { cmd: "/logout", tip: "Clear OAuth authentication tokens", category: "command" },
   { cmd: "/provider", tip: "Switch to a different LLM provider interactively", category: "command" },
   { cmd: "Tab", tip: "Auto-complete slash commands and agent names", category: "command" },
   { cmd: "Up / Down", tip: "Navigate through your command history", category: "command" },
@@ -51153,8 +51153,93 @@ ${lines.join("\n")}` };
   },
   ...engiTools
 ];
+var TOOL_ALIASES = {
+  // File system aliases
+  "fs.ls": "file_list",
+  "fs.read": "file_read",
+  "fs.write": "file_write",
+  "fs.search": "file_search",
+  "fs.grep": "file_grep",
+  "fs.glob": "file_glob",
+  "read_file": "file_read",
+  "readFile": "file_read",
+  "write_file": "file_write",
+  "writeFile": "file_write",
+  "list_files": "file_list",
+  "listFiles": "file_list",
+  "list_directory": "file_list",
+  "read_directory": "file_list",
+  "ls_dir": "file_list",
+  "search_files": "file_search",
+  "grep_files": "file_grep",
+  "glob_files": "file_glob",
+  "cat": "file_read",
+  // Web search aliases
+  "google:search": "searxng_search",
+  "google_search": "searxng_search",
+  "web_search": "searxng_search",
+  "search": "searxng_search",
+  "bing_search": "searxng_search",
+  "duckduckgo": "searxng_search",
+  "ddg": "searxng_search",
+  "fetch_url": "fetch_web_content",
+  "fetchWeb": "fetch_web_content",
+  "scrape": "fetch_web_content",
+  "web_fetch": "fetch_web_content",
+  // GitHub aliases
+  "github:search": "github_search_repos",
+  "github_search": "github_search_repos",
+  "search_repos": "github_search_repos",
+  "list_issues": "github_issues",
+  "list_commits": "github_commits",
+  // YouTube aliases
+  "youtube:transcript": "youtube_transcript",
+  "youtube:search": "youtube_search",
+  "yt_transcript": "youtube_transcript",
+  "yt_search": "youtube_search",
+  // HackerNews aliases
+  "hackernews:top": "hackernews_top",
+  "hackernews:new": "hackernews_new",
+  "hackernews:best": "hackernews_best",
+  "hn_top": "hackernews_top",
+  "hn_new": "hackernews_new",
+  "hn_best": "hackernews_best",
+  // Code execution aliases
+  "bash": "run_command",
+  "shell": "run_command",
+  "exec": "run_command",
+  "run_bash": "run_command",
+  "run_shell": "run_command",
+  "python": "run_python_snippet",
+  "run_py": "run_python_snippet",
+  // Browser aliases
+  "browser:navigate": "browser_navigate",
+  "browser:screenshot": "browser_screenshot",
+  "browser:click": "browser_click",
+  "open_url": "open_in_browser",
+  "visit": "browser_navigate",
+  "goto": "browser_navigate"
+};
+function normalizeToolName(name) {
+  if (TOOL_ALIASES[name]) {
+    return TOOL_ALIASES[name];
+  }
+  const lowerName = name.toLowerCase();
+  for (const [alias, canonical] of Object.entries(TOOL_ALIASES)) {
+    if (alias.toLowerCase() === lowerName) {
+      return canonical;
+    }
+  }
+  for (const [alias, canonical] of Object.entries(TOOL_ALIASES)) {
+    if (lowerName.includes(alias.toLowerCase())) {
+      return canonical;
+    }
+  }
+  return name;
+}
 function getTool(name) {
-  return tools.find((t2) => t2.name === name);
+  const normalized = normalizeToolName(name);
+  return tools.find((t2) => t2.name === normalized);
 }
 async function executeTool(name, args) {
   const tool = getTool(name);
