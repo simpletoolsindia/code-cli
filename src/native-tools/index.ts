@@ -1048,11 +1048,16 @@ const TOOL_ALIASES: Record<string, string> = {
   'glob_files': 'file_glob',
   'cat': 'file_read',
 
-  // Web search aliases
+  // Web search aliases (comprehensive)
   'google:search': 'searxng_search',
   'google_search': 'searxng_search',
+  'search_google': 'searxng_search',
+  'googleWebSearch': 'searxng_search',
   'web_search': 'searxng_search',
+  'search_web': 'searxng_search',
+  'websearch': 'searxng_search',
   'search': 'searxng_search',
+  'search_the_web': 'searxng_search',
   'bing_search': 'searxng_search',
   'duckduckgo': 'searxng_search',
   'ddg': 'searxng_search',
@@ -1060,6 +1065,7 @@ const TOOL_ALIASES: Record<string, string> = {
   'fetchWeb': 'fetch_web_content',
   'scrape': 'fetch_web_content',
   'web_fetch': 'fetch_web_content',
+  'fetch_url_content': 'fetch_web_content',
 
   // GitHub aliases
   'github:search': 'github_search_repos',
@@ -1110,7 +1116,7 @@ export function normalizeToolName(name: string): string {
     return TOOL_ALIASES[name]
   }
 
-  // Try case-insensitive match
+  // Try case-insensitive exact match
   const lowerName = name.toLowerCase()
   for (const [alias, canonical] of Object.entries(TOOL_ALIASES)) {
     if (alias.toLowerCase() === lowerName) {
@@ -1118,10 +1124,23 @@ export function normalizeToolName(name: string): string {
     }
   }
 
-  // Try partial match (e.g., "google_search_something" → "searxng_search")
+  // Try partial match - check if alias is contained in name
   for (const [alias, canonical] of Object.entries(TOOL_ALIASES)) {
     if (lowerName.includes(alias.toLowerCase())) {
       return canonical
+    }
+  }
+
+  // Try fuzzy match - for names like "google:search" split by : or _
+  const parts = name.split(/[:_\-.]/)
+  for (const part of parts) {
+    if (part && TOOL_ALIASES[part]) {
+      return TOOL_ALIASES[part]
+    }
+    for (const [alias, canonical] of Object.entries(TOOL_ALIASES)) {
+      if (alias.toLowerCase() === part.toLowerCase()) {
+        return canonical
+      }
     }
   }
 

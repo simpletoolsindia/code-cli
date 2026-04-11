@@ -1366,6 +1366,22 @@ function supportsUnicode() {
     return true;
   if (!process.stdout?.isTTY)
     return false;
+  if (process.platform === "win32") {
+    const termProgram2 = process.env.TERM_PROGRAM || "";
+    if (termProgram2.includes("Windows-Terminal")) {
+      return true;
+    }
+    if (termProgram2.includes("vscode")) {
+      return true;
+    }
+    try {
+      const { execSync: execSync2 } = __require("child_process");
+      const codepage = execSync2("chcp", { encoding: "ascii" }).toString().trim();
+      if (codepage.includes("65001"))
+        return true;
+    } catch {}
+    return false;
+  }
   const encoding = process.stdout?.encoding?.() || process.stdout?.encoding || "";
   if (encoding.toLowerCase() === "utf8" || encoding.toLowerCase() === "utf-8")
     return true;
@@ -27365,8 +27381,13 @@ var TOOL_ALIASES = {
   cat: "file_read",
   "google:search": "searxng_search",
   google_search: "searxng_search",
+  search_google: "searxng_search",
+  googleWebSearch: "searxng_search",
   web_search: "searxng_search",
+  search_web: "searxng_search",
+  websearch: "searxng_search",
   search: "searxng_search",
+  search_the_web: "searxng_search",
   bing_search: "searxng_search",
   duckduckgo: "searxng_search",
   ddg: "searxng_search",
@@ -27374,6 +27395,7 @@ var TOOL_ALIASES = {
   fetchWeb: "fetch_web_content",
   scrape: "fetch_web_content",
   web_fetch: "fetch_web_content",
+  fetch_url_content: "fetch_web_content",
   "github:search": "github_search_repos",
   github_search: "github_search_repos",
   search_repos: "github_search_repos",
@@ -27416,6 +27438,17 @@ function normalizeToolName(name) {
   for (const [alias, canonical] of Object.entries(TOOL_ALIASES)) {
     if (lowerName.includes(alias.toLowerCase())) {
       return canonical;
+    }
+  }
+  const parts = name.split(/[:_\-.]/);
+  for (const part of parts) {
+    if (part && TOOL_ALIASES[part]) {
+      return TOOL_ALIASES[part];
+    }
+    for (const [alias, canonical] of Object.entries(TOOL_ALIASES)) {
+      if (alias.toLowerCase() === part.toLowerCase()) {
+        return canonical;
+      }
     }
   }
   return name;

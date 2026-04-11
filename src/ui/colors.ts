@@ -174,7 +174,30 @@ export function supportsUnicode(): boolean {
   // Critical: Non-TTY (piped/redirected output) should use ASCII to avoid encoding issues
   if (!process.stdout?.isTTY) return false
 
-  // At this point we're in a TTY, check actual terminal capabilities
+  // Windows: Default to ASCII unless we can confirm UTF-8
+  if (process.platform === 'win32') {
+    // Windows Terminal and VS Code Integrated Terminal support UTF-8
+    const termProgram = process.env.TERM_PROGRAM || ''
+    if (termProgram.includes('Windows-Terminal')) {
+      return true
+    }
+    // VS Code on Windows uses UTF-8
+    if (termProgram.includes('vscode')) {
+      return true
+    }
+    // Check Windows console code page - 65001 = UTF-8
+    try {
+      const { execSync } = require('child_process')
+      const codepage = execSync('chcp', { encoding: 'ascii' }).toString().trim()
+      if (codepage.includes('65001')) return true
+    } catch {
+      // ignore
+    }
+    // Default to ASCII on Windows (safe fallback)
+    return false
+  }
+
+  // macOS and Linux: Most terminals support Unicode
   // Check actual terminal encoding on stdout
   const encoding = (process.stdout as any)?.encoding?.() || process.stdout?.encoding || ''
   if (encoding.toLowerCase() === 'utf8' || encoding.toLowerCase() === 'utf-8') return true
