@@ -28638,7 +28638,17 @@ Cancelled.`);
       "result",
       "election",
       "government",
-      "policy"
+      "policy",
+      "commodity",
+      "bitcoin",
+      "crypto",
+      "forex",
+      "sensex",
+      "nifty",
+      "bse",
+      "nse",
+      "share",
+      "trading"
     ];
     function looksLikeRealTimeQuery(query) {
       const lower = query.toLowerCase();
@@ -28652,6 +28662,12 @@ Cancelled.`);
         "no real-time",
         "not have real-time",
         "don't have real-time",
+        "cannot provide",
+        "cannot give",
+        "cannot tell",
+        "can't provide",
+        "can't give",
+        "can't tell",
         "can't access",
         "cannot access",
         "don't have current",
@@ -28663,7 +28679,13 @@ Cancelled.`);
         "no browsing ability",
         "only have knowledge",
         "training data",
-        "my knowledge"
+        "my knowledge",
+        "i don't have",
+        "i cannot",
+        "i can't",
+        "not have access to",
+        "do not have",
+        "don't have the"
       ];
       return noDataPhrases.some((phrase) => lower.includes(phrase));
     }
@@ -28677,7 +28699,7 @@ Cancelled.`);
     if (nativeTools.length > 0) {
       agentMessages.unshift({
         role: "system",
-        content: `You have access to ${nativeTools.length} native tools. Use them to get real-time data, search the web, read/write files, run code, fetch content, etc. Available tools: ${nativeTools.map((t) => `${t.name}: ${t.description ?? "no description"}`).join(", ")}`
+        content: `You have access to ${nativeTools.length} native tools. IMPORTANT: Always use web search tools (searxng_search) for real-time queries like prices, weather, news, current events, sports scores, stock rates, gold rates, etc. Available tools: ${nativeTools.map((t) => `${t.name}: ${t.description ?? "no description"}`).join(", ")}`
       });
     }
     const agentCtx = parseAgentContext(trimmed);

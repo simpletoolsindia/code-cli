@@ -810,6 +810,8 @@ Commands:
       'latest', 'now', 'recent', 'gold', 'silver', 'petrol', 'dollar',
       'rupee', 'inflation', 'gdp', 'stock', 'market', 'trending',
       'score', 'match', 'result', 'election', 'government', 'policy',
+      'commodity', 'bitcoin', 'crypto', 'forex', 'sensex', 'nifty',
+      'bse', 'nse', 'share', 'trading',
     ]
 
     function looksLikeRealTimeQuery(query: string): boolean {
@@ -822,11 +824,14 @@ Commands:
       const noDataPhrases = [
         "don't have access", "do not have access",
         "no real-time", "not have real-time", "don't have real-time",
+        "cannot provide", "cannot give", "cannot tell", "can't provide", "can't give", "can't tell",
         "can't access", "cannot access",
         "don't have current", "no up-to-date", "don't have up-to-date",
         "don't know current", "don't have the ability to",
         "don't have browsing", "no browsing ability",
         "only have knowledge", "training data", "my knowledge",
+        "i don't have", "i cannot", "i can't", "not have access to",
+        "do not have", "don't have the",
       ]
       return noDataPhrases.some(phrase => lower.includes(phrase))
     }
@@ -844,7 +849,7 @@ Commands:
     if (nativeTools.length > 0) {
       agentMessages.unshift({
         role: 'system',
-        content: `You have access to ${nativeTools.length} native tools. Use them to get real-time data, search the web, read/write files, run code, fetch content, etc. Available tools: ${nativeTools.map(t => `${t.name}: ${t.description ?? 'no description'}`).join(', ')}`,
+        content: `You have access to ${nativeTools.length} native tools. IMPORTANT: Always use web search tools (searxng_search) for real-time queries like prices, weather, news, current events, sports scores, stock rates, gold rates, etc. Available tools: ${nativeTools.map(t => `${t.name}: ${t.description ?? 'no description'}`).join(', ')}`,
       })
     }
 
