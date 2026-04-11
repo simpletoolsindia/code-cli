@@ -15,10 +15,9 @@ import { beastSpinner } from './ui/beast-loader.ts'
 import { renderCleanBanner } from './ui/banner.ts'
 import { tipBanner, randomTip, contextualTip } from './ui/tips.ts'
 import { Spinner } from './ui/spinner.ts'
+import { isColorEnabled } from './ui/colors.ts'
 import { getFormattedTools, executeTool, getAllTools } from './native-tools/index.ts'
 import { quickApproval, getOldContent } from './approval/index.ts'
-import { generateDiff, formatDiffStats } from './diff/index.ts'
-import { quickApproval, getOldContent, type ApprovalResult } from './approval/index.ts'
 import { generateDiff, formatDiffStats } from './diff/index.ts'
 import { funSpinner, FunSpinner, randomFunFact, thinkingMessage, toolRunningMessage } from './ui/fun-animations.ts'
 import { notifications, playBell, playAlertBeeps, onResponseReady, onWaitingForInput, onError, onTaskComplete, onPermissionRequest, showNotification } from './utils/notifications.ts'
@@ -134,6 +133,13 @@ function formatElapsed(ms: number): string {
 function formatProgressBar(filled: number, width = 12): string {
   const total = width * 4
   const f = Math.round((filled / 100) * total)
+
+  // Fallback to ASCII-only progress bar when colors are disabled
+  if (!isColorEnabled()) {
+    const barLen = Math.round((filled / 100) * width)
+    return '[' + '▓'.repeat(barLen) + '░'.repeat(width - barLen) + ']'
+  }
+
   const bar = fg.success + '█'.repeat(Math.floor(f / 4)) +
     (f % 4 > 0 ? ['░', '▒', '▓', '█'][f % 4] : '') +
     fg.muted + '░'.repeat(width - Math.ceil(f / 4))

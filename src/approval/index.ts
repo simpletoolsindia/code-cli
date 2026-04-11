@@ -183,11 +183,3 @@ export async function batchApproval(
   return results
 }
 
-export default {
-  ApprovalContext,
-  ApprovalResult,
-  getOldContent,
-  formatDiffDisplay,
-  quickApproval,
-  batchApproval,
-}

@@ -180,7 +180,17 @@ const BeastApp: React.FC = () => {
 
 // CLI entry point — render immediately
 if (!process.stdin.isTTY) {
-  console.error('Ink TUI requires a real terminal (TTY). Use --defaults for REPL mode instead.')
+  console.error('')
+  console.error('  !  Ink TUI cannot run in non-interactive mode')
+  console.error('')
+  console.error('  Available alternatives:')
+  console.error('    beast --defaults     - REPL mode with AI chat (recommended)')
+  console.error('    beast                - Interactive REPL mode')
+  console.error('    beast --help         - Show all commands')
+  console.error('    beast --models       - List available models')
+  console.error('')
+  console.error('  Note: TUI requires a real terminal. For SSH, use: ssh -t host "beast"')
+  console.error('')
   process.exit(1)
 }
 

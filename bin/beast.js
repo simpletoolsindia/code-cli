@@ -22485,12 +22485,8 @@ async function promptMode() {
 async function launchUI(mode = "auto") {
   if (process.argv.includes("--tui")) {
     if (isWindows4) {
-      console.log(s2(`
-  Launching Terminal TUI (Windows)...`, fg2.accent));
       await launchTerminal();
     } else {
-      console.log(s2(`
-  Launching Rich TUI...`, fg2.accent));
       await launchInk();
     }
     return;
@@ -27654,65 +27650,6 @@ ${s2("⚠", fg2.warning)} ${s2(ctx.description, fg2.primary)}
     });
   });
 }
-async function batchApproval(files) {
-  const results = new Map;
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  process.stdout.write(`
-${s2("⚠", fg2.warning)} ${files.length} file(s) need approval:
-`);
-  for (const file of files) {
-    let diff = null;
-    if (file.oldContent && file.newContent) {
-      diff = generateDiff(file.oldContent, file.newContent, file.path);
-    }
-    if (diff && diff.additions === 0 && diff.removals === 0) {
-      results.set(file.path, { approved: true, reason: "approved" });
-      continue;
-    }
-    if (diff) {
-      process.stdout.write(formatDiffDisplay(diff, file.path) + `
-`);
-    }
-    process.stdout.write(`${s2("⚠", fg2.warning)} ${file.reason}
-`);
-    process.stdout.write(`  ${s2("[y]", fg2.success)} Approve  ${s2("[n]", fg2.error)} Reject  ${s2("[a]", fg2.warning)} Approve all  ${s2("[q]", fg2.error)} Cancel all
-`);
-    process.stdout.write(`  > `);
-    const answer = await new Promise((r) => rl.question("", (r2) => {
-      r(r2.trim());
-    }));
-    rl.close();
-    const lower = answer.toLowerCase();
-    if (lower === "q") {
-      results.set(file.path, { approved: false, reason: "rejected" });
-      for (const f of files.slice(files.indexOf(file) + 1)) {
-        results.set(f.path, { approved: false, reason: "rejected" });
-      }
-      return results;
-    }
-    if (lower === "a") {
-      results.set(file.path, { approved: true, reason: "approved" });
-      for (const f of files.slice(files.indexOf(file) + 1)) {
-        results.set(f.path, { approved: true, reason: "approved" });
-      }
-      return results;
-    }
-    if (lower === "n") {
-      results.set(file.path, { approved: false, reason: "rejected" });
-    } else {
-      results.set(file.path, { approved: true, reason: "approved", diff: diff ?? undefined });
-    }
-  }
-  return results;
-}
-var approval_default = {
-  ApprovalContext,
-  ApprovalResult,
-  getOldContent,
-  formatDiffDisplay,
-  quickApproval,
-  batchApproval
-};
 
 // src/diff/index.ts
 function generateDiff2(oldContent, newContent, filePath, contextLines = 3) {
@@ -28272,6 +28209,10 @@ function formatElapsed(ms) {
 function formatProgressBar(filled, width = 12) {
   const total = width * 4;
   const f = Math.round(filled / 100 * total);
+  if (!isColorEnabled()) {
+    const barLen = Math.round(filled / 100 * width);
+    return "[" + "\u2593".repeat(barLen) + "\u2591".repeat(width - barLen) + "]";
+  }
   const bar = fg.success + "\u2588".repeat(Math.floor(f / 4)) + (f % 4 > 0 ? ["\u2591", "\u2592", "\u2593", "\u2588"][f % 4] : "") + fg.muted + "\u2591".repeat(width - Math.ceil(f / 4));
   return bar + reset;
 }

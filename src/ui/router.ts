@@ -137,10 +137,8 @@ export async function launchUI(mode: UIMode = 'auto'): Promise<void> {
   // --tui flag → use terminal TUI on Windows, ink on Unix
   if (process.argv.includes('--tui')) {
     if (isWindows) {
-      console.log(s('\n  Launching Terminal TUI (Windows)...', fg.accent))
       await launchTerminal()
     } else {
-      console.log(s('\n  Launching Rich TUI...', fg.accent))
       await launchInk()
     }
     return
