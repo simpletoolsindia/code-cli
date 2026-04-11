@@ -27,6 +27,9 @@ export interface BeastConfig extends BeastSessionConfig {
   // UI settings
   theme?: string
 
+  // SearXNG settings
+  searxUrl?: string
+
   // MCP settings
   mcpServers?: Record<string, {
     type: 'stdio' | 'http'

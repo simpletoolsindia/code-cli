@@ -6,11 +6,13 @@
 # Supports: npm, bun
 # Features:
 #   ✅ Zero-touch installation (no manual actions)
-#   ✅ Auto-install Node.js if missing
+#   ✅ Auto-install Node.js, bun, Python if missing
 #   ✅ Auto-install ffmpeg for TTS audio
 #   ✅ Automatic upgrade
 #   ✅ Config preservation
 #   ✅ TTS enabled by default
+#   ✅ SearXNG URL customization
+#   ✅ Tool health verification
 #   ✅ Cross-platform (macOS, Linux, Windows/WSL)
 #   ✅ Idempotent (safe to run multiple times)
 #
@@ -33,7 +35,10 @@ STATE_DIR="${HOME}/.local/state/beast-cli"
 NPM_GLOBAL="${HOME}/.npm-global"
 BIN_DIR="${NPM_GLOBAL}/bin"
 
-# Colors (disable with NO_COLOR=1)
+# Default SearXNG URL (can be overridden via SEARX_URL env or config)
+DEFAULT_SEARX_URL="${SEARX_URL:-https://search.sridharhomelab.in}"
+
+# ─── Colors ─────────────────────────────────────────────────────────────────
 if [[ -z "${NO_COLOR:-}" ]] && [[ -t 1 ]]; then
     RED='\033[0;31m'
     GREEN='\033[0;32m'
@@ -106,6 +111,8 @@ install_nodejs() {
                 install_cmd="yum install -y nodejs npm"
             elif has_command pacman; then
                 install_cmd="pacman -S nodejs npm"
+            elif has_command apk; then
+                install_cmd="apk add --no-cache nodejs npm"
             fi
             ;;
         macos)
@@ -114,11 +121,8 @@ install_nodejs() {
             fi
             ;;
         windows)
-            if has_command choco; then
-                install_cmd="choco install nodejs -y"
-            elif has_command winget; then
-                install_cmd="winget install OpenJS.NodeJS.LTS"
-            fi
+            log_warn "Windows detected - use install.ps1 for best experience"
+            return 1
             ;;
     esac
 
@@ -132,10 +136,8 @@ install_nodejs() {
             sudo $install_cmd
         elif [[ "$install_cmd" == "brew"* ]]; then
             $install_cmd
-        elif [[ "$install_cmd" == "choco"* ]]; then
-            choco install nodejs -y
-        elif [[ "$install_cmd" == "winget"* ]]; then
-            winget install OpenJS.NodeJS.LTS --accept-package-agreements --accept-source-agreements
+        elif [[ "$install_cmd" == "apk"* ]]; then
+            $install_cmd
         fi
     fi
 
@@ -152,8 +154,133 @@ install_nodejs() {
     else
         log_error "Failed to install Node.js"
         log_info "Please install manually: https://nodejs.org/"
-        exit 1
+        return 1
     fi
+}
+
+# ─── Auto-Install bun ─────────────────────────────────────────────────────────
+install_bun() {
+    log_step "Checking bun..."
+
+    if has_command bun; then
+        log_success "bun $(bun --version) found"
+        return 0
+    fi
+
+    log_info "bun not found. Installing..."
+
+    local os=$(detect_os)
+
+    # Try official installer (works on Linux/macOS)
+    if [[ "$os" == "linux" ]] || [[ "$os" == "macos" ]]; then
+        log_info "Installing bun via official installer..."
+        if curl -fsSL https://bun.sh/install | bash; then
+            # Add bun to PATH for this session
+            export BUN_INSTALL="$HOME/.bun"
+            export PATH="$BUN_INSTALL/bin:$PATH"
+
+            if has_command bun; then
+                log_success "bun $(bun --version) installed"
+                return 0
+            fi
+        fi
+    fi
+
+    # Try npm as fallback
+    if has_command npm; then
+        log_info "Installing bun via npm..."
+        npm install -g bun 2>/dev/null && has_command bun
+        if has_command bun; then
+            log_success "bun $(bun --version) installed via npm"
+            return 0
+        fi
+    fi
+
+    log_warn "Could not install bun - will use npm instead"
+    return 1
+}
+
+# ─── Auto-Install Python ──────────────────────────────────────────────────────
+install_python() {
+    log_step "Checking Python..."
+
+    if has_command python3; then
+        log_success "Python $(python3 --version) found"
+        return 0
+    fi
+
+    if has_command python; then
+        log_success "Python $(python --version) found"
+        return 0
+    fi
+
+    log_info "Python not found. Installing..."
+
+    local os=$(detect_os)
+
+    case "$os" in
+        linux)
+            if has_command apt-get; then
+                sudo apt-get update && sudo apt-get install -y python3 python3-pip
+            elif has_command yum; then
+                sudo yum install -y python3 python3-pip
+            elif has_command pacman; then
+                sudo pacman -S python python-pip
+            elif has_command apk; then
+                apk add --no-cache python3 py3-pip
+            fi
+            ;;
+        macos)
+            if has_command brew; then
+                brew install python
+            fi
+            ;;
+    esac
+
+    if has_command python3 || has_command python; then
+        local python_cmd=$(has_command python3 && echo "python3" || echo "python")
+        log_success "Python installed"
+        # Install required packages
+        install_python_packages
+        return 0
+    fi
+
+    log_warn "Python not installed - some tools may not work"
+    log_info "For full functionality, install from: https://www.python.org/"
+    return 1
+}
+
+# ─── Install Python packages ──────────────────────────────────────────────────
+install_python_packages() {
+    log_step "Installing Python packages..."
+
+    local python_cmd=$(has_command python3 && echo "python3" || echo "python")
+
+    if ! has_command "$python_cmd"; then
+        log_warn "Python not found - skipping package installation"
+        return 1
+    fi
+
+    log_info "Installing requests and beautifulsoup4..."
+
+    if [[ "$python_cmd" == "python3" ]]; then
+        sudo python3 -m pip install requests beautifulsoup4 --quiet 2>/dev/null || \
+        python3 -m pip install requests beautifulsoup4 --user --quiet 2>/dev/null || \
+        pip3 install requests beautifulsoup4 --quiet 2>/dev/null
+    else
+        sudo python -m pip install requests beautifulsoup4 --quiet 2>/dev/null || \
+        python -m pip install requests beautifulsoup4 --user --quiet 2>/dev/null || \
+        pip install requests beautifulsoup4 --quiet 2>/dev/null
+    fi
+
+    # Verify
+    if $python_cmd -c "import requests; from bs4 import BeautifulSoup" 2>/dev/null; then
+        log_success "Python packages installed (requests, beautifulsoup4)"
+        return 0
+    fi
+
+    log_warn "Could not install Python packages - tools may fail without them"
+    return 1
 }
 
 # ─── Auto-Install ffmpeg for TTS ─────────────────────────────────────────────
@@ -177,16 +304,13 @@ install_ffmpeg() {
                 sudo yum install -y ffmpeg
             elif has_command pacman; then
                 sudo pacman -S ffmpeg
+            elif has_command apk; then
+                apk add --no-cache ffmpeg
             fi
             ;;
         macos)
             if has_command brew; then
                 brew install ffmpeg
-            fi
-            ;;
-        windows)
-            if has_command choco; then
-                choco install ffmpeg -y
             fi
             ;;
     esac
@@ -197,6 +321,40 @@ install_ffmpeg() {
         log_warn "ffmpeg not installed - TTS audio may not work"
         log_info "Install manually: https://ffmpeg.org/download.html"
     fi
+}
+
+# ─── Setup SearXNG ────────────────────────────────────────────────────────────
+setup_searxng() {
+    log_step "Configuring SearXNG search..."
+
+    mkdir -p "$CONFIG_DIR"
+
+    local searx_config="${CONFIG_DIR}/searx.json"
+
+    # Check for custom URL in config
+    local custom_url=""
+    if [[ -f "$searx_config" ]]; then
+        custom_url=$(grep -o '"url"[[:space:]]*:[[:space:]]*"[^"]*"' "$searx_config" 2>/dev/null | sed 's/.*"\(.*\)"/\1/' | head -1)
+    fi
+
+    # Fall back to env var or default
+    if [[ -z "$custom_url" ]]; then
+        if [[ -n "${SEARX_URL:-}" ]]; then
+            custom_url="$SEARX_URL"
+        else
+            custom_url="$DEFAULT_SEARX_URL"
+        fi
+    fi
+
+    cat > "$searx_config" << EOF
+{
+  "url": "$custom_url",
+  "enabled": true
+}
+EOF
+
+    log_success "SearXNG configured: $custom_url"
+    log_info "To customize, edit: $searx_config"
 }
 
 # ─── Setup npm global ─────────────────────────────────────────────────────────
@@ -275,8 +433,8 @@ uninstall() {
     rm -f "${HOME}/.local/bin/${APP_NAME}" 2>/dev/null || true
 
     if [[ -d "$CONFIG_DIR" ]]; then
-        read -p "Remove config (~/.beast-cli)? [y/N] " -n 1 -r
-        echo
+        echo -n "Remove config (~/.beast-cli)? [y/N] "
+        read -r
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             rm -rf "$CONFIG_DIR"
             log_info "Removed config"
@@ -300,7 +458,7 @@ install_npm() {
     log_done "npm install complete"
 }
 
-install_bun() {
+install_bun_pkg() {
     log_step "Installing via bun..."
 
     if bun pm ls -g 2>/dev/null | grep -q "$NPM_PACKAGE"; then
@@ -313,7 +471,7 @@ install_bun() {
     log_done "bun add complete"
 }
 
-# ─── TTS Setup ────────────────────────────────────────────────────────────────
+# ─── TTS Setup ───────────────────────────────────────────────────────────────
 setup_tts() {
     log_step "Setting up TTS (text-to-speech)..."
 
@@ -349,6 +507,7 @@ setup_environment() {
         for loc in \
             "${BIN_DIR}/${APP_NAME}" \
             "${HOME}/.bun/install/bin/${APP_NAME}" \
+            "${HOME}/.bun/bin/${APP_NAME}" \
             "${HOME}/.local/bin/${APP_NAME}" \
             "/usr/local/bin/${APP_NAME}"
         do
@@ -366,6 +525,84 @@ setup_environment() {
     fi
 
     log_done "Environment setup complete"
+}
+
+# ─── Tool Health Check ────────────────────────────────────────────────────────
+check_tool_health() {
+    log_step "Running tool health check..."
+    echo ""
+
+    local passed=0
+    local failed=0
+
+    # Node.js
+    if has_command node; then
+        echo -e "  ${GREEN}✅${NC} Node.js: v$(node --version)"
+        ((passed++))
+    else
+        echo -e "  ${YELLOW}❌${NC} Node.js: Not installed"
+        ((failed++))
+    fi
+
+    # bun
+    if has_command bun; then
+        echo -e "  ${GREEN}✅${NC} bun: v$(bun --version)"
+        ((passed++))
+    else
+        echo -e "  ${YELLOW}⚠️${NC} bun: Not installed (npm fallback available)"
+    fi
+
+    # Python
+    local python_cmd=""
+    if has_command python3; then
+        python_cmd="python3"
+    elif has_command python; then
+        python_cmd="python"
+    fi
+
+    if [[ -n "$python_cmd" ]]; then
+        echo -e "  ${GREEN}✅${NC} Python: $($python_cmd --version)"
+        ((passed++))
+    else
+        echo -e "  ${YELLOW}❌${NC} Python: Not installed"
+        ((failed++))
+    fi
+
+    # Python packages
+    if [[ -n "$python_cmd" ]]; then
+        if $python_cmd -c "import requests; from bs4 import BeautifulSoup" 2>/dev/null; then
+            echo -e "  ${GREEN}✅${NC} Python packages: requests, beautifulsoup4"
+            ((passed++))
+        else
+            echo -e "  ${YELLOW}⚠️${NC} Python packages: Not installed (web scraping may fail)"
+        fi
+    fi
+
+    # ffmpeg
+    if has_command ffplay; then
+        echo -e "  ${GREEN}✅${NC} ffmpeg: Installed (TTS audio enabled)"
+        ((passed++))
+    else
+        echo -e "  ${YELLOW}⚠️${NC} ffmpeg: Not installed (TTS will use fallback)"
+    fi
+
+    # Beast CLI
+    if has_command "$APP_NAME"; then
+        local version=$("$APP_NAME" --version 2>/dev/null | head -1 || echo "unknown")
+        echo -e "  ${GREEN}✅${NC} Beast CLI: v$version"
+        ((passed++))
+    else
+        echo -e "  ${RED}❌${NC} Beast CLI: Not installed or not in PATH"
+        ((failed++))
+    fi
+
+    echo ""
+
+    if [[ $failed -gt 0 ]]; then
+        log_warn "Some tools are not available. CLI may have limited functionality."
+    else
+        log_success "All tools healthy!"
+    fi
 }
 
 # ─── Verification ─────────────────────────────────────────────────────────────
@@ -388,50 +625,76 @@ verify_installation() {
 # ─── Main ─────────────────────────────────────────────────────────────────────
 main() {
     local os=$(detect_os)
+    local skip_python=false
+    local skip_bun=false
+
+    # Parse args
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --uninstall|-u)
+                uninstall
+                exit 0
+                ;;
+            --skip-python)
+                skip_python=true
+                ;;
+            --skip-bun)
+                skip_bun=true
+                ;;
+            --help|-h)
+                echo "Usage: $0 [OPTIONS]"
+                echo ""
+                echo "Options:"
+                echo "  -u, --uninstall    Uninstall"
+                echo "  --skip-python      Skip Python installation"
+                echo "  --skip-bun         Skip bun installation"
+                echo "  -h, --help         Show help"
+                echo ""
+                echo "Environment Variables:"
+                echo "  SEARX_URL          Custom SearXNG URL (default: $DEFAULT_SEARX_URL)"
+                echo ""
+                echo "Features:"
+                echo "  ✓ Auto Node.js/bun install"
+                echo "  ✓ Auto Python install"
+                echo "  ✓ Auto ffmpeg for TTS"
+                echo "  ✓ TTS enabled by default"
+                echo "  ✓ SearXNG customization"
+                exit 0
+                ;;
+            *)
+                shift
+                ;;
+        esac
+    done
 
     echo ""
     echo -e "${BOLD}${CYAN}    🐉 Beast CLI - Zero-Config Installer${NC}"
-    echo -e "${DIM}    AI Coding Agent with TTS Support${NC}"
+    echo -e "${DIM}    AI Coding Agent with TTS & Web Scraping${NC}"
     echo ""
 
     # Windows-specific notes
     if [[ "$os" == "windows" ]]; then
         echo -e "${YELLOW}  ⚠️  Windows detected${NC}"
-        echo -e "${DIM}  Note: Rich TUI (--tui) has limited support on Windows.${NC}"
-        echo -e "${DIM}  Use 'beast' or 'beast --defaults' for best experience.${NC}"
+        echo -e "${DIM}  For best experience, use PowerShell with install.ps1${NC}"
         echo ""
     fi
 
-    # Parse arguments
-    case "${1:-}" in
-        --uninstall|-u)
-            uninstall
-            exit 0
-            ;;
-        --help|-h)
-            echo "Usage: $0 [OPTIONS]"
-            echo ""
-            echo "Options:"
-            echo "  -u, --uninstall    Uninstall"
-            echo "  -h, --help         Show help"
-            echo ""
-            echo "Features:"
-            echo "  ✓ Auto Node.js install"
-            echo "  ✓ Auto ffmpeg for TTS"
-            echo "  ✓ TTS enabled by default"
-            exit 0
-            ;;
-        --version|-v)
-            echo "Beast CLI Installer v1.1"
-            echo "Repository: https://github.com/${REPO}"
-            exit 0
-            ;;
-    esac
-
     # Run installation steps
     check_requirements
+
+    # Install bun if not skipped
+    if [[ "$skip_bun" != "true" ]]; then
+        install_bun || true
+    fi
+
+    # Install Python if not skipped
+    if [[ "$skip_python" != "true" ]]; then
+        install_python || true
+    fi
+
     install_ffmpeg
     setup_npm_global
+    setup_searxng
 
     echo ""
     log_info "Installing ${APP_NAME_DISPLAY}..."
@@ -439,12 +702,13 @@ main() {
 
     case "$PACKAGE_MANAGER" in
         npm)  install_npm ;;
-        bun)  install_bun ;;
+        bun)  install_bun_pkg ;;
     esac
 
     setup_tts
     setup_environment
     verify_installation
+    check_tool_health
 
     echo ""
     log_success "Installation complete! 🚀"

@@ -1593,6 +1593,7 @@ var init_banner = __esm(() => {
 // src/native-tools/search.ts
 var exports_search = {};
 __export(exports_search, {
+  setSearxUrl: () => setSearxUrl,
   searxngSearch: () => searxngSearch,
   searxngHealth: () => searxngHealth,
   searchNews: () => searchNews,
@@ -1600,8 +1601,27 @@ __export(exports_search, {
   hackernewsTop: () => hackernewsTop,
   hackernewsNew: () => hackernewsNew,
   hackernewsComments: () => hackernewsComments,
-  hackernewsBest: () => hackernewsBest
+  hackernewsBest: () => hackernewsBest,
+  getSearxUrlFromConfig: () => getSearxUrlFromConfig,
+  getSearxUrl: () => getSearxUrl
 });
+function getSearxUrl() {
+  if (process.env.SEARX_URL) {
+    return process.env.SEARX_URL;
+  }
+  try {
+    const { existsSync: existsSync3, readFileSync: readFileSync2 } = __require("node:fs");
+    const { join: join3 } = __require("node:path");
+    const homeDir = __require("node:os").homedir();
+    const searxConfigPath = join3(homeDir, ".beast-cli", "searx.json");
+    if (existsSync3(searxConfigPath)) {
+      const config = JSON.parse(readFileSync2(searxConfigPath, "utf-8"));
+      if (config.url)
+        return config.url;
+    }
+  } catch {}
+  return "https://search.sridharhomelab.in";
+}
 async function searxngSearch(query, limit = 10, categories, engines, timeRange) {
   try {
     const params = new URLSearchParams({
@@ -1698,6 +1718,26 @@ async function hackernewsComments(storyId, limit = 20) {
     return { success: false, error: e.message };
   }
 }
+function getSearxUrlFromConfig() {
+  return getSearxUrl();
+}
+async function setSearxUrl(url) {
+  try {
+    const { existsSync: existsSync3, writeFileSync: writeFileSync3, mkdirSync: mkdirSync2 } = __require("node:fs");
+    const { join: join3 } = __require("node:path");
+    const homeDir = __require("node:os").homedir();
+    const configDir = join3(homeDir, ".beast-cli");
+    const searxConfigPath = join3(configDir, "searx.json");
+    if (!existsSync3(configDir)) {
+      mkdirSync2(configDir, { recursive: true });
+    }
+    const config = { url, enabled: true };
+    writeFileSync3(searxConfigPath, JSON.stringify(config, null, 2), "utf-8");
+    return true;
+  } catch {
+    return false;
+  }
+}
 async function hackernewsFetch(endpoint, limit) {
   try {
     const idsRes = await fetch(`https://hacker-news.firebaseio.com/v0/${endpoint}.json`);
@@ -1725,7 +1765,7 @@ async function hackernewsFetch(endpoint, limit) {
 }
 var SEARX_URL;
 var init_search = __esm(() => {
-  SEARX_URL = process.env.SEARX_URL || "https://search.sridharhomelab.in";
+  SEARX_URL = getSearxUrl();
 });
 
 // node_modules/uuid/dist/esm/native.js

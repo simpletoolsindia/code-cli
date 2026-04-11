@@ -1,8 +1,28 @@
 // Native Search Tools
 // Replaces SearXNG search MCP calls with local implementations
 
-// Use local SearXNG instance for search (configured in CLAUDE.md)
-const SEARX_URL = process.env.SEARX_URL || 'https://search.sridharhomelab.in'
+// SearXNG URL - customizable via env var, config, or searx.json
+export function getSearxUrl(): string {
+  // Check env var first
+  if (process.env.SEARX_URL) {
+    return process.env.SEARX_URL
+  }
+  // Check config directory
+  try {
+    const { existsSync, readFileSync } = require('node:fs')
+    const { join } = require('node:path')
+    const homeDir = require('node:os').homedir()
+    const searxConfigPath = join(homeDir, '.beast-cli', 'searx.json')
+    if (existsSync(searxConfigPath)) {
+      const config = JSON.parse(readFileSync(searxConfigPath, 'utf-8'))
+      if (config.url) return config.url
+    }
+  } catch {}
+  // Default
+  return 'https://search.sridharhomelab.in'
+}
+
+const SEARX_URL = getSearxUrl()
 
 export interface SearchResult {
   success: boolean
@@ -141,6 +161,32 @@ export async function hackernewsComments(
     }
   } catch (e: any) {
     return { success: false, error: e.message }
+  }
+}
+
+// ── SearXNG URL Management ────────────────────────────────────────────────────
+
+export function getSearxUrlFromConfig(): string {
+  return getSearxUrl()
+}
+
+export async function setSearxUrl(url: string): Promise<boolean> {
+  try {
+    const { existsSync, writeFileSync, mkdirSync } = require('node:fs')
+    const { join } = require('node:path')
+    const homeDir = require('node:os').homedir()
+    const configDir = join(homeDir, '.beast-cli')
+    const searxConfigPath = join(configDir, 'searx.json')
+
+    if (!existsSync(configDir)) {
+      mkdirSync(configDir, { recursive: true })
+    }
+
+    const config = { url, enabled: true }
+    writeFileSync(searxConfigPath, JSON.stringify(config, null, 2), 'utf-8')
+    return true
+  } catch {
+    return false
   }
 }
 
