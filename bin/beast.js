@@ -22411,6 +22411,10 @@ function isInteractive() {
 }
 function getInkSourcePath() {
   const selfDir = dirname3(fileURLToPath(import.meta.url));
+  const bundledInk = resolve6(selfDir, "..", "bin", "beast-ink.js");
+  if (__require("fs").existsSync(bundledInk)) {
+    return bundledInk;
+  }
   return resolve6(selfDir, "..", "src", "ui", "ink", "index.tsx");
 }
 function getTerminalSourcePath() {
@@ -22438,9 +22442,23 @@ Failed to launch REPL: ` + String(err), fg2.error));
 }
 async function launchInk() {
   try {
-    const inkSource = getInkSourcePath();
-    const bunPath = process.env.BUN_INSTALL ? process.env.BUN_INSTALL + "/bin/bun" : "bun";
-    const child = spawn4(bunPath, ["--bun", "run", inkSource], {
+    const selfDir = dirname3(fileURLToPath(import.meta.url));
+    const fs4 = await import("node:fs");
+    const bundledPath = resolve6(selfDir, "..", "bin", "beast-ink.js");
+    const useBundled = fs4.existsSync(bundledPath);
+    let cmd;
+    let args;
+    if (useBundled) {
+      const nodePath = process.execPath;
+      cmd = nodePath;
+      args = [bundledPath];
+    } else {
+      const bunPath = process.env.BUN_INSTALL ? process.env.BUN_INSTALL + "/bin/bun" : "bun";
+      const inkSource = getInkSourcePath();
+      cmd = bunPath;
+      args = ["--bun", "run", inkSource];
+    }
+    const child = spawn4(cmd, args, {
       stdio: "inherit",
       env: { ...process.env, FORCE_COLOR: "1" }
     });

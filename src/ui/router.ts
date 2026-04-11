@@ -18,10 +18,15 @@ function isInteractive(): boolean {
 // Check if we're on Windows
 const isWindows = process.platform === 'win32'
 
-// Resolve ink source path from this module's location (works when installed globally)
+// Resolve ink binary path — prefer bundled bin/beast-ink.js (works in npm package),
+// fallback to src/ui/ink/index.tsx for local development
 function getInkSourcePath(): string {
   const selfDir = dirname(fileURLToPath(import.meta.url))
-  // bundled beast.js lives in bin/, so go ../.. to project root, then src/ui/ink/
+  const bundledInk = resolve(selfDir, '..', 'bin', 'beast-ink.js')
+  // If bundled binary exists (npm install), use it; otherwise use source (dev)
+  if (require('fs').existsSync(bundledInk)) {
+    return bundledInk
+  }
   return resolve(selfDir, '..', 'src', 'ui', 'ink', 'index.tsx')
 }
 
@@ -56,20 +61,39 @@ export async function launchRepl(): Promise<void> {
   }
 }
 
-// Launch the Ink TUI mode via bun --bun (runs TSX source directly)
+// Launch the Ink TUI — uses bundled bin/beast-ink.js for npm installs,
+// or src/ui/ink/index.tsx for local dev
 export async function launchInk(): Promise<void> {
   try {
-    const inkSource = getInkSourcePath()
-    // Find bun — prefer BUN_INSTALL env var, fallback to 'bun'
-    const bunPath = process.env.BUN_INSTALL
-      ? process.env.BUN_INSTALL + '/bin/bun'
-      : 'bun'
+    const selfDir = dirname(fileURLToPath(import.meta.url))
+    const fs = await import('node:fs')
 
-    const child = spawn(bunPath, ['--bun', 'run', inkSource], {
+    // Prefer bundled JS (npm install), fallback to TSX source (local dev)
+    const bundledPath = resolve(selfDir, '..', 'bin', 'beast-ink.js')
+    const useBundled = fs.existsSync(bundledPath)
+
+    let cmd: string
+    let args: string[]
+
+    if (useBundled) {
+      // Run pre-built bundle with node directly — no bun needed
+      const nodePath = process.execPath
+      cmd = nodePath
+      args = [bundledPath]
+    } else {
+      // Local dev: run TSX source with bun
+      const bunPath = process.env.BUN_INSTALL
+        ? process.env.BUN_INSTALL + '/bin/bun'
+        : 'bun'
+      const inkSource = getInkSourcePath()
+      cmd = bunPath
+      args = ['--bun', 'run', inkSource]
+    }
+
+    const child = spawn(cmd, args, {
       stdio: 'inherit',
       env: { ...process.env, FORCE_COLOR: '1' },
     })
-
     child.on('exit', (code) => process.exit(code ?? 0))
   } catch (err) {
     console.error(s('\nFailed to launch Ink TUI: ' + String(err), fg.error))
