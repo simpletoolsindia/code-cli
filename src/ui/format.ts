@@ -40,8 +40,9 @@ export function panel(content: string, options: {
   titleColor?: string
   width?: number
   useBox?: boolean
+  style?: 'single' | 'round' | 'heavy' | 'dashed' | 'soft' | 'light' | 'polished'
 } = {}): string {
-  const { title, titleColor = fg.accent, width = 70, useBox = true } = options
+  const { title, titleColor = fg.accent, width = 70, useBox = true, style = 'single' } = options
 
   const rawLines = content.split('\n')
   const maxLen = rawLines.reduce((m, l) => Math.max(m, stripAnsi(l).length), 0)
@@ -49,7 +50,8 @@ export function panel(content: string, options: {
 
   // Use box drawing or ASCII based on terminal capability
   if (useBox) {
-    const b = getBoxChars()
+    const boxSet = getBoxChars()
+    const b = boxSet[style] || boxSet.single || boxSet
     const h = b?.h || '-'
     const v = b?.v || '|'
     const tl = b?.tl || '+'

@@ -11,15 +11,48 @@ export interface YouTubeResult {
 
 // ── Fallback Chain for YouTube Transcripts ────────────────────────────────────
 
-// Fallback 1: youtube-transcript-api (npm package pattern)
+// Fallback 1: RapidAPI YouTube Transcript API (if key available)
+async function tryRapidApiFallback(videoId: string): Promise<YouTubeResult> {
+  const apiKey = process.env.RAPIDAPI_KEY
+  if (!apiKey) return { success: false, output: '', error: 'No API key' }
+
+  try {
+    const response = await fetch(
+      `https://youtube-transcript-api1.p.rapidapi.com/api/transcript?video_id=${videoId}`,
+      {
+        headers: {
+          'X-RapidAPI-Key': apiKey,
+          'X-RapidAPI-Host': 'youtube-transcript-api1.p.rapidapi.com',
+        },
+        signal: AbortSignal.timeout(10000),
+      }
+    )
+    if (response.ok) {
+      const data = await response.json()
+      if (data.transcript) {
+        return { success: true, output: data.transcript }
+      }
+    }
+    return { success: false, output: '', error: 'RapidAPI failed' }
+  } catch (e: any) {
+    return { success: false, output: '', error: e.message }
+  }
+}
+
+// Fallback 2: youtube-transcript-api (npm package pattern)
 async function tryTranscriptionDotCom(videoId: string): Promise<YouTubeResult> {
   try {
     const response = await fetch(`https://youtubetranscript.com/?video=${videoId}`, {
       signal: AbortSignal.timeout(10000),
     })
     if (response.ok) {
+      const contentType = response.headers.get('content-type') || ''
       const text = await response.text()
-      if (text && text.length > 50) {
+      // Check if we got HTML instead of transcript
+      if (text.includes('<html') || text.includes('<!DOCTYPE') || text.length < 100) {
+        return { success: false, output: '', error: 'Service returned HTML, not transcript' }
+      }
+      if (text && text.length > 50 && !text.includes('<body')) {
         return { success: true, output: text.slice(0, 5000) }
       }
     }
@@ -29,75 +62,56 @@ async function tryTranscriptionDotCom(videoId: string): Promise<YouTubeResult> {
   }
 }
 
-// Fallback 2: Try to extract from YouTube video page (captions extraction)
-async function tryYouTubePageFallback(videoId: string): Promise<YouTubeResult> {
-  try {
-    const pageRes = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept-Language': 'en-US,en;q=0.9',
-      },
-      signal: AbortSignal.timeout(10000),
-    })
-
-    if (pageRes.ok) {
-      const html = await pageRes.text()
-      // Try to find caption tracks
-      const captionMatch = html.match(/"captionTracks":\[([^\]]+)\]/)
-      if (captionMatch) {
-        // Extract base URL for captions
-        const baseUrlMatch = captionMatch[1].match(/"baseUrl":"([^"]+)"/)
-        if (baseUrlMatch) {
-          const captionUrl = decodeURIComponent(baseUrlMatch[1])
-          const captionRes = await fetch(captionUrl, {
-            headers: { 'User-Agent': 'Mozilla/5.0' },
-            signal: AbortSignal.timeout(10000),
-          })
-          if (captionRes.ok) {
-            const captionXml = await captionRes.text()
-            // Parse XML to extract text
-            const textMatches = captionXml.match(/<text[^>]*>([^<]+)<\/text>/g)
-            if (textMatches) {
-              const transcript = textMatches
-                .map(m => {
-                  const match = m.match(/<text[^>]*>([^<]+)<\/text>/)
-                  return match ? match[1] : ''
-                })
-                .filter(t => t.trim())
-                .join(' ')
-              return { success: true, output: transcript }
-            }
-          }
-        }
-        return { success: true, output: 'Captions found but could not extract text.' }
-      }
-    }
-    return { success: false, output: '', error: 'Could not fetch video page' }
-  } catch (e: any) {
-    return { success: false, output: '', error: e.message }
-  }
-}
-
-// Fallback 3: Try Invidious instance (privacy-friendly YouTube frontend)
+// Fallback 3: Try Invidious instances (privacy-friendly YouTube frontend)
 async function tryInvidiousFallback(videoId: string): Promise<YouTubeResult> {
+  // More reliable Invidious instances with transcripts endpoint
   const invidiousInstances = [
-    'https://inv.nadeko.net/api/v1',
-    'https://invidious.privacyredirect.com/api/v1',
-    'https://yewtu.be/api/v1',
+    { url: 'https://inv.nadeko.net/api/v1', name: 'Nadeko' },
+    { url: 'https://yewtu.be', name: 'Yewtu' },
+    { url: 'https://invidious.privacyredirect.com', name: 'PrivacyRedirect' },
+    { url: 'https://iv.nboeck.de', name: 'Nboeck' },
+    { url: 'https://invidious.lunar.icu', name: 'Lunar' },
   ]
 
   for (const instance of invidiousInstances) {
     try {
-      const response = await fetch(`${instance}/captions/${videoId}`, {
+      // Try captions endpoint
+      const response = await fetch(`${instance.url}/api/v1/captions/${videoId}`, {
         signal: AbortSignal.timeout(8000),
       })
       if (response.ok) {
         const data = await response.json()
         if (data.captions && data.captions.length > 0) {
-          // Try to get auto-generated transcript
-          const autoCaption = data.captions.find((c: any) => c.label?.includes('auto'))
-          if (autoCaption) {
-            return { success: true, output: `Auto-generated transcript from ${autoCaption.label}` }
+          // Find English or auto-generated caption
+          const enCaption = data.captions.find(
+            (c: any) =>
+              c.label?.toLowerCase().includes('english') ||
+              c.label?.toLowerCase().includes('en') ||
+              c.label?.toLowerCase().includes('auto')
+          )
+          const caption = enCaption || data.captions[0]
+
+          // Try to download the caption
+          if (caption.url) {
+            const captionRes = await fetch(caption.url, {
+              signal: AbortSignal.timeout(10000),
+            })
+            if (captionRes.ok) {
+              const xml = await captionRes.text()
+              const textMatches = xml.match(/<text[^>]*>([^<]+)<\/text>/g)
+              if (textMatches) {
+                const transcript = textMatches
+                  .map((m) => {
+                    const match = m.match(/<text[^>]*>([^<]+)<\/text>/)
+                    return match ? match[1] : ''
+                  })
+                  .filter((t) => t.trim())
+                  .join(' ')
+                if (transcript.length > 50) {
+                  return { success: true, output: transcript }
+                }
+              }
+            }
           }
         }
       }
@@ -120,15 +134,35 @@ async function tryYtdlpFallback(url: string): Promise<YouTubeResult> {
       return { success: false, output: '', error: 'yt-dlp not installed' }
     }
 
-    // Try to download subtitle
+    // Get subtitle directly using yt-dlp
     const output = execSync(
-      `yt-dlp --skip-download --write-subs --write-auto-subs --sub-lang en --stdout --print "%(subtitles.en)s" "${url}"`,
-      { encoding: 'utf-8', timeout: 15000 }
+      `yt-dlp --skip-download --write-subs --write-auto-subs --sub-lang en --convert-subs=srt --print "%(autogen_subtitle)s" "${url}" 2>/dev/null || echo ""`,
+      { encoding: 'utf-8', timeout: 20000 }
     )
     if (output && output.trim()) {
       return { success: true, output: output }
     }
-    return { success: false, output: '', error: 'No subtitles extracted' }
+
+    // Try alternative approach - get video info with subtitles
+    const videoInfo = execSync(
+      `yt-dlp --skip-download --write-subs --write-auto-subs --dump-json "${url}" 2>/dev/null | head -1`,
+      { encoding: 'utf-8', timeout: 20000 }
+    )
+    if (videoInfo) {
+      try {
+        const info = JSON.parse(videoInfo)
+        if (info.subtitles || info.automatic_chapters) {
+          return {
+            success: true,
+            output: 'Video has subtitles available. Install yt-dlp GUI or use --write-subs flag manually to extract.',
+          }
+        }
+      } catch {
+        // Ignore JSON parse errors
+      }
+    }
+
+    return { success: false, output: '', error: 'yt-dlp could not extract subtitles' }
   } catch (e: any) {
     return { success: false, output: '', error: e.message }
   }
@@ -142,16 +176,16 @@ export async function youtubeTranscript(url: string): Promise<YouTubeResult> {
   }
 
   const fallbacks: Array<() => Promise<YouTubeResult>> = [
-    () => tryTranscriptionDotCom(videoId),
-    () => tryYouTubePageFallback(videoId),
+    () => tryRapidApiFallback(videoId),
     () => tryInvidiousFallback(videoId),
+    () => tryTranscriptionDotCom(videoId),
     () => tryYtdlpFallback(url),
   ]
 
   const fallbackNames = [
+    'RapidAPI',
+    'Invidious',
     'Transcription.com',
-    'YouTube Page',
-    'Invidious Instance',
     'yt-dlp CLI',
   ]
 
@@ -159,7 +193,7 @@ export async function youtubeTranscript(url: string): Promise<YouTubeResult> {
 
   for (let i = 0; i < fallbacks.length; i++) {
     const result = await fallbacks[i]()
-    if (result.success) {
+    if (result.success && result.output.length > 50) {
       return result
     }
     lastError = result.error || 'Unknown error'
@@ -169,7 +203,7 @@ export async function youtubeTranscript(url: string): Promise<YouTubeResult> {
   return {
     success: false,
     output: '',
-    error: `All ${fallbacks.length} transcript methods failed. Last error: ${lastError}`,
+    error: `All ${fallbacks.length} transcript methods failed. Last error: ${lastError}. This video may not have captions available.`,
   }
 }
 

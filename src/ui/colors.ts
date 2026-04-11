@@ -168,13 +168,34 @@ export const boxAscii = {
 // ── Check Unicode Support ─────────────────────────────────────────────────────
 export function supportsUnicode(): boolean {
   if (NO_COLOR) return false
-  if (process.env.FORCE_COLOR) return true
-  if (process.env.LANG?.toLowerCase().includes('utf-8') || process.env.LC_ALL?.toLowerCase().includes('utf-8')) return true
-  if (process.env.LANG?.toLowerCase().includes('utf8') || process.env.LC_ALL?.toLowerCase().includes('utf8')) return true
-  // Check if terminal reports UTF-8 capability
-  if (process.stdout?.isTTY && process.env.TERM_PROGRAM?.includes('iTerm')) return true
-  if (process.stdout?.isTTY && process.env.TERM_PROGRAM?.includes('Terminal')) return true
-  // Default to true (most modern terminals support UTF-8)
+  // Force color always means Unicode (unless NO_COLOR)
+  if (process.env.FORCE_COLOR === '1' || process.env.FORCE_COLOR === 'true') return true
+
+  // Critical: Non-TTY (piped/redirected output) should use ASCII to avoid encoding issues
+  if (!process.stdout?.isTTY) return false
+
+  // At this point we're in a TTY, check actual terminal capabilities
+  // Check actual terminal encoding on stdout
+  const encoding = (process.stdout as any)?.encoding?.() || process.stdout?.encoding || ''
+  if (encoding.toLowerCase() === 'utf8' || encoding.toLowerCase() === 'utf-8') return true
+
+  // Check terminal program capabilities
+  const termProgram = process.env.TERM_PROGRAM || ''
+  if (termProgram.includes('iTerm') || termProgram.includes('Apple_Terminal') || termProgram.includes('vscode')) {
+    return true
+  }
+
+  // Check TERM variable for known Unicode-capable terminals
+  const term = process.env.TERM || ''
+  if (term.includes('xterm') || term.includes('screen') || term.includes('tmux') || term.includes('256color')) {
+    return true
+  }
+
+  // Check LANG/LC_ALL as fallback for TTY
+  const lang = (process.env.LANG || process.env.LC_ALL || '').toLowerCase()
+  if (lang.includes('utf-8') || lang.includes('utf8')) return true
+
+  // Default to true for interactive terminals (most support UTF-8)
   return true
 }
 
