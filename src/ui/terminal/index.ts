@@ -7,7 +7,10 @@ import { createProvider } from '../../providers/index.ts'
 import { executeTool, getFormattedTools } from '../../native-tools/index.ts'
 import { loadMemory, parseAgentContext } from '../../agents/index.ts'
 import { getApiKeyFromEnv, getBaseUrl } from '../../providers/discover.ts'
-import { getTheme, listThemeNames } from '../colors.ts'
+import { getTheme } from '../colors.ts'
+import { generateDiff, formatDiffStats } from '../../diff/index.ts'
+import { quickApproval, getOldContent } from '../../approval/index.ts'
+import { s, fg, dim, bold, reset } from '../colors.ts'
 
 const { terminal: term, window } = termkit
 
@@ -414,6 +417,57 @@ export async function runTerminalUI(options: {
         render(state, provider, model, toolsCount)
 
         try {
+          // ── Diff + Approval for file_write ────────────────────────────────
+          if (tc.name === 'file_write') {
+            const filePath = tc.arguments?.path as string
+            const newContent = tc.arguments?.content as string
+            const oldContent = getOldContent(filePath)
+
+            if (oldContent && oldContent !== newContent) {
+              const diff = generateDiff(oldContent, newContent, filePath)
+              if (diff.additions > 0 || diff.removals > 0) {
+                // Show diff inline in terminal
+                term('\n')
+                const stats = formatDiffStats(diff.additions, diff.removals)
+                term.cyan('📄 ' + filePath + ' (' + stats + ')\n')
+                const diffLines = diff.diff.split('\n').slice(2)
+                const MAX_DIFF = 15
+                for (const line of diffLines.slice(0, MAX_DIFF)) {
+                  if (line.startsWith('@@')) {
+                    term.cyan(line + '\n')
+                  } else if (line.startsWith('+')) {
+                    term.green(line + '\n')
+                  } else if (line.startsWith('-')) {
+                    term.red(line + '\n')
+                  } else if (line.startsWith(' ')) {
+                    term.dim(line + '\n')
+                  }
+                }
+                if (diffLines.length > MAX_DIFF) {
+                  term.dim('  ... (' + (diffLines.length - MAX_DIFF) + ' more lines)\n')
+                }
+
+                term('\n  [y] Approve  [n] Reject  > ')
+                // Simple blocking prompt for terminal mode
+                const answer = await new Promise<string>(resolve => {
+                  term.readInput({ echo: true }, (_err: any, val: string) => {
+                    resolve(val)
+                  })
+                })
+                term.eraseLine()
+
+                if (answer.trim().toLowerCase() !== 'y' && answer.trim() !== '') {
+                  state.tools[state.tools.length - 1].status = 'error'
+                  state.tools[state.tools.length - 1].result = 'Rejected by user'
+                  agentMessages.push({ role: 'assistant', content })
+                  agentMessages.push({ role: 'tool', content: 'Tool call rejected by user.' })
+                  render(state, provider, model, toolsCount)
+                  continue
+                }
+              }
+            }
+          }
+
           const result = await executeTool(tc.name, tc.arguments || {})
 
           // Update tool state
