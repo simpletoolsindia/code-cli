@@ -24201,6 +24201,52 @@ async function tryRapidApiFallback(videoId) {
     return { success: false, output: "", error: e.message };
   }
 }
+async function tryPythonTranscriptApi(videoId) {
+  try {
+    const { execSync: execSync4 } = await import("child_process");
+    const { writeFileSync: writeFileSync3, unlinkSync: unlinkSync2 } = await import("fs");
+    const { tmpdir: tmpdir2 } = await import("os");
+    const { join: join3 } = await import("path");
+    try {
+      execSync4('python3 -c "from youtube_transcript_api import YouTubeTranscriptApi" 2>/dev/null', { stdio: "ignore" });
+    } catch {
+      try {
+        execSync4("pip3 install youtube-transcript-api --quiet 2>/dev/null", { stdio: "ignore" });
+      } catch {
+        return { success: false, output: "", error: "youtube-transcript-api not installed" };
+      }
+    }
+    const scriptPath = join3(tmpdir2(), `yt_transcript_${Date.now()}.py`);
+    const script = `
+from youtube_transcript_api import YouTubeTranscriptApi
+import sys
+
+try:
+    ytt = YouTubeTranscriptApi()
+    transcript = ytt.fetch('${videoId}', languages=['en', 'en-US'])
+    text = ' '.join([s.text for s in transcript])
+    print(text[:15000])  # Limit to 15k chars
+except Exception as e:
+    print(f"ERROR: {e}", file=sys.stderr)
+    sys.exit(1)
+`;
+    writeFileSync3(scriptPath, script);
+    const output = execSync4(`python3 "${scriptPath}"`, {
+      encoding: "utf-8",
+      timeout: 30000,
+      maxBuffer: 10485760
+    });
+    try {
+      unlinkSync2(scriptPath);
+    } catch {}
+    if (output && !output.includes("ERROR:") && output.length > 50) {
+      return { success: true, output: output.trim() };
+    }
+    return { success: false, output: "", error: "Python API returned empty transcript" };
+  } catch (e) {
+    return { success: false, output: "", error: e.message };
+  }
+}
 async function tryTranscriptionDotCom(videoId) {
   try {
     const response = await fetch(`https://youtubetranscript.com/?video=${videoId}`, {
@@ -24300,12 +24346,14 @@ async function youtubeTranscript(url) {
     return { success: false, output: "", error: "Invalid YouTube URL" };
   }
   const fallbacks = [
+    () => tryPythonTranscriptApi(videoId),
     () => tryRapidApiFallback(videoId),
     () => tryInvidiousFallback(videoId),
     () => tryTranscriptionDotCom(videoId),
     () => tryYtdlpFallback(url)
   ];
   const fallbackNames = [
+    "Python API",
     "RapidAPI",
     "Invidious",
     "Transcription.com",

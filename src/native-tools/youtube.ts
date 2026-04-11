@@ -39,6 +39,61 @@ async function tryRapidApiFallback(videoId: string): Promise<YouTubeResult> {
   }
 }
 
+// Fallback 2: Python youtube-transcript-api (most reliable)
+async function tryPythonTranscriptApi(videoId: string): Promise<YouTubeResult> {
+  try {
+    const { execSync } = await import('child_process')
+    const { writeFileSync, unlinkSync } = await import('fs')
+    const { tmpdir } = await import('os')
+    const { join } = await import('path')
+
+    // Check if youtube-transcript-api is installed
+    try {
+      execSync('python3 -c "from youtube_transcript_api import YouTubeTranscriptApi" 2>/dev/null', { stdio: 'ignore' })
+    } catch {
+      // Try to install it
+      try {
+        execSync('pip3 install youtube-transcript-api --quiet 2>/dev/null', { stdio: 'ignore' })
+      } catch {
+        return { success: false, output: '', error: 'youtube-transcript-api not installed' }
+      }
+    }
+
+    // Write Python script to temp file to avoid escaping issues
+    const scriptPath = join(tmpdir(), `yt_transcript_${Date.now()}.py`)
+    const script = `
+from youtube_transcript_api import YouTubeTranscriptApi
+import sys
+
+try:
+    ytt = YouTubeTranscriptApi()
+    transcript = ytt.fetch('${videoId}', languages=['en', 'en-US'])
+    text = ' '.join([s.text for s in transcript])
+    print(text[:15000])  # Limit to 15k chars
+except Exception as e:
+    print(f"ERROR: {e}", file=sys.stderr)
+    sys.exit(1)
+`
+    writeFileSync(scriptPath, script)
+
+    const output = execSync(`python3 "${scriptPath}"`, {
+      encoding: 'utf-8',
+      timeout: 30000,
+      maxBuffer: 10 * 1024 * 1024,
+    })
+
+    // Clean up temp file
+    try { unlinkSync(scriptPath) } catch {}
+
+    if (output && !output.includes('ERROR:') && output.length > 50) {
+      return { success: true, output: output.trim() }
+    }
+    return { success: false, output: '', error: 'Python API returned empty transcript' }
+  } catch (e: any) {
+    return { success: false, output: '', error: e.message }
+  }
+}
+
 // Fallback 2: youtube-transcript-api (npm package pattern)
 async function tryTranscriptionDotCom(videoId: string): Promise<YouTubeResult> {
   try {
@@ -175,7 +230,9 @@ export async function youtubeTranscript(url: string): Promise<YouTubeResult> {
     return { success: false, output: '', error: 'Invalid YouTube URL' }
   }
 
+  // Order: Python API (most reliable) > RapidAPI > Invidious > yt-dlp
   const fallbacks: Array<() => Promise<YouTubeResult>> = [
+    () => tryPythonTranscriptApi(videoId),
     () => tryRapidApiFallback(videoId),
     () => tryInvidiousFallback(videoId),
     () => tryTranscriptionDotCom(videoId),
@@ -183,6 +240,7 @@ export async function youtubeTranscript(url: string): Promise<YouTubeResult> {
   ]
 
   const fallbackNames = [
+    'Python API',
     'RapidAPI',
     'Invidious',
     'Transcription.com',
