@@ -1,4 +1,5 @@
 #!/usr/bin/env bun
+// @bun
 import { createRequire } from "node:module";
 var __create = Object.create;
 var __getProtoOf = Object.getPrototypeOf;
@@ -1359,7 +1360,7 @@ var init_providers = __esm(() => {
 
 // src/ui/colors.ts
 function supportsUnicode() {
-  if (NO_COLOR)
+  if (NO_COLOR2)
     return false;
   if (process.env.FORCE_COLOR === "1" || process.env.FORCE_COLOR === "true")
     return true;
@@ -1400,8 +1401,8 @@ function supportsUnicode() {
 function getBoxChars() {
   return supportsUnicode() ? box : boxAscii;
 }
-function isColorEnabled() {
-  if (NO_COLOR)
+function isColorEnabled2() {
+  if (NO_COLOR2)
     return false;
   if (process.env.FORCE_COLOR)
     return true;
@@ -1409,14 +1410,14 @@ function isColorEnabled() {
     return false;
   return true;
 }
-function s(text, ...styles) {
-  if (!isColorEnabled())
+function s2(text, ...styles) {
+  if (!isColorEnabled2())
     return text;
-  return styles.join("") + text + reset;
+  return styles.join("") + text + reset2;
 }
-var reset = "\x1B[0m", bold = "\x1B[1m", dim = "\x1B[2m", italic = "\x1B[3m", claudePalette, fg, bg, box, boxAscii, spinnerFrames, DEFAULT_SPINNER, icon, NO_COLOR;
+var reset2 = "\x1B[0m", bold2 = "\x1B[1m", dim2 = "\x1B[2m", italic = "\x1B[3m", claudePalette2, fg2, bg2, box, boxAscii, spinnerFrames2, DEFAULT_SPINNER2, icon2, NO_COLOR2;
 var init_colors = __esm(() => {
-  claudePalette = {
+  claudePalette2 = {
     crust: "\x1B[48;2;250;249;245m",
     mantle: "\x1B[48;2;245;244;237m",
     base: "\x1B[48;2;240;238;220m",
@@ -1448,47 +1449,47 @@ var init_colors = __esm(() => {
     gpYellow: "\x1B[38;2;255;200;0m",
     gpRed: "\x1B[38;2;255;100;100m"
   };
-  fg = {
-    primary: claudePalette.text,
-    secondary: claudePalette.subtext1,
-    muted: claudePalette.overlay0,
-    overlay: claudePalette.surface2,
-    success: claudePalette.green,
-    warning: claudePalette.yellow,
-    error: claudePalette.red,
-    info: claudePalette.blue,
-    user: claudePalette.green,
-    assistant: claudePalette.mauve,
-    system: claudePalette.sapphire,
-    tool: claudePalette.peach,
-    code: claudePalette.teal,
-    link: claudePalette.sapphire,
-    keyword: claudePalette.mauve,
-    function: claudePalette.blue,
-    string: claudePalette.green,
-    number: claudePalette.peach,
-    accent: claudePalette.gpPurple,
-    accent2: claudePalette.pink,
-    accent3: claudePalette.lavender,
-    peach: claudePalette.peach,
-    mauve: claudePalette.mauve,
-    cyan: claudePalette.teal,
-    purple: claudePalette.gpPurple,
-    prompt: claudePalette.gpPurple,
-    gpPurple: claudePalette.gpPurple,
-    gpBlue: claudePalette.gpBlue,
-    gpCyan: claudePalette.gpCyan,
-    gpGreen: claudePalette.gpGreen,
-    gpYellow: claudePalette.gpYellow,
-    gpRed: claudePalette.gpRed
+  fg2 = {
+    primary: claudePalette2.text,
+    secondary: claudePalette2.subtext1,
+    muted: claudePalette2.overlay0,
+    overlay: claudePalette2.surface2,
+    success: claudePalette2.green,
+    warning: claudePalette2.yellow,
+    error: claudePalette2.red,
+    info: claudePalette2.blue,
+    user: claudePalette2.green,
+    assistant: claudePalette2.mauve,
+    system: claudePalette2.sapphire,
+    tool: claudePalette2.peach,
+    code: claudePalette2.teal,
+    link: claudePalette2.sapphire,
+    keyword: claudePalette2.mauve,
+    function: claudePalette2.blue,
+    string: claudePalette2.green,
+    number: claudePalette2.peach,
+    accent: claudePalette2.gpPurple,
+    accent2: claudePalette2.pink,
+    accent3: claudePalette2.lavender,
+    peach: claudePalette2.peach,
+    mauve: claudePalette2.mauve,
+    cyan: claudePalette2.teal,
+    purple: claudePalette2.gpPurple,
+    prompt: claudePalette2.gpPurple,
+    gpPurple: claudePalette2.gpPurple,
+    gpBlue: claudePalette2.gpBlue,
+    gpCyan: claudePalette2.gpCyan,
+    gpGreen: claudePalette2.gpGreen,
+    gpYellow: claudePalette2.gpYellow,
+    gpRed: claudePalette2.gpRed
   };
-  bg = {
-    base: claudePalette.base,
-    surface: claudePalette.surface0,
-    elevated: claudePalette.surface1,
-    overlay: claudePalette.surface2,
-    crust: claudePalette.crust,
-    mantle: claudePalette.mantle
+  bg2 = {
+    base: claudePalette2.base,
+    surface: claudePalette2.surface0,
+    elevated: claudePalette2.surface1,
+    overlay: claudePalette2.surface2,
+    crust: claudePalette2.crust,
+    mantle: claudePalette2.mantle
   };
   box = {
     single: { tl: "┌", tr: "┐", bl: "└", br: "┘", h: "─", v: "│" },
@@ -1508,15 +1509,15 @@ var init_colors = __esm(() => {
     light: { tl: "+", tr: "+", bl: "+", br: "+", h: "-", v: "|" },
     polished: { tl: "+", tr: "+", bl: "+", br: "+", h: "=", v: "|" }
   };
-  spinnerFrames = {
+  spinnerFrames2 = {
     dots: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"],
     line: ["-", "\\", "|", "/"],
     blocks: ["▖", "▘", "▝", "▗"],
     arrow: ["←", "↙", "↓", "↘", "→", "↗", "↑", "↖"],
     star: ["⋆", "✦", "✧", "⋆", "✧", "✦"]
   };
-  DEFAULT_SPINNER = spinnerFrames.dots;
-  icon = {
+  DEFAULT_SPINNER2 = spinnerFrames2.dots;
+  icon2 = {
     prompt: "›",
     userPrefix: ">",
     aiPrefix: "◈",
@@ -1563,65 +1564,7 @@ var init_colors = __esm(() => {
     dot: "·",
     space: " "
   };
-  NO_COLOR = process.env.NO_COLOR || process.env.NO_COLOUR;
-});
-
-// src/ui/banner.ts
-function termWidth() {
-  try {
-    return process.stdout.columns || 80;
-  } catch {
-    return 80;
-  }
-}
-function renderCleanBanner() {
-  if (!isColorEnabled())
-    return "BEAST CLI - AI Coding Agent";
-  const width = termWidth();
-  let logo;
-  if (width >= 60) {
-    logo = FULL_LOGO;
-  } else if (width >= 40) {
-    logo = COMPACT_LOGO;
-  } else {
-    logo = TINY_LOGO;
-  }
-  if (width < 50) {
-    return logo;
-  }
-  const tagline = REVEAL_TAGLINE + `
-`;
-  const cardSep = "  ";
-  const cardLines = FEATURE_CARDS.map((card) => {
-    return s(card.label, card.color);
-  }).join(s(cardSep, fg.overlay));
-  return logo + tagline + `
-` + cardLines + `
-`;
-}
-var googlePurple = "\x1B[38;2;142;54;255m", googleBlue = "\x1B[38;2;70;130;255m", FULL_LOGO, COMPACT_LOGO, TINY_LOGO, googlePurple2 = "\x1B[38;2;142;54;255m", googleBlue2 = "\x1B[38;2;70;130;255m", TEXT_LOGO, FEATURE_CARDS, REVEAL_TAGLINE;
-var init_banner = __esm(() => {
-  init_colors();
-  FULL_LOGO = `
- ${googlePurple}+==================================================================+${reset}` + `
- ${googlePurple}|${reset}  \uD83D\uDC09  ${s("BEAST", googlePurple, bold)}   ${s("CLI", googleBlue, bold)}    ${dim}AI Coding Agent · 45+ Providers · 51+ Tools     ${googlePurple}|${reset}` + `
- ${googlePurple}+==================================================================+${reset}
-`;
-  COMPACT_LOGO = `
- ${googlePurple}+----------------------------------------------+${reset}` + `
- ${googlePurple}|${reset}  \uD83D\uDC09  ${s("BEAST", googlePurple, bold)}  ${s("CLI", googleBlue, bold)}  ${dim}AI Coding Agent                  ${googlePurple}|${reset}` + `
- ${googlePurple}+----------------------------------------------+${reset}
-`;
-  TINY_LOGO = ` \uD83D\uDC09 ${s("BEAST CLI", googlePurple, bold)} ${dim}~ 
-`;
-  TEXT_LOGO = ` ${s("BEAST", googlePurple2, bold)} ${s("CLI", googleBlue2, bold)} `;
-  FEATURE_CARDS = [
-    { label: "Blazing Fast", color: fg.warning },
-    { label: "Private & Local", color: fg.success },
-    { label: "45+ Providers", color: fg.sapphire },
-    { label: "51+ Tools", color: fg.tool }
-  ];
-  REVEAL_TAGLINE = `${s("·", fg.overlay)} ${s("45+ Providers", fg.muted)} ` + `${s("·", fg.overlay)} ${s("51+ Tools", fg.muted)} ` + `${s("·", fg.overlay)} ${s("Local AI Ready", fg.muted)}`;
+  NO_COLOR2 = process.env.NO_COLOR || process.env.NO_COLOUR;
 });
 
 // src/native-tools/search.ts
@@ -16312,8 +16255,8 @@ var init_proxy_from_env = __esm(() => {
 
 // node_modules/ms/index.js
 var require_ms = __commonJS((exports, module) => {
-  var s2 = 1000;
-  var m = s2 * 60;
+  var s3 = 1000;
+  var m = s3 * 60;
   var h = m * 60;
   var d = h * 24;
   var w = d * 7;
@@ -16371,7 +16314,7 @@ var require_ms = __commonJS((exports, module) => {
       case "secs":
       case "sec":
       case "s":
-        return n * s2;
+        return n * s3;
       case "milliseconds":
       case "millisecond":
       case "msecs":
@@ -16393,8 +16336,8 @@ var require_ms = __commonJS((exports, module) => {
     if (msAbs >= m) {
       return Math.round(ms / m) + "m";
     }
-    if (msAbs >= s2) {
-      return Math.round(ms / s2) + "s";
+    if (msAbs >= s3) {
+      return Math.round(ms / s3) + "s";
     }
     return ms + "ms";
   }
@@ -16409,8 +16352,8 @@ var require_ms = __commonJS((exports, module) => {
     if (msAbs >= m) {
       return plural(ms, msAbs, m, "minute");
     }
-    if (msAbs >= s2) {
-      return plural(ms, msAbs, s2, "second");
+    if (msAbs >= s3) {
+      return plural(ms, msAbs, s3, "second");
     }
     return ms + " ms";
   }
@@ -19249,10 +19192,10 @@ function getAdapter(adapters, config) {
   }
   if (!adapter2) {
     const reasons = Object.entries(rejectedReasons).map(([id, state]) => `adapter ${id} ` + (state === false ? "is not supported by the environment" : "is not available in the build"));
-    let s2 = length ? reasons.length > 1 ? `since :
+    let s3 = length ? reasons.length > 1 ? `since :
 ` + reasons.map(renderReason).join(`
 `) : " " + renderReason(reasons[0]) : "as no adapter specified";
-    throw new AxiosError_default(`There is no suitable adapter to dispatch the request ` + s2, "ERR_NOT_SUPPORT");
+    throw new AxiosError_default(`There is no suitable adapter to dispatch the request ` + s3, "ERR_NOT_SUPPORT");
   }
   return adapter2;
 }
@@ -20274,11 +20217,11 @@ var require_dist2 = __commonJS((exports) => {
       socket.destroy();
       const fakeSocket = new net.Socket({ writable: false });
       fakeSocket.readable = true;
-      req.once("socket", (s2) => {
+      req.once("socket", (s3) => {
         debug("Replaying proxy buffer for failed request");
-        (0, assert_1.default)(s2.listenerCount("data") > 0);
-        s2.push(buffered);
-        s2.push(null);
+        (0, assert_1.default)(s3.listenerCount("data") > 0);
+        s3.push(buffered);
+        s3.push(null);
       });
       return fakeSocket;
     }
@@ -20482,10 +20425,10 @@ function unescape2(text) {
 function formatTime(seconds) {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor(seconds % 3600 / 60);
-  const s2 = Math.floor(seconds % 60);
+  const s3 = Math.floor(seconds % 60);
   const ms = Math.round((seconds - Math.floor(seconds)) * 1000);
   const pad = (num, size = 2) => num.toString().padStart(size, "0");
-  return `${pad(h)}:${pad(m)}:${pad(s2)},${pad(ms, 3)}`;
+  return `${pad(h)}:${pad(m)}:${pad(s3)},${pad(ms, 3)}`;
 }
 function buildProxyConfig(proxy) {
   try {
@@ -22394,6 +22337,64 @@ var init_agents = __esm(() => {
   agentRegistry = new Map;
 });
 
+// src/ui/banner.ts
+function termWidth2() {
+  try {
+    return process.stdout.columns || 80;
+  } catch {
+    return 80;
+  }
+}
+function renderCleanBanner2() {
+  if (!isColorEnabled2())
+    return "BEAST CLI - AI Coding Agent";
+  const width = termWidth2();
+  let logo;
+  if (width >= 60) {
+    logo = FULL_LOGO2;
+  } else if (width >= 40) {
+    logo = COMPACT_LOGO2;
+  } else {
+    logo = TINY_LOGO2;
+  }
+  if (width < 50) {
+    return logo;
+  }
+  const tagline = REVEAL_TAGLINE2 + `
+`;
+  const cardSep = "  ";
+  const cardLines = FEATURE_CARDS2.map((card) => {
+    return s2(card.label, card.color);
+  }).join(s2(cardSep, fg2.overlay));
+  return logo + tagline + `
+` + cardLines + `
+`;
+}
+var googlePurple3 = "\x1B[38;2;142;54;255m", googleBlue3 = "\x1B[38;2;70;130;255m", FULL_LOGO2, COMPACT_LOGO2, TINY_LOGO2, googlePurple22 = "\x1B[38;2;142;54;255m", googleBlue22 = "\x1B[38;2;70;130;255m", TEXT_LOGO2, FEATURE_CARDS2, REVEAL_TAGLINE2;
+var init_banner = __esm(() => {
+  init_colors();
+  FULL_LOGO2 = `
+ ${googlePurple3}+==================================================================+${reset2}` + `
+ ${googlePurple3}|${reset2}  \uD83D\uDC09  ${s2("BEAST", googlePurple3, bold2)}   ${s2("CLI", googleBlue3, bold2)}    ${dim2}AI Coding Agent · 45+ Providers · 51+ Tools     ${googlePurple3}|${reset2}` + `
+ ${googlePurple3}+==================================================================+${reset2}
+`;
+  COMPACT_LOGO2 = `
+ ${googlePurple3}+----------------------------------------------+${reset2}` + `
+ ${googlePurple3}|${reset2}  \uD83D\uDC09  ${s2("BEAST", googlePurple3, bold2)}  ${s2("CLI", googleBlue3, bold2)}  ${dim2}AI Coding Agent                  ${googlePurple3}|${reset2}` + `
+ ${googlePurple3}+----------------------------------------------+${reset2}
+`;
+  TINY_LOGO2 = ` \uD83D\uDC09 ${s2("BEAST CLI", googlePurple3, bold2)} ${dim2}~ 
+`;
+  TEXT_LOGO2 = ` ${s2("BEAST", googlePurple22, bold2)} ${s2("CLI", googleBlue22, bold2)} `;
+  FEATURE_CARDS2 = [
+    { label: "Blazing Fast", color: fg2.warning },
+    { label: "Private & Local", color: fg2.success },
+    { label: "45+ Providers", color: fg2.sapphire },
+    { label: "51+ Tools", color: fg2.tool }
+  ];
+  REVEAL_TAGLINE2 = `${s2("·", fg2.overlay)} ${s2("45+ Providers", fg2.muted)} ` + `${s2("·", fg2.overlay)} ${s2("51+ Tools", fg2.muted)} ` + `${s2("·", fg2.overlay)} ${s2("Local AI Ready", fg2.muted)}`;
+});
+
 // src/ui/router.ts
 var exports_router = {};
 __export(exports_router, {
@@ -22430,8 +22431,8 @@ async function launchRepl() {
     });
     child.on("exit", (code) => process.exit(code ?? 0));
   } catch (err) {
-    console.error(s(`
-Failed to launch REPL: ` + String(err), fg.error));
+    console.error(s2(`
+Failed to launch REPL: ` + String(err), fg2.error));
     process.exit(1);
   }
 }
@@ -22445,10 +22446,10 @@ async function launchInk() {
     });
     child.on("exit", (code) => process.exit(code ?? 0));
   } catch (err) {
-    console.error(s(`
-Failed to launch Ink TUI: ` + String(err), fg.error));
-    console.error(s(`Falling back to REPL mode...
-`, fg.warning));
+    console.error(s2(`
+Failed to launch Ink TUI: ` + String(err), fg2.error));
+    console.error(s2(`Falling back to REPL mode...
+`, fg2.warning));
     await launchRepl();
   }
 }
@@ -22462,10 +22463,10 @@ async function launchTerminal() {
     });
     child.on("exit", (code) => process.exit(code ?? 0));
   } catch (err) {
-    console.error(s(`
-Failed to launch Terminal TUI: ` + String(err), fg.error));
-    console.error(s(`Falling back to REPL mode...
-`, fg.warning));
+    console.error(s2(`
+Failed to launch Terminal TUI: ` + String(err), fg2.error));
+    console.error(s2(`Falling back to REPL mode...
+`, fg2.warning));
     await launchRepl();
   }
 }
@@ -22473,18 +22474,18 @@ async function promptMode() {
   const readline2 = await import("readline");
   const rl = readline2.createInterface({ input: process.stdin, output: process.stdout });
   return new Promise((resolve7) => {
-    console.log(renderCleanBanner());
+    console.log(renderCleanBanner2());
     console.log();
-    console.log(`  ${s("[1]", fg.accent)} ${s("Minimal REPL", fg.primary)}   ${dim}— fast, ASCII-safe, tab complete`);
-    console.log(`  ${s("[2]", fg.accent)} ${s("Rich TUI", fg.primary)}       ${dim}— spinners, colors, mouse support`);
+    console.log(`  ${s2("[1]", fg2.accent)} ${s2("Minimal REPL", fg2.primary)}   ${dim2}— fast, ASCII-safe, tab complete`);
+    console.log(`  ${s2("[2]", fg2.accent)} ${s2("Rich TUI", fg2.primary)}       ${dim2}— spinners, colors, mouse support`);
     if (isWindows4) {
-      console.log(`  ${s("[3]", fg.accent)} ${s("Terminal TUI", fg.primary)} ${dim}— cross-platform (Windows optimized)`);
+      console.log(`  ${s2("[3]", fg2.accent)} ${s2("Terminal TUI", fg2.primary)} ${dim2}— cross-platform (Windows optimized)`);
     }
     console.log();
-    console.log(`  ${s("Tip:", fg.warning)} ${s("Use", fg.muted)} ${s("--tui", fg.accent)} ${s("flag to skip this prompt", fg.muted)}`);
+    console.log(`  ${s2("Tip:", fg2.warning)} ${s2("Use", fg2.muted)} ${s2("--tui", fg2.accent)} ${s2("flag to skip this prompt", fg2.muted)}`);
     console.log();
     const prompt = isWindows4 ? "  Choose [1]" : "  Choose [1]";
-    rl.question(s(prompt, fg.muted) + " ", (answer) => {
+    rl.question(s2(prompt, fg2.muted) + " ", (answer) => {
       rl.close();
       const choice = answer.trim();
       if (isWindows4 && choice === "3") {
@@ -22514,15 +22515,15 @@ async function launchUI(mode = "auto") {
     if (isWindows4) {
       const readline2 = await import("readline");
       const rl = readline2.createInterface({ input: process.stdin, output: process.stdout });
-      console.log(renderCleanBanner());
+      console.log(renderCleanBanner2());
       console.log();
-      console.log(s("  ⚠️  Windows detected - using Terminal TUI for best experience", fg.warning));
+      console.log(s2("  ⚠️  Windows detected - using Terminal TUI for best experience", fg2.warning));
       console.log();
-      console.log(`  ${s("[1]", fg.accent)} ${s("Terminal TUI", fg.primary)} ${dim}— Windows optimized, colors & mouse`);
-      console.log(`  ${s("[2]", fg.accent)} ${s("Minimal REPL", fg.primary)} ${dim}— fast, ASCII-safe`);
+      console.log(`  ${s2("[1]", fg2.accent)} ${s2("Terminal TUI", fg2.primary)} ${dim2}— Windows optimized, colors & mouse`);
+      console.log(`  ${s2("[2]", fg2.accent)} ${s2("Minimal REPL", fg2.primary)} ${dim2}— fast, ASCII-safe`);
       console.log();
       return new Promise((resolve7) => {
-        rl.question(s("  Choose [1]", fg.muted) + " ", (answer) => {
+        rl.question(s2("  Choose [1]", fg2.muted) + " ", (answer) => {
           rl.close();
           if (answer.trim() === "2") {
             launchRepl().then(resolve7);
@@ -22559,12 +22560,160 @@ var init_router = __esm(() => {
 
 // src/index.ts
 init_providers();
-init_colors();
+
+// src/ui/colors.ts
+var reset = "\x1B[0m";
+var bold = "\x1B[1m";
+var dim = "\x1B[2m";
+var claudePalette = {
+  crust: "\x1B[48;2;250;249;245m",
+  mantle: "\x1B[48;2;245;244;237m",
+  base: "\x1B[48;2;240;238;220m",
+  surface0: "\x1B[48;2;232;230;220m",
+  surface1: "\x1B[48;2;215;213;200m",
+  surface2: "\x1B[48;2;180;178;170m",
+  text: "\x1B[38;2;20;20;19m",
+  subtext0: "\x1B[38;2;80;79;75m",
+  subtext1: "\x1B[38;2;50;49;46m",
+  overlay0: "\x1B[38;2;140;138;130m",
+  blue: "\x1B[38;2;56;152;236m",
+  sapphire: "\x1B[38;2;56;152;236m",
+  sky: "\x1B[38;2;100;170;210m",
+  teal: "\x1B[38;2;23;146;153m",
+  green: "\x1B[38;2;30;160;80m",
+  yellow: "\x1B[38;2;200;140;0m",
+  peach: "\x1B[38;2;201;130;70m",
+  maroon: "\x1B[38;2;160;100;90m",
+  red: "\x1B[38;2;200;60;60m",
+  mauve: "\x1B[38;2;180;80;200m",
+  pink: "\x1B[38;2;200;100;180m",
+  flamingo: "\x1B[38;2;220;150;130m",
+  lavender: "\x1B[38;2;139;92;246m",
+  white: "\x1B[38;2;255;255;250m",
+  gpPurple: "\x1B[38;2;142;54;255m",
+  gpBlue: "\x1B[38;2;70;130;255m",
+  gpCyan: "\x1B[38;2;0;200;200m",
+  gpGreen: "\x1B[38;2;0;200;100m",
+  gpYellow: "\x1B[38;2;255;200;0m",
+  gpRed: "\x1B[38;2;255;100;100m"
+};
+var fg = {
+  primary: claudePalette.text,
+  secondary: claudePalette.subtext1,
+  muted: claudePalette.overlay0,
+  overlay: claudePalette.surface2,
+  success: claudePalette.green,
+  warning: claudePalette.yellow,
+  error: claudePalette.red,
+  info: claudePalette.blue,
+  user: claudePalette.green,
+  assistant: claudePalette.mauve,
+  system: claudePalette.sapphire,
+  tool: claudePalette.peach,
+  code: claudePalette.teal,
+  link: claudePalette.sapphire,
+  keyword: claudePalette.mauve,
+  function: claudePalette.blue,
+  string: claudePalette.green,
+  number: claudePalette.peach,
+  accent: claudePalette.gpPurple,
+  accent2: claudePalette.pink,
+  accent3: claudePalette.lavender,
+  peach: claudePalette.peach,
+  mauve: claudePalette.mauve,
+  cyan: claudePalette.teal,
+  purple: claudePalette.gpPurple,
+  prompt: claudePalette.gpPurple,
+  gpPurple: claudePalette.gpPurple,
+  gpBlue: claudePalette.gpBlue,
+  gpCyan: claudePalette.gpCyan,
+  gpGreen: claudePalette.gpGreen,
+  gpYellow: claudePalette.gpYellow,
+  gpRed: claudePalette.gpRed
+};
+var bg = {
+  base: claudePalette.base,
+  surface: claudePalette.surface0,
+  elevated: claudePalette.surface1,
+  overlay: claudePalette.surface2,
+  crust: claudePalette.crust,
+  mantle: claudePalette.mantle
+};
+var spinnerFrames = {
+  dots: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"],
+  line: ["-", "\\", "|", "/"],
+  blocks: ["▖", "▘", "▝", "▗"],
+  arrow: ["←", "↙", "↓", "↘", "→", "↗", "↑", "↖"],
+  star: ["⋆", "✦", "✧", "⋆", "✧", "✦"]
+};
+var DEFAULT_SPINNER = spinnerFrames.dots;
+var icon = {
+  prompt: "›",
+  userPrefix: ">",
+  aiPrefix: "◈",
+  success: "✓",
+  error: "✗",
+  warning: "!",
+  info: "i",
+  check: "●",
+  online: "●",
+  offline: "○",
+  tool: "›",
+  run: "›",
+  search: "⌕",
+  edit: "✎",
+  plus: "+",
+  minus: "−",
+  arrow: "→",
+  arrowUp: "↑",
+  arrowDown: "↓",
+  bullet: "·",
+  separator: "│",
+  folder: "▶",
+  file: "▷",
+  code: "◈",
+  link: "↗",
+  star: "★",
+  spark: "✦",
+  sparkles: "⁎",
+  tokens: "⚡",
+  messages: "≡",
+  time: "⏱",
+  context: "◈",
+  clock: "⏰",
+  ts: "TS",
+  js: "JS",
+  py: "PY",
+  md: "MD",
+  json: "{}",
+  git: "⎇",
+  thinking: "◐",
+  loading: "⠋",
+  line: "─",
+  dash: "–",
+  dot: "·",
+  space: " "
+};
+var NO_COLOR = process.env.NO_COLOR || process.env.NO_COLOUR;
+function isColorEnabled() {
+  if (NO_COLOR)
+    return false;
+  if (process.env.FORCE_COLOR)
+    return true;
+  if (process.stdout && !process.stdout.isTTY)
+    return false;
+  return true;
+}
+function s(text, ...styles) {
+  if (!isColorEnabled())
+    return text;
+  return styles.join("") + text + reset;
+}
 
 // src/ui/layout.ts
 init_colors();
 function renderHeader(config) {
-  if (!isColorEnabled()) {
+  if (!isColorEnabled2()) {
     return `BEAST CLI v${config.version} | ${config.provider} | ${config.model}`;
   }
   const { version, provider, model, toolsCount } = config;
@@ -22575,21 +22724,21 @@ function renderHeader(config) {
   const gpPurple = "\x1B[38;2;142;54;255m";
   const gpBlue = "\x1B[38;2;70;130;255m";
   const line = [
-    s(`${tl} `, gpPurple),
-    s("\uD83D\uDC09", gpPurple),
-    s(" Beast ", gpPurple, bold),
-    s("CLI", gpBlue, bold),
-    s(` v${version}`, fg.muted),
-    s(` ${h} `, gpPurple),
-    s(icon.check + " ", fg.success),
-    s(provider, fg.success),
-    s(` ${h} `, gpPurple),
-    s(icon.code + " ", gpBlue),
-    s(model, gpBlue),
-    s(` ${h} `, gpPurple),
-    s(icon.tool + " ", fg.peach),
-    s(`${toolsCount} tools`, fg.peach),
-    s(` ${h}${tr}`, gpPurple)
+    s2(`${tl} `, gpPurple),
+    s2("\uD83D\uDC09", gpPurple),
+    s2(" Beast ", gpPurple, bold2),
+    s2("CLI", gpBlue, bold2),
+    s2(` v${version}`, fg2.muted),
+    s2(` ${h} `, gpPurple),
+    s2(icon2.check + " ", fg2.success),
+    s2(provider, fg2.success),
+    s2(` ${h} `, gpPurple),
+    s2(icon2.code + " ", gpBlue),
+    s2(model, gpBlue),
+    s2(` ${h} `, gpPurple),
+    s2(icon2.tool + " ", fg2.peach),
+    s2(`${toolsCount} tools`, fg2.peach),
+    s2(` ${h}${tr}`, gpPurple)
   ].join("");
   return line;
 }
@@ -22599,25 +22748,25 @@ function contextBar(stats) {
   const pct = Math.min(1, used / max);
   const filled = Math.round(pct * width);
   const empty = width - filled;
-  let barColor = fg.success;
+  let barColor = fg2.success;
   if (pct > 0.75)
-    barColor = fg.sapphire;
+    barColor = fg2.sapphire;
   if (pct > 0.9)
-    barColor = fg.warning;
-  const bar = s("█".repeat(filled), barColor) + s("░".repeat(empty), fg.overlay);
-  const pctStr = s(`${Math.round(pct * 100)}%`, barColor);
-  const usedStr = s(formatTokens(used), fg.muted);
-  const maxStr = s(formatTokens(max), fg.muted);
+    barColor = fg2.warning;
+  const bar = s2("█".repeat(filled), barColor) + s2("░".repeat(empty), fg2.overlay);
+  const pctStr = s2(`${Math.round(pct * 100)}%`, barColor);
+  const usedStr = s2(formatTokens(used), fg2.muted);
+  const maxStr = s2(formatTokens(max), fg2.muted);
   return [
-    s(`  ${icon.context} `, fg.muted),
+    s2(`  ${icon2.context} `, fg2.muted),
     bar,
-    s(" ", fg.muted),
+    s2(" ", fg2.muted),
     pctStr,
-    s(" (", fg.muted),
+    s2(" (", fg2.muted),
     usedStr,
-    s("/", fg.muted),
+    s2("/", fg2.muted),
     maxStr,
-    s(")", fg.muted)
+    s2(")", fg2.muted)
   ].join("");
 }
 function formatTokens(n) {
@@ -22632,7 +22781,7 @@ function stripAnsi(text) {
   return text.replace(/\x1b\[[0-9;]*m/g, "");
 }
 function panel(content, options = {}) {
-  const { title, titleColor = fg.accent, width = 70, useBox = true, style = "single" } = options;
+  const { title, titleColor = fg2.accent, width = 70, useBox = true, style = "single" } = options;
   const rawLines = content.split(`
 `);
   const maxLen = rawLines.reduce((m, l) => Math.max(m, stripAnsi(l).length), 0);
@@ -22664,7 +22813,7 @@ function panel(content, options = {}) {
 `;
     }
     result2 += `${bl}${h.repeat(w)}${br}`;
-    return s(result2, titleColor);
+    return s2(result2, titleColor);
   }
   let result = `+${"-".repeat(w)}+
 `;
@@ -22684,13 +22833,13 @@ function panel(content, options = {}) {
 `;
   }
   result += `+${"-".repeat(w)}+`;
-  return s(result, titleColor);
+  return s2(result, titleColor);
 }
 function inlineList(items, options = {}) {
-  const { iconColor = fg.accent, labelColor = fg.muted, valueColor = fg.primary, separator = "  " } = options;
+  const { iconColor = fg2.accent, labelColor = fg2.muted, valueColor = fg2.primary, separator = "  " } = options;
   return items.map((item) => {
-    const icon2 = item.icon ? s(item.icon + " ", iconColor) : "";
-    return icon2 + s(item.label, labelColor) + ": " + s(item.value, valueColor);
+    const icon3 = item.icon ? s2(item.icon + " ", iconColor) : "";
+    return icon3 + s2(item.label, labelColor) + ": " + s2(item.value, valueColor);
   }).join(separator);
 }
 async function withProgress(label, promise, onTick) {
@@ -22702,9 +22851,9 @@ async function withProgress(label, promise, onTick) {
     ticks++;
     const pct = Math.round(estimated * 100);
     const filled = Math.round(estimated * 24);
-    const barColor = pct > 80 ? fg.warning : pct > 50 ? fg.accent : fg.success;
-    const bar = s("█".repeat(filled), barColor) + s("░".repeat(24 - filled), fg.muted);
-    process.stderr.write(`\r  ${s(label, fg.secondary)} ${bar} ${s(pct + "%", barColor)}   `);
+    const barColor = pct > 80 ? fg2.warning : pct > 50 ? fg2.accent : fg2.success;
+    const bar = s2("█".repeat(filled), barColor) + s2("░".repeat(24 - filled), fg2.muted);
+    process.stderr.write(`\r  ${s2(label, fg2.secondary)} ${bar} ${s2(pct + "%", barColor)}   `);
     if (onTick)
       onTick(elapsed);
   }, 300);
@@ -22712,13 +22861,13 @@ async function withProgress(label, promise, onTick) {
     const result = await promise;
     clearInterval(ticker);
     process.stderr.write("\r" + " ".repeat(60) + "\r");
-    process.stderr.write(s("✓ ", fg.success) + s(label, fg.secondary) + `
+    process.stderr.write(s2("✓ ", fg2.success) + s2(label, fg2.secondary) + `
 `);
     return result;
   } catch (e) {
     clearInterval(ticker);
     process.stderr.write("\r" + " ".repeat(60) + "\r");
-    process.stderr.write(s("✗ ", fg.error) + s(label, fg.secondary) + `
+    process.stderr.write(s2("✗ ", fg2.error) + s2(label, fg2.secondary) + `
 `);
     throw e;
   }
@@ -22726,14 +22875,22 @@ async function withProgress(label, promise, onTick) {
 function helpPanel(commands) {
   const maxCmd = Math.max(...commands.map((c) => stripAnsi(c.cmd).length), 4);
   return commands.map(({ cmd, desc, shortcut }) => {
-    const shortcutStr = shortcut ? s(` (${shortcut})`, fg.muted, italic) : "";
-    return `  ${s(cmd.padEnd(maxCmd + 2), fg.accent)}${s(desc, fg.primary)}${shortcutStr}`;
+    const shortcutStr = shortcut ? s2(` (${shortcut})`, fg2.muted, italic) : "";
+    return `  ${s2(cmd.padEnd(maxCmd + 2), fg2.accent)}${s2(desc, fg2.primary)}${shortcutStr}`;
   }).join(`
 `);
 }
 
 // src/ui/tool-renderer.ts
 init_colors();
+
+// src/ui/format.ts
+init_colors();
+function stripAnsi2(text) {
+  return text.replace(/\x1b\[[0-9;]*m/g, "");
+}
+
+// src/ui/tool-renderer.ts
 var MAX_RESULT_LINES = 8;
 var MAX_LINE_WIDTH = 120;
 function truncateResult(content, maxLines = MAX_RESULT_LINES) {
@@ -22743,7 +22900,7 @@ function truncateResult(content, maxLines = MAX_RESULT_LINES) {
     return content;
   const visible = lines.slice(0, maxLines);
   const truncated = visible.map((l) => {
-    const stripped = stripAnsi(l);
+    const stripped = stripAnsi2(l);
     if (stripped.length <= MAX_LINE_WIDTH)
       return l;
     return l.slice(0, MAX_LINE_WIDTH - 3) + "...";
@@ -22753,7 +22910,7 @@ function truncateResult(content, maxLines = MAX_RESULT_LINES) {
 `);
   if (remaining > 0) {
     return text + `
-` + s(`  ... ${remaining} more lines`, fg.muted) + "  " + s("[e] expand", fg.accent) + "  " + s("[c] copy", fg.sapphire) + `
+` + s2(`  ... ${remaining} more lines`, fg2.muted) + "  " + s2("[e] expand", fg2.accent) + "  " + s2("[c] copy", fg2.sapphire) + `
 `;
   }
   return text;
@@ -22784,29 +22941,29 @@ function renderFileList(content) {
   try {
     const items = JSON.parse(content);
     if (!Array.isArray(items) || items.length === 0) {
-      return s("(empty directory)", fg.muted);
+      return s2("(empty directory)", fg2.muted);
     }
     const dirs = items.filter((i) => i.type === "directory");
     const files = items.filter((i) => i.type !== "directory");
     const lines = [];
     if (dirs.length > 0) {
-      lines.push(s("\uD83D\uDCC1 Directories", fg.accent));
-      lines.push(dirs.map((d) => `  ${s("\uD83D\uDCC1", fg.warning)} ${s(d.name, fg.primary)}`).join(`
+      lines.push(s2("\uD83D\uDCC1 Directories", fg2.accent));
+      lines.push(dirs.map((d) => `  ${s2("\uD83D\uDCC1", fg2.warning)} ${s2(d.name, fg2.primary)}`).join(`
 `));
       lines.push("");
     }
     if (files.length > 0) {
-      lines.push(s("\uD83D\uDCC4 Files", fg.accent));
+      lines.push(s2("\uD83D\uDCC4 Files", fg2.accent));
       lines.push(files.map((f) => {
         const size = f.size ? formatSize(f.size) : "";
         const modified = f.modified ? timeAgo(f.modified) : "";
-        return `  ${s("\uD83D\uDCC4", fg.cyan)} ${s(f.name, fg.primary)} ${s(size, fg.muted)} ${s(modified, fg.muted)}`;
+        return `  ${s2("\uD83D\uDCC4", fg2.cyan)} ${s2(f.name, fg2.primary)} ${s2(size, fg2.muted)} ${s2(modified, fg2.muted)}`;
       }).join(`
 `));
     }
     return lines.join(`
 `) + `
-${s("(" + items.length + " items)", fg.muted)}`;
+${s2("(" + items.length + " items)", fg2.muted)}`;
   } catch {
     return renderGeneric(content);
   }
@@ -22822,23 +22979,23 @@ function renderSearch(content) {
     const data = JSON.parse(content);
     const results = data.results || [];
     if (results.length === 0) {
-      return s("No results found", fg.muted);
+      return s2("No results found", fg2.muted);
     }
     const shown = results.slice(0, MAX_RESULT_LINES);
     const remaining = results.length - shown.length;
     const items = shown.map((r, i) => {
-      const title = r.title || s("(no title)", fg.muted);
+      const title = r.title || s2("(no title)", fg2.muted);
       const url = r.url || "";
       const snippet = r.snippet || "";
       return [
-        s(`${i + 1}. `, fg.accent) + s(truncate(title, 60), fg.bold, fg.primary),
-        `   ${s(truncate(snippet, 80), fg.secondary)}`,
-        `   ${s(truncate(url, 70), fg.link)}`
+        s2(`${i + 1}. `, fg2.accent) + s2(truncate(title, 60), fg2.bold, fg2.primary),
+        `   ${s2(truncate(snippet, 80), fg2.secondary)}`,
+        `   ${s2(truncate(url, 70), fg2.link)}`
       ].join(`
 `);
     });
     if (remaining > 0) {
-      items.push(s(`... and ${remaining} more results — use fetch_web for full content`, fg.muted));
+      items.push(s2(`... and ${remaining} more results — use fetch_web for full content`, fg2.muted));
     }
     return items.join(`
 
@@ -22852,12 +23009,12 @@ function renderGithub(content) {
     const data = JSON.parse(content);
     if (data.name) {
       const lines = [
-        s(data.name, fg.bold, fg.accent),
-        data.description ? s(data.description, fg.primary) : "",
+        s2(data.name, fg2.bold, fg2.accent),
+        data.description ? s2(data.description, fg2.primary) : "",
         "",
-        s("⭐ " + formatNumber(data.stars || data.stargazers_count || 0), fg.warning) + "  " + s("\uD83C\uDF74 " + formatNumber(data.forks_count || 0), fg.cyan) + "  " + s(data.language || "", fg.success),
+        s2("⭐ " + formatNumber(data.stars || data.stargazers_count || 0), fg2.warning) + "  " + s2("\uD83C\uDF74 " + formatNumber(data.forks_count || 0), fg2.cyan) + "  " + s2(data.language || "", fg2.success),
         "",
-        s(data.url || data.html_url || "", fg.link)
+        s2(data.url || data.html_url || "", fg2.link)
       ];
       return lines.filter(Boolean).join(`
 `);
@@ -22867,14 +23024,14 @@ function renderGithub(content) {
       const remaining = data.length - shown.length;
       const items = shown.map((r, i) => {
         return [
-          s(`${i + 1}. `, fg.accent) + s(r.name || r.full_name, fg.bold, fg.primary),
-          r.description ? `   ${s(truncate(r.description, 60), fg.secondary)}` : "",
-          `   ${s("⭐ " + formatNumber(r.stars || r.stargazers_count || 0), fg.warning)} ${r.language ? s(r.language, fg.success) : ""}`
+          s2(`${i + 1}. `, fg2.accent) + s2(r.name || r.full_name, fg2.bold, fg2.primary),
+          r.description ? `   ${s2(truncate(r.description, 60), fg2.secondary)}` : "",
+          `   ${s2("⭐ " + formatNumber(r.stars || r.stargazers_count || 0), fg2.warning)} ${r.language ? s2(r.language, fg2.success) : ""}`
         ].filter(Boolean).join(`
 `);
       });
       if (remaining > 0) {
-        items.push(s(`... and ${remaining} more repos`, fg.muted));
+        items.push(s2(`... and ${remaining} more repos`, fg2.muted));
       }
       return items.join(`
 
@@ -22892,17 +23049,17 @@ function renderHackerNews(content) {
     const shown = results.slice(0, MAX_RESULT_LINES);
     const remaining = results.length - shown.length;
     const items = shown.map((r, i) => {
-      const title = r.title || s("(no title)", fg.muted);
+      const title = r.title || s2("(no title)", fg2.muted);
       const score = r.score || r.snippet?.match(/(\d+) points/)?.[1] || "0";
       const comments = r.descendants || r.snippet?.match(/(\d+) comments/)?.[1] || "0";
       return [
-        s(`${i + 1}. `, fg.accent) + s(truncate(title, 60), fg.bold, fg.primary),
-        `   ${s("⭐ " + score, fg.warning)} ${s("\uD83D\uDCAC " + comments, fg.cyan)} ${r.url ? s(truncate(r.url, 50), fg.link) : ""}`
+        s2(`${i + 1}. `, fg2.accent) + s2(truncate(title, 60), fg2.bold, fg2.primary),
+        `   ${s2("⭐ " + score, fg2.warning)} ${s2("\uD83D\uDCAC " + comments, fg2.cyan)} ${r.url ? s2(truncate(r.url, 50), fg2.link) : ""}`
       ].join(`
 `);
     });
     if (remaining > 0) {
-      items.push(s(`... and ${remaining} more stories`, fg.muted));
+      items.push(s2(`... and ${remaining} more stories`, fg2.muted));
     }
     return items.join(`
 
@@ -22919,14 +23076,14 @@ function renderYouTube(content) {
     const remaining = results.length - shown.length;
     const items = shown.map((r, i) => {
       return [
-        s(`${i + 1}. `, fg.accent) + s(r.name || r.full_name || s("(no name)", fg.muted), fg.bold, fg.primary),
-        r.description ? `   ${s(truncate(r.description, 60), fg.secondary)}` : "",
-        `   ${s("⭐ " + formatNumber(r.stars || r.stargazers_count || 0), fg.warning)} ${r.language ? s(r.language, fg.success) : ""}`
+        s2(`${i + 1}. `, fg2.accent) + s2(r.name || r.full_name || s2("(no name)", fg2.muted), fg2.bold, fg2.primary),
+        r.description ? `   ${s2(truncate(r.description, 60), fg2.secondary)}` : "",
+        `   ${s2("⭐ " + formatNumber(r.stars || r.stargazers_count || 0), fg2.warning)} ${r.language ? s2(r.language, fg2.success) : ""}`
       ].filter(Boolean).join(`
 `);
     });
     if (remaining > 0) {
-      items.push(s(`... and ${remaining} more videos`, fg.muted));
+      items.push(s2(`... and ${remaining} more videos`, fg2.muted));
     }
     return items.join(`
 
@@ -22948,7 +23105,7 @@ function renderGeneric(content) {
   }
 }
 function renderError(toolName, error) {
-  return s(`${icon.error} ${toolName}: ${error}`, fg.error);
+  return s2(`${icon2.error} ${toolName}: ${error}`, fg2.error);
 }
 function formatSize(bytes) {
   if (bytes < 1024)
@@ -22983,7 +23140,7 @@ function timeAgo(dateStr) {
   }
 }
 function truncate(text, maxLen) {
-  const stripped = stripAnsi(text);
+  const stripped = stripAnsi2(text);
   if (stripped.length <= maxLen)
     return text;
   const plain = text.replace(/\x1b\[[0-9;]*m/g, "");
@@ -22995,8 +23152,64 @@ function truncate(text, maxLen) {
   return text.slice(0, maxLen - 3) + "...";
 }
 
-// src/index.ts
-init_banner();
+// src/ui/banner.ts
+init_colors();
+function termWidth() {
+  try {
+    return process.stdout.columns || 80;
+  } catch {
+    return 80;
+  }
+}
+var googlePurple = "\x1B[38;2;142;54;255m";
+var googleBlue = "\x1B[38;2;70;130;255m";
+var FULL_LOGO = `
+ ${googlePurple}+==================================================================+${reset2}` + `
+ ${googlePurple}|${reset2}  \uD83D\uDC09  ${s2("BEAST", googlePurple, bold2)}   ${s2("CLI", googleBlue, bold2)}    ${dim2}AI Coding Agent · 45+ Providers · 51+ Tools     ${googlePurple}|${reset2}` + `
+ ${googlePurple}+==================================================================+${reset2}
+`;
+var COMPACT_LOGO = `
+ ${googlePurple}+----------------------------------------------+${reset2}` + `
+ ${googlePurple}|${reset2}  \uD83D\uDC09  ${s2("BEAST", googlePurple, bold2)}  ${s2("CLI", googleBlue, bold2)}  ${dim2}AI Coding Agent                  ${googlePurple}|${reset2}` + `
+ ${googlePurple}+----------------------------------------------+${reset2}
+`;
+var TINY_LOGO = ` \uD83D\uDC09 ${s2("BEAST CLI", googlePurple, bold2)} ${dim2}~ 
+`;
+var googlePurple2 = "\x1B[38;2;142;54;255m";
+var googleBlue2 = "\x1B[38;2;70;130;255m";
+var TEXT_LOGO = ` ${s2("BEAST", googlePurple2, bold2)} ${s2("CLI", googleBlue2, bold2)} `;
+var FEATURE_CARDS = [
+  { label: "Blazing Fast", color: fg2.warning },
+  { label: "Private & Local", color: fg2.success },
+  { label: "45+ Providers", color: fg2.sapphire },
+  { label: "51+ Tools", color: fg2.tool }
+];
+var REVEAL_TAGLINE = `${s2("·", fg2.overlay)} ${s2("45+ Providers", fg2.muted)} ` + `${s2("·", fg2.overlay)} ${s2("51+ Tools", fg2.muted)} ` + `${s2("·", fg2.overlay)} ${s2("Local AI Ready", fg2.muted)}`;
+function renderCleanBanner() {
+  if (!isColorEnabled2())
+    return "BEAST CLI - AI Coding Agent";
+  const width = termWidth();
+  let logo;
+  if (width >= 60) {
+    logo = FULL_LOGO;
+  } else if (width >= 40) {
+    logo = COMPACT_LOGO;
+  } else {
+    logo = TINY_LOGO;
+  }
+  if (width < 50) {
+    return logo;
+  }
+  const tagline = REVEAL_TAGLINE + `
+`;
+  const cardSep = "  ";
+  const cardLines = FEATURE_CARDS.map((card) => {
+    return s2(card.label, card.color);
+  }).join(s2(cardSep, fg2.overlay));
+  return logo + tagline + `
+` + cardLines + `
+`;
+}
 
 // src/ui/tips.ts
 init_colors();
@@ -23082,17 +23295,14 @@ function randomTip() {
   if (tipIndex >= tipShuffle.length)
     shuffleTips();
   const tip = tipShuffle[tipIndex++];
-  return `${s("*", fg.warning)} ${s(tip.tip, fg.secondary)} ${s(`(${tip.cmd})`, fg.muted)}`;
+  return `${s2("*", fg2.warning)} ${s2(tip.tip, fg2.secondary)} ${s2(`(${tip.cmd})`, fg2.muted)}`;
 }
 function tipBanner() {
   return `
-` + s("─".repeat(50), fg.muted) + `
+` + s2("─".repeat(50), fg2.muted) + `
 ` + randomTip() + `
 `;
 }
-
-// src/index.ts
-init_colors();
 
 // src/native-tools/web.ts
 import { execSync as execSync2 } from "node:child_process";
@@ -24237,7 +24447,7 @@ async function youtubeSearch(query, limit = 10) {
   }
 }
 async function youtubeSummarize(transcript, maxWords = 500) {
-  const sentences = transcript.split(/[.!?]+/).filter((s2) => s2.trim().length > 20);
+  const sentences = transcript.split(/[.!?]+/).filter((s3) => s3.trim().length > 20);
   const words = transcript.split(/\s+/);
   if (words.length <= maxWords) {
     return { success: true, output: transcript };
@@ -24738,7 +24948,7 @@ class RepoIndexer {
         exports.push(match[1]);
       rx = new RegExp(TS_EXPORT_BLOCK.source, "g");
       while ((match = rx.exec(content)) !== null) {
-        exports.push(...match[1].split(",").map((s2) => s2.trim()).filter(Boolean));
+        exports.push(...match[1].split(",").map((s3) => s3.trim()).filter(Boolean));
       }
       rx = new RegExp(TS_IMPORT.source, "g");
       while ((match = rx.exec(content)) !== null) {
@@ -25049,7 +25259,7 @@ class RetrievalEngine {
   calculateConfidence(rankedFiles, keywords) {
     if (rankedFiles.length === 0 || keywords.length === 0)
       return 0;
-    const avgScore = rankedFiles.reduce((s2, r) => s2 + r.score, 0) / rankedFiles.length;
+    const avgScore = rankedFiles.reduce((s3, r) => s3 + r.score, 0) / rankedFiles.length;
     const maxPossible = keywords.length * 25;
     return Math.round(Math.min(avgScore / maxPossible, 1) * 100) / 100;
   }
@@ -25491,9 +25701,9 @@ class SummarizationEngine {
     const audienceNotes = {};
     const aud = options.audience ?? "developer";
     audienceNotes[aud] = this.generateAudienceNote(aud, codeReferences);
-    const totalExports = codeReferences.reduce((s2, r) => {
+    const totalExports = codeReferences.reduce((s3, r) => {
       const m = r.description.match(/\d+/);
-      return s2 + (m ? parseInt(m[0], 10) : 0);
+      return s3 + (m ? parseInt(m[0], 10) : 0);
     }, 0);
     return {
       featureSummary,
@@ -25518,13 +25728,13 @@ class SummarizationEngine {
       return `${steps.length} files in flow`;
     if (verbosity === "standard")
       return `Flow overview:
-${steps.map((s2) => `${s2.order}. ${s2.description}`).join(`
+${steps.map((s3) => `${s3.order}. ${s3.description}`).join(`
 `)}`;
     return `Code flow (${steps.length} files):
 
-${steps.map((s2) => `${s2.order}. ${s2.description}
-   ${s2.file}${s2.snippet ? `
-` + indent(s2.snippet, "   ") : ""}`).join(`
+${steps.map((s3) => `${s3.order}. ${s3.description}
+   ${s3.file}${s3.snippet ? `
+` + indent(s3.snippet, "   ") : ""}`).join(`
 
 `)}`;
   }
@@ -25832,7 +26042,7 @@ async function engiImplementationPlan(params) {
     description: "Create or update tests",
     file: scope[0] || "test file",
     action: "create",
-    dependencies: steps.map((s2) => s2.file)
+    dependencies: steps.map((s3) => s3.file)
   });
   requiredTests.push(`${scope[0] || "source"}.test.ts`);
   if (taskType === "feature") {
@@ -27477,34 +27687,34 @@ function getOldContent(path4) {
   }
 }
 function formatDiffDisplay(diff, path4) {
-  const stats = s(formatDiffStats(diff.additions, diff.removals), fg.muted);
+  const stats = s2(formatDiffStats(diff.additions, diff.removals), fg2.muted);
   const lines = [];
   lines.push(`
-${s("─".repeat(60), fg.muted)}`);
-  lines.push(`${s("\uD83D\uDCC4", fg.accent)} ${s(path4, fg.primary)} ${s(`(${stats})`, fg.muted)}`);
+${s2("─".repeat(60), fg2.muted)}`);
+  lines.push(`${s2("\uD83D\uDCC4", fg2.accent)} ${s2(path4, fg2.primary)} ${s2(`(${stats})`, fg2.muted)}`);
   const diffLines = diff.diff.split(`
 `).slice(2);
   const hunks = diffLines.filter((l) => l.startsWith("@@")).length;
   if (hunks > 1) {
-    lines.push(`${s("⚠", fg.warning)} ${hunks} changes across ${diff.additions + diff.removals} lines`);
+    lines.push(`${s2("⚠", fg2.warning)} ${hunks} changes across ${diff.additions + diff.removals} lines`);
   }
   const MAX_SHOW = 20;
   const shown = diffLines.slice(0, MAX_SHOW);
   for (const line of shown) {
     if (line.startsWith("@@")) {
-      lines.push(s(line, fg.accent));
+      lines.push(s2(line, fg2.accent));
     } else if (line.startsWith("+")) {
-      lines.push(s(line, fg.success));
+      lines.push(s2(line, fg2.success));
     } else if (line.startsWith("-")) {
-      lines.push(s(line, fg.error));
+      lines.push(s2(line, fg2.error));
     } else if (line.startsWith(" ")) {
-      lines.push(dim + line + reset);
+      lines.push(dim2 + line + reset2);
     }
   }
   if (diffLines.length > MAX_SHOW) {
-    lines.push(s(`... (${diffLines.length - MAX_SHOW} more lines, review in editor for full diff)`, fg.muted));
+    lines.push(s2(`... (${diffLines.length - MAX_SHOW} more lines, review in editor for full diff)`, fg2.muted));
   }
-  lines.push(s("─".repeat(60), fg.muted));
+  lines.push(s2("─".repeat(60), fg2.muted));
   return lines.join(`
 `);
 }
@@ -27524,13 +27734,13 @@ async function quickApproval(ctx) {
 `);
     }
     process.stdout.write(`
-${s("⚠", fg.warning)} ${s(ctx.description, fg.primary)}
+${s2("⚠", fg2.warning)} ${s2(ctx.description, fg2.primary)}
 `);
-    process.stdout.write(`${s("[y]", fg.success)} ${s("Approve", fg.primary)}  `);
-    process.stdout.write(`${s("[e]", fg.accent)} ${s("Review in editor", fg.primary)}  `);
-    process.stdout.write(`${s("[n]", fg.error)} ${s("Reject", fg.primary)}
+    process.stdout.write(`${s2("[y]", fg2.success)} ${s2("Approve", fg2.primary)}  `);
+    process.stdout.write(`${s2("[e]", fg2.accent)} ${s2("Review in editor", fg2.primary)}  `);
+    process.stdout.write(`${s2("[n]", fg2.error)} ${s2("Reject", fg2.primary)}
 `);
-    process.stdout.write(`${s("[Enter]", fg.muted)} to approve, ${s("q", fg.warning)} to cancel > `);
+    process.stdout.write(`${s2("[Enter]", fg2.muted)} to approve, ${s2("q", fg2.warning)} to cancel > `);
     rl2.question("", async (answer) => {
       rl2.close();
       const trimmed = answer.trim().toLowerCase();
@@ -27550,6 +27760,161 @@ ${s("⚠", fg.warning)} ${s(ctx.description, fg.primary)}
       resolve4({ approved: true, reason: "approved", diff: diff ?? undefined });
     });
   });
+}
+
+// src/diff/index.ts
+function generateDiff2(oldContent, newContent, filePath, contextLines = 3) {
+  const oldLines = oldContent.split(`
+`);
+  const newLines = newContent.split(`
+`);
+  const lcs = computeLCS2(oldLines, newLines);
+  const changes = buildChangeList2(oldLines, newLines, lcs);
+  if (changes.length === 0) {
+    return { diff: "", additions: 0, removals: 0 };
+  }
+  const hunks = buildHunks2(oldLines, newLines, changes, contextLines);
+  let additions = 0;
+  let removals = 0;
+  const diffLines = [];
+  diffLines.push(`--- a/${filePath}`);
+  diffLines.push(`+++ b/${filePath}`);
+  for (const hunk of hunks) {
+    diffLines.push(`@@ -${hunk.oldStart},${hunk.oldLines} +${hunk.newStart},${hunk.newLines} @@`);
+    for (const line of hunk.lines) {
+      switch (line.type) {
+        case "add":
+          diffLines.push(`+${line.content}`);
+          additions++;
+          break;
+        case "remove":
+          diffLines.push(`-${line.content}`);
+          removals++;
+          break;
+        case "context":
+          diffLines.push(` ${line.content}`);
+          break;
+      }
+    }
+  }
+  return {
+    diff: diffLines.join(`
+`),
+    additions,
+    removals
+  };
+}
+function formatDiffStats2(additions, removals) {
+  const parts = [];
+  if (additions > 0)
+    parts.push(`+${additions}`);
+  if (removals > 0)
+    parts.push(`-${removals}`);
+  return parts.join(" ") || "no changes";
+}
+function computeLCS2(oldLines, newLines) {
+  const m = oldLines.length;
+  const n = newLines.length;
+  const dp = Array(m + 1).fill(0).map(() => Array(n + 1).fill(0));
+  for (let i = 1;i <= m; i++) {
+    for (let j = 1;j <= n; j++) {
+      if (oldLines[i - 1] === newLines[j - 1]) {
+        dp[i][j] = dp[i - 1][j - 1] + 1;
+      } else {
+        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+      }
+    }
+  }
+  return dp;
+}
+function buildChangeList2(oldLines, newLines, lcs) {
+  const changes = [];
+  let i = oldLines.length;
+  let j = newLines.length;
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && oldLines[i - 1] === newLines[j - 1]) {
+      changes.unshift({ type: "equal", oldIdx: i - 1, newIdx: j - 1 });
+      i--;
+      j--;
+    } else if (j > 0 && (i === 0 || lcs[i][j - 1] >= lcs[i - 1][j])) {
+      changes.unshift({ type: "add", oldIdx: -1, newIdx: j - 1 });
+      j--;
+    } else if (i > 0) {
+      changes.unshift({ type: "remove", oldIdx: i - 1, newIdx: -1 });
+      i--;
+    }
+  }
+  return changes;
+}
+function buildHunks2(oldLines, newLines, changes, contextLines) {
+  if (changes.length === 0)
+    return [];
+  const hunks = [];
+  let i = 0;
+  while (i < changes.length) {
+    while (i < changes.length && changes[i].type === "equal") {
+      i++;
+    }
+    if (i >= changes.length)
+      break;
+    const hunkStart = i;
+    let oldCount = 0;
+    let newCount = 0;
+    let contextStart = hunkStart;
+    while (contextStart > 0 && changes[contextStart - 1].type === "equal") {
+      contextStart--;
+    }
+    const extStart = Math.max(0, contextStart - contextLines);
+    const hunkChanges = [];
+    for (let k = extStart;k < changes.length; k++) {
+      const c2 = changes[k];
+      if (c2.type === "equal") {
+        let contextAfter = 0;
+        let checkK = k + 1;
+        while (checkK < changes.length && changes[checkK].type === "equal") {
+          contextAfter++;
+          checkK++;
+        }
+        if (contextAfter >= contextLines) {
+          break;
+        }
+      }
+      hunkChanges.push(c2);
+      if (c2.type !== "add")
+        oldCount++;
+      if (c2.type !== "remove")
+        newCount++;
+    }
+    const hunkLines = [];
+    let lastOldIdx = -1;
+    let lastNewIdx = -1;
+    for (const c2 of hunkChanges) {
+      if (c2.type === "equal") {
+        hunkLines.push({ type: "context", content: oldLines[c2.oldIdx] });
+        lastOldIdx = c2.oldIdx;
+        lastNewIdx = c2.newIdx;
+      } else if (c2.type === "remove") {
+        hunkLines.push({ type: "remove", content: oldLines[c2.oldIdx] });
+        lastOldIdx = c2.oldIdx;
+      } else {
+        hunkLines.push({ type: "add", content: newLines[c2.newIdx] });
+        lastNewIdx = c2.newIdx;
+      }
+    }
+    const firstChange = hunkChanges.find((c2) => c2.type !== "equal") || hunkChanges[0];
+    const firstEqual = hunkChanges.find((c2) => c2.type === "equal");
+    const oldStart = firstEqual ? firstEqual.oldIdx + 1 : firstChange.oldIdx >= 0 ? firstChange.oldIdx + 1 : 1;
+    const newStart = firstEqual ? firstEqual.newIdx + 1 : firstChange.newIdx >= 0 ? firstChange.newIdx + 1 : 1;
+    hunks.push({
+      oldStart,
+      oldLines: Math.max(1, oldCount),
+      newStart,
+      newLines: Math.max(1, newCount),
+      lines: hunkLines
+    });
+    i = hunkStart + hunkChanges.length;
+  }
+  return hunks;
 }
 
 // src/utils/notifications.ts
@@ -27906,7 +28271,7 @@ function parseContextSize(size) {
 var CONTEXT_SIZES = ["8K", "16K", "32K", "64K", "128K"];
 
 // src/index.ts
-import readline2 from "node:readline";
+import readline2 from "readline";
 var VERSION3 = "1.2.18";
 function question(prompt) {
   const rl = readline2.createInterface({ input: process.stdin, output: process.stdout });
@@ -27936,7 +28301,7 @@ var spinnerStartTime = 0;
 var spinnerSpeed = 80;
 var spinnerPhase = 0;
 var spinnerTask = "";
-var PULSE_FRAMES = ["◐", "◓", "◑", "◒"];
+var PULSE_FRAMES = ["\u25D0", "\u25D3", "\u25D1", "\u25D2"];
 var PHASE_STATES = [
   { state: "thinking", label: "Thinking", color: fg.accent },
   { state: "searching", label: "Searching", color: fg.sapphire },
@@ -27946,20 +28311,20 @@ var PHASE_STATES = [
 function formatElapsed(ms) {
   if (ms < 1000)
     return `${ms}ms`;
-  const s2 = Math.floor(ms / 1000);
-  if (s2 < 60)
-    return `${s2}s`;
-  const m = Math.floor(s2 / 60);
-  return `${m}m ${s2 % 60}s`;
+  const s3 = Math.floor(ms / 1000);
+  if (s3 < 60)
+    return `${s3}s`;
+  const m = Math.floor(s3 / 60);
+  return `${m}m ${s3 % 60}s`;
 }
 function formatProgressBar(filled, width = 12) {
   const total = width * 4;
   const f = Math.round(filled / 100 * total);
   if (!isColorEnabled()) {
     const barLen = Math.round(filled / 100 * width);
-    return "[" + "▓".repeat(barLen) + "░".repeat(width - barLen) + "]";
+    return "[" + "\u2593".repeat(barLen) + "\u2591".repeat(width - barLen) + "]";
   }
-  const bar = fg.success + "█".repeat(Math.floor(f / 4)) + (f % 4 > 0 ? ["░", "▒", "▓", "█"][f % 4] : "") + fg.muted + "░".repeat(width - Math.ceil(f / 4));
+  const bar = fg.success + "\u2588".repeat(Math.floor(f / 4)) + (f % 4 > 0 ? ["\u2591", "\u2592", "\u2593", "\u2588"][f % 4] : "") + fg.muted + "\u2591".repeat(width - Math.ceil(f / 4));
   return bar + reset;
 }
 function writeSpinnerFrame(phase, task) {
@@ -27998,10 +28363,10 @@ function stopFunSpinner(status = "done") {
   const elapsed = formatElapsed(Date.now() - spinnerStartTime);
   process.stderr.write("\r" + " ".repeat(90) + "\r");
   if (status === "done") {
-    process.stderr.write(s("✓ ", fg.success) + (spinnerLabel || "Done") + (spinnerTask ? " " + s(spinnerTask, fg.muted) : "") + s(" · " + elapsed, fg.muted) + `
+    process.stderr.write(s("\u2713 ", fg.success) + (spinnerLabel || "Done") + (spinnerTask ? " " + s(spinnerTask, fg.muted) : "") + s(" \xB7 " + elapsed, fg.muted) + `
 `);
   } else if (status === "error") {
-    process.stderr.write(s("✗ ", fg.error) + "Error" + s(" · " + elapsed, fg.muted) + `
+    process.stderr.write(s("\u2717 ", fg.error) + "Error" + s(" \xB7 " + elapsed, fg.muted) + `
 `);
   }
 }
@@ -28014,7 +28379,7 @@ function printUsage(usage) {
   if (!usage)
     return;
   const { promptTokens, completionTokens, totalTokens } = usage;
-  process.stdout.write(`${s("⚡ ", fg.muted)}${s(totalTokens.toLocaleString(), fg.mauve)} tokens `);
+  process.stdout.write(`${s("\u26A1 ", fg.muted)}${s(totalTokens.toLocaleString(), fg.mauve)} tokens `);
   process.stdout.write(`(${s("p:" + promptTokens, fg.sapphire)} ${s("c:" + completionTokens, fg.mauve)})
 `);
 }
@@ -28030,13 +28395,13 @@ async function selectProvider(providers2) {
   const byId = [];
   for (const p of online) {
     const models = `${p.models.length} models`;
-    const auth = p.id === "codex" ? " · OAuth" : "";
-    choices.push(`● ${p.name} (${p.shortName}) — ${models}${auth}`);
+    const auth = p.id === "codex" ? " \xB7 OAuth" : "";
+    choices.push(`\u25CF ${p.name} (${p.shortName}) \u2014 ${models}${auth}`);
     byId.push(p.id);
   }
   for (const p of offline) {
     const note = p.id === "codex" ? " (needs OAuth login)" : p.isCloud ? " (needs API key)" : " (offline)";
-    choices.push(`○ ${p.name} (${p.shortName})${note}`);
+    choices.push(`\u25CB ${p.name} (${p.shortName})${note}`);
     byId.push(p.id);
   }
   const idx = await numberedMenu("\uD83D\uDC09 Select a provider:", choices);
@@ -28055,7 +28420,7 @@ async function selectModelForProvider(provider, defaultModel) {
       const idx2 = models.indexOf(defaultModel);
       if (idx2 >= 0) {
         console.log(`${dim}Available models (default: ${defaultModel}):${reset}`);
-        models.forEach((m, i) => console.log(`  ${i + 1}. ${m}${i === idx2 ? " ←" : ""}`));
+        models.forEach((m, i) => console.log(`  ${i + 1}. ${m}${i === idx2 ? " \u2190" : ""}`));
         const choice = await question(`  Select model number [${idx2 + 1}] > `) || String(idx2 + 1);
         const n2 = parseInt(choice);
         if (n2 >= 1 && n2 <= models.length)
@@ -28076,7 +28441,7 @@ async function selectModelForProvider(provider, defaultModel) {
       const idx2 = models.indexOf(defaultModel);
       if (idx2 >= 0) {
         console.log(`${dim}Available models (default: ${defaultModel}):${reset}`);
-        models.forEach((m, i) => console.log(`  ${i + 1}. ${m}${i === idx2 ? " ←" : ""}`));
+        models.forEach((m, i) => console.log(`  ${i + 1}. ${m}${i === idx2 ? " \u2190" : ""}`));
         const choice = await question(`  Select model number [${idx2 + 1}] > `) || String(idx2 + 1);
         const n2 = parseInt(choice);
         if (n2 >= 1 && n2 <= models.length)
@@ -28096,7 +28461,7 @@ async function selectModelForProvider(provider, defaultModel) {
 async function selectContextSize(defaultSize) {
   console.log(`${dim}Context window size:${reset}`);
   CONTEXT_SIZES.forEach((size2, i) => {
-    const marker = defaultSize === size2 ? " ←" : "";
+    const marker = defaultSize === size2 ? " \u2190" : "";
     console.log(`  [${i + 1}] ${size2} tokens${marker}`);
   });
   let defaultIdx = defaultSize ? CONTEXT_SIZES.indexOf(defaultSize) : 2;
@@ -28127,7 +28492,7 @@ async function promptApiKey(provider) {
     qwen: "https://dashscope.console.aliyun.com/"
   };
   console.log(`
-⚠️  To use ${provider}, you need a free API key.`);
+\u26A0\uFE0F  To use ${provider}, you need a free API key.`);
   console.log(`    1. Visit: ${providerHelp[provider] || "the provider website"}`);
   console.log(`    2. Create an account and get your API key`);
   console.log(`    3. Set it with: export ${provider.toUpperCase()}_API_KEY=your-key-here`);
@@ -28146,9 +28511,9 @@ async function validateSavedConfig(session) {
 }
 async function interactiveSetup(saved) {
   console.log(`
-\uD83D\uDC09 ${s("BEAST", fg.accent, bold)} ${s("CLI", fg.mauve, bold)} ${s(`v${VERSION3}`, fg.muted)} ${s("·", fg.muted)} ${s("45+ Providers", fg.secondary)} ${s("·", fg.muted)} ${s("51+ Tools", fg.secondary)}`);
+\uD83D\uDC09 ${s("BEAST", fg.accent, bold)} ${s("CLI", fg.mauve, bold)} ${s(`v${VERSION3}`, fg.muted)} ${s("\xB7", fg.muted)} ${s("45+ Providers", fg.secondary)} ${s("\xB7", fg.muted)} ${s("51+ Tools", fg.secondary)}`);
   const providers2 = await detectAllProviders();
-  console.log(`${s("✓", fg.success)} MCP: ${nativeTools.length} tools | ${s("✓", fg.success)} Ollama: ${providers2.find((p) => p.id === "ollama")?.models.length || 0} models`);
+  console.log(`${s("\u2713", fg.success)} MCP: ${nativeTools.length} tools | ${s("\u2713", fg.success)} Ollama: ${providers2.find((p) => p.id === "ollama")?.models.length || 0} models`);
   const provider = await selectProvider(providers2);
   let apiKey;
   if (isCloudProvider(provider)) {
@@ -28162,9 +28527,9 @@ async function interactiveSetup(saved) {
   const model = await selectModelForProvider(provider, saved?.model);
   const { size, max } = await selectContextSize(saved?.contextSize);
   console.log(`
-${s("✓", fg.success)} Provider: ${bold}${provider}${reset}
-${s("✓", fg.success)} Model: ${bold}${model}${reset}
-${s("✓", fg.success)} Context: ${bold}${size} tokens${reset}
+${s("\u2713", fg.success)} Provider: ${bold}${provider}${reset}
+${s("\u2713", fg.success)} Model: ${bold}${model}${reset}
+${s("\u2713", fg.success)} Context: ${bold}${size} tokens${reset}
 `);
   return { provider, model, apiKey, baseUrl: getBaseUrl(provider), messages: [], contextMax: max };
 }
@@ -28201,7 +28566,7 @@ function printBanner(session) {
 ` + s("Commands:", fg.muted));
   console.log(helpPanel([
     { cmd: "/help", desc: "Show all commands" },
-    { cmd: "/clean", desc: "Clear all — history, memory, agents" },
+    { cmd: "/clean", desc: "Clear all \u2014 history, memory, agents" },
     { cmd: "/init", desc: "Create / update memory & agents" },
     { cmd: "/agents", desc: "Manage custom agents" },
     { cmd: "/switch", desc: "Change provider/model/context" },
@@ -28308,10 +28673,10 @@ Commands:
       try {
         await createProvider2({ provider: "codex", model: "gpt-5.2-codex" });
         console.log(`
-✅ ChatGPT Plus authenticated!`);
+\u2705 ChatGPT Plus authenticated!`);
       } catch (e) {
         console.log(`
-❌ Login failed: ${e.message}`);
+\u274C Login failed: ${e.message}`);
       }
       safePrompt();
       return;
@@ -28319,7 +28684,7 @@ Commands:
     if (trimmed === "/logout") {
       clearCodexToken();
       console.log(`
-✅ ChatGPT Plus logout complete.`);
+\u2705 ChatGPT Plus logout complete.`);
       safePrompt();
       return;
     }
@@ -28352,8 +28717,8 @@ Available models on ${session.provider}:`);
       console.log(`
 \uD83D\uDD27 ${tools2.length} native tools available:`);
       tools2.forEach((t) => {
-        const desc = t.description ? ` — ${t.description.slice(0, 60)}` : "";
-        console.log(`  • ${t.name}${desc}`);
+        const desc = t.description ? ` \u2014 ${t.description.slice(0, 60)}` : "";
+        console.log(`  \u2022 ${t.name}${desc}`);
       });
       safePrompt();
       return;
@@ -28364,7 +28729,7 @@ Available models on ${session.provider}:`);
       const ctxSize = session.contextMax ? session.contextMax >= 1024 ? Math.round(session.contextMax / 1024) + "K" : String(session.contextMax) : "32K";
       saveSession({ provider: session.provider, model, contextSize: ctxSize, contextMax: session.contextMax || 32768, savedAt: Date.now() });
       console.log(`
-✅ Model switched to: ${model}`);
+\u2705 Model switched to: ${model}`);
       promptUser();
       return;
     }
@@ -28386,7 +28751,7 @@ ${s("!", fg.warning)} Unknown model: ${target}`);
       const ctxSize = session.contextMax ? session.contextMax >= 1024 ? Math.round(session.contextMax / 1024) + "K" : String(session.contextMax) : "32K";
       saveSession({ provider: session.provider, model: session.model, contextSize: ctxSize, contextMax: session.contextMax || 32768, savedAt: Date.now() });
       console.log(`
-✅ Model switched to: ${session.model}`);
+\u2705 Model switched to: ${session.model}`);
       promptUser();
       return;
     }
@@ -28449,7 +28814,7 @@ ${s("!", fg.warning)} Unknown provider: ${target}`);
     if (trimmed === "/clear") {
       session.messages = [];
       console.log(`
-✅ Chat history cleared.`);
+\u2705 Chat history cleared.`);
       promptUser();
       return;
     }
@@ -28459,20 +28824,20 @@ ${s("!", fg.warning)} Unknown provider: ${target}`);
         const { AgentStore, AgentMemory } = await Promise.resolve().then(() => (init_agents(), exports_agents));
         updateAgent && updateAgent("", { instructions: "" });
       } catch {}
-      const fs4 = await import("node:fs");
-      const path4 = await import("node:path");
+      const fs4 = await import("fs");
+      const path4 = await import("path");
       const dir = path4.resolve(process.env.HOME ?? "~", ".beast-cli", "agents");
       try {
         fs4.rmSync(dir, { recursive: true, force: true });
       } catch {}
       console.log(`
-✅ Everything cleared — history, memory, and agents.`);
+\u2705 Everything cleared \u2014 history, memory, and agents.`);
       promptUser();
       return;
     }
     if (trimmed === "/init") {
       console.log(`
-` + s("─── Memory & Agent Setup ───", fg.accent));
+` + s("\u2500\u2500\u2500 Memory & Agent Setup \u2500\u2500\u2500", fg.accent));
       const memory2 = loadMemory();
       console.log(`
 ` + s("Project Context", fg.sapphire));
@@ -28482,7 +28847,7 @@ ${s("!", fg.warning)} Unknown provider: ${target}`);
         memory2.context = ctx.trim();
         memory2.updatedAt = Date.now();
         saveMemory(memory2);
-        console.log("  " + s("✓", fg.success) + " Context saved.");
+        console.log("  " + s("\u2713", fg.success) + " Context saved.");
       }
       console.log(`
 ` + s("Known Facts", fg.sapphire) + s(" (one per line, empty to finish)", fg.muted));
@@ -28505,11 +28870,11 @@ ${s("!", fg.warning)} Unknown provider: ${target}`);
         const agDesc = await question("  Description > ");
         const agInstr = await question("  Instructions (what this agent does) > ");
         const ag = createAgent({ name: agName, description: agDesc.trim(), instructions: agInstr.trim() });
-        console.log("  " + s("✓", fg.success) + ` Agent "${agName}" created.`);
+        console.log("  " + s("\u2713", fg.success) + ` Agent "${agName}" created.`);
       }
       saveMemory(memory2);
       console.log(`
-✅ Memory & agents initialized.`);
+\u2705 Memory & agents initialized.`);
       promptUser();
       return;
     }
@@ -28520,14 +28885,14 @@ ${s("!", fg.warning)} Unknown provider: ${target}`);
         const agents = listAgents();
         const active = getActiveAgent();
         console.log(`
-` + s("─── Agents ───", fg.accent));
+` + s("\u2500\u2500\u2500 Agents \u2500\u2500\u2500", fg.accent));
         if (agents.length === 0) {
           console.log("  " + s("No agents yet. Run", fg.muted) + " /agents create " + s("to make one.", fg.muted));
         } else {
           agents.forEach((a) => {
             const isActive = active?.id === a.id;
-            const marker = isActive ? s(" ● active", fg.success) : "";
-            console.log(`  ${s("◆", fg.accent)} ${s(a.name, fg.sapphire)}${marker}`);
+            const marker = isActive ? s(" \u25CF active", fg.success) : "";
+            console.log(`  ${s("\u25C6", fg.accent)} ${s(a.name, fg.sapphire)}${marker}`);
             if (a.description)
               console.log(`    ${s(a.description, fg.muted)}`);
           });
@@ -28560,7 +28925,7 @@ Cancelled.`);
         }
         const ag = createAgent({ name: name.trim(), description: desc.trim(), instructions: instr.trim() });
         console.log(`
-✅ Agent "` + ag.name + '" created. Use it with @' + ag.name);
+\u2705 Agent "` + ag.name + '" created. Use it with @' + ag.name);
         promptUser();
         return;
       }
@@ -28581,7 +28946,7 @@ Cancelled.`);
         }
         setActiveAgent(ag.name);
         console.log(`
-✅ Active agent set to ` + s(ag.name, fg.sapphire) + s(" (always prepended to prompts)", fg.muted));
+\u2705 Active agent set to ` + s(ag.name, fg.sapphire) + s(" (always prepended to prompts)", fg.muted));
         promptUser();
         return;
       }
@@ -28602,7 +28967,7 @@ Cancelled.`);
         }
         deleteAgent(ag.id);
         console.log(`
-✅ Agent "` + name + '" deleted.');
+\u2705 Agent "` + name + '" deleted.');
         promptUser();
         return;
       }
@@ -28622,7 +28987,7 @@ Cancelled.`);
           return;
         }
         console.log(`
-` + s("─── " + ag.name + " ───", fg.accent));
+` + s("\u2500\u2500\u2500 " + ag.name + " \u2500\u2500\u2500", fg.accent));
         if (ag.description)
           console.log("  " + s("Description:", fg.sapphire) + " " + ag.description);
         console.log("  " + s("Instructions:", fg.sapphire));
@@ -28749,7 +29114,7 @@ Cancelled.`);
       if (memory.context)
         memParts.push(`Project Context: ${memory.context}`);
       if (memory.facts.length > 0)
-        memParts.push(`Known Facts: ${memory.facts.map((f) => `• ${f}`).join(`
+        memParts.push(`Known Facts: ${memory.facts.map((f) => `\u2022 ${f}`).join(`
 `)}`);
       if (Object.keys(memory.preferences).length > 0) {
         memParts.push(`Preferences: ${Object.entries(memory.preferences).map(([k, v]) => `${k}=${v}`).join(", ")}`);
@@ -28802,7 +29167,7 @@ Cancelled.`);
           const looksLikeApology = response.content ? isApologyOrNoAccess(response.content) : false;
           if (noNativeTools && needsRealTime && looksLikeApology) {
             console.log(s(`
-\uD83D\uDD0D Auto-detected real-time query`, fg.sapphire) + s(" — fetching live data...", fg.muted));
+\uD83D\uDD0D Auto-detected real-time query`, fg.sapphire) + s(" \u2014 fetching live data...", fg.muted));
             const searchQuery = trimmed;
             const searchResult = await withProgress("Searching", executeTool("searxng_search", { query: searchQuery, limit: 10 }));
             const resultText = searchResult.success ? searchResult.content : `Error: ${searchResult.error}`;
@@ -28852,9 +29217,9 @@ Please provide a clear, concise answer based on these results.`
             const newContent = toolArgs.content;
             const oldContent = getOldContent(filePath);
             if (oldContent && oldContent !== newContent) {
-              const diff = generateDiff(oldContent, newContent, filePath);
+              const diff = generateDiff2(oldContent, newContent, filePath);
               if (diff.additions > 0 || diff.removals > 0) {
-                const stats = formatDiffStats(diff.additions, diff.removals);
+                const stats = formatDiffStats2(diff.additions, diff.removals);
                 process.stdout.write(`
 ${s("\uD83D\uDCC4", fg.accent)} ${s(filePath, fg.primary)} ${s("(" + stats + ")", fg.muted)}
 `);
@@ -28889,14 +29254,14 @@ ${s("\uD83D\uDCC4", fg.accent)} ${s(filePath, fg.primary)} ${s("(" + stats + ")"
                 });
                 if (!approval.approved) {
                   process.stdout.write(s(`
-✗ Rejected`, fg.error) + ` — file not written
+\u2717 Rejected`, fg.error) + ` \u2014 file not written
 `);
                   agentMessages.push({ role: "assistant", content: response.content, toolCalls: [tc] });
                   agentMessages.push({ role: "user", content: "Tool call rejected by user." });
                   continue;
                 }
                 process.stdout.write(s(`
-✓ Approved`, fg.success) + ` — proceeding with write
+\u2713 Approved`, fg.success) + ` \u2014 proceeding with write
 `);
               }
             }
@@ -28919,7 +29284,7 @@ ${s("\uD83D\uDCC4", fg.accent)} ${s(filePath, fg.primary)} ${s("(" + stats + ")"
       }
       if (toolCallCount >= MAX_TOOL_CALLS) {
         console.log(s(`
-⚠️  Reached tool call limit (${MAX_TOOL_CALLS}). Truncating.`, fg.warning));
+\u26A0\uFE0F  Reached tool call limit (${MAX_TOOL_CALLS}). Truncating.`, fg.warning));
       }
       session.messages = agentMessages;
       if (session.messages.length > 40) {
@@ -28934,7 +29299,7 @@ ${s("\uD83D\uDCC4", fg.accent)} ${s(filePath, fg.primary)} ${s("(" + stats + ")"
     } catch (e) {
       stopFunSpinner("error");
       console.log(`
-❌ Error: ${e}`);
+\u274C Error: ${e}`);
       if (session.messages.length > 0)
         session.messages.pop();
     }
@@ -29046,12 +29411,12 @@ async function main() {
     const token = loadCodexToken();
     if (token && isCodexTokenValid(token)) {
       session = { provider: "codex", model: "gpt-5.2-codex", apiKey: undefined, baseUrl: "https://chatgpt.com/backend-api", messages: [], contextMax: 131072 };
-      console.log(`✅ ChatGPT Plus (logged in)`);
+      console.log(`\u2705 ChatGPT Plus (logged in)`);
     } else {
       const ollamaModels = await fetchOllamaModels();
       if (ollamaModels.length > 0) {
         session = { provider: "ollama", model: ollamaModels[0], apiKey: undefined, baseUrl: "http://localhost:11434", messages: [], contextMax: 131072 };
-        console.log(`✅ Ollama (${ollamaModels[0]}) — Free & offline`);
+        console.log(`\u2705 Ollama (${ollamaModels[0]}) \u2014 Free & offline`);
       } else {
         session = await interactiveSetup(saved || undefined);
       }
@@ -29059,7 +29424,7 @@ async function main() {
   } else if (saved && savedValid) {
     session = buildSessionFromSaved(saved);
     const ctxStr = saved.contextMax ? saved.contextMax >= 1024 ? Math.round(saved.contextMax / 1024) + "K" : String(saved.contextMax) : "32K";
-    console.log(`✅ Using saved config: ${session.provider} / ${session.model} / ${ctxStr}`);
+    console.log(`\u2705 Using saved config: ${session.provider} / ${session.model} / ${ctxStr}`);
   } else {
     session = await interactiveSetup(saved || undefined);
   }
