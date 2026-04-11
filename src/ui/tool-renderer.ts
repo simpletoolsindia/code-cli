@@ -12,7 +12,8 @@ export interface ToolResult {
 
 // ── Result Truncation ────────────────────────────────────────────────────────
 
-const MAX_RESULT_LINES = 2
+// Show more lines by default — users need to see tool output
+const MAX_RESULT_LINES = 8
 const MAX_LINE_WIDTH = 120
 
 function truncateResult(content: string, maxLines = MAX_RESULT_LINES): string {
@@ -28,7 +29,16 @@ function truncateResult(content: string, maxLines = MAX_RESULT_LINES): string {
   })
 
   const remaining = lines.length - maxLines
-  return truncated.join('\n') + '\n' + s(`... (${remaining} more lines)`, fg.muted)
+  const text = visible.join('\n')
+  if (remaining > 0) {
+    return (
+      text + '\n' +
+      s(`  ... ${remaining} more lines`, fg.muted) + '  ' +
+      s('[e] expand', fg.accent) + '  ' +
+      s('[c] copy', fg.sapphire) + '\n'
+    )
+  }
+  return text
 }
 
 // ── Main Renderer ────────────────────────────────────────────────────────────
