@@ -1,6 +1,6 @@
 # TUI Modernization — Pending Tasks
 
-**Status**: PHASE 1 Complete (Audit Done)
+**Status**: PHASE 2 Complete (diff+approval wired, 3/3 immediate tasks done)
 **Last Updated**: 2026-04-11
 **Owner**: Beast CLI Team
 
@@ -47,9 +47,9 @@ A phased, 11-stage modernization of Beast CLI into a **premium code-focused term
 | 2.2 | Define information hierarchy — what always shows vs what collapses | P0 | Pending |
 | 2.3 | Define event priority — which events interrupt, which queue | P0 | Pending |
 | 2.4 | Write `UX_STRATEGY.md` | P0 | Pending |
-| 2.5 | **IMMEDIATE: Wire PermissionServiceImpl into file_write flow** | P0 | Pending |
-| 2.6 | **IMMEDIATE: Add diff display before file_write** (use existing `generateDiff()`) | P0 | Pending |
-| 2.7 | **IMMEDIATE: Integrate `reviewPatch()` as approval dialog** | P0 | Pending |
+| 2.5 | **Wire PermissionServiceImpl into file_write flow** | P0 | **DONE** |
+| 2.6 | **Add diff display before file_write** (use existing `generateDiff()`) | P0 | **DONE** |
+| 2.7 | **Integrate `reviewPatch()` as approval dialog** | P0 | **DONE** |
 
 ---
 
