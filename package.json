@@ -1,7 +1,7 @@
 {
   "name": "@simpletoolsindia/beast-cli",
-  "version": "1.2.36",
-  "description": "🐉 AI Coding Agent for Power Users - 51+ native tools, RAG-based code intelligence, multi-theme TUI",
+  "version": "1.3.18",
+  "description": "🐉 AI Coding Agent for Power Users - 58+ native tools, headless browser, RAG-based code intelligence, multi-theme TUI",
   "main": "bin/beast.js",
   "type": "module",
   "bin": {
