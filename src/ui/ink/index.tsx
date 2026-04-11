@@ -38,7 +38,9 @@ const BeastApp: React.FC = () => {
   const [toolsCount, setToolsCount] = useState(0)
   const [isProcessing, setIsProcessing] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const { waitUntil } = useApp()
+  // Track whether we've already added the assistant response to avoid duplicates
+  const [responseAdded, setResponseAdded] = useState(false)
+  const { exit } = useApp()
   const theme = getTheme()
 
   useEffect(() => {
@@ -62,46 +64,25 @@ const BeastApp: React.FC = () => {
     if (state.phase === 'thinking' || state.phase === 'streaming') {
       if (spinnerStart === 0) setSpinnerStart(Date.now())
       if (!isProcessing) setIsProcessing(true)
-      setErrorMessage(null) // Clear previous errors
+      setErrorMessage(null)
+      setResponseAdded(false)
     } else if (state.phase === 'done' || state.phase === 'error') {
       setSpinnerStart(0)
       setIsProcessing(false)
     }
   }, [state.phase])
 
-  const handleSubmit = useCallback(async (input: string) => {
-    if (!input.trim()) return
-
-    // Immediate visual feedback before async processing starts
-    setSpinnerStart(Date.now())
-    setIsProcessing(true)
-    setErrorMessage(null)
-
-    // Add user message immediately for visual feedback
-    setMessages(prev => [...prev, { role: 'user', content: input }])
-
-    // Use waitUntil to keep Ink alive while run() completes asynchronously
-    waitUntil(run(input).catch((err: Error) => {
-      // Catch and display errors immediately
-      setErrorMessage(err.message || 'Request failed')
-      setIsProcessing(false)
-      setSpinnerStart(0)
-    }))
-  }, [run, waitUntil])
-
-  // Sync run() result into messages when phase becomes done/error
+  // Sync agent result into messages — fires once per turn
   useEffect(() => {
-    if (state.phase === 'done' || state.phase === 'error') {
+    if ((state.phase === 'done' || state.phase === 'error') && !responseAdded) {
+      setResponseAdded(true)
+      if (state.phase === 'error' && state.error) {
+        setErrorMessage(state.error)
+      }
       setMessages(prev => {
-        // Don't duplicate if last message is already from this run
         const last = prev[prev.length - 1]
+        // Avoid duplicate if already added
         if (last?.role === 'assistant' && last.content === state.streamedText) return prev
-
-        // Show error inline if present
-        if (state.phase === 'error' && state.error) {
-          setErrorMessage(state.error)
-        }
-
         return [
           ...prev,
           {
@@ -117,7 +98,27 @@ const BeastApp: React.FC = () => {
         ]
       })
     }
-  }, [state.phase, state.streamedText, state.error])
+  }, [state.phase, state.streamedText, state.error, responseAdded])
+
+  const handleSubmit = useCallback(async (input: string) => {
+    if (!input.trim()) return
+
+    // Immediate visual feedback before async processing starts
+    setSpinnerStart(Date.now())
+    setIsProcessing(true)
+    setErrorMessage(null)
+    setResponseAdded(false)
+
+    // Add user message immediately for visual feedback
+    setMessages(prev => [...prev, { role: 'user', content: input }])
+
+    // Run the agent — errors are caught inside useAgentLoop
+    run(input).catch((err: Error) => {
+      setErrorMessage(err.message || 'Request failed')
+      setIsProcessing(false)
+      setSpinnerStart(0)
+    })
+  }, [run])
 
   const getSpinnerState = () => {
     if (state.phase === 'thinking') return 'thinking'

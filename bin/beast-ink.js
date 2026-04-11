@@ -51457,7 +51457,8 @@ var BeastApp = () => {
   const [toolsCount, setToolsCount] = useState7(0);
   const [isProcessing, setIsProcessing] = useState7(false);
   const [errorMessage, setErrorMessage] = useState7(null);
-  const { waitUntil } = useApp();
+  const [responseAdded, setResponseAdded] = useState7(false);
+  const { exit } = useApp();
   const theme = getTheme();
   useEffect7(() => {
     const saved = loadSession();
@@ -51478,31 +51479,21 @@ var BeastApp = () => {
       if (spinnerStart === 0) setSpinnerStart(Date.now());
       if (!isProcessing) setIsProcessing(true);
       setErrorMessage(null);
+      setResponseAdded(false);
     } else if (state.phase === "done" || state.phase === "error") {
       setSpinnerStart(0);
       setIsProcessing(false);
     }
   }, [state.phase]);
-  const handleSubmit = useCallback2(async (input) => {
-    if (!input.trim()) return;
-    setSpinnerStart(Date.now());
-    setIsProcessing(true);
-    setErrorMessage(null);
-    setMessages((prev) => [...prev, { role: "user", content: input }]);
-    waitUntil(run(input).catch((err) => {
-      setErrorMessage(err.message || "Request failed");
-      setIsProcessing(false);
-      setSpinnerStart(0);
-    }));
-  }, [run, waitUntil]);
   useEffect7(() => {
-    if (state.phase === "done" || state.phase === "error") {
+    if ((state.phase === "done" || state.phase === "error") && !responseAdded) {
+      setResponseAdded(true);
+      if (state.phase === "error" && state.error) {
+        setErrorMessage(state.error);
+      }
       setMessages((prev) => {
         const last = prev[prev.length - 1];
         if (last?.role === "assistant" && last.content === state.streamedText) return prev;
-        if (state.phase === "error" && state.error) {
-          setErrorMessage(state.error);
-        }
         return [
           ...prev,
           {
@@ -51518,7 +51509,20 @@ var BeastApp = () => {
         ];
       });
     }
-  }, [state.phase, state.streamedText, state.error]);
+  }, [state.phase, state.streamedText, state.error, responseAdded]);
+  const handleSubmit = useCallback2(async (input) => {
+    if (!input.trim()) return;
+    setSpinnerStart(Date.now());
+    setIsProcessing(true);
+    setErrorMessage(null);
+    setResponseAdded(false);
+    setMessages((prev) => [...prev, { role: "user", content: input }]);
+    run(input).catch((err) => {
+      setErrorMessage(err.message || "Request failed");
+      setIsProcessing(false);
+      setSpinnerStart(0);
+    });
+  }, [run]);
   const getSpinnerState = () => {
     if (state.phase === "thinking") return "thinking";
     if (state.phase === "streaming") return "formatting";
