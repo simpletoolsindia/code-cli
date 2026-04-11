@@ -16948,11 +16948,11 @@ function getSearxUrl() {
     return process.env.SEARX_URL;
   }
   try {
-    const { existsSync: existsSync7, readFileSync: readFileSync6 } = __require("node:fs");
-    const { join: join8 } = __require("node:path");
+    const { existsSync: existsSync8, readFileSync: readFileSync6 } = __require("node:fs");
+    const { join: join9 } = __require("node:path");
     const homeDir = __require("node:os").homedir();
-    const searxConfigPath = join8(homeDir, ".beast-cli", "searx.json");
-    if (existsSync7(searxConfigPath)) {
+    const searxConfigPath = join9(homeDir, ".beast-cli", "searx.json");
+    if (existsSync8(searxConfigPath)) {
       const config = JSON.parse(readFileSync6(searxConfigPath, "utf-8"));
       if (config.url) return config.url;
     }
@@ -17060,16 +17060,16 @@ function getSearxUrlFromConfig() {
 }
 async function setSearxUrl(url2) {
   try {
-    const { existsSync: existsSync7, writeFileSync: writeFileSync7, mkdirSync: mkdirSync4 } = __require("node:fs");
-    const { join: join8 } = __require("node:path");
+    const { existsSync: existsSync8, writeFileSync: writeFileSync8, mkdirSync: mkdirSync5 } = __require("node:fs");
+    const { join: join9 } = __require("node:path");
     const homeDir = __require("node:os").homedir();
-    const configDir = join8(homeDir, ".beast-cli");
-    const searxConfigPath = join8(configDir, "searx.json");
-    if (!existsSync7(configDir)) {
-      mkdirSync4(configDir, { recursive: true });
+    const configDir = join9(homeDir, ".beast-cli");
+    const searxConfigPath = join9(configDir, "searx.json");
+    if (!existsSync8(configDir)) {
+      mkdirSync5(configDir, { recursive: true });
     }
     const config = { url: url2, enabled: true };
-    writeFileSync7(searxConfigPath, JSON.stringify(config, null, 2), "utf-8");
+    writeFileSync8(searxConfigPath, JSON.stringify(config, null, 2), "utf-8");
     return true;
   } catch {
     return false;
@@ -38821,9 +38821,9 @@ __export(tts_exports, {
   speak: () => speak
 });
 import { spawn as spawn2 } from "node:child_process";
-import { writeFileSync as writeFileSync5, unlinkSync as unlinkSync2 } from "node:fs";
+import { writeFileSync as writeFileSync6, unlinkSync as unlinkSync2 } from "node:fs";
 import { tmpdir as tmpdir2 } from "node:os";
-import { join as join6 } from "node:path";
+import { join as join7 } from "node:path";
 async function listVoices3() {
   const { listVoicesUniversal } = await Promise.resolve().then(() => (init_dist(), dist_exports));
   const voices = await listVoicesUniversal();
@@ -38843,9 +38843,9 @@ async function generateAudio(text, options = {}) {
 }
 async function speak(text, options = {}) {
   const audioBuffer = await generateAudio(text, options);
-  const tempFile = join6(tmpdir2(), `beast-tts-${Date.now()}.mp3`);
+  const tempFile = join7(tmpdir2(), `beast-tts-${Date.now()}.mp3`);
   try {
-    writeFileSync5(tempFile, audioBuffer);
+    writeFileSync6(tempFile, audioBuffer);
     await playAudioFile(tempFile);
   } finally {
     try {
@@ -38879,19 +38879,19 @@ async function playAudioFile(filePath) {
 }
 function loadTTSConfig() {
   try {
-    const { existsSync: existsSync7, readFileSync: readFileSync6 } = __require("node:fs");
-    const path5 = join6(getHomeDir(), ".beast-cli", "tts.json");
-    if (existsSync7(path5)) return JSON.parse(readFileSync6(path5, "utf-8"));
+    const { existsSync: existsSync8, readFileSync: readFileSync6 } = __require("node:fs");
+    const path5 = join7(getHomeDir(), ".beast-cli", "tts.json");
+    if (existsSync8(path5)) return JSON.parse(readFileSync6(path5, "utf-8"));
   } catch {
   }
   return { enabled: false, defaultVoice: DEFAULT_VOICE2, autoPlay: true };
 }
 function saveTTSConfig(config) {
   try {
-    const { existsSync: existsSync7, mkdirSync: mkdirSync4, writeFileSync: writeFileSync7 } = __require("node:fs");
-    const dir = join6(getHomeDir(), ".beast-cli");
-    if (!existsSync7(dir)) mkdirSync4(dir, { recursive: true });
-    writeFileSync7(join6(dir, "tts.json"), JSON.stringify(config, null, 2));
+    const { existsSync: existsSync8, mkdirSync: mkdirSync5, writeFileSync: writeFileSync8 } = __require("node:fs");
+    const dir = join7(getHomeDir(), ".beast-cli");
+    if (!existsSync8(dir)) mkdirSync5(dir, { recursive: true });
+    writeFileSync8(join7(dir, "tts.json"), JSON.stringify(config, null, 2));
   } catch {
   }
 }
@@ -39438,12 +39438,21 @@ var Header = ({ provider, model, toolsCount }) => {
 import React2, { useState as useState2, useEffect as useEffect2 } from "react";
 import { Text as Text2, Box as Box2 } from "ink";
 var STATE_CONFIG = {
-  thinking: { label: "Thinking...", color: "accent", icon: "\u25D0" },
-  searching: { label: "Searching", color: "sapphire", icon: "\u2315" },
-  tool: { label: "Running Tool", color: "peach", icon: "\u203A" },
-  formatting: { label: "Formatting", color: "success", icon: "\u25C8" },
-  done: { label: "Done", color: "success", icon: "\u2713" },
-  error: { label: "Error", color: "error", icon: "\u2717" }
+  thinking: { label: "Thinking...", color: "accent", icon: "\u25D0", animate: true },
+  searching: { label: "Searching...", color: "sapphire", icon: "\u2315", animate: true },
+  tool: { label: "Running Tool...", color: "peach", icon: "\u203A", animate: true },
+  formatting: { label: "Formatting...", color: "success", icon: "\u25C8", animate: true },
+  done: { label: "Done", color: "success", icon: "\u2713", animate: false },
+  error: { label: "Error", color: "error", icon: "\u2717", animate: false },
+  // Tool-specific states
+  "tool:read_file": { label: "Reading file...", color: "sapphire", icon: "\u25B7", animate: true },
+  "tool:write_file": { label: "Writing file...", color: "yellow", icon: "\u270E", animate: true },
+  "tool:copy_file": { label: "Copying file...", color: "mauve", icon: "\u25A3", animate: true },
+  "tool:web_fetch": { label: "Fetching web...", color: "blue", icon: "\u25CE", animate: true },
+  "tool:code_run": { label: "Running code...", color: "green", icon: "\u26A1", animate: true },
+  "tool:mcp_call": { label: "MCP call...", color: "lavender", icon: "\u2699", animate: true },
+  "llm_processing": { label: "LLM processing...", color: "accent", icon: "\u25D0", animate: true },
+  "tool:generic": { label: "Running tool...", color: "peach", icon: "\u203A", animate: true }
 };
 function formatElapsed(ms) {
   if (ms < 1e3) return `${ms}ms`;
@@ -39452,38 +39461,64 @@ function formatElapsed(ms) {
   const m2 = Math.floor(s3 / 60);
   return `${m2}m ${s3 % 60}s`;
 }
-function ProgressIndicator({ elapsed, state }) {
+function ProgressIndicator({ state }) {
   const [frame, setFrame] = useState2(0);
   const theme = getTheme();
   const frames = ["\u25D0", "\u25D3", "\u25D1", "\u25D2"];
+  const config = STATE_CONFIG[state];
   useEffect2(() => {
-    if (state === "thinking" || state === "tool") {
-      const timer = setInterval(() => {
-        setFrame((f2) => (f2 + 1) % frames.length);
-      }, 200);
-      return () => clearInterval(timer);
-    }
+    const doAnimate = config?.animate !== false;
+    if (!doAnimate) return;
+    const timer = setInterval(() => {
+      setFrame((f2) => (f2 + 1) % frames.length);
+    }, 200);
+    return () => clearInterval(timer);
   }, [state]);
-  return /* @__PURE__ */ React2.createElement(Text2, { color: theme.muted }, frames[frame]);
+  const icon = config?.animate ? frames[frame] : config?.icon || "\u25D0";
+  return /* @__PURE__ */ React2.createElement(Text2, { color: theme.muted }, icon);
 }
-var Spinner = ({ state, elapsed, requestStart }) => {
+function AsciiProgressBar({ label, icon }) {
+  const theme = getTheme();
+  const [frame, setFrame] = useState2(0);
+  const frames = ["\u25D0", "\u25D3", "\u25D1", "\u25D2"];
+  const spinner = frames[frame];
+  useEffect2(() => {
+    const timer = setInterval(() => setFrame((f2) => (f2 + 1) % frames.length), 200);
+    return () => clearInterval(timer);
+  }, []);
+  const bar = `[${"\u2588".repeat(6)}${"\u2591".repeat(4)}]`;
+  const shortLabel = label.length > 25 ? label.slice(0, 22) + "..." : label;
+  return /* @__PURE__ */ React2.createElement(Box2, null, /* @__PURE__ */ React2.createElement(Text2, { color: theme.peach }, spinner, " "), /* @__PURE__ */ React2.createElement(Text2, { color: theme.peach }, bar), /* @__PURE__ */ React2.createElement(Text2, { color: theme.muted }, " ", shortLabel));
+}
+var Spinner = ({ state, elapsed, toolName, fileName, query }) => {
   const theme = getTheme();
   const config = STATE_CONFIG[state];
-  const color = config ? theme[config.color] : theme.accent;
-  const label = config ? config.label : state;
-  const icon = config ? config.icon : "\u25D0";
+  const color = theme[config?.color || "accent"] || theme.accent;
+  const label = config?.label || state;
+  const icon = config?.icon || "\u25D0";
+  let displayLabel = label;
+  if (fileName && (state === "tool:read_file" || state === "tool:write_file")) {
+    displayLabel = `${label.replace("...", "")} \u201C${fileName.length > 20 ? fileName.slice(0, 17) + "..." : fileName}\u201D`;
+  } else if (query && state === "searching") {
+    displayLabel = `${label.replace("...", "")} \u201C${query.length > 20 ? query.slice(0, 17) + "..." : query}\u201D`;
+  } else if (toolName && state !== "done" && state !== "error") {
+    displayLabel = `${label.replace("...", "")} \u201C${toolName}\u201D`;
+  }
   if (elapsed < 100 && state !== "done" && state !== "error") {
-    return /* @__PURE__ */ React2.createElement(Box2, null, /* @__PURE__ */ React2.createElement(Text2, { color: theme.warning }, icon), /* @__PURE__ */ React2.createElement(Text2, { color }, " ", label), /* @__PURE__ */ React2.createElement(Text2, { color: theme.muted }, " (starting...)"));
+    return /* @__PURE__ */ React2.createElement(Box2, null, /* @__PURE__ */ React2.createElement(Text2, { color: theme.warning }, icon), /* @__PURE__ */ React2.createElement(Text2, { color }, " ", displayLabel), /* @__PURE__ */ React2.createElement(Text2, { color: theme.muted }, " (starting...)"));
+  }
+  if (state === "done") {
+    return /* @__PURE__ */ React2.createElement(Box2, null, /* @__PURE__ */ React2.createElement(Text2, { color: theme.success }, "\u2713"), /* @__PURE__ */ React2.createElement(Text2, { color }, " ", displayLabel), /* @__PURE__ */ React2.createElement(Text2, { color: theme.muted }, " \xB7 ", formatElapsed(elapsed)));
+  }
+  if (state === "error") {
+    return /* @__PURE__ */ React2.createElement(Box2, null, /* @__PURE__ */ React2.createElement(Text2, { color: theme.error }, "\u2717"), /* @__PURE__ */ React2.createElement(Text2, { color: theme.error }, " ", displayLabel), /* @__PURE__ */ React2.createElement(Text2, { color: theme.muted }, " \xB7 ", formatElapsed(elapsed)));
+  }
+  if (state === "tool:read_file" || state === "tool:write_file" || state === "tool:copy_file") {
+    return /* @__PURE__ */ React2.createElement(AsciiProgressBar, { label: displayLabel, icon });
   }
   const isSlow = elapsed > 3e4;
   const warningColor = isSlow ? theme.warning : theme.muted;
-  if (state === "done") {
-    return /* @__PURE__ */ React2.createElement(Box2, null, /* @__PURE__ */ React2.createElement(Text2, { color: theme.success }, "\u2713"), /* @__PURE__ */ React2.createElement(Text2, { color }, " ", label), /* @__PURE__ */ React2.createElement(Text2, { color: warningColor }, " \xB7 ", formatElapsed(elapsed)));
-  }
-  if (state === "error") {
-    return /* @__PURE__ */ React2.createElement(Box2, null, /* @__PURE__ */ React2.createElement(Text2, { color: theme.error }, "\u2717"), /* @__PURE__ */ React2.createElement(Text2, { color: theme.error }, " ", label), /* @__PURE__ */ React2.createElement(Text2, { color: theme.muted }, " \xB7 ", formatElapsed(elapsed)));
-  }
-  return /* @__PURE__ */ React2.createElement(Box2, null, /* @__PURE__ */ React2.createElement(ProgressIndicator, { elapsed, state }), /* @__PURE__ */ React2.createElement(Text2, { color }, " ", label), /* @__PURE__ */ React2.createElement(Text2, { color: warningColor }, " \xB7 ", formatElapsed(elapsed)), isSlow && /* @__PURE__ */ React2.createElement(Text2, { color: theme.warning }, " (slow connection)"));
+  return /* @__PURE__ */ React2.createElement(Box2, null, /* @__PURE__ */ React2.createElement(ProgressIndicator, { state }), /* @__PURE__ */ React2.createElement(Text2, { color }, " ", displayLabel), /* @__PURE__ */ React2.createElement(Text2, { color: warningColor }, " \xB7 ", formatElapsed(elapsed)), isSlow && /* @__PURE__ */ React2.createElement(Text2, { color: theme.warning }, " (slow)"));
 };
 
 // src/ui/ink/components/Body.tsx
@@ -40131,9 +40166,9 @@ async function createCodexProvider(config) {
   }
   function loadToken() {
     try {
-      const { readFileSync: readFileSync6, existsSync: existsSync7 } = __require("node:fs");
+      const { readFileSync: readFileSync6, existsSync: existsSync8 } = __require("node:fs");
       const path5 = getTokenPath();
-      if (existsSync7(path5)) {
+      if (existsSync8(path5)) {
         return JSON.parse(readFileSync6(path5, "utf-8"));
       }
     } catch {
@@ -40142,11 +40177,11 @@ async function createCodexProvider(config) {
   }
   function saveToken(token) {
     try {
-      const { readFileSync: readFileSync6, writeFileSync: writeFileSync7, existsSync: existsSync7, mkdirSync: mkdirSync4 } = __require("node:fs");
+      const { readFileSync: readFileSync6, writeFileSync: writeFileSync8, existsSync: existsSync8, mkdirSync: mkdirSync5 } = __require("node:fs");
       const path5 = getTokenPath();
       const dir = __require("node:path").dirname(path5);
-      if (!existsSync7(dir)) mkdirSync4(dir, { recursive: true });
-      writeFileSync7(path5, JSON.stringify(token, null, 2), { mode: 384 });
+      if (!existsSync8(dir)) mkdirSync5(dir, { recursive: true });
+      writeFileSync8(path5, JSON.stringify(token, null, 2), { mode: 384 });
     } catch (e2) {
       console.error("Failed to save Codex token:", e2);
     }
@@ -40260,10 +40295,10 @@ async function createCodexProvider(config) {
       authUrl.searchParams.set("state", state);
       console.log("   \u{1F310} Opening browser for ChatGPT Plus/Pro login...");
       console.log("   \u{1F4CB} Auth URL:", authUrl.toString());
-      const { execSync: execSync4 } = __require("child_process");
+      const { execSync: execSync5 } = __require("child_process");
       try {
         const opener = process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
-        execSync4(`${opener} "${authUrl.toString()}"`, { stdio: "ignore" });
+        execSync5(`${opener} "${authUrl.toString()}"`, { stdio: "ignore" });
       } catch {
       }
       const code = await waitForCallback({ verifier }, state);
@@ -40497,7 +40532,17 @@ async function createOpenRouterProvider(config) {
   const OpenAI2 = await Promise.resolve().then(() => (init_openai(), openai_exports));
   return {
     name: "openrouter",
-    models: ["openai/gpt-4o", "anthropic/claude-3.5-sonnet", "google/gemini-pro", "meta-llama/llama-3-70b-instruct"],
+    models: [
+      "qwen/qwen3.6-plus",
+      "qwen/qwen3-32b",
+      "qwen/qwen3-14b",
+      "qwen/qwen3-8b",
+      "qwen/qwq-32b",
+      "openrouter/auto",
+      "meta-llama/llama-3.1-8b-instruct",
+      "google/gemini-2.0-flash-exp",
+      "deepseek/deepseek-chat"
+    ],
     apiFormat: "openrouter",
     async create(request) {
       const client = new OpenAI2.OpenAI({
@@ -48015,20 +48060,20 @@ async function tryRapidApiFallback(videoId) {
 }
 async function tryPythonTranscriptApi(videoId) {
   try {
-    const { execSync: execSync4 } = await import("child_process");
-    const { writeFileSync: writeFileSync7, unlinkSync: unlinkSync3 } = await import("fs");
+    const { execSync: execSync5 } = await import("child_process");
+    const { writeFileSync: writeFileSync8, unlinkSync: unlinkSync3 } = await import("fs");
     const { tmpdir: tmpdir3 } = await import("os");
-    const { join: join8 } = await import("path");
+    const { join: join9 } = await import("path");
     try {
-      execSync4('python3 -c "from youtube_transcript_api import YouTubeTranscriptApi" 2>/dev/null', { stdio: "ignore" });
+      execSync5('python3 -c "from youtube_transcript_api import YouTubeTranscriptApi" 2>/dev/null', { stdio: "ignore" });
     } catch {
       try {
-        execSync4("pip3 install youtube-transcript-api --quiet 2>/dev/null", { stdio: "ignore" });
+        execSync5("pip3 install youtube-transcript-api --quiet 2>/dev/null", { stdio: "ignore" });
       } catch {
         return { success: false, output: "", error: "youtube-transcript-api not installed" };
       }
     }
-    const scriptPath = join8(tmpdir3(), `yt_transcript_${Date.now()}.py`);
+    const scriptPath = join9(tmpdir3(), `yt_transcript_${Date.now()}.py`);
     const script = `
 from youtube_transcript_api import YouTubeTranscriptApi
 import sys
@@ -48042,8 +48087,8 @@ except Exception as e:
     print(f"ERROR: {e}", file=sys.stderr)
     sys.exit(1)
 `;
-    writeFileSync7(scriptPath, script);
-    const output = execSync4(`python3 "${scriptPath}"`, {
+    writeFileSync8(scriptPath, script);
+    const output = execSync5(`python3 "${scriptPath}"`, {
       encoding: "utf-8",
       timeout: 3e4,
       maxBuffer: 10 * 1024 * 1024
@@ -48128,20 +48173,20 @@ async function tryInvidiousFallback(videoId) {
 }
 async function tryYtdlpFallback(url2) {
   try {
-    const { execSync: execSync4 } = await import("child_process");
+    const { execSync: execSync5 } = await import("child_process");
     try {
-      execSync4("which yt-dlp", { stdio: "ignore" });
+      execSync5("which yt-dlp", { stdio: "ignore" });
     } catch {
       return { success: false, output: "", error: "yt-dlp not installed" };
     }
-    const output = execSync4(
+    const output = execSync5(
       `yt-dlp --skip-download --write-subs --write-auto-subs --sub-lang en --convert-subs=srt --print "%(autogen_subtitle)s" "${url2}" 2>/dev/null || echo ""`,
       { encoding: "utf-8", timeout: 2e4 }
     );
     if (output && output.trim()) {
       return { success: true, output };
     }
-    const videoInfo = execSync4(
+    const videoInfo = execSync5(
       `yt-dlp --skip-download --write-subs --write-auto-subs --dump-json "${url2}" 2>/dev/null | head -1`,
       { encoding: "utf-8", timeout: 2e4 }
     );
@@ -48264,6 +48309,294 @@ function extractVideoId(input) {
     if (match2) return match2[1];
   }
   return null;
+}
+
+// src/native-tools/browser.ts
+import { execSync as execSync4 } from "node:child_process";
+import { mkdirSync as mkdirSync3, writeFileSync as writeFileSync4 } from "node:fs";
+import { join as join4 } from "node:path";
+async function runPlaywright(script) {
+  const projectRoot = process.cwd();
+  const scriptsDir = join4(projectRoot, ".playwright-scripts");
+  mkdirSync3(scriptsDir, { recursive: true });
+  const scriptPath = join4(scriptsDir, `playwright-script-${Date.now()}.mjs`);
+  writeFileSync4(scriptPath, script);
+  try {
+    const result = execSync4(
+      `node ${scriptPath}`,
+      { encoding: "utf-8", timeout: 3e4, maxBuffer: 5 * 1024 * 1024, cwd: projectRoot }
+    );
+    return result;
+  } finally {
+    try {
+      const { unlinkSync: unlinkSync3 } = __require("node:fs");
+      unlinkSync3(scriptPath);
+    } catch {
+    }
+  }
+}
+async function browser_navigate(url2, waitForSelector, timeout = 15e3) {
+  try {
+    const script = `
+import { chromium } from 'playwright';
+
+const browser = await chromium.launch({
+  headless: true,
+  args: ['--no-sandbox', '--disable-dev-shm-usage'],
+  executablePath: '/home/sridhar/.cache/ms-playwright/chromium_headless_shell-1208/chrome-linux/headless_shell',
+});
+const context = await browser.newContext({
+  userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+});
+const page = await context.newPage();
+page.setDefaultTimeout(${timeout});
+
+await page.goto('${url2.replace(/'/g, "\\'")}', { waitUntil: 'domcontentloaded' });
+${waitForSelector ? `await page.waitForSelector('${waitForSelector}', { timeout: ${timeout} });` : ""}
+
+const title = await page.title();
+const content = await page.content();
+
+console.log(JSON.stringify({
+  url: page.url(),
+  title,
+  content: content.slice(0, 80000)
+}));
+
+await browser.close();
+`;
+    const result = await runPlaywright(script);
+    const data = JSON.parse(result.trim());
+    return {
+      success: true,
+      url: data.url,
+      title: data.title,
+      content: data.content || ""
+    };
+  } catch (e2) {
+    return { success: false, content: "", error: e2.message };
+  }
+}
+async function browser_screenshot(url2, selector, fullPage = false) {
+  try {
+    const selectorPart = selector ? `await page.waitForSelector('${selector}', { timeout: 10000 }); const element = await page.locator('${selector}'); const screenshot = await element.screenshot({ path: imgPath });` : `const screenshot = await page.screenshot({ path: imgPath, fullPage: ${fullPage} });`;
+    const script = `
+import { chromium } from 'playwright';
+
+const imgPath = '/tmp/beast-browser/screenshot-${Date.now()}.png';
+const browser = await chromium.launch({
+  headless: true,
+  args: ['--no-sandbox', '--disable-dev-shm-usage'],
+  executablePath: '/home/sridhar/.cache/ms-playwright/chromium_headless_shell-1208/chrome-linux/headless_shell',
+});
+const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+
+await page.goto('${url2.replace(/'/g, "\\'")}', { waitUntil: 'domcontentloaded' });
+${selectorPart}
+
+const base64 = require('fs').readFileSync(imgPath).toString('base64');
+console.log(JSON.stringify({ success: true, screenshot: base64, path: imgPath }));
+await browser.close();
+`;
+    const result = await runPlaywright(script);
+    const data = JSON.parse(result.trim());
+    return {
+      success: true,
+      content: `Screenshot saved: ${data.path}`,
+      url: url2,
+      screenshot: data.screenshot
+    };
+  } catch (e2) {
+    return { success: false, content: "", error: e2.message };
+  }
+}
+async function browser_click(url2, selector, waitForNavigation = true) {
+  try {
+    const script = `
+import { chromium } from 'playwright';
+
+const browser = await chromium.launch({
+  headless: true,
+  args: ['--no-sandbox', '--disable-dev-shm-usage'],
+  executablePath: '/home/sridhar/.cache/ms-playwright/chromium_headless_shell-1208/chrome-linux/headless_shell',
+});
+const page = await browser.newPage();
+
+await page.goto('${url2.replace(/'/g, "\\'")}', { waitUntil: 'domcontentloaded' });
+await page.waitForSelector('${selector}', { timeout: 15000 });
+
+if (${waitForNavigation}) {
+  await Promise.all([
+    page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
+    page.click('${selector}')
+  ]);
+} else {
+  await page.click('${selector}');
+  await page.waitForTimeout(2000);
+}
+
+console.log(JSON.stringify({
+  url: page.url(),
+  title: await page.title(),
+  content: (await page.content()).slice(0, 80000)
+}));
+
+await browser.close();
+`;
+    const result = await runPlaywright(script);
+    const data = JSON.parse(result.trim());
+    return {
+      success: true,
+      url: data.url,
+      title: data.title,
+      content: data.content || ""
+    };
+  } catch (e2) {
+    return { success: false, content: "", error: e2.message };
+  }
+}
+async function browser_type(url2, selector, text, submit = false) {
+  try {
+    const script = `
+import { chromium } from 'playwright';
+
+const browser = await chromium.launch({
+  headless: true,
+  args: ['--no-sandbox', '--disable-dev-shm-usage'],
+  executablePath: '/home/sridhar/.cache/ms-playwright/chromium_headless_shell-1208/chrome-linux/headless_shell',
+});
+const page = await browser.newPage();
+
+await page.goto('${url2.replace(/'/g, "\\'")}', { waitUntil: 'domcontentloaded' });
+await page.waitForSelector('${selector}', { timeout: 15000 });
+await page.fill('${selector}', '${text.replace(/'/g, "\\'")}');
+
+if (${submit}) {
+  await Promise.all([
+    page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
+    page.click('${selector}'),
+  ]);
+} else {
+  await page.waitForTimeout(1000);
+}
+
+console.log(JSON.stringify({
+  url: page.url(),
+  title: await page.title(),
+  content: (await page.content()).slice(0, 80000)
+}));
+
+await browser.close();
+`;
+    const result = await runPlaywright(script);
+    const data = JSON.parse(result.trim());
+    return {
+      success: true,
+      url: data.url,
+      title: data.title,
+      content: data.content || ""
+    };
+  } catch (e2) {
+    return { success: false, content: "", error: e2.message };
+  }
+}
+async function browser_evaluate(url2, jsCode) {
+  try {
+    const escapedCode = jsCode.replace(/'/g, "\\'").replace(/\n/g, "\\n");
+    const script = `
+import { chromium } from 'playwright';
+
+const browser = await chromium.launch({
+  headless: true,
+  args: ['--no-sandbox', '--disable-dev-shm-usage'],
+  executablePath: '/home/sridhar/.cache/ms-playwright/chromium_headless_shell-1208/chrome-linux/headless_shell',
+});
+const page = await browser.newPage();
+
+await page.goto('${url2.replace(/'/g, "\\'")}', { waitUntil: 'domcontentloaded' });
+const result = await page.evaluate(function() {
+  ${jsCode}
+});
+
+console.log(JSON.stringify({
+  success: true,
+  result: typeof result === 'object' ? JSON.stringify(result) : String(result)
+}));
+
+await browser.close();
+`;
+    const result = await runPlaywright(script);
+    const data = JSON.parse(result.trim());
+    return {
+      success: true,
+      content: `JS Result: ${data.result}`
+    };
+  } catch (e2) {
+    return { success: false, content: "", error: e2.message };
+  }
+}
+async function browser_extract(url2, selectors) {
+  try {
+    const selectorsJson = JSON.stringify(selectors).replace(/'/g, "\\'");
+    const script = `
+import { chromium } from 'playwright';
+
+const browser = await chromium.launch({
+  headless: true,
+  args: ['--no-sandbox', '--disable-dev-shm-usage'],
+  executablePath: '/home/sridhar/.cache/ms-playwright/chromium_headless_shell-1208/chrome-linux/headless_shell',
+});
+const page = await browser.newPage();
+
+await page.goto('${url2.replace(/'/g, "\\'")}', { waitUntil: 'domcontentloaded' });
+
+const selectors = ${selectorsJson};
+const extracted = {};
+
+for (const [key, selector] of Object.entries(selectors)) {
+  try {
+    const elements = await page.locator(selector).all();
+    if (elements.length === 1) {
+      extracted[key] = await elements[0].textContent() || '';
+    } else if (elements.length > 1) {
+      extracted[key] = await Promise.all(elements.map(e => e.textContent()));
+    }
+  } catch (e) {
+    extracted[key] = 'NOT FOUND';
+  }
+}
+
+console.log(JSON.stringify({ success: true, extracted, url: page.url() }));
+await browser.close();
+`;
+    const result = await runPlaywright(script);
+    const data = JSON.parse(result.trim());
+    return {
+      success: true,
+      content: JSON.stringify(data.extracted, null, 2),
+      url: data.url
+    };
+  } catch (e2) {
+    return { success: false, content: "", error: e2.message };
+  }
+}
+async function browser_health() {
+  try {
+    const script = `
+import { chromium } from 'playwright';
+const browser = await chromium.launch({
+  headless: true,
+  args: ['--no-sandbox', '--disable-dev-shm-usage'],
+  executablePath: '/home/sridhar/.cache/ms-playwright/chromium_headless_shell-1208/chrome-linux/headless_shell',
+});
+await browser.close();
+console.log(JSON.stringify({ success: true }));
+`;
+    await runPlaywright(script);
+    return { success: true };
+  } catch (e2) {
+    return { success: false, error: e2.message };
+  }
 }
 
 // src/engi/indexer.ts
@@ -49890,9 +50223,9 @@ var tools = [
         if (!url2) {
           return { success: false, content: "", error: "Provide url or search parameter" };
         }
-        const { execSync: execSync4 } = await import("node:child_process");
+        const { execSync: execSync5 } = await import("node:child_process");
         const opener = process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
-        execSync4(`${opener} "${url2}"`, { stdio: "ignore" });
+        execSync5(`${opener} "${url2}"`, { stdio: "ignore" });
         return { success: true, content: `Opened in browser: ${url2}` };
       } catch (e2) {
         return { success: false, content: "", error: e2.message };
@@ -50314,7 +50647,7 @@ var tools = [
       required: ["command"]
     },
     async execute(args) {
-      const { execSync: execSync4, spawn: spawn3 } = await import("node:child_process");
+      const { execSync: execSync5, spawn: spawn3 } = await import("node:child_process");
       const cmd = args.command;
       const workingDir = args.cwd || process.cwd();
       const timeout = args.timeout || 30;
@@ -50354,14 +50687,14 @@ To execute dangerous commands, run directly in your terminal.` };
         }
         let output;
         if (isWin) {
-          output = execSync4(`cmd.exe /c ${cmd}`, {
+          output = execSync5(`cmd.exe /c ${cmd}`, {
             encoding: "utf-8",
             timeout: timeout * 1e3,
             cwd: workingDir,
             maxBuffer: 10 * 1024 * 1024
           });
         } else {
-          output = execSync4(`/bin/bash -c ${JSON.stringify(cmd)}`, {
+          output = execSync5(`/bin/bash -c ${JSON.stringify(cmd)}`, {
             encoding: "utf-8",
             timeout: timeout * 1e3,
             cwd: workingDir,
@@ -50682,6 +51015,142 @@ ${lines.join("\n")}` };
       }
     }
   },
+  // Browser (Headless Playwright)
+  {
+    name: "browser_navigate",
+    description: "Navigate to URL with headless browser. Returns full page HTML after DOM ready. Supports waitForSelector for dynamic content.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        url: { type: "string", description: "URL to navigate to" },
+        waitForSelector: { type: "string", description: "CSS selector to wait for before returning" },
+        timeout: { type: "integer", description: "Timeout in ms (default: 15000)" }
+      },
+      required: ["url"]
+    },
+    async execute(args) {
+      const result = await browser_navigate(
+        args.url,
+        args.waitForSelector,
+        args.timeout || 15e3
+      );
+      return { success: result.success, content: result.content, error: result.error, url: result.url, title: result.title };
+    }
+  },
+  {
+    name: "browser_screenshot",
+    description: "Take screenshot of page or element. Returns base64 PNG if screenshot captured.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        url: { type: "string", description: "URL to screenshot" },
+        selector: { type: "string", description: "CSS selector for element screenshot (optional)" },
+        fullPage: { type: "boolean", description: "Screenshot entire page (default: false)" }
+      },
+      required: ["url"]
+    },
+    async execute(args) {
+      const result = await browser_screenshot(
+        args.url,
+        args.selector,
+        args.fullPage || false
+      );
+      return {
+        success: result.success,
+        content: result.content || "",
+        screenshot: result.screenshot,
+        error: result.error
+      };
+    }
+  },
+  {
+    name: "browser_click",
+    description: "Click element and optionally wait for navigation.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        url: { type: "string", description: "URL to navigate to first" },
+        selector: { type: "string", description: "CSS selector of element to click" },
+        waitForNavigation: { type: "boolean", description: "Wait for page navigation after click (default: true)" }
+      },
+      required: ["url", "selector"]
+    },
+    async execute(args) {
+      const result = await browser_click(
+        args.url,
+        args.selector,
+        args.waitForNavigation !== false
+      );
+      return { success: result.success, content: result.content, error: result.error, url: result.url };
+    }
+  },
+  {
+    name: "browser_type",
+    description: "Type text into input field and optionally submit.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        url: { type: "string", description: "URL to navigate to first" },
+        selector: { type: "string", description: "CSS selector of input field" },
+        text: { type: "string", description: "Text to type" },
+        submit: { type: "boolean", description: "Click after typing (default: false)" }
+      },
+      required: ["url", "selector", "text"]
+    },
+    async execute(args) {
+      const result = await browser_type(
+        args.url,
+        args.selector,
+        args.text,
+        args.submit || false
+      );
+      return { success: result.success, content: result.content, error: result.error, url: result.url };
+    }
+  },
+  {
+    name: "browser_evaluate",
+    description: "Run JavaScript in browser context. Useful for extracting dynamic data.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        url: { type: "string", description: "URL to navigate to" },
+        code: { type: "string", description: "JavaScript code to execute (function body, no function keyword needed)" }
+      },
+      required: ["url", "code"]
+    },
+    async execute(args) {
+      const result = await browser_evaluate(args.url, args.code);
+      return { success: result.success, content: result.content, error: result.error };
+    }
+  },
+  {
+    name: "browser_extract",
+    description: "Extract multiple elements by CSS selectors in one go. Returns JSON with all extracted values.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        url: { type: "string", description: "URL to navigate to" },
+        selectors: { type: "object", description: "Key-value pairs: field name -> CSS selector", additionalProperties: { type: "string" } }
+      },
+      required: ["url", "selectors"]
+    },
+    async execute(args) {
+      const result = await browser_extract(
+        args.url,
+        args.selectors
+      );
+      return { success: result.success, content: result.content, error: result.error, url: result.url };
+    }
+  },
+  {
+    name: "browser_health",
+    description: "Check if Playwright/headless browser is available.",
+    inputSchema: { type: "object", properties: {} },
+    async execute() {
+      const result = await browser_health();
+      return { success: result.success, content: result.success ? "Playwright browser: OK" : "Playwright browser: unavailable", error: result.error };
+    }
+  },
   ...engiTools
 ];
 function getTool(name) {
@@ -50865,10 +51334,10 @@ function useAgentLoop(options) {
 
 // src/config/index.ts
 init_platform();
-import { readFileSync as readFileSync5, existsSync as existsSync6, writeFileSync as writeFileSync6, mkdirSync as mkdirSync3 } from "node:fs";
-import { resolve as resolve4, dirname as dirname2, join as join7 } from "node:path";
+import { readFileSync as readFileSync5, existsSync as existsSync7, writeFileSync as writeFileSync7, mkdirSync as mkdirSync4 } from "node:fs";
+import { resolve as resolve4, dirname as dirname2, join as join8 } from "node:path";
 function getConfigDir() {
-  return join7(getHomeDir(), ".beast-cli");
+  return join8(getHomeDir(), ".beast-cli");
 }
 function getConfigPath() {
   return resolve4(getConfigDir(), "session.json");
@@ -50876,7 +51345,7 @@ function getConfigPath() {
 function loadSession() {
   try {
     const path5 = getConfigPath();
-    if (!existsSync6(path5)) return null;
+    if (!existsSync7(path5)) return null;
     const data = JSON.parse(readFileSync5(path5, "utf-8"));
     if (!data.provider || !data.model || !data.contextSize || !data.contextMax) {
       return null;
@@ -50983,7 +51452,17 @@ var BeastApp = () => {
   ));
 };
 if (!process.stdin.isTTY) {
-  console.error("Ink TUI requires a real terminal (TTY). Use --defaults for REPL mode instead.");
+  console.error("");
+  console.error("  !  Ink TUI cannot run in non-interactive mode");
+  console.error("");
+  console.error("  Available alternatives:");
+  console.error("    beast --defaults     - REPL mode with AI chat (recommended)");
+  console.error("    beast                - Interactive REPL mode");
+  console.error("    beast --help         - Show all commands");
+  console.error("    beast --models       - List available models");
+  console.error("");
+  console.error('  Note: TUI requires a real terminal. For SSH, use: ssh -t host "beast"');
+  console.error("");
   process.exit(1);
 }
 if (process.platform === "win32") {

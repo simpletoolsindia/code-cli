@@ -4,16 +4,29 @@
 import { s, fg, bold, isColorEnabled, spinnerFrames } from './colors.ts'
 
 // ── State Types ───────────────────────────────────────────────────────────────
-export type AnimationState = 'thinking' | 'searching' | 'coding' | 'analyzing' | 'tool' | 'formatting'
+export type AnimationState =
+  | 'thinking' | 'searching' | 'coding' | 'analyzing' | 'tool' | 'formatting'
+  | 'tool:read_file' | 'tool:write_file' | 'tool:copy_file'
+  | 'tool:web_fetch' | 'tool:code_run' | 'tool:mcp_call'
+  | 'llm_processing' | 'tool:generic'
 
 // Polished: state config with smooth transitions
-const STATE_CONFIG: Record<AnimationState, { label: string; color: string; frames: string[] }> = {
+const STATE_CONFIG: Record<string, { label: string; color: string; frames: string[] }> = {
   thinking:  { label: 'Thinking',   color: fg.accent,    frames: spinnerFrames.dots },
   searching: { label: 'Searching', color: fg.sapphire,  frames: spinnerFrames.arrow },
   coding:    { label: 'Coding',    color: fg.warning,   frames: spinnerFrames.blocks },
-  analyzing: { label: 'Analyzing', color: fg.mauve,    frames: spinnerFrames.dots },
+  analyzing: { label: 'Analyzing', color: fg.mauve,     frames: spinnerFrames.dots },
   tool:      { label: 'Running',   color: fg.tool,      frames: spinnerFrames.dots },
   formatting:{ label: 'Formatting', color: fg.success,   frames: spinnerFrames.star },
+  // Tool-specific
+  'tool:read_file':  { label: 'Reading file',  color: fg.sapphire,  frames: spinnerFrames.dots },
+  'tool:write_file': { label: 'Writing file',  color: fg.warning,   frames: spinnerFrames.blocks },
+  'tool:copy_file':  { label: 'Copying file', color: fg.mauve,     frames: spinnerFrames.dots },
+  'tool:web_fetch':  { label: 'Fetching web',  color: fg.blue,      frames: spinnerFrames.arrow },
+  'tool:code_run':   { label: 'Running code',  color: fg.success,   frames: spinnerFrames.star },
+  'tool:mcp_call':   { label: 'MCP call',     color: fg.lavender, frames: spinnerFrames.dots },
+  'llm_processing':  { label: 'LLM processing', color: fg.accent,  frames: spinnerFrames.dots },
+  'tool:generic':   { label: 'Running tool', color: fg.tool,      frames: spinnerFrames.dots },
 }
 
 // ── Clean Spinner Class ───────────────────────────────────────────────────────
