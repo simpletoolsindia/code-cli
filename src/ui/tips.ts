@@ -22,8 +22,8 @@ export const ALL_TIPS: Tip[] = [
   { cmd: '/agents',        tip: 'Manage custom agents — create, use, delete, or info', category: 'command' },
   { cmd: '/models',        tip: 'List all available models for your current provider', category: 'command' },
   { cmd: '/switch',        tip: 'Reconfigure provider, model, and context size interactively', category: 'command' },
-  { cmd: '/login',         tip: 'Authenticate with ChatGPT Plus OAuth for free access', category: 'command' },
-  { cmd: '/logout',        tip: 'Clear ChatGPT Plus authentication', category: 'command' },
+  { cmd: '/login',         tip: 'Authenticate with ChatGPT Plus OAuth for API access', category: 'command' },
+  { cmd: '/logout',        tip: 'Clear OAuth authentication tokens', category: 'command' },
   { cmd: '/provider',      tip: 'Switch to a different LLM provider interactively', category: 'command' },
   { cmd: 'Tab',            tip: 'Auto-complete slash commands and agent names', category: 'command' },
   { cmd: 'Up / Down',     tip: 'Navigate through your command history', category: 'command' },
@@ -117,13 +117,13 @@ export function getTipByCategory(category: Tip['category']): string {
 
 export function contextualTip(provider?: string, hasApiKey?: boolean): string {
   if (provider === 'codex') {
-    return `${s('💡', fg.success)} ${s('ChatGPT Plus OAuth active — all usage is free', fg.success)} ${s('(/logout to sign out)', fg.muted)}`
+    return `${s('💡', fg.success)} ${s('ChatGPT Plus OAuth active', fg.success)} ${s('(/logout to sign out)', fg.muted)}`
   }
   if (provider === 'ollama') {
     return `${s('💡', fg.info)} ${s('Running locally — no internet needed', fg.info)} ${s('(/provider to switch)', fg.muted)}`
   }
   if (!hasApiKey) {
-    return `${s('💡', fg.success)} ${s('Try beast --defaults for free ChatGPT Plus access', fg.success)} ${s('(beast --help)', fg.muted)}`
+    return `${s('💡', fg.success)} ${s('Try beast --defaults to get started quickly', fg.success)} ${s('(beast --help)', fg.muted)}`
   }
   return randomTip()
 }
@@ -138,5 +138,5 @@ export const FEATURE_HIGHLIGHTS = [
   { title: '45+ Providers',desc: 'Claude, GPT, Gemini, Groq, Ollama, and more' },
   { title: '51+ Tools',    desc: 'File ops, web search, GitHub, code execution' },
   { title: 'Smart Context',desc: 'Auto-compact at 95%, never lose your place' },
-  { title: 'ChatGPT Plus', desc: 'Free with your $20/mo subscription via OAuth' },
+  { title: 'OAuth Ready',  desc: 'Authenticate with ChatGPT Plus for API access' },
 ]

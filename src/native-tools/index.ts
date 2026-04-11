@@ -1022,6 +1022,112 @@ const tools: NativeTool[] = [
   ...engiTools,
 ]
 
+// ── Tool Name Aliases ─────────────────────────────────────────────────────
+// Map common model-generated tool names to actual tool names
+// Handles variations from different model prompt styles
+
+const TOOL_ALIASES: Record<string, string> = {
+  // File system aliases
+  'fs.ls': 'file_list',
+  'fs.read': 'file_read',
+  'fs.write': 'file_write',
+  'fs.search': 'file_search',
+  'fs.grep': 'file_grep',
+  'fs.glob': 'file_glob',
+  'read_file': 'file_read',
+  'readFile': 'file_read',
+  'write_file': 'file_write',
+  'writeFile': 'file_write',
+  'list_files': 'file_list',
+  'listFiles': 'file_list',
+  'list_directory': 'file_list',
+  'read_directory': 'file_list',
+  'ls_dir': 'file_list',
+  'search_files': 'file_search',
+  'grep_files': 'file_grep',
+  'glob_files': 'file_glob',
+  'cat': 'file_read',
+
+  // Web search aliases
+  'google:search': 'searxng_search',
+  'google_search': 'searxng_search',
+  'web_search': 'searxng_search',
+  'search': 'searxng_search',
+  'bing_search': 'searxng_search',
+  'duckduckgo': 'searxng_search',
+  'ddg': 'searxng_search',
+  'fetch_url': 'fetch_web_content',
+  'fetchWeb': 'fetch_web_content',
+  'scrape': 'fetch_web_content',
+  'web_fetch': 'fetch_web_content',
+
+  // GitHub aliases
+  'github:search': 'github_search_repos',
+  'github_search': 'github_search_repos',
+  'search_repos': 'github_search_repos',
+  'list_issues': 'github_issues',
+  'list_commits': 'github_commits',
+
+  // YouTube aliases
+  'youtube:transcript': 'youtube_transcript',
+  'youtube:search': 'youtube_search',
+  'yt_transcript': 'youtube_transcript',
+  'yt_search': 'youtube_search',
+
+  // HackerNews aliases
+  'hackernews:top': 'hackernews_top',
+  'hackernews:new': 'hackernews_new',
+  'hackernews:best': 'hackernews_best',
+  'hn_top': 'hackernews_top',
+  'hn_new': 'hackernews_new',
+  'hn_best': 'hackernews_best',
+
+  // Code execution aliases
+  'bash': 'run_command',
+  'shell': 'run_command',
+  'exec': 'run_command',
+  'run_bash': 'run_command',
+  'run_shell': 'run_command',
+  'python': 'run_python_snippet',
+  'run_py': 'run_python_snippet',
+
+  // Browser aliases
+  'browser:navigate': 'browser_navigate',
+  'browser:screenshot': 'browser_screenshot',
+  'browser:click': 'browser_click',
+  'open_url': 'open_in_browser',
+  'visit': 'browser_navigate',
+  'goto': 'browser_navigate',
+}
+
+/**
+ * Normalize a tool name by checking aliases
+ * Returns the canonical tool name if found, otherwise returns original
+ */
+export function normalizeToolName(name: string): string {
+  // Check direct alias first
+  if (TOOL_ALIASES[name]) {
+    return TOOL_ALIASES[name]
+  }
+
+  // Try case-insensitive match
+  const lowerName = name.toLowerCase()
+  for (const [alias, canonical] of Object.entries(TOOL_ALIASES)) {
+    if (alias.toLowerCase() === lowerName) {
+      return canonical
+    }
+  }
+
+  // Try partial match (e.g., "google_search_something" → "searxng_search")
+  for (const [alias, canonical] of Object.entries(TOOL_ALIASES)) {
+    if (lowerName.includes(alias.toLowerCase())) {
+      return canonical
+    }
+  }
+
+  return name
+}
+
 // ── Registry Access ───────────────────────────────────────────────────────
 
 export function getAllTools(): NativeTool[] {
@@ -1029,7 +1135,8 @@ export function getAllTools(): NativeTool[] {
 }
 
 export function getTool(name: string): NativeTool | undefined {
-  return tools.find(t => t.name === name)
+  const normalized = normalizeToolName(name)
+  return tools.find(t => t.name === normalized)
 }
 
 export function getToolNames(): string[] {

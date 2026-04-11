@@ -482,6 +482,13 @@ export async function repl(session: Session) {
     },
   })
 
+  // Safe prompt - only calls rl.question if stdin is interactive (not piped)
+  const safePrompt = () => {
+    if (!rl.closed && process.stdin.isTTY) {
+      promptUser()
+    }
+  }
+
   // Polished REPL prompt with Google-style `>` with accent color
   const promptUser = () => rl.question('\n' + s('> ', fg.accent), async (input) => {
     const trimmed = input.trim()
@@ -540,13 +547,13 @@ Commands:
       } catch (e: any) {
         console.log(`\n❌ Login failed: ${e.message}`)
       }
-      promptUser(); return
+      safePrompt(); return
     }
 
     if (trimmed === '/logout') {
       clearCodexToken()
       console.log('\n✅ ChatGPT Plus logout complete.')
-      promptUser(); return
+      safePrompt(); return
     }
 
     if (trimmed === '/models') {
@@ -566,7 +573,7 @@ Commands:
           models.forEach((m, i) => console.log(`  [${i + 1}] ${m}`))
         }
       }
-      promptUser(); return
+      safePrompt(); return
     }
 
     if (trimmed === '/tools') {
@@ -576,7 +583,7 @@ Commands:
         const desc = t.description ? ` — ${t.description.slice(0, 60)}` : ''
         console.log(`  • ${t.name}${desc}`)
       })
-      promptUser(); return
+      safePrompt(); return
     }
 
     if (trimmed === '/model') {
