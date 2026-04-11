@@ -261,25 +261,66 @@ install_python_packages() {
         return 1
     fi
 
-    log_info "Installing requests and beautifulsoup4..."
+    log_info "Installing Python packages for web scraping and YouTube..."
 
     if [[ "$python_cmd" == "python3" ]]; then
-        sudo python3 -m pip install requests beautifulsoup4 --quiet 2>/dev/null || \
-        python3 -m pip install requests beautifulsoup4 --user --quiet 2>/dev/null || \
-        pip3 install requests beautifulsoup4 --quiet 2>/dev/null
+        sudo python3 -m pip install requests beautifulsoup4 youtube-transcript-api --quiet 2>/dev/null || \
+        python3 -m pip install requests beautifulsoup4 youtube-transcript-api --user --quiet 2>/dev/null || \
+        pip3 install requests beautifulsoup4 youtube-transcript-api --quiet 2>/dev/null
     else
-        sudo python -m pip install requests beautifulsoup4 --quiet 2>/dev/null || \
-        python -m pip install requests beautifulsoup4 --user --quiet 2>/dev/null || \
-        pip install requests beautifulsoup4 --quiet 2>/dev/null
+        sudo python -m pip install requests beautifulsoup4 youtube-transcript-api --quiet 2>/dev/null || \
+        python -m pip install requests beautifulsoup4 youtube-transcript-api --user --quiet 2>/dev/null || \
+        pip install requests beautifulsoup4 youtube-transcript-api --quiet 2>/dev/null
     fi
 
     # Verify
-    if $python_cmd -c "import requests; from bs4 import BeautifulSoup" 2>/dev/null; then
-        log_success "Python packages installed (requests, beautifulsoup4)"
+    if $python_cmd -c "import requests; from bs4 import BeautifulSoup; from youtube_transcript_api import YouTubeTranscriptApi" 2>/dev/null; then
+        log_success "Python packages installed (requests, beautifulsoup4, youtube-transcript-api)"
         return 0
     fi
 
     log_warn "Could not install Python packages - tools may fail without them"
+    return 1
+}
+
+# ─── Auto-Install yt-dlp for YouTube ───────────────────────────────────────────
+install_ytdlp() {
+    log_step "Checking yt-dlp for YouTube transcripts..."
+
+    if has_command yt-dlp; then
+        log_success "yt-dlp $(yt-dlp --version 2>/dev/null | head -1) found"
+        return 0
+    fi
+
+    log_info "Installing yt-dlp..."
+
+    local os=$(detect_os)
+
+    case "$os" in
+        macos)
+            if has_command brew; then
+                brew install yt-dlp 2>/dev/null && log_success "yt-dlp installed via Homebrew" && return 0
+            fi
+            ;;
+        linux)
+            if has_command apt; then
+                sudo apt-get install -y yt-dlp 2>/dev/null && log_success "yt-dlp installed via apt" && return 0
+            fi
+            ;;
+    esac
+
+    # Fallback: pip install
+    if has_command pip3; then
+        pip3 install yt-dlp --quiet 2>/dev/null && log_success "yt-dlp installed via pip" && return 0
+    fi
+
+    # Fallback: direct download
+    local install_path="${HOME}/.local/bin/yt-dlp"
+    mkdir -p "$(dirname "$install_path")"
+    curl -fsSL https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o "$install_path" 2>/dev/null && \
+        chmod +x "$install_path" && log_success "yt-dlp installed to $install_path" && return 0
+
+    log_warn "Could not install yt-dlp - YouTube transcripts may be limited"
     return 1
 }
 
@@ -693,6 +734,7 @@ main() {
     fi
 
     install_ffmpeg
+    install_ytdlp
     setup_npm_global
     setup_searxng
 
