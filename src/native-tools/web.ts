@@ -241,9 +241,6 @@ export async function pythonWebScrape(url: string, maxTokens = 4000): Promise<Fe
   // Use Python requests + BeautifulSoup for reliable cross-platform scraping
   const pythonScript = `
 import sys
-# Suppress SSL warnings
-import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 try:
     import requests
@@ -254,6 +251,13 @@ except ImportError:
     subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'requests', 'beautifulsoup4', '-q'])
     import requests
     from bs4 import BeautifulSoup
+
+# Suppress SSL warnings (optional)
+try:
+    import urllib3
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+except ImportError:
+    pass
 
 url = sys.argv[1] if len(sys.argv) > 1 else ''
 if not url:
