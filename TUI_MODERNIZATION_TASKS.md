@@ -108,10 +108,12 @@ A phased, 11-stage modernization of Beast CLI into a **premium code-focused term
 
 **Goal**: Make tool execution trustworthy and transparent.
 
+**Note**: Tool result lines increased from 2→8 (src/ui/tool-renderer.ts).
+
 | # | Task | Priority | Status |
 |---|------|----------|--------|
 | 6.1 | Real-time tool call log (name, args, elapsed time, status) | P0 | Pending |
-| 6.2 | Tool result preview (truncated, expandable) | P0 | Pending |
+| 6.2 | Tool result preview (truncated, expandable) | P0 | **DONE** |
 | 6.3 | Streaming token display for LLM output | P0 | Pending |
 | 6.4 | Error state with full context + retry option | P0 | Pending |
 | 6.5 | Write `TOOL_CALL_VISIBILITY.md` design spec | P0 | Pending |
