@@ -2,6 +2,10 @@
 // Replaces MCP server calls with local implementations
 
 import { execSync } from 'node:child_process'
+import { tmpdir } from 'node:os'
+import { writeFileSync, unlinkSync, existsSync } from 'node:fs'
+import { spawn } from 'node:child_process'
+import { join } from 'node:path'
 
 const DEFAULT_TIMEOUT = 15000
 const isWindows = process.platform === 'win32'
@@ -229,6 +233,131 @@ export async function webclawCrawl(url: string, selectors?: Record<string, strin
     return fetchWebContent(url, 4000)
   }
   return fetchWithSelectors(url, selectors)
+}
+
+// ── Python Web Scraper (Cross-platform fallback) ───────────────────────────────
+
+export async function pythonWebScrape(url: string, maxTokens = 4000): Promise<FetchResult> {
+  // Use Python requests + BeautifulSoup for reliable cross-platform scraping
+  const pythonScript = `
+import sys
+# Suppress SSL warnings
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+try:
+    import requests
+    from bs4 import BeautifulSoup
+except ImportError:
+    # Try installing required packages
+    import subprocess
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'requests', 'beautifulsoup4', '-q'])
+    import requests
+    from bs4 import BeautifulSoup
+
+url = sys.argv[1] if len(sys.argv) > 1 else ''
+if not url:
+    print('ERROR: No URL provided')
+    sys.exit(1)
+
+try:
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+    }
+    response = requests.get(url, headers=headers, timeout=15, verify=False)
+    response.raise_for_status()
+
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    # Remove script and style elements
+    for script in soup(["script", "style", "nav", "header", "footer"]):
+        script.decompose()
+
+    # Get title
+    title = soup.title.string if soup.title else ''
+
+    # Get text content
+    text = soup.get_text(separator='\\n', strip=True)
+
+    # Clean up whitespace
+    lines = [line for line in text.split('\\n') if line.strip()]
+    text = '\\n'.join(lines)
+
+    print(f'TITLE:{title}')
+    print(f'URL:{response.url}')
+    print('CONTENT_START')
+    print(text[:15000])
+    print('CONTENT_END')
+    sys.exit(0)
+
+except requests.exceptions.Timeout:
+    print('ERROR: Request timed out')
+    sys.exit(1)
+except requests.exceptions.ConnectionError as e:
+    print(f'ERROR: Connection failed - {e}')
+    sys.exit(1)
+except Exception as e:
+    print(f'ERROR: {e}')
+    sys.exit(1)
+`
+
+  return new Promise((resolve) => {
+    try {
+      const scriptFile = join(tmpdir(), `beast_scrape_${Date.now()}.py`)
+      writeFileSync(scriptFile, pythonScript)
+
+      const pythonCmd = isWindows ? 'python' : 'python3'
+      const proc = spawn(pythonCmd, [scriptFile, url], {
+        timeout: 20000,
+        shell: isWindows,
+      })
+
+      let stdout = ''
+      let stderr = ''
+
+      proc.stdout?.on('data', d => { stdout += d.toString() })
+      proc.stderr?.on('data', d => { stderr += d.toString() })
+
+      proc.on('error', () => {
+        try { unlinkSync(scriptFile) } catch {}
+        resolve({ success: false, content: '', error: 'Python not available' })
+      })
+
+      proc.on('close', (code) => {
+        try { unlinkSync(scriptFile) } catch {}
+
+        if (code === 0 && stdout.includes('CONTENT_START')) {
+          const titleMatch = stdout.match(/TITLE:(.*)/)
+          const urlMatch = stdout.match(/URL:(.*)/)
+          const contentMatch = stdout.match(/CONTENT_START([\s\S]*?)CONTENT_END/)
+
+          let content = contentMatch ? contentMatch[1].trim() : stdout
+          const title = titleMatch ? titleMatch[1].trim() : ''
+          const finalUrl = urlMatch ? urlMatch[1].trim() : url
+
+          // Truncate to maxTokens
+          content = content.slice(0, maxTokens * 4)
+
+          resolve({
+            success: true,
+            content,
+            title,
+            url: finalUrl,
+          })
+        } else {
+          resolve({
+            success: false,
+            content: '',
+            error: stderr || stdout.replace('ERROR:', '').trim() || 'Python scrape failed',
+          })
+        }
+      })
+    } catch (e: any) {
+      resolve({ success: false, content: '', error: e.message })
+    }
+  })
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
