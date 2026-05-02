@@ -153,9 +153,14 @@ export function DialogModel(props: { providerID?: string }) {
             category: props.providerID ? undefined : "💻 Detected local",
             disabled: configuring(),
             footer: props.providerID ? "Select model" : "Click to setup",
-            onSelect() {
-              void onSelectDetected(provider, model.id)
-            },
+                onSelect() {
+                  const configured = sync.data.provider.find((item) => item.id === provider.id)
+                  if (configured && configured.models[model.id]) {
+                    onSelect(provider.id, model.id)
+                  } else {
+                    void onSelectDetected(provider, model.id)
+                  }
+                },
           },
         ]
       })

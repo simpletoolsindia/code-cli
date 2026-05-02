@@ -343,10 +343,6 @@ export const layer: Layer.Layer<
       if (cached && Date.now() - cached.at < TOOL_DEFINITION_CACHE_TTL) return cached.tools
 
       const filtered = (yield* all()).filter((tool) => {
-        if (tool.id === WebSearchTool.id) {
-          return input.providerID === ProviderID.beastcli || Flag.BEAST_ENABLE_EXA
-        }
-
         const usePatch =
           input.modelID.includes("gpt-") && !input.modelID.includes("oss") && !input.modelID.includes("gpt-4")
         if (tool.id === ApplyPatchTool.id) return usePatch

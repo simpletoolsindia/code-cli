@@ -13,21 +13,26 @@ function ProgressBar(props: { percent: number; width: number }) {
   const { theme } = useTheme()
   const filled = Math.max(0, Math.min(props.width, Math.round((props.percent / 100) * props.width)))
   const empty = props.width - filled
-  const color =
-    props.percent > 95 ? theme.error : props.percent > 80 ? theme.warning : props.percent > 50 ? theme.text : theme.success
+
+  const barColor =
+    props.percent > 95 ? theme.error : props.percent > 80 ? theme.warning : props.percent > 60 ? theme.primary : theme.success
+
+  // Use visible characters that contrast against the panel background
+  const emptyChar = "─"
+  const filledChar = "█"
 
   return (
-    <box flexDirection="row" flexShrink={0}>
-      <text fg={color}>{"█".repeat(filled)}</text>
-      <text fg={theme.background}>{"░".repeat(empty)}</text>
-      <text fg={color}>{` ${props.percent}%`}</text>
+    <box flexDirection="row" flexShrink={0} gap={1}>
+      <text fg={barColor}>{filledChar.repeat(filled)}</text>
+      <text fg={theme.border}>{emptyChar.repeat(empty)}</text>
+      <text fg={barColor} attributes={3}>{` ${props.percent}%`}</text>
     </box>
   )
 }
 
 function StatusBadge(props: { status: string }) {
   const { theme } = useTheme()
-  const colors: Record<string, string> = {
+  const colors: Record<string, any> = {
     idle: theme.success,
     busy: theme.primary,
     retry: theme.warning,

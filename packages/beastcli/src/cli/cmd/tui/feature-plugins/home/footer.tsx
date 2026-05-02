@@ -44,12 +44,11 @@ function Mcp(props: { api: TuiPluginApi }) {
   )
 }
 
-function Version(props: { api: TuiPluginApi }) {
+function Credit(props: { api: TuiPluginApi }) {
   const theme = () => props.api.theme.current
-
   return (
     <box flexShrink={0}>
-      <text fg={theme().textMuted}>{props.api.app.version}</text>
+      <text fg={theme().textMuted}>Made with love by SimpleTools India</text>
     </box>
   )
 }
@@ -69,7 +68,7 @@ function View(props: { api: TuiPluginApi }) {
       <Directory api={props.api} />
       <Mcp api={props.api} />
       <box flexGrow={1} />
-      <Version api={props.api} />
+      <Credit api={props.api} />
     </box>
   )
 }
