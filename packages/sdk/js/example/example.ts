@@ -1,8 +1,8 @@
-import { createOpencodeClient, createOpencodeServer } from "@opencode-ai/sdk"
+import { createBeastcliClient, createBeastcliServer } from "@beastcli/sdk"
 import { pathToFileURL } from "bun"
 
-const server = await createOpencodeServer()
-const client = createOpencodeClient({ baseUrl: server.url })
+const server = await createBeastcliServer()
+const client = createBeastcliClient({ baseUrl: server.url })
 
 const input = await Array.fromAsync(new Bun.Glob("packages/core/*.ts").scan())
 

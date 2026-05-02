@@ -1,32 +1,32 @@
-import { Message, Model, Part, Session, SessionStatus, SnapshotFileDiff, UserMessage } from "@opencode-ai/sdk/v2"
-import { SessionTurn } from "@opencode-ai/ui/session-turn"
-import { SessionReview } from "@opencode-ai/ui/session-review"
-import { DataProvider } from "@opencode-ai/ui/context"
-import { FileComponentProvider } from "@opencode-ai/ui/context/file"
-import { WorkerPoolProvider } from "@opencode-ai/ui/context/worker-pool"
+import { Message, Model, Part, Session, SessionStatus, SnapshotFileDiff, UserMessage } from "@beastcli/sdk/v2"
+import { SessionTurn } from "@beastcli/ui/session-turn"
+import { SessionReview } from "@beastcli/ui/session-review"
+import { DataProvider } from "@beastcli/ui/context"
+import { FileComponentProvider } from "@beastcli/ui/context/file"
+import { WorkerPoolProvider } from "@beastcli/ui/context/worker-pool"
 import { createAsync, query, useParams } from "@solidjs/router"
 import { createMemo, createSignal, ErrorBoundary, For, Match, Show, Switch } from "solid-js"
 import { Share } from "~/core/share"
-import { Logo, Mark } from "@opencode-ai/ui/logo"
-import { IconButton } from "@opencode-ai/ui/icon-button"
-import { ProviderIcon } from "@opencode-ai/ui/provider-icon"
-import { iife } from "@opencode-ai/core/util/iife"
-import { Binary } from "@opencode-ai/core/util/binary"
-import { NamedError } from "@opencode-ai/core/util/error"
+import { Logo, Mark } from "@beastcli/ui/logo"
+import { IconButton } from "@beastcli/ui/icon-button"
+import { ProviderIcon } from "@beastcli/ui/provider-icon"
+import { iife } from "@beastcli/core/util/iife"
+import { Binary } from "@beastcli/core/util/binary"
+import { NamedError } from "@beastcli/core/util/error"
 import { DateTime } from "luxon"
 import { createStore } from "solid-js/store"
 import z from "zod"
 import NotFound from "../[...404]"
-import { Tabs } from "@opencode-ai/ui/tabs"
-import { MessageNav } from "@opencode-ai/ui/message-nav"
-import { FileSSR } from "@opencode-ai/ui/file-ssr"
+import { Tabs } from "@beastcli/ui/tabs"
+import { MessageNav } from "@beastcli/ui/message-nav"
+import { FileSSR } from "@beastcli/ui/file-ssr"
 import { clientOnly } from "@solidjs/start"
 import { Meta, Title } from "@solidjs/meta"
 import { Base64 } from "js-base64"
 import { getRequestEvent } from "solid-js/web"
 
 const ClientOnlyWorkerPoolProvider = clientOnly(() =>
-  import("@opencode-ai/ui/pierre/worker").then((m) => ({
+  import("@beastcli/ui/pierre/worker").then((m) => ({
     default: (props: { children: any }) => (
       <WorkerPoolProvider pools={m.getWorkerPools()}>{props.children}</WorkerPoolProvider>
     ),
@@ -165,15 +165,15 @@ export default function () {
               modelParam = "unknown"
             }
             const version = `v${info().version}`
-            return `https://social-cards.sst.dev/opencode-share/${encodedTitle}.png?model=${modelParam}&version=${version}&id=${data().shareID}`
+            return `https://social-cards.sst.dev/beastcli-share/${encodedTitle}.png?model=${modelParam}&version=${version}&id=${data().shareID}`
           })
 
           return (
             <>
               <Show when={info().title}>
-                <Title>{info().title} | OpenCode</Title>
+                <Title>{info().title} | BeastCLI</Title>
               </Show>
-              <Meta name="description" content="opencode - The AI coding agent built for the terminal." />
+              <Meta name="description" content="BeastCLI - The AI coding agent built for the terminal." />
               <Meta property="og:image" content={ogImage()} />
               <Meta name="twitter:image" content={ogImage()} />
               <ClientOnlyWorkerPoolProvider>
@@ -260,21 +260,21 @@ export default function () {
                         <div class="relative bg-background-stronger w-screen h-screen overflow-hidden flex flex-col">
                           <header class="h-12 px-6 py-2 flex items-center justify-between self-stretch bg-background-base border-b border-border-weak-base">
                             <div class="">
-                              <a href="https://opencode.ai">
+                              <a href="https://beastcli.ai">
                                 <Mark />
                               </a>
                             </div>
                             <div class="flex gap-3 items-center">
                               <IconButton
                                 as={"a"}
-                                href="https://github.com/anomalyco/opencode"
+                                href="https://github.com/simpletoolsindia/code-cli"
                                 target="_blank"
                                 icon="github"
                                 variant="ghost"
                               />
                               <IconButton
                                 as={"a"}
-                                href="https://opencode.ai/discord"
+                                href="https://beastcli.ai/discord"
                                 target="_blank"
                                 icon="discord"
                                 variant="ghost"

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "version": "1.14.31",
-  "name": "@opencode-ai/core",
+  "name": "@beastcli/core",
   "type": "module",
   "license": "MIT",
   "private": true,
@@ -11,7 +11,7 @@
     "typecheck": "tsgo --noEmit"
   },
   "bin": {
-    "opencode": "./bin/opencode"
+    "beast": "./bin/beast"
   },
   "exports": {
     "./*": "./src/*.ts"

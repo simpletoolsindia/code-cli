@@ -1,7 +1,7 @@
 import fs from "fs/promises"
 import path from "path"
 import { describe, expect, test } from "bun:test"
-import { Npm } from "@opencode-ai/core/npm"
+import { Npm } from "@beastcli/core/npm"
 import { tmpdir } from "./fixture/tmpdir"
 
 const win = process.platform === "win32"
@@ -17,14 +17,14 @@ const writePackage = (dir: string, pkg: Record<string, unknown>) =>
 
 describe("Npm.sanitize", () => {
   test("keeps normal scoped package specs unchanged", () => {
-    expect(Npm.sanitize("@opencode/acme")).toBe("@opencode/acme")
-    expect(Npm.sanitize("@opencode/acme@1.0.0")).toBe("@opencode/acme@1.0.0")
+    expect(Npm.sanitize("@beastcli/acme")).toBe("@beastcli/acme")
+    expect(Npm.sanitize("@beastcli/acme@1.0.0")).toBe("@beastcli/acme@1.0.0")
     expect(Npm.sanitize("prettier")).toBe("prettier")
   })
 
   test("handles git https specs", () => {
-    const spec = "acme@git+https://github.com/opencode/acme.git"
-    const expected = win ? "acme@git+https_//github.com/opencode/acme.git" : spec
+    const spec = "acme@git+https://github.com/beastcli/acme.git"
+    const expected = win ? "acme@git+https_//github.com/beastcli/acme.git" : spec
     expect(Npm.sanitize(spec)).toBe(expected)
   })
 })

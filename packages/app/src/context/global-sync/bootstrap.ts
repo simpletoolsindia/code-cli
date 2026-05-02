@@ -1,6 +1,6 @@
 import type {
   Config,
-  OpencodeClient,
+  BeastcliClient,
   Path,
   PermissionRequest,
   Project,
@@ -9,10 +9,10 @@ import type {
   QuestionRequest,
   Session,
   Todo,
-} from "@opencode-ai/sdk/v2/client"
-import { showToast } from "@opencode-ai/ui/toast"
-import { getFilename } from "@opencode-ai/core/util/path"
-import { retry } from "@opencode-ai/core/util/retry"
+} from "@beastcli/sdk/v2/client"
+import { showToast } from "@beastcli/ui/toast"
+import { getFilename } from "@beastcli/core/util/path"
+import { retry } from "@beastcli/core/util/retry"
 import { batch } from "solid-js"
 import { reconcile, type SetStoreFunction, type Store } from "solid-js/store"
 import type { State, VcsCache } from "./types"
@@ -84,8 +84,8 @@ function showErrors(input: {
 }
 
 export const loadGlobalConfigQuery = (
-  sdk?: OpencodeClient,
-  transform?: (x: Awaited<ReturnType<OpencodeClient["global"]["config"]["get"]>>) => void,
+  sdk?: BeastcliClient,
+  transform?: (x: Awaited<ReturnType<BeastcliClient["global"]["config"]["get"]>>) => void,
 ) =>
   queryOptions({
     queryKey: ["config"],
@@ -101,8 +101,8 @@ export const loadGlobalConfigQuery = (
   })
 
 export const loadProjectsQuery = (
-  sdk?: OpencodeClient,
-  transform?: (x: Awaited<ReturnType<OpencodeClient["project"]["list"]>>["data"]) => void,
+  sdk?: BeastcliClient,
+  transform?: (x: Awaited<ReturnType<BeastcliClient["project"]["list"]>>["data"]) => void,
 ) =>
   queryOptions({
     queryKey: ["project"],
@@ -114,7 +114,7 @@ export const loadProjectsQuery = (
               .then((x) => {
                 return (x.data ?? [])
                   .filter((p) => !!p?.id)
-                  .filter((p) => !!p.worktree && !p.worktree.includes("opencode-test"))
+                  .filter((p) => !!p.worktree && !p.worktree.includes("beastcli-test"))
                   .slice()
                   .sort((a, b) => cmp(a.id, b.id))
               })
@@ -124,7 +124,7 @@ export const loadProjectsQuery = (
   })
 
 export async function bootstrapGlobal(input: {
-  globalSDK: OpencodeClient
+  globalSDK: BeastcliClient
   requestFailedTitle: string
   translate: (key: string, vars?: Record<string, string | number>) => string
   formatMoreCount: (count: number) => string
@@ -181,7 +181,7 @@ function warmSessions(input: {
   ids: string[]
   store: Store<State>
   setStore: SetStoreFunction<State>
-  sdk: OpencodeClient
+  sdk: BeastcliClient
 }) {
   const known = new Set(input.store.session.map((item) => item.id))
   const ids = [...new Set(input.ids)].filter((id) => !!id && !known.has(id))
@@ -197,7 +197,7 @@ function warmSessions(input: {
   ).then(() => undefined)
 }
 
-export const loadProvidersQuery = (directory: string | null, sdk?: OpencodeClient) =>
+export const loadProvidersQuery = (directory: string | null, sdk?: BeastcliClient) =>
   queryOptions({
     queryKey: [directory, "providers"],
     queryFn: sdk ? () => retry(() => sdk.provider.list().then((x) => normalizeProviderList(x.data!))) : skipToken,
@@ -205,8 +205,8 @@ export const loadProvidersQuery = (directory: string | null, sdk?: OpencodeClien
 
 export const loadAgentsQuery = (
   directory: string | null,
-  sdk?: OpencodeClient,
-  transform?: (x: Awaited<ReturnType<OpencodeClient["app"]["agents"]>>) => void,
+  sdk?: BeastcliClient,
+  transform?: (x: Awaited<ReturnType<BeastcliClient["app"]["agents"]>>) => void,
 ) =>
   queryOptions({
     queryKey: [directory, "agents"],
@@ -223,8 +223,8 @@ export const loadAgentsQuery = (
 
 export const loadPathQuery = (
   directory: string | null,
-  sdk?: OpencodeClient,
-  transform?: (x: Awaited<ReturnType<OpencodeClient["path"]["get"]>>) => void,
+  sdk?: BeastcliClient,
+  transform?: (x: Awaited<ReturnType<BeastcliClient["path"]["get"]>>) => void,
 ) =>
   queryOptions<Path>({
     queryKey: [directory, "path"],
@@ -241,7 +241,7 @@ export const loadPathQuery = (
 
 export async function bootstrapDirectory(input: {
   directory: string
-  sdk: OpencodeClient
+  sdk: BeastcliClient
   store: Store<State>
   setStore: SetStoreFunction<State>
   vcsCache: VcsCache

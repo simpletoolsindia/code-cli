@@ -13,7 +13,7 @@ import {
   PlatformProvider,
   ServerConnection,
   useCommand,
-} from "@opencode-ai/app"
+} from "@beastcli/app"
 import * as Sentry from "@sentry/solid"
 import type { AsyncStorage } from "@solid-primitives/storage"
 import { MemoryRouter } from "@solidjs/router"
@@ -23,7 +23,7 @@ import pkg from "../../package.json"
 import { initI18n, t } from "./i18n"
 import { webviewZoom } from "./webview-zoom"
 import "./styles.css"
-import { useTheme } from "@opencode-ai/ui/theme"
+import { useTheme } from "@beastcli/ui/theme"
 
 const root = document.getElementById("root")
 if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
@@ -43,7 +43,7 @@ if (import.meta.env.VITE_SENTRY_DSN) {
     integrations: (integrations) => {
       return integrations.filter(
         (i) =>
-          i.name !== "Breadcrumbs" && !(import.meta.env.OPENCODE_CHANNEL === "prod" && i.name === "GlobalHandlers"),
+          i.name !== "Breadcrumbs" && !(import.meta.env.BEAST_CHANNEL === "prod" && i.name === "GlobalHandlers"),
       )
     },
   })
@@ -51,13 +51,13 @@ if (import.meta.env.VITE_SENTRY_DSN) {
 
 void initI18n()
 
-const deepLinkEvent = "opencode:deep-link"
+const deepLinkEvent = "beastcli:deep-link"
 
 const emitDeepLinks = (urls: string[]) => {
   if (urls.length === 0) return
-  window.__OPENCODE__ ??= {}
-  const pending = window.__OPENCODE__.deepLinks ?? []
-  window.__OPENCODE__.deepLinks = [...pending, ...urls]
+  window.__BEASTCLI__ ??= {}
+  const pending = window.__BEASTCLI__.deepLinks ?? []
+  window.__BEASTCLI__.deepLinks = [...pending, ...urls]
   window.dispatchEvent(new CustomEvent(deepLinkEvent, { detail: { urls } }))
 }
 
@@ -207,7 +207,7 @@ const createPlatform = (): Platform => {
 
       const notification = new Notification(title, {
         body: description ?? "",
-        icon: "https://opencode.ai/favicon-96x96-v3.png",
+        icon: "https://beastcli.ai/favicon-96x96-v3.png",
       })
       notification.onclick = () => {
         void window.api.showWindow()
@@ -275,7 +275,7 @@ render(() => {
   const platform = createPlatform()
   const [windowConfig] = createResource(() => window.api.getWindowConfig().catch(() => ({ updaterEnabled: false })))
   const loadLocale = async () => {
-    const current = await platform.storage?.("opencode.global.dat").getItem("language")
+    const current = await platform.storage?.("beastcli.global.dat").getItem("language")
     const legacy = current ? undefined : await platform.storage?.().getItem("language.v1")
     const raw = current ?? legacy
     if (!raw) return

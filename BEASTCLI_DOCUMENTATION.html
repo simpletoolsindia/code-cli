@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BeastCLI - AI Coding Agent Documentation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#6366f1',
+            secondary: '#8b5cf6',
+            accent: '#f472b6',
+            dark: '#0f172a',
+            darker: '#020617',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    code, pre { font-family: 'Fira Code', monospace; }
+    .gradient-text {
+      background: linear-gradient(135deg, #6366f1 0%, #f472b6 50%, #fbbf24 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .card-gradient {
+      background: linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(139,92,246,0.1) 100%);
+    }
+    .kbd {
+      background: linear-gradient(180deg, #374151 0%, #1f2937 100%);
+      border: 1px solid #4b5563;
+      border-radius: 4px;
+      box-shadow: 0 2px 0 0 #111827;
+    }
+    pre code.hljs { padding: 0 !important; }
+    .code-block { counter-reset: line; }
+    .code-block .line { counter-increment: line; display: block; }
+    .code-block .line::before {
+      content: counter(line);
+      display: inline-block;
+      width: 3rem;
+      margin-right: 1rem;
+      text-align: right;
+      color: #6b7280;
+      user-select: none;
+    }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-darker text-gray-100 antialiased">
+
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-darker/90 backdrop-blur-md border-b border-gray-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center font-bold text-white">B</div>
+          <span class="font-bold text-xl">BeastCLI</span>
+        </div>
+        <div class="hidden md:flex items-center gap-6">
+          <a href="#installation" class="text-gray-400 hover:text-white transition">Install</a>
+          <a href="#quickstart" class="text-gray-400 hover:text-white transition">Quick Start</a>
+          <a href="#features" class="text-gray-400 hover:text-white transition">Features</a>
+          <a href="#shortcuts" class="text-gray-400 hover:text-white transition">Shortcuts</a>
+          <a href="#config" class="text-gray-400 hover:text-white transition">Config</a>
+          <a href="#providers" class="text-gray-400 hover:text-white transition">Providers</a>
+        </div>
+        <a href="https://beastcli.ai" class="bg-primary hover:bg-primary/80 px-4 py-2 rounded-lg font-medium transition">Get Started</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header class="pt-32 pb-20 px-4 relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent"></div>
+    <div class="absolute top-20 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-primary/20 rounded-full blur-[120px]"></div>
+    <div class="max-w-4xl mx-auto text-center relative">
+      <div class="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 mb-6">
+        <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+        <span class="text-sm text-gray-300">v1.14.31 - Now with 45+ AI Providers</span>
+      </div>
+      <h1 class="text-5xl md:text-7xl font-extrabold mb-6 leading-tight">
+        <span class="gradient-text">AI Coding Agent</span><br>
+        <span class="text-white">for the Terminal</span>
+      </h1>
+      <p class="text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+        BeastCLI is an open-source AI coding assistant that brings powerful AI capabilities directly to your terminal. Code, debug, and ship faster with 45+ provider support.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="#installation" class="bg-primary hover:bg-primary/80 px-8 py-3 rounded-xl font-semibold text-lg transition transform hover:scale-105">
+          Install Now
+        </a>
+        <a href="#quickstart" class="border border-gray-600 hover:border-gray-500 px-8 py-3 rounded-xl font-semibold text-lg transition">
+          Quick Start Guide
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Installation Section -->
+  <section id="installation" class="py-20 px-4 bg-dark">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-bold mb-4">Installation</h2>
+        <p class="text-gray-400 text-lg">Choose your preferred installation method</p>
+      </div>
+
+      <!-- Package Managers Grid -->
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+        <!-- curl -->
+        <div class="bg-gray-900/50 border border-gray-800 rounded-2xl p-6 hover:border-primary/50 transition">
+          <div class="text-3xl mb-4">🌐</div>
+          <h3 class="text-xl font-bold mb-2">curl Installer</h3>
+          <p class="text-gray-400 mb-4 text-sm">One-command installation for Linux/macOS</p>
+          <code class="block bg-black/50 p-3 rounded-lg text-sm text-green-400 overflow-x-auto">curl -fsSL https://beastcli.ai/install | bash</code>
+        </div>
+
+        <!-- npm -->
+        <div class="bg-gray-900/50 border border-gray-800 rounded-2xl p-6 hover:border-primary/50 transition">
+          <div class="text-3xl mb-4">📦</div>
+          <h3 class="text-xl font-bold mb-2">npm / bun / yarn</h3>
+          <p class="text-gray-400 mb-4 text-sm">Package manager installation</p>
+          <code class="block bg-black/50 p-3 rounded-lg text-sm text-green-400 overflow-x-auto">npm i -g beastcli@latest</code>
+        </div>
+
+        <!-- Homebrew -->
+        <div class="bg-gray-900/50 border border-gray-800 rounded-2xl p-6 hover:border-primary/50 transition">
+          <div class="text-3xl mb-4">🍺</div>
+          <h3 class="text-xl font-bold mb-2">Homebrew</h3>
+          <p class="text-gray-400 mb-4 text-sm">macOS & Linux recommended</p>
+          <code class="block bg-black/50 p-3 rounded-lg text-sm text-green-400 overflow-x-auto">brew install simpletoolsindia/tap/code-cli</code>
+        </div>
+
+        <!-- Windows Scoop -->
+        <div class="bg-gray-900/50 border border-gray-800 rounded-2xl p-6 hover:border-primary/50 transition">
+          <div class="text-3xl mb-4">🪟</div>
+          <h3 class="text-xl font-bold mb-2">Windows (Scoop)</h3>
+          <p class="text-gray-400 mb-4 text-sm">Windows package manager</p>
+          <code class="block bg-black/50 p-3 rounded-lg text-sm text-green-400 overflow-x-auto">scoop install beastcli</code>
+        </div>
+
+        <!-- Chocolatey -->
+        <div class="bg-gray-900/50 border border-gray-800 rounded-2xl p-6 hover:border-primary/50 transition">
+          <div class="text-3xl mb-4">🍫</div>
+          <h3 class="text-xl font-bold mb-2">Windows (Choco)</h3>
+          <p class="text-gray-400 mb-4 text-sm">Chocolatey package manager</p>
+          <code class="block bg-black/50 p-3 rounded-lg text-sm text-green-400 overflow-x-auto">choco install beastcli</code>
+        </div>
+
+        <!-- Arch Linux -->
+        <div class="bg-gray-900/50 border border-gray-800 rounded-2xl p-6 hover:border-primary/50 transition">
+          <div class="text-3xl mb-4">🐧</div>
+          <h3 class="text-xl font-bold mb-2">Arch Linux</h3>
+          <p class="text-gray-400 mb-4 text-sm">Pacman & AUR support</p>
+          <code class="block bg-black/50 p-3 rounded-lg text-sm text-green-400 overflow-x-auto">sudo pacman -S beastcli</code>
+        </div>
+      </div>
+
+      <!-- Desktop App -->
+      <div class="bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20 rounded-2xl p-8">
+        <div class="flex flex-col md:flex-row items-center gap-8">
+          <div class="flex-1">
+            <h3 class="text-2xl font-bold mb-2">Desktop Application</h3>
+            <p class="text-gray-400 mb-4">Prefer a GUI? Download BeastCLI Desktop for macOS, Windows, or Linux.</p>
+            <div class="flex flex-wrap gap-3">
+              <span class="bg-gray-800 px-3 py-1 rounded-full text-sm">macOS (Apple Silicon)</span>
+              <span class="bg-gray-800 px-3 py-1 rounded-full text-sm">macOS (Intel)</span>
+              <span class="bg-gray-800 px-3 py-1 rounded-full text-sm">Windows</span>
+              <span class="bg-gray-800 px-3 py-1 rounded-full text-sm">Linux</span>
+            </div>
+          </div>
+          <div class="text-center">
+            <a href="https://beastcli.ai/download" class="inline-block bg-primary hover:bg-primary/80 px-6 py-3 rounded-xl font-semibold transition">
+              Download Desktop App
+            </a>
+            <p class="text-gray-500 text-sm mt-2">or <a href="https://github.com/simpletoolsindia/code-cli/releases" class="text-primary hover:underline">browse releases</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Start Section -->
+  <section id="quickstart" class="py-20 px-4">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-bold mb-4">Quick Start</h2>
+        <p class="text-gray-400 text-lg">Get up and running in under 5 minutes</p>
+      </div>
+
+      <div class="space-y-8">
+        <!-- Step 1 -->
+        <div class="flex gap-6 items-start">
+          <div class="w-12 h-12 bg-primary rounded-xl flex items-center justify-center font-bold text-xl shrink-0">1</div>
+          <div class="flex-1">
+            <h3 class="text-xl font-bold mb-3">Install BeastCLI</h3>
+            <p class="text-gray-400 mb-4">Run the installation command for your platform</p>
+            <div class="bg-black rounded-xl p-4 border border-gray-800">
+              <code class="text-green-400 text-sm">curl -fsSL https://beastcli.ai/install | bash</code>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="flex gap-6 items-start">
+          <div class="w-12 h-12 bg-secondary rounded-xl flex items-center justify-center font-bold text-xl shrink-0">2</div>
+          <div class="flex-1">
+            <h3 class="text-xl font-bold mb-3">Connect Your API Provider</h3>
+            <p class="text-gray-400 mb-4">BeastCLI supports 45+ AI providers. Use <code class="text-primary">/connect</code> to add your API key:</p>
+            <div class="bg-black rounded-xl p-4 border border-gray-800">
+              <pre class="text-gray-300 text-sm"><span class="text-purple-400"># Start BeastCLI</span>
+beast
+
+<span class="text-purple-400"># Inside the TUI, type:</span>
+/connect</pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="flex gap-6 items-start">
+          <div class="w-12 h-12 bg-accent rounded-xl flex items-center justify-center font-bold text-xl shrink-0">3</div>
+          <div class="flex-1">
+            <h3 class="text-xl font-bold mb-3">Start Coding</h3>
+            <p class="text-gray-400 mb-4">Type your first prompt and let BeastCLI help you code!</p>
+            <div class="bg-black rounded-xl p-4 border border-gray-800">
+              <pre class="text-gray-300 text-sm"><span class="text-purple-400"># Example prompts:</span>
+Fix the login bug in auth.ts
+Add TypeScript types to this API
+Write tests for the user module
+Explain how this regex works</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="py-20 px-4 bg-dark">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-bold mb-4">Features</h2>
+        <p class="text-gray-400 text-lg">Everything you need for AI-assisted development</p>
+      </div>
+
+      <!-- Core Features Grid -->
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+        <div class="bg-gray-900/50 border border-gray-800 rounded-2xl p-6">
+          <div class="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center mb-4 text-2xl">🎨</div>
+          <h3 class="text-lg font-bold mb-2">30+ Themes</h3>
+          <p class="text-gray-400 text-sm">Beautiful terminal themes including Catppuccin, Dracula, Tokyo Night, Gruvbox, and more.</p>
+        </div>
+
+        <div class="bg-gray-900/50 border border-gray-800 rounded-2xl p-6">
+          <div class="w-12 h-12 bg-secondary/20 rounded-xl flex items-center justify-center mb-4 text-2xl">🔌</div>
+          <h3 class="text-lg font-bold mb-2">45+ Providers</h3>
+          <p class="text-gray-400 text-sm">OpenAI, Claude, Gemini, Groq, Ollama, and many more. Mix and match as needed.</p>
+        </div>
+
+        <div class="bg-gray-900/50 border border-gray-800 rounded-2xl p-6">
+          <div class="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center mb-4 text-2xl">📝</div>
+          <h3 class="text-lg font-bold mb-2">Smart Prompt Editor</h3>
+          <p class="text-gray-400 text-sm">Multi-line prompts, file attachments, image paste, syntax highlighting, and autocomplete.</p>
+        </div>
+
+        <div class="bg-gray-900/50 border border-gray-800 rounded-2xl p-6">
+          <div class="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center mb-4 text-2xl">🔒</div>
+          <h3 class="text-lg font-bold mb-2">Permission System</h3>
+          <p class="text-gray-400 text-sm">Fine-grained permissions with 600+ predefined rules. You control what BeastCLI can do.</p>
+        </div>
+
+        <div class="bg-gray-900/50 border border-gray-800 rounded-2xl p-6">
+          <div class="w-12 h-12 bg-yellow-500/20 rounded-xl flex items-center justify-center mb-4 text-2xl">🔧</div>
+          <h3 class="text-lg font-bold mb-2">20+ Built-in Tools</h3>
+          <p class="text-gray-400 text-sm">Read, write, edit, glob, grep, bash, web search, and specialized data tools.</p>
+        </div>
+
+        <div class="bg-gray-900/50 border border-gray-800 rounded-2xl p-6">
+          <div class="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center mb-4 text-2xl">📊</div>
+          <h3 class="text-lg font-bold mb-2">LSP Integration</h3>
+          <p class="text-gray-400 text-sm">Language Server Protocol support for intelligent code completion and diagnostics.</p>
+        </div>
+
+        <div class="bg-gray-900/50 border border-gray-800 rounded-2xl p-6">
+          <div class="w-12 h-12 bg-pink-500/20 rounded-xl flex items-center justify-center mb-4 text-2xl">🔌</div>
+          <h3 class="text-lg font-bold mb-2">MCP Support</h3>
+          <p class="text-gray-400 text-sm">Model Context Protocol for extending capabilities with external tools.</p>
+        </div>
+
+        <div class="bg-gray-900/50 border border-gray-800 rounded-2xl p-6">
+          <div class="w-12 h-12 bg-cyan-500/20 rounded-xl flex items-center justify-center mb-4 text-2xl">💾</div>
+          <h3 class="text-lg font-bold mb-2">Session Management</h3>
+          <p class="text-gray-400 text-sm">Save and resume conversations. Fork sessions to explore different approaches.</p>
+        </div>
+
+        <div class="bg-gray-900/50 border border-gray-800 rounded-2xl p-6">
+          <div class="w-12 h-12 bg-teal-500/20 rounded-xl flex items-center justify-center mb-4 text-2xl">🏗️</div>
+          <h3 class="text-lg font-bold mb-2">Plugin System</h3>
+          <p class="text-gray-400 text-sm">Extend BeastCLI with custom commands, routes, and UI components.</p>
+        </div>
+      </div>
+
+      <!-- Agents Section -->
+      <div class="bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20 rounded-2xl p-8 mb-16">
+        <h3 class="text-2xl font-bold mb-6">Built-in Agents</h3>
+        <div class="grid md:grid-cols-3 gap-6">
+          <div class="bg-black/30 rounded-xl p-6 border border-gray-700">
+            <div class="flex items-center gap-3 mb-4">
+              <span class="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-sm font-medium">Default</span>
+              <span class="text-xl">🔨</span>
+            </div>
+            <h4 class="font-bold mb-2">build</h4>
+            <p class="text-gray-400 text-sm">Full-access agent for development work. Can read, edit files, and run commands.</p>
+          </div>
+
+          <div class="bg-black/30 rounded-xl p-6 border border-gray-700">
+            <div class="flex items-center gap-3 mb-4">
+              <span class="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full text-sm font-medium">Read-only</span>
+              <span class="text-xl">📖</span>
+            </div>
+            <h4 class="font-bold mb-2">plan</h4>
+            <p class="text-gray-400 text-sm">Read-only agent for analysis. Denies edits, asks permission for bash commands.</p>
+          </div>
+
+          <div class="bg-black/30 rounded-xl p-6 border border-gray-700">
+            <div class="flex items-center gap-3 mb-4">
+              <span class="bg-purple-500/20 text-purple-400 px-3 py-1 rounded-full text-sm font-medium">Internal</span>
+              <span class="text-xl">🔍</span>
+            </div>
+            <h4 class="font-bold mb-2">general</h4>
+            <p class="text-gray-400 text-sm">For complex searches and multistep tasks. Invoke with <code class="text-primary">@general</code></p>
+          </div>
+        </div>
+        <p class="text-gray-400 mt-4 text-sm">Switch between agents with the <kbd class="kbd px-2 py-1 text-xs">Tab</kbd> key</p>
+      </div>
+
+      <!-- Tools Section -->
+      <div>
+        <h3 class="text-2xl font-bold mb-6">Built-in Tools</h3>
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+            <code class="text-primary text-sm">Read</code>
+            <p class="text-gray-400 text-xs mt-1">Read file contents</p>
+          </div>
+          <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+            <code class="text-primary text-sm">Write</code>
+            <p class="text-gray-400 text-xs mt-1">Create/edit files</p>
+          </div>
+          <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+            <code class="text-primary text-sm">Edit</code>
+            <p class="text-gray-400 text-xs mt-1">Smart file edits</p>
+          </div>
+          <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+            <code class="text-primary text-sm">Glob</code>
+            <p class="text-gray-400 text-xs mt-1">Find files by pattern</p>
+          </div>
+          <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+            <code class="text-primary text-sm">Grep</code>
+            <p class="text-gray-400 text-xs mt-1">Search file contents</p>
+          </div>
+          <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+            <code class="text-primary text-sm">Bash</code>
+            <p class="text-gray-400 text-xs mt-1">Run shell commands</p>
+          </div>
+          <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+            <code class="text-primary text-sm">WebSearch</code>
+            <p class="text-gray-400 text-xs mt-1">Search the web</p>
+          </div>
+          <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+            <code class="text-primary text-sm">WebFetch</code>
+            <p class="text-gray-400 text-xs mt-1">Fetch web pages</p>
+          </div>
+          <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+            <code class="text-primary text-sm">Task</code>
+            <p class="text-gray-400 text-xs mt-1">Spawn subagents</p>
+          </div>
+          <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+            <code class="text-primary text-sm">Todo</code>
+            <p class="text-gray-400 text-xs mt-1">Track tasks</p>
+          </div>
+          <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+            <code class="text-primary text-sm">Pandas</code>
+            <p class="text-gray-400 text-xs mt-1">Data manipulation</p>
+          </div>
+          <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+            <code class="text-primary text-sm">HackerNews</code>
+            <p class="text-gray-400 text-xs mt-1">Browse HN content</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Keyboard Shortcuts Section -->
+  <section id="shortcuts" class="py-20 px-4">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-bold mb-4">Keyboard Shortcuts</h2>
+        <p class="text-gray-400 text-lg">Master BeastCLI with these shortcuts</p>
+      </div>
+
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Navigation -->
+        <div>
+          <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+            <span class="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center">🚀</span>
+            Navigation
+          </h3>
+          <div class="space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">Command Palette</span>
+              <kbd class="kbd px-2 py-1 text-sm">Ctrl+K</kbd>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">Session List</span>
+              <kbd class="kbd px-2 py-1 text-sm">Ctrl+S</kbd>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">New Session</span>
+              <kbd class="kbd px-2 py-1 text-sm">Ctrl+N</kbd>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">Toggle Sidebar</span>
+              <kbd class="kbd px-2 py-1 text-sm">Ctrl+B</kbd>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">Show Help</span>
+              <kbd class="kbd px-2 py-1 text-sm">Ctrl+H</kbd>
+            </div>
+          </div>
+        </div>
+
+        <!-- Session -->
+        <div>
+          <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+            <span class="w-8 h-8 bg-secondary/20 rounded-lg flex items-center justify-center">💬</span>
+            Session
+          </h3>
+          <div class="space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">Interrupt Session</span>
+              <kbd class="kbd px-2 py-1 text-sm">Esc</kbd>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">Compact Session</span>
+              <kbd class="kbd px-2 py-1 text-sm">Ctrl+C</kbd>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">Rename Session</span>
+              <kbd class="kbd px-2 py-1 text-sm">Ctrl+R</kbd>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">Delete Session</span>
+              <kbd class="kbd px-2 py-1 text-sm">Ctrl+D</kbd>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">Export Session</span>
+              <kbd class="kbd px-2 py-1 text-sm">Ctrl+X</kbd>
+            </div>
+          </div>
+        </div>
+
+        <!-- Messages -->
+        <div>
+          <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+            <span class="w-8 h-8 bg-accent/20 rounded-lg flex items-center justify-center">📜</span>
+            Messages
+          </h3>
+          <div class="space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">Page Up</span>
+              <kbd class="kbd px-2 py-1 text-sm">PageUp</kbd>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">Page Down</span>
+              <kbd class="kbd px-2 py-1 text-sm">PageDown</kbd>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">First Message</span>
+              <kbd class="kbd px-2 py-1 text-sm">Ctrl+G</kbd>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">Copy Message</span>
+              <kbd class="kbd px-2 py-1 text-sm">Ctrl+Y</kbd>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">Toggle Conceal</span>
+              <kbd class="kbd px-2 py-1 text-sm">Ctrl+H</kbd>
+            </div>
+          </div>
+        </div>
+
+        <!-- Prompt -->
+        <div>
+          <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+            <span class="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">✏️</span>
+            Prompt
+          </h3>
+          <div class="space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">Clear Input</span>
+              <kbd class="kbd px-2 py-1 text-sm">Ctrl+U</kbd>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">Undo</span>
+              <kbd class="kbd px-2 py-1 text-sm">Ctrl+Z</kbd>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">Redo</span>
+              <kbd class="kbd px-2 py-1 text-sm">Ctrl+.</kbd>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">Line Start</span>
+              <kbd class="kbd px-2 py-1 text-sm">Ctrl+A</kbd>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">Line End</span>
+              <kbd class="kbd px-2 py-1 text-sm">Ctrl+E</kbd>
+            </div>
+          </div>
+        </div>
+
+        <!-- Agent & Model -->
+        <div>
+          <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+            <span class="w-8 h-8 bg-yellow-500/20 rounded-lg flex items-center justify-center">🤖</span>
+            Agent & Model
+          </h3>
+          <div class="space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">List Agents</span>
+              <kbd class="kbd px-2 py-1 text-sm">Ctrl+A</kbd>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">Next Agent</span>
+              <kbd class="kbd px-2 py-1 text-sm">Tab</kbd>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">List Models</span>
+              <kbd class="kbd px-2 py-1 text-sm">Ctrl+O</kbd>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">Cycle Recent</span>
+              <kbd class="kbd px-2 py-1 text-sm">F2</kbd>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">Toggle Favorite</span>
+              <kbd class="kbd px-2 py-1 text-sm">Ctrl+F</kbd>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div>
+          <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+            <span class="w-8 h-8 bg-pink-500/20 rounded-lg flex items-center justify-center">⚡</span>
+            Quick Actions
+          </h3>
+          <div class="space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">Change Theme</span>
+              <kbd class="kbd px-2 py-1 text-sm">Ctrl+T</kbd>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">View Status</span>
+              <kbd class="kbd px-2 py-1 text-sm">Ctrl+L</kbd>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">Shell Mode</span>
+              <kbd class="kbd px-2 py-1 text-sm">!</kbd>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">Open Editor</span>
+              <kbd class="kbd px-2 py-1 text-sm">Ctrl+E</kbd>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-400">Exit</span>
+              <kbd class="kbd px-2 py-1 text-sm">Ctrl+C</kbd>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slash Commands -->
+      <div class="mt-16">
+        <h3 class="text-2xl font-bold mb-6">Slash Commands</h3>
+        <p class="text-gray-400 mb-8">Type <code class="text-primary">/</code> in the prompt to access commands</p>
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+            <code class="text-primary">/new</code>
+            <p class="text-gray-400 text-xs mt-1">Start new session</p>
+          </div>
+          <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+            <code class="text-primary">/connect</code>
+            <p class="text-gray-400 text-xs mt-1">Add provider</p>
+          </div>
+          <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+            <code class="text-primary">/models</code>
+            <p class="text-gray-400 text-xs mt-1">Switch model</p>
+          </div>
+          <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+            <code class="text-primary">/agents</code>
+            <p class="text-gray-400 text-xs mt-1">Switch agent</p>
+          </div>
+          <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+            <code class="text-primary">/themes</code>
+            <p class="text-gray-400 text-xs mt-1">Change theme</p>
+          </div>
+          <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+            <code class="text-primary">/status</code>
+            <p class="text-gray-400 text-xs mt-1">View status</p>
+          </div>
+          <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+            <code class="text-primary">/help</code>
+            <p class="text-gray-400 text-xs mt-1">Get help</p>
+          </div>
+          <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+            <code class="text-primary">/exit</code>
+            <p class="text-gray-400 text-xs mt-1">Exit app</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Configuration Section -->
+  <section id="config" class="py-20 px-4 bg-dark">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-bold mb-4">Configuration</h2>
+        <p class="text-gray-400 text-lg">Customize BeastCLI to your workflow</p>
+      </div>
+
+      <!-- Config File Location -->
+      <div class="bg-gray-900/50 border border-gray-800 rounded-2xl p-8 mb-8">
+        <h3 class="text-xl font-bold mb-4">Configuration File Locations</h3>
+        <div class="grid md:grid-cols-3 gap-4">
+          <div>
+            <p class="text-gray-400 text-sm mb-2">Global Config</p>
+            <code class="text-green-400 text-sm">~/.config/beastcli/tui.json</code>
+          </div>
+          <div>
+            <p class="text-gray-400 text-sm mb-2">Project Config</p>
+            <code class="text-green-400 text-sm">./.beastcli/tui.json</code>
+          </div>
+          <div>
+            <p class="text-gray-400 text-sm mb-2">Env Override</p>
+            <code class="text-green-400 text-sm">BEAST_TUI_CONFIG</code>
+          </div>
+        </div>
+      </div>
+
+      <!-- Example Config -->
+      <div class="bg-gray-900/50 border border-gray-800 rounded-2xl p-8">
+        <h3 class="text-xl font-bold mb-4">Example Configuration</h3>
+        <div class="bg-black rounded-xl p-6 border border-gray-800 overflow-x-auto">
+          <pre class="text-sm"><span class="text-gray-500">// ~/.config/beastcli/tui.json</span>
+{
+  <span class="text-purple-400">"theme"</span>: <span class="text-green-400">"catppuccin-mocha"</span>,
+  <span class="text-purple-400">"animations"</span>: <span class="text-orange-400">true</span>,
+  <span class="text-purple-400">"animations_enabled"</span>: <span class="text-orange-400">true</span>,
+  <span class="text-purple-400">"sound_enabled"</span>: <span class="text-orange-400">false</span>,
+  <span class="text-purple-400">"keybinds"</span>: {
+    <span class="text-purple-400">"command_list"</span>: <span class="text-green-400">"ctrl+k"</span>,
+    <span class="text-purple-400">"theme_list"</span>: <span class="text-green-400">"ctrl+t"</span>
+  },
+  <span class="text-purple-400">"experimental"</span>: {
+    <span class="text-purple-400">"plan_mode"</span>: <span class="text-orange-400">true</span>
+  }
+}</pre>
+        </div>
+      </div>
+
+      <!-- Available Themes -->
+      <div class="mt-12">
+        <h3 class="text-xl font-bold mb-6">Available Themes</h3>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="flex items-center gap-3 bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+            <div class="w-6 h-6 rounded bg-[#1e1e2e] border border-gray-600"></div>
+            <span>Catppuccin Mocha</span>
+          </div>
+          <div class="flex items-center gap-3 bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+            <div class="w-6 h-6 rounded bg-[#1a1b26] border border-gray-600"></div>
+            <span>Tokyo Night</span>
+          </div>
+          <div class="flex items-center gap-3 bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+            <div class="w-6 h-6 rounded bg-[#282a36] border border-gray-600"></div>
+            <span>Dracula</span>
+          </div>
+          <div class="flex items-center gap-3 bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+            <div class="w-6 h-6 rounded bg-[#282828] border border-gray-600"></div>
+            <span>Gruvbox</span>
+          </div>
+          <div class="flex items-center gap-3 bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+            <div class="w-6 h-6 rounded bg-[#282c34] border border-gray-600"></div>
+            <span>One Dark</span>
+          </div>
+          <div class="flex items-center gap-3 bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+            <div class="w-6 h-6 rounded bg-[#2e3440] border border-gray-600"></div>
+            <span>Nord</span>
+          </div>
+          <div class="flex items-center gap-3 bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+            <div class="w-6 h-6 rounded bg-[#f0f0f0] border border-gray-300"></div>
+            <span>GitHub Light</span>
+          </div>
+          <div class="flex items-center gap-3 bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+            <div class="w-6 h-6 rounded bg-[#24292e] border border-gray-600"></div>
+            <span>GitHub Dark</span>
+          </div>
+          <div class="flex items-center gap-3 bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+            <div class="w-6 h-6 rounded bg-[#ffffff] border border-gray-300"></div>
+            <span>Monokai Light</span>
+          </div>
+        </div>
+        <p class="text-gray-400 text-sm mt-4">Plus 20+ more themes. Run <code class="text-primary">/themes</code> to see all.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Providers Section -->
+  <section id="providers" class="py-20 px-4">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-bold mb-4">Supported Providers</h2>
+        <p class="text-gray-400 text-lg">45+ AI providers with unified API access</p>
+      </div>
+
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Major Providers -->
+        <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
+          <h4 class="font-bold mb-4">Major Providers</h4>
+          <ul class="space-y-2 text-gray-400 text-sm">
+            <li>• OpenAI (GPT-4, GPT-4o)</li>
+            <li>• Anthropic (Claude 3.5, Opus)</li>
+            <li>• Google (Gemini Pro, Flash)</li>
+            <li>• Azure OpenAI</li>
+          </ul>
+        </div>
+
+        <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
+          <h4 class="font-bold mb-4">Open Source</h4>
+          <ul class="space-y-2 text-gray-400 text-sm">
+            <li>• Ollama (local models)</li>
+            <li>• LM Studio</li>
+            <li>• Jan</li>
+            <li>• LocalAI</li>
+          </ul>
+        </div>
+
+        <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
+          <h4 class="font-bold mb-4">Budget Providers</h4>
+          <ul class="space-y-2 text-gray-400 text-sm">
+            <li>• Groq</li>
+            <li>• Together AI</li>
+            <li>• DeepInfra</li>
+            <li>• OpenRouter</li>
+          </ul>
+        </div>
+
+        <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
+          <h4 class="font-bold mb-4">Enterprise</h4>
+          <ul class="space-y-2 text-gray-400 text-sm">
+            <li>• AWS Bedrock</li>
+            <li>• Google Vertex</li>
+            <li>• Azure</li>
+            <li>• AWS SageMaker</li>
+          </ul>
+        </div>
+
+        <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
+          <h4 class="font-bold mb-4">Chinese Providers</h4>
+          <ul class="space-y-2 text-gray-400 text-sm">
+            <li>• Zhipu AI</li>
+            <li>• SiliconFlow</li>
+            <li>• StepFun</li>
+            <li>• </li>
+          </ul>
+        </div>
+
+        <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
+          <h4 class="font-bold mb-4">And Many More...</h4>
+          <ul class="space-y-2 text-gray-400 text-sm">
+            <li>• Cohere</li>
+            <li>• Mistral AI</li>
+            <li>• Perplexity</li>
+            <li>• X.AI (Grok)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mt-12 bg-primary/10 border border-primary/20 rounded-2xl p-8">
+        <h3 class="text-xl font-bold mb-4">Adding a Provider</h3>
+        <div class="space-y-4">
+          <div class="bg-black rounded-xl p-4 border border-gray-800">
+            <pre class="text-sm"><span class="text-purple-400"># 1. Start BeastCLI</span>
+beast
+
+<span class="text-purple-400"># 2. Inside the TUI, use the connect command</span>
+/connect
+
+<span class="text-purple-400"># 3. Select your provider from the list</span>
+<span class="text-gray-500"># 4. Enter your API key when prompted</span>
+<span class="text-gray-500"># 5. You're ready to code!</span></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Troubleshooting Section -->
+  <section id="troubleshooting" class="py-20 px-4 bg-dark">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-bold mb-4">Troubleshooting</h2>
+        <p class="text-gray-400 text-lg">Common issues and solutions</p>
+      </div>
+
+      <div class="space-y-6">
+        <!-- Issue 1 -->
+        <div class="bg-gray-900/50 border border-gray-800 rounded-2xl overflow-hidden">
+          <button class="w-full text-left p-6 flex justify-between items-center" onclick="toggleFaq(this)">
+            <h3 class="font-bold text-lg">Command not found after installation</h3>
+            <span class="text-gray-400 transform transition-transform">▼</span>
+          </button>
+          <div class="hidden px-6 pb-6">
+            <p class="text-gray-400 mb-4">The beast command may not be in your PATH. Try these solutions:</p>
+            <div class="bg-black rounded-xl p-4 border border-gray-800">
+              <pre class="text-sm text-green-400"># Add to your ~/.zshrc or ~/.bashrc
+export PATH="$HOME/.local/bin:$PATH"
+
+# Or reinstall with correct PATH
+curl -fsSL https://beastcli.ai/install | bash</pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Issue 2 -->
+        <div class="bg-gray-900/50 border border-gray-800 rounded-2xl overflow-hidden">
+          <button class="w-full text-left p-6 flex justify-between items-center" onclick="toggleFaq(this)">
+            <h3 class="font-bold text-lg">API key invalid or expired</h3>
+            <span class="text-gray-400 transform transition-transform">▼</span>
+          </button>
+          <div class="hidden px-6 pb-6">
+            <p class="text-gray-400 mb-4">Your API key may have expired or be incorrect. Reconnect your provider:</p>
+            <div class="bg-black rounded-xl p-4 border border-gray-800">
+              <pre class="text-sm text-green-400"># Inside BeastCLI TUI
+/connect
+
+# Select the provider
+# Enter new API key</pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Issue 3 -->
+        <div class="bg-gray-900/50 border border-gray-800 rounded-2xl overflow-hidden">
+          <button class="w-full text-left p-6 flex justify-between items-center" onclick="toggleFaq(this)">
+            <h3 class="font-bold text-lg">Permission denied errors</h3>
+            <span class="text-gray-400 transform transition-transform">▼</span>
+          </button>
+          <div class="hidden px-6 pb-6">
+            <p class="text-gray-400 mb-4">Check your permission settings in the config:</p>
+            <div class="bg-black rounded-xl p-4 border border-gray-800">
+              <pre class="text-sm text-green-400"># View current permissions
+/beast permissions
+
+# Grant specific permission
+/beast permit read /path/to/file</pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Issue 4 -->
+        <div class="bg-gray-900/50 border border-gray-800 rounded-2xl overflow-hidden">
+          <button class="w-full text-left p-6 flex justify-between items-center" onclick="toggleFaq(this)">
+            <h3 class="font-bold text-lg">Theme not loading correctly</h3>
+            <span class="text-gray-400 transform transition-transform">▼</span>
+          </button>
+          <div class="hidden px-6 pb-6">
+            <p class="text-gray-400 mb-4">Try resetting your theme preference:</p>
+            <div class="bg-black rounded-xl p-4 border border-gray-800">
+              <pre class="text-sm text-green-400"># Open theme picker
+Ctrl+T
+
+# Select a different theme
+# Or check config file for typos</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-12 px-4 border-t border-gray-800">
+    <div class="max-w-6xl mx-auto">
+      <div class="grid md:grid-cols-4 gap-8 mb-8">
+        <div>
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center font-bold text-white">B</div>
+            <span class="font-bold text-xl">BeastCLI</span>
+          </div>
+          <p class="text-gray-400 text-sm">The open source AI coding agent.</p>
+        </div>
+        <div>
+          <h4 class="font-bold mb-4">Resources</h4>
+          <ul class="space-y-2 text-gray-400 text-sm">
+            <li><a href="https://beastcli.ai/docs" class="hover:text-white transition">Documentation</a></li>
+            <li><a href="https://beastcli.ai/discord" class="hover:text-white transition">Discord</a></li>
+            <li><a href="https://github.com/simpletoolsindia/code-cli" class="hover:text-white transition">GitHub</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="font-bold mb-4">Compare</h4>
+          <ul class="space-y-2 text-gray-400 text-sm">
+            <li><a href="https://beastcli.ai/vs-code-cli" class="hover:text-white transition">vs Claude Code</a></li>
+            <li><a href="https://beastcli.ai/vs-cursor" class="hover:text-white transition">vs Cursor</a></li>
+            <li><a href="https://beastcli.ai/vs-github" class="hover:text-white transition">vs GitHub Copilot</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="font-bold mb-4">Legal</h4>
+          <ul class="space-y-2 text-gray-400 text-sm">
+            <li><a href="https://beastcli.ai/privacy" class="hover:text-white transition">Privacy Policy</a></li>
+            <li><a href="https://beastcli.ai/terms" class="hover:text-white transition">Terms of Service</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4">
+        <p class="text-gray-500 text-sm">© 2024 BeastCLI. Open source under MIT license.</p>
+        <div class="flex gap-4">
+          <a href="https://discord.gg/beastcli" class="text-gray-400 hover:text-white transition">Discord</a>
+          <a href="https://x.com/beastcli" class="text-gray-400 hover:text-white transition">X</a>
+          <a href="https://github.com/simpletoolsindia/code-cli" class="text-gray-400 hover:text-white transition">GitHub</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // FAQ Toggle
+    function toggleFaq(button) {
+      const content = button.nextElementSibling;
+      const arrow = button.querySelector('span');
+      content.classList.toggle('hidden');
+      arrow.style.transform = content.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+    }
+
+    // Smooth scroll
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+
+    // Syntax highlighting
+    hljs.highlightAll();
+  </script>
+</body>
+</html>

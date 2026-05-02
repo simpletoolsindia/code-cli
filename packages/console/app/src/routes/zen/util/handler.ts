@@ -1,19 +1,19 @@
 import type { APIEvent } from "@solidjs/start/server"
-import { and, Database, eq, isNull, lt, or, sql } from "@opencode-ai/console-core/drizzle/index.js"
-import { KeyTable } from "@opencode-ai/console-core/schema/key.sql.js"
-import { BillingTable, LiteTable, SubscriptionTable, UsageTable } from "@opencode-ai/console-core/schema/billing.sql.js"
-import { centsToMicroCents } from "@opencode-ai/console-core/util/price.js"
-import { getMonthlyBounds, getWeekBounds } from "@opencode-ai/console-core/util/date.js"
-import { Identifier } from "@opencode-ai/console-core/identifier.js"
-import { Billing } from "@opencode-ai/console-core/billing.js"
-import { Actor } from "@opencode-ai/console-core/actor.js"
-import { WorkspaceTable } from "@opencode-ai/console-core/schema/workspace.sql.js"
-import { ZenData } from "@opencode-ai/console-core/model.js"
-import { Subscription } from "@opencode-ai/console-core/subscription.js"
-import { BlackData } from "@opencode-ai/console-core/black.js"
-import { UserTable } from "@opencode-ai/console-core/schema/user.sql.js"
-import { ModelTable } from "@opencode-ai/console-core/schema/model.sql.js"
-import { ProviderTable } from "@opencode-ai/console-core/schema/provider.sql.js"
+import { and, Database, eq, isNull, lt, or, sql } from "@beastcli/console-core/drizzle/index.js"
+import { KeyTable } from "@beastcli/console-core/schema/key.sql.js"
+import { BillingTable, LiteTable, SubscriptionTable, UsageTable } from "@beastcli/console-core/schema/billing.sql.js"
+import { centsToMicroCents } from "@beastcli/console-core/util/price.js"
+import { getMonthlyBounds, getWeekBounds } from "@beastcli/console-core/util/date.js"
+import { Identifier } from "@beastcli/console-core/identifier.js"
+import { Billing } from "@beastcli/console-core/billing.js"
+import { Actor } from "@beastcli/console-core/actor.js"
+import { WorkspaceTable } from "@beastcli/console-core/schema/workspace.sql.js"
+import { ZenData } from "@beastcli/console-core/model.js"
+import { Subscription } from "@beastcli/console-core/subscription.js"
+import { BlackData } from "@beastcli/console-core/black.js"
+import { UserTable } from "@beastcli/console-core/schema/user.sql.js"
+import { ModelTable } from "@beastcli/console-core/schema/model.sql.js"
+import { ProviderTable } from "@beastcli/console-core/schema/provider.sql.js"
 import { logger } from "./logger"
 import {
   AuthError,
@@ -41,8 +41,8 @@ import { createRateLimiter as createKeyRateLimiter } from "./keyRateLimiter"
 import { createDataDumper } from "./dataDumper"
 import { createTrialLimiter } from "./trialLimiter"
 import { createStickyTracker } from "./stickyProviderTracker"
-import { LiteData } from "@opencode-ai/console-core/lite.js"
-import { Resource } from "@opencode-ai/console-resource"
+import { LiteData } from "@beastcli/console-core/lite.js"
+import { Resource } from "@beastcli/console-resource"
 import { i18n, type Key } from "~/i18n"
 import { localeFromRequest } from "~/lib/language"
 import { createModelTpmLimiter } from "./modelTpmLimiter"
@@ -97,10 +97,10 @@ export async function handler(
     const ip = rawIp.includes(":") ? rawIp.split(":").slice(0, 4).join(":") : rawIp
     const rawZenApiKey = opts.parseApiKey(input.request.headers)
     const zenApiKey = rawZenApiKey === "public" ? undefined : rawZenApiKey
-    const sessionId = input.request.headers.get("x-opencode-session") ?? ""
-    const requestId = input.request.headers.get("x-opencode-request") ?? ""
-    const projectId = input.request.headers.get("x-opencode-project") ?? ""
-    const ocClient = input.request.headers.get("x-opencode-client") ?? ""
+    const sessionId = input.request.headers.get("x-beastcli-session") ?? ""
+    const requestId = input.request.headers.get("x-beastcli-request") ?? ""
+    const projectId = input.request.headers.get("x-beastcli-project") ?? ""
+    const ocClient = input.request.headers.get("x-beastcli-client") ?? ""
     const userAgent = input.request.headers.get("user-agent") ?? ""
     logger.metric({
       is_stream: isStream,
@@ -169,10 +169,10 @@ export async function handler(
           })
           headers.delete("host")
           headers.delete("content-length")
-          headers.delete("x-opencode-request")
-          headers.delete("x-opencode-session")
-          headers.delete("x-opencode-project")
-          headers.delete("x-opencode-client")
+          headers.delete("x-beastcli-request")
+          headers.delete("x-beastcli-session")
+          headers.delete("x-beastcli-project")
+          headers.delete("x-beastcli-client")
           return headers
         })(),
         body: reqBody,
@@ -426,7 +426,7 @@ export async function handler(
       throw new ModelError(
         `${t("zen.api.error.trialEnded", {
           model: modelData.name,
-          link: "https://opencode.ai/go",
+          link: "https://beastcli.ai/go",
         })}`,
       )
 
@@ -768,8 +768,8 @@ export async function handler(
 
     // Validate pay as you go billing
     const billing = authInfo.billing
-    const billingUrl = `https://opencode.ai/workspace/${authInfo.workspaceID}/billing`
-    const membersUrl = `https://opencode.ai/workspace/${authInfo.workspaceID}/members`
+    const billingUrl = `https://beastcli.ai/workspace/${authInfo.workspaceID}/billing`
+    const membersUrl = `https://beastcli.ai/workspace/${authInfo.workspaceID}/members`
     if (!billing.paymentMethodID && billing.balance <= 0)
       throw new CreditsError(t("zen.api.error.noPaymentMethod", { billingUrl }))
     if (billing.balance <= 0) throw new CreditsError(t("zen.api.error.insufficientBalance", { billingUrl }))

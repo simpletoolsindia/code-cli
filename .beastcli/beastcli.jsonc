@@ -1,0 +1,27 @@
+{
+  "$schema": "https://beastcli.dev/config.json",
+  "provider": {
+    "ollama": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Ollama (local)",
+      "options": {
+        "baseURL": "http://localhost:11434/v1",
+      },
+      "models": {
+        "gemma4:latest": {
+          "name": "Gemma 4",
+        },
+      },
+    },
+  },
+  "permission": {
+    "edit": {
+      "packages/beastcli/migration/*": "deny",
+    },
+  },
+  "mcp": {},
+  "tools": {
+    "github-triage": false,
+    "github-pr-search": false,
+  },
+}

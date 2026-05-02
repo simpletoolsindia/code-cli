@@ -1,0 +1,290 @@
+---
+// Beast CLI Landing Page — beastcli.sridharhomelab.in
+// Warm Minimal Intelligence UI (Claude-inspired)
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Beast CLI — Warm Minimal Intelligence</title>
+  <meta name="description" content="Beast CLI is an AI-powered development tool with Claude warmth, native VS Code: integration, Ollama cloud support, and premium CLI experience." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0F0F0F;
+      --bg-secondary: #1A1A1A;
+      --bg-tertiary: #262626;
+      --text-primary: #EAEAEA;
+      --text-secondary: #A3A3A3;
+      --text-muted: #737373;
+      --accent-primary: #F59E0B;
+      --accent-hover: #FBBF24;
+      --accent-soft: rgba(245, 158, 11, 0.15);
+      --accent-secondary: #3B82F6;
+      --success: #22C55E;
+      --error: #EF4444;
+      --info: #38BDF8;
+      --border-subtle: #2A2A2A;
+      --border-strong: #3A3A3A;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    a { color: var(--accent-primary); text-decoration: none; transition: color 200ms ease; }
+    a:hover { color: var(--accent-hover); }
+
+    /* Navigation */
+    nav {
+      position: fixed; inset: 0 0 auto 0; z-index: 100;
+      background: rgba(15, 15, 15, 0.8);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    nav .container {
+      max-width: 1200px; margin: 0 auto; padding: 1rem 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo-mark {
+      font-weight: 700; font-size: 1.25rem; letter-spacing: -0.02em;
+      color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;
+    }
+    .logo-mark span { color: var(--accent-primary); }
+    .nav-links { display: flex; gap: 2rem; align-items: center; }
+    .nav-links a { font-size: 0.875rem; font-weight: 500; color: var(--text-secondary); }
+    .nav-links a:hover { color: var(--text-primary); }
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.625rem 1.25rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.875rem;
+      transition: all 200ms ease-in-out; cursor: pointer; border: none;
+    }
+    .btn-primary {
+      background: var(--accent-primary); color: #0F0F0F;
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.25);
+    }
+    .btn-primary:hover { background: var(--accent-hover); color: #0F0F0F; transform: translateY(-1px); }
+    .btn-ghost {
+      background: transparent; color: var(--text-secondary); border: 1px solid var(--border-strong);
+    }
+    .btn-ghost:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+    /* Hero */
+    .hero {
+      min-height: 100vh; display: flex; align-items: center; position: relative; overflow: hidden;
+      padding: 8rem 2rem 4rem;
+    }
+    .hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(circle at 30% 40%, rgba(245,158,11,0.08) 0%, transparent 50%),
+                  radial-gradient(circle at 70% 60%, rgba(59,130,246,0.06) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    .hero .container {
+      max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; position: relative;
+    }
+    .hero-title {
+      font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 700; line-height: 1.1; letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+    }
+    .hero-title .accent { color: var(--accent-primary); display: inline; }
+    .hero-subtitle {
+      font-size: 1.125rem; color: var(--text-secondary); margin-bottom: 2rem; max-width: 480px;
+    }
+    .hero-cta { display: flex; gap: 1rem; flex-wrap: wrap; }
+
+    /* Terminal */
+    .terminal {
+      background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: 1rem;
+      overflow: hidden; box-shadow: 0 24px 64px rgba(0,0,0,0.4);
+    }
+    .terminal-header {
+      background: var(--bg-tertiary); padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid var(--border-subtle);
+    }
+    .dot { width: 0.75rem; height: 0.75rem; border-radius: 50%; }
+    .dot-red { background: #EF4444; } .dot-yellow { background: #F59E0B; } .dot-green { background: #22C55E; }
+    .terminal-title { margin-left: 0.5rem; font-size: 0.75rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+    .terminal-body {
+      padding: 1.25rem; font-family: 'JetBrains Mono', monospace; font-size: 0.8125rem; line-height: 1.7;
+    }
+    .prompt { color: var(--accent-primary); }
+    .cmd { color: var(--text-primary); }
+    .output { color: var(--text-secondary); }
+    .comment { color: var(--text-muted); }
+    .tool-glow { animation: pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { opacity:0.6 } 50% { opacity:1 } }
+
+    /* Features */
+    .section { padding: 6rem 2rem; }
+    .section .container { max-width: 1200px; margin: 0 auto; }
+    .section-title {
+      font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 0.75rem; text-align: center;
+    }
+    .section-subtitle { color: var(--text-secondary); text-align: center; max-width: 560px; margin: 0 auto 3rem; font-size: 1rem; }
+    .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+    .feature-card {
+      background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: 1rem; padding: 1.75rem;
+      transition: all 200ms ease;
+    }
+    .feature-card:hover { border-color: var(--border-strong); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+    .feature-icon { width: 40px; height: 40px; border-radius: 0.625rem; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; margin-bottom: 1rem; background: var(--accent-soft); }
+    .feature-title { font-weight: 600; font-size: 1rem; margin-bottom: 0.5rem; color: var(--text-primary); }
+    .feature-desc { font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6; }
+
+    /* Colors row */
+    .colors { display: flex; gap: 0.5rem; margin-top: 1rem; }
+    .swatch { width: 24px; height: 24px; border-radius: 0.375rem; border: 1px solid var(--border-subtle); }
+
+    /* Footer */
+    footer { border-top: 1px solid var(--border-subtle); padding: 3rem 2rem; text-align: center; color: var(--text-muted); font-size: 0.875rem; }
+    footer a { color: var(--text-secondary); }
+    footer a:hover { color: var(--accent-primary); }
+
+    @media (max-width: 900px) {
+      .hero .container { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="container">
+      <div class="logo-mark"><span>◈</span> Beast CLI</div>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#providers">Providers</a>
+        <a href="#theme">Theme</a>
+        <a href="https://github.com/simpletoolsindia/code-cli" target="_blank">GitHub</a>
+        <a href="/docs/">Docs</a>
+      </div>
+      <a class="btn btn-primary" href="#install">Get Started</a>
+    </div>
+  </nav>
+
+  <section class="hero" id="install">
+    <div class="container">
+      <div>
+        <h1 class="hero-title">Warm Minimal Intelligence <span class="accent">for the CLI.</span></h1>
+        <p class="hero-subtitle">Beast CLI is a rebranded, premium developer experience powered by AI. Calm, focused, and built for tools. Run with Ollama, OpenAI, Anthropic, and more.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="#install">npm install -g beastcli</a>
+          <a class="btn btn-ghost" href="https://github.com/simpletoolsindia/code-cli" target="_blank">View on GitHub</a>
+        </div>
+      </div>
+      <div class="terminal">
+        <div class="terminal-header">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+          <div class="terminal-title">beast</div>
+        </div>
+        <div class="terminal-body">
+          <div><span class="prompt">$</span> <span class="cmd">beast</span> <span class="output">"Add dark mode to the landing page"</span></div>
+          <div class="output" style="margin-top:0.5rem"><span class="tool-glow">⚙</span> Tool: code_cli — open /Users/sridhar/project/src/pages/index.astro</div>
+          <div class="output"><span class="tool-glow">⚙</span> Tool: read — src/pages/index.astro</div>
+          <div class="output"><span class="tool-glow">⚙</span> Tool: edit — src/pages/index.astro</div>
+          <div class="output" style="margin-top:0.5rem">✓ Done. The dark mode toggle is wired into the existing theme system.</div>
+          <div class="comment" style="margin-top:0.5rem"># Supports 15+ providers including Ollama Cloud</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="features">
+    <div class="container">
+      <h2 class="section-title">Built for Developer Flow</h2>
+      <p class="section-subtitle">Every interaction is designed to keep you in the zone — warm tones, minimal noise, and native integrations.</p>
+      <div class="features">
+        <div class="feature-card">
+          <div class="feature-icon" style="background:rgba(245,158,11,0.15)">🟠</div>
+          <div class="feature-title">Claude Warm Theme</div>
+          <div class="feature-desc">Amber accent system on deep charcoal backgrounds. Emotionally calm, premium, and focused.</div>
+          <div class="colors">
+            <div class="swatch" style="background:#0F0F0F"></div>
+            <div class="swatch" style="background:#1A1A1A"></div>
+            <div class="swatch" style="background:#F59E0B"></div>
+            <div class="swatch" style="background:#3B82F6"></div>
+            <div class="swatch" style="background:#22C55E"></div>
+            <div class="swatch" style="background:#EF4444"></div>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background:rgba(59,130,246,0.15)">🧠</div>
+          <div class="feature-title">Ollama Cloud Ready</div>
+          <div class="feature-desc">First-class Ollama provider with local and cloud endpoint support. OLLAMA_HOST env var for custom endpoints.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background:rgba(34,197,94,0.15)">🪟</div>
+          <div class="feature-title">VS Code: Native</div>
+          <div class="feature-desc">Open files, navigate to lines, show diffs, and reveal folders directly from the CLI with the code_cli tool.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background:rgba(239,68,68,0.15)">🔧</div>
+          <div class="feature-title">Native AI Tools</div>
+          <div class="feature-desc">Glob, grep, bash, edit, MCP servers, LSP integration, and custom plugin tools — all built-in.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background:rgba(56,189,248,0.15)">☁️</div>
+          <div class="feature-title">15+ Providers</div>
+          <div class="feature-desc">Anthropic, OpenAI, Google, Azure, Mistral, Groq, Cohere, Together, Perplexity, GitLab, and more.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background:rgba(168,85,247,0.15)">🎨</div>
+          <div class="feature-title">Deep Customizable</div>
+          <div class="feature-desc">Themes, keybinds, agents, formatters, permissions, models, and custom tools — all configurable.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="providers" style="background:var(--bg-secondary)">
+    <div class="container">
+      <h2 class="section-title">Model Providers</h2>
+      <p class="section-subtitle">Connect your existing API keys. No lock-in, no middleman. Your tokens, your models.</p>
+      <div class="features">
+        <div class="feature-card"><div class="feature-title">Anthropic Claude</div><div class="feature-desc">Claude 3.5 Sonnet, Opus, Haiku with native thinking support.</div></div>
+        <div class="feature-card"><div class="feature-title">OpenAI</div><div class="feature-desc">GPT-4o, GPT-4, GPT-3.5 Turbo with responses API.</div></div>
+        <div class="feature-card"><div class="feature-title">Ollama</div><div class="feature-desc">Local models via Ollama. Cloud endpoint support with API key auth.</div></div>
+        <div class="feature-card"><div class="feature-title">Google / Vertex</div><div class="feature-desc">Gemini 1.5 Pro and Flash with multimodal support.</div></div>
+        <div class="feature-card"><div class="feature-title">Mistral / Groq</div><div class="feature-desc">Fast inference with Mixtral and Llama models on Groq.</div></div>
+        <div class="feature-card"><div class="feature-title">OpenRouter</div><div class="feature-desc">Access 100+ models through a single unified API.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="theme">
+    <div class="container">
+      <h2 class="section-title">Warm Minimal Intelligence UI</h2>
+      <p class="section-subtitle">Calm &middot; Premium &middot; Focused &middot; Tool-first &middot; Zero distraction</p>
+      <div class="features" style="max-width:800px;margin:0 auto">
+        <div class="feature-card">
+          <div class="feature-title">Dark Mode</div>
+          <div class="feature-desc">Main background #0F0F0F, panels #1A1A1A, elevated #262626. No pure black, no eye strain.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-title">Amber Accent</div>
+          <div class="feature-desc">Primary highlight #F59E0B, hover #FBBF24. Used for cursors, spinners, progress bars, tool calls.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-title">Status Colors</div>
+          <div class="feature-desc">Success #22C55E, Warning #F59E0B, Error #EF4444, Info #38BDF8. Kept at ~85% opacity for premium feel.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2025 Beast CLI. Rebranded from <a href="https://github.com/simpletoolsindia/code-cli" target="_blank">BeastCLI</a>.</p>
+    <p style="margin-top:0.5rem"><a href="https://github.com/simpletoolsindia/code-cli">GitHub</a> &middot; <a href="/docs/">Documentation</a> &middot; <a href="https://beastcli.dev/discord">Community</a></p>
+  </footer>
+</body>
+</html>

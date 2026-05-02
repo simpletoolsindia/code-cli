@@ -1,14 +1,14 @@
 import type {
   Config,
-  OpencodeClient,
+  BeastcliClient,
   Path,
   Project,
   ProviderAuthResponse,
   ProviderListResponse,
   Todo,
-} from "@opencode-ai/sdk/v2/client"
-import { showToast } from "@opencode-ai/ui/toast"
-import { getFilename } from "@opencode-ai/core/util/path"
+} from "@beastcli/sdk/v2/client"
+import { showToast } from "@beastcli/ui/toast"
+import { getFilename } from "@beastcli/core/util/path"
 import { batch, createContext, getOwner, onCleanup, onMount, type ParentProps, untrack, useContext } from "solid-js"
 import { createStore, produce, reconcile } from "solid-js/store"
 import { useLanguage } from "@/context/language"
@@ -52,13 +52,13 @@ type GlobalStore = {
 export const loadSessionsQuery = (directory: string) =>
   queryOptions<null>({ queryKey: [directory, "loadSessions"], queryFn: skipToken })
 
-export const loadMcpQuery = (directory: string, sdk?: OpencodeClient) =>
+export const loadMcpQuery = (directory: string, sdk?: BeastcliClient) =>
   queryOptions({
     queryKey: [directory, "mcp"],
     queryFn: sdk ? () => sdk.mcp.status().then((r) => r.data ?? {}) : skipToken,
   })
 
-export const loadLspQuery = (directory: string, sdk?: OpencodeClient) =>
+export const loadLspQuery = (directory: string, sdk?: BeastcliClient) =>
   queryOptions({
     queryKey: [directory, "lsp"],
     queryFn: sdk ? () => sdk.lsp.status().then((r) => r.data ?? []) : skipToken,
@@ -70,7 +70,7 @@ function createGlobalSync() {
   const owner = getOwner()
   if (!owner) throw new Error("GlobalSync must be created within owner")
 
-  const sdkCache = new Map<string, OpencodeClient>()
+  const sdkCache = new Map<string, BeastcliClient>()
   const booting = new Map<string, Promise<void>>()
   const sessionLoads = new Map<string, Promise<void>>()
   const sessionMeta = new Map<string, { limit: number }>()

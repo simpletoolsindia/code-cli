@@ -1,0 +1,29 @@
+{
+  "$schema": "https://beastcli.ai/config.json",
+  "provider": {
+    "ollama": {
+      "api": "http://localhost:11434/v1",
+      "models": {
+        "kimi-k2.6:cloud": {
+          "id": "kimi-k2.6:cloud",
+          "name": "Kimi K2.6 Cloud",
+          "tool_call": true,
+          "reasoning": true,
+          "options": {
+            "baseURL": "http://localhost:11434/v1"
+          }
+        }
+      }
+    }
+  },
+  "permission": {
+    "edit": {
+      "packages/beastcli/migration/*": "deny",
+    },
+  },
+  "mcp": {},
+  "tools": {
+    "github-triage": false,
+    "github-pr-search": false,
+  },
+}

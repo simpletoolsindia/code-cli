@@ -1,6 +1,6 @@
-# OpenCode Desktop
+# BeastCLI Desktop
 
-Native OpenCode desktop app, built with Tauri v2.
+Native BeastCLI desktop app, built with Tauri v2.
 
 ## Prerequisites
 
