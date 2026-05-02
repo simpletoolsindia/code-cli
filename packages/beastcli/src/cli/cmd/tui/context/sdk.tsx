@@ -1,8 +1,8 @@
-import { createBeastcliClient } from "@beastcli/sdk/v2"
-import type { GlobalEvent } from "@beastcli/sdk/v2"
+import { createBeastcliClient } from "@simpletoolsindia/sdk/v2"
+import type { GlobalEvent } from "@simpletoolsindia/sdk/v2"
 import { createSimpleContext } from "./helper"
 import { createGlobalEmitter } from "@solid-primitives/event-bus"
-import { Flag } from "@beastcli/core/flag/flag"
+import { Flag } from "@simpletoolsindia/core/flag/flag"
 import { batch, onCleanup, onMount } from "solid-js"
 
 export type EventSource = {

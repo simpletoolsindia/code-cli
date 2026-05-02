@@ -6,9 +6,9 @@ import type {
   ProviderAuthResponse,
   ProviderListResponse,
   Todo,
-} from "@beastcli/sdk/v2/client"
-import { showToast } from "@beastcli/ui/toast"
-import { getFilename } from "@beastcli/core/util/path"
+} from "@simpletoolsindia/sdk/v2/client"
+import { showToast } from "@simpletoolsindia/ui/toast"
+import { getFilename } from "@simpletoolsindia/core/util/path"
 import { batch, createContext, getOwner, onCleanup, onMount, type ParentProps, untrack, useContext } from "solid-js"
 import { createStore, produce, reconcile } from "solid-js/store"
 import { useLanguage } from "@/context/language"

@@ -1,5 +1,5 @@
 {
-  "name": "@beastcli/enterprise",
+  "name": "@simpletoolsindia/enterprise",
   "version": "1.14.31",
   "private": true,
   "type": "module",
@@ -13,8 +13,6 @@
     "shell-prod": "sst shell --target Teams --stage production"
   },
   "dependencies": {
-    "@beastcli/core": "workspace:*",
-    "@beastcli/ui": "workspace:*",
     "aws4fetch": "^1.0.20",
     "@pierre/diffs": "catalog:",
     "@solidjs/router": "catalog:",
@@ -26,7 +24,9 @@
     "luxon": "catalog:",
     "nitro": "3.0.1-alpha.1",
     "solid-js": "catalog:",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "@simpletoolsindia/core": "workspace:*",
+    "@simpletoolsindia/ui": "workspace:*"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "catalog:",

@@ -36,7 +36,7 @@ export namespace AppFileSystem {
     readonly globMatch: (pattern: string, filepath: string) => boolean
   }
 
-  export class Service extends Context.Service<Service, Interface>()("@beastcli/FileSystem") {}
+  export class Service extends Context.Service<Service, Interface>()("@simpletoolsindia/FileSystem") {}
 
   export const layer = Layer.effect(
     Service,

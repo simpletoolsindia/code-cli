@@ -1,8 +1,8 @@
 import { BusEvent } from "@/bus/bus-event"
 import z from "zod"
 import { Schema } from "effect"
-import { NamedError } from "@beastcli/core/util/error"
-import * as Log from "@beastcli/core/util/log"
+import { NamedError } from "@simpletoolsindia/core/util/error"
+import * as Log from "@simpletoolsindia/core/util/log"
 import { Process } from "@/util/process"
 
 const SUPPORTED_IDES = [

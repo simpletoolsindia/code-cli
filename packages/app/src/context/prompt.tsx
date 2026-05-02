@@ -1,5 +1,5 @@
-import { createSimpleContext } from "@beastcli/ui/context"
-import { checksum } from "@beastcli/core/util/encode"
+import { createSimpleContext } from "@simpletoolsindia/ui/context"
+import { checksum } from "@simpletoolsindia/core/util/encode"
 import { useParams } from "@solidjs/router"
 import { batch, createMemo, createRoot, getOwner, onCleanup } from "solid-js"
 import { createStore, type SetStoreFunction } from "solid-js/store"

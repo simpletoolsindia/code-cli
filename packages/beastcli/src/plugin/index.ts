@@ -4,17 +4,16 @@ import type {
   Plugin as PluginInstance,
   PluginModule,
   WorkspaceAdaptor as PluginWorkspaceAdaptor,
-} from "@beastcli/plugin"
+} from "@simpletoolsindia/plugin"
 import { Config } from "@/config/config"
 import { Bus } from "../bus"
-import * as Log from "@beastcli/core/util/log"
-import { createBeastcliClient } from "@beastcli/sdk"
-import { Flag } from "@beastcli/core/flag/flag"
+import * as Log from "@simpletoolsindia/core/util/log"
+import { createBeastcliClient } from "@simpletoolsindia/sdk"
+import { Flag } from "@simpletoolsindia/core/flag/flag"
 import { CodexAuthPlugin } from "./codex"
 import { Session } from "@/session/session"
-import { NamedError } from "@beastcli/core/util/error"
+import { NamedError } from "@simpletoolsindia/core/util/error"
 import { CopilotAuthPlugin } from "./github-copilot/copilot"
-import { gitlabAuthPlugin as GitlabAuthPlugin } from "beastcli-gitlab-auth"
 import { CloudflareAIGatewayAuthPlugin, CloudflareWorkersAuthPlugin } from "./cloudflare"
 import { AzureAuthPlugin } from "./azure"
 import { Effect, Layer, Context, Stream } from "effect"
@@ -28,7 +27,15 @@ import type { WorkspaceAdaptor } from "@/control-plane/types"
 
 const log = Log.create({ service: "plugin" })
 
-const GitlabAuthPluginCompat = GitlabAuthPlugin as unknown as PluginInstance
+const GitlabAuthPluginCompat: PluginInstance = async (input) => {
+  try {
+    const mod = await import("beastcli-gitlab-auth")
+    return mod.gitlabAuthPlugin(input)
+  } catch (error) {
+    log.warn("failed to load optional gitlab auth plugin", { error })
+    return {}
+  }
+}
 const PoeAuthPluginCompat: PluginInstance = async (input) => {
   try {
     const mod = await import("beastcli-poe-auth")
@@ -62,7 +69,7 @@ export interface Interface {
   readonly init: () => Effect.Effect<void>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/Plugin") {}
+export class Service extends Context.Service<Service, Interface>()("@simpletoolsindia/Plugin") {}
 
 // Built-in plugins that are directly imported (not installed from npm)
 const INTERNAL_PLUGINS: PluginInstance[] = [

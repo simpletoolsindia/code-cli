@@ -1,4 +1,4 @@
-import { createBeastcliClient } from "@beastcli/sdk/v2"
+import { createBeastcliClient } from "@simpletoolsindia/sdk/v2"
 import { useDialog } from "@tui/ui/dialog"
 import { DialogSelect } from "@tui/ui/dialog-select"
 import { useRoute } from "@tui/context/route"

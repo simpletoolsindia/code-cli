@@ -12,7 +12,7 @@ import { useConnected } from "./use-connected"
 import { probeLocalModelProviders, type DetectedLocalProvider } from "./model-provider-detect"
 import { useSDK } from "../context/sdk"
 import { useToast } from "../ui/toast"
-import type { Config, ProviderConfig, Model } from "@beastcli/sdk/v2"
+import type { Config, ProviderConfig, Model } from "@simpletoolsindia/sdk/v2"
 
 export function DialogModel(props: { providerID?: string }) {
   const local = useLocal()

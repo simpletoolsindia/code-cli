@@ -1,5 +1,5 @@
-import { Flag } from "@beastcli/core/flag/flag"
-import { InstallationChannel, InstallationVersion } from "@beastcli/core/installation/version"
+import { Flag } from "@simpletoolsindia/core/flag/flag"
+import { InstallationChannel, InstallationVersion } from "@simpletoolsindia/core/installation/version"
 
 export type Backend = "effect-httpapi" | "hono"
 

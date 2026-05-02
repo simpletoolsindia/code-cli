@@ -3,13 +3,13 @@ import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process"
 import { formatPatch, structuredPatch } from "diff"
 import path from "path"
 import z from "zod"
-import { CrossSpawnSpawner } from "@beastcli/core/cross-spawn-spawner"
+import { CrossSpawnSpawner } from "@simpletoolsindia/core/cross-spawn-spawner"
 import { InstanceState } from "@/effect/instance-state"
-import { AppFileSystem } from "@beastcli/core/filesystem"
-import { Hash } from "@beastcli/core/util/hash"
+import { AppFileSystem } from "@simpletoolsindia/core/filesystem"
+import { Hash } from "@simpletoolsindia/core/util/hash"
 import { Config } from "@/config/config"
-import { Global } from "@beastcli/core/global"
-import * as Log from "@beastcli/core/util/log"
+import { Global } from "@simpletoolsindia/core/global"
+import * as Log from "@simpletoolsindia/core/util/log"
 import { NonNegativeInt, withStatics } from "@/util/schema"
 import { zod } from "@/util/effect-zod"
 
@@ -55,7 +55,7 @@ export interface Interface {
   readonly diffFull: (from: string, to: string) => Effect.Effect<FileDiff[]>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/Snapshot") {}
+export class Service extends Context.Service<Service, Interface>()("@simpletoolsindia/Snapshot") {}
 
 export const layer: Layer.Layer<
   Service,

@@ -7,7 +7,7 @@ import { Session } from "@/session/session"
 import { HttpApiProxy } from "./proxy"
 import * as Fence from "@/server/fence"
 import { getWorkspaceRouteSessionID, isLocalWorkspaceRoute, workspaceProxyURL } from "@/server/workspace"
-import { Flag } from "@beastcli/core/flag/flag"
+import { Flag } from "@simpletoolsindia/core/flag/flag"
 import { Context, Data, Effect, Layer } from "effect"
 import { HttpClient, HttpRouter, HttpServerRequest, HttpServerResponse } from "effect/unstable/http"
 import { HttpApiMiddleware } from "effect/unstable/httpapi"
@@ -33,7 +33,7 @@ export class WorkspaceRouteContext extends Context.Service<
     readonly directory: string
     readonly workspaceID?: WorkspaceID
   }
->()("@beastcli/ExperimentalHttpApiWorkspaceRouteContext") {}
+>()("@simpletoolsindia/ExperimentalHttpApiWorkspaceRouteContext") {}
 
 export class WorkspaceRoutingMiddleware extends HttpApiMiddleware.Service<
   WorkspaceRoutingMiddleware,
@@ -41,7 +41,7 @@ export class WorkspaceRoutingMiddleware extends HttpApiMiddleware.Service<
     provides: WorkspaceRouteContext
     requires: Session.Service
   }
->()("@beastcli/ExperimentalHttpApiWorkspaceRouting") {}
+>()("@simpletoolsindia/ExperimentalHttpApiWorkspaceRouting") {}
 
 function currentDirectory(): string {
   try {

@@ -1,8 +1,8 @@
 import path from "path"
 import z from "zod"
-import { Global } from "@beastcli/core/global"
+import { Global } from "@simpletoolsindia/core/global"
 import { Effect, Layer, Context } from "effect"
-import { AppFileSystem } from "@beastcli/core/filesystem"
+import { AppFileSystem } from "@simpletoolsindia/core/filesystem"
 
 export const Tokens = z.object({
   accessToken: z.string(),
@@ -47,7 +47,7 @@ export interface Interface {
   readonly isTokenExpired: (mcpName: string) => Effect.Effect<boolean | null>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/McpAuth") {}
+export class Service extends Context.Service<Service, Interface>()("@simpletoolsindia/McpAuth") {}
 
 export const layer = Layer.effect(
   Service,

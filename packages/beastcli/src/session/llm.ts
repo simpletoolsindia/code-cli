@@ -1,5 +1,5 @@
 import { Provider } from "@/provider/provider"
-import * as Log from "@beastcli/core/util/log"
+import * as Log from "@simpletoolsindia/core/util/log"
 import { Context, Effect, Layer, Record } from "effect"
 import * as Stream from "effect/Stream"
 import { streamText, wrapLanguageModel, type ModelMessage, type Tool, tool, jsonSchema } from "ai"
@@ -12,7 +12,7 @@ import type { Agent } from "@/agent/agent"
 import type { MessageV2 } from "./message-v2"
 import { Plugin } from "@/plugin"
 import { SystemPrompt } from "./system"
-import { Flag } from "@beastcli/core/flag/flag"
+import { Flag } from "@simpletoolsindia/core/flag/flag"
 import { Permission } from "@/permission"
 import { PermissionID } from "@/permission/schema"
 import { Bus } from "@/bus"
@@ -20,7 +20,7 @@ import { Wildcard } from "@/util/wildcard"
 import { SessionID } from "@/session/schema"
 import { Auth } from "@/auth"
 import { Installation } from "@/installation"
-import { InstallationVersion } from "@beastcli/core/installation/version"
+import { InstallationVersion } from "@simpletoolsindia/core/installation/version"
 import { EffectBridge } from "@/effect/bridge"
 import * as Option from "effect/Option"
 import * as OtelTracer from "@effect/opentelemetry/Tracer"
@@ -58,7 +58,7 @@ export interface Interface {
   readonly stream: (input: StreamInput) => Stream.Stream<Event, unknown>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/LLM") {}
+export class Service extends Context.Service<Service, Interface>()("@@simpletoolsindia/LLM") {}
 
 const live: Layer.Layer<
   Service,

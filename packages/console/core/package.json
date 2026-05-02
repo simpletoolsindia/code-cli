@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "name": "@beastcli/console-core",
+  "name": "@simpletoolsindia/console-core",
   "version": "1.14.31",
   "private": true,
   "type": "module",
@@ -8,15 +8,15 @@
   "dependencies": {
     "@aws-sdk/client-sts": "3.782.0",
     "@jsx-email/render": "1.1.1",
-    "@beastcli/console-mail": "workspace:*",
-    "@beastcli/console-resource": "workspace:*",
     "@planetscale/database": "1.19.0",
     "aws4fetch": "1.0.20",
     "drizzle-orm": "catalog:",
     "postgres": "3.4.7",
     "stripe": "18.0.0",
     "ulid": "catalog:",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "@simpletoolsindia/console-mail": "workspace:*",
+    "@simpletoolsindia/console-resource": "workspace:*"
   },
   "exports": {
     "./*.js": "./src/*.ts",

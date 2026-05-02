@@ -1,9 +1,9 @@
 export * as ConfigCommand from "./command"
 
-import * as Log from "@beastcli/core/util/log"
+import * as Log from "@simpletoolsindia/core/util/log"
 import { Schema } from "effect"
-import { NamedError } from "@beastcli/core/util/error"
-import { Glob } from "@beastcli/core/util/glob"
+import { NamedError } from "@simpletoolsindia/core/util/error"
+import { Glob } from "@simpletoolsindia/core/util/glob"
 import { Bus } from "@/bus"
 import { zod } from "@/util/effect-zod"
 import { withStatics } from "@/util/schema"

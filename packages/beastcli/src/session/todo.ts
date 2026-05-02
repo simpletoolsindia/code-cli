@@ -36,7 +36,7 @@ export interface Interface {
   readonly get: (sessionID: SessionID) => Effect.Effect<Info[]>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/SessionTodo") {}
+export class Service extends Context.Service<Service, Interface>()("@simpletoolsindia/SessionTodo") {}
 
 export const layer = Layer.effect(
   Service,

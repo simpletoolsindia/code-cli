@@ -1,9 +1,9 @@
-import * as Log from "@beastcli/core/util/log"
+import * as Log from "@simpletoolsindia/core/util/log"
 import path from "path"
-import { Global } from "@beastcli/core/global"
-import { NamedError } from "@beastcli/core/util/error"
+import { Global } from "@simpletoolsindia/core/global"
+import { NamedError } from "@simpletoolsindia/core/util/error"
 import z from "zod"
-import { AppFileSystem } from "@beastcli/core/filesystem"
+import { AppFileSystem } from "@simpletoolsindia/core/filesystem"
 import { Effect, Exit, Layer, Option, RcMap, Schema, Context, TxReentrantLock } from "effect"
 import { NonNegativeInt } from "@/util/schema"
 import { Git } from "@/git"
@@ -65,7 +65,7 @@ export interface Interface {
   readonly list: (prefix: string[]) => Effect.Effect<string[][], AppFileSystem.Error>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/Storage") {}
+export class Service extends Context.Service<Service, Interface>()("@simpletoolsindia/Storage") {}
 
 function file(dir: string, key: string[]) {
   return path.join(dir, ...key) + ".json"

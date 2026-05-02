@@ -1,4 +1,4 @@
-import { createSimpleContext } from "@beastcli/ui/context"
+import { createSimpleContext } from "@simpletoolsindia/ui/context"
 import type { AsyncStorage, SyncStorage } from "@solid-primitives/storage"
 import type { Accessor } from "solid-js"
 import { ServerConnection } from "./server"

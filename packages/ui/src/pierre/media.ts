@@ -1,4 +1,4 @@
-import type { FileContent } from "@beastcli/sdk/v2"
+import type { FileContent } from "@simpletoolsindia/sdk/v2"
 
 export type MediaKind = "image" | "audio" | "svg"
 

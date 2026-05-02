@@ -1,17 +1,17 @@
 import { Effect, Layer, Schema, Context, Stream } from "effect"
 import { FetchHttpClient, HttpClient, HttpClientRequest, HttpClientResponse } from "effect/unstable/http"
-import { CrossSpawnSpawner } from "@beastcli/core/cross-spawn-spawner"
+import { CrossSpawnSpawner } from "@simpletoolsindia/core/cross-spawn-spawner"
 import { withTransientReadRetry } from "@/util/effect-http-client"
 import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process"
 import path from "path"
 import z from "zod"
 import { BusEvent } from "@/bus/bus-event"
-import { Flag } from "@beastcli/core/flag/flag"
-import * as Log from "@beastcli/core/util/log"
-import { makeRuntime } from "@beastcli/core/effect/runtime"
+import { Flag } from "@simpletoolsindia/core/flag/flag"
+import * as Log from "@simpletoolsindia/core/util/log"
+import { makeRuntime } from "@simpletoolsindia/core/effect/runtime"
 import semver from "semver"
-import { InstallationChannel, InstallationVersion } from "@beastcli/core/installation/version"
-import { NpmConfig } from "@beastcli/core/npm-config"
+import { InstallationChannel, InstallationVersion } from "@simpletoolsindia/core/installation/version"
+import { NpmConfig } from "@simpletoolsindia/core/npm-config"
 
 const log = Log.create({ service: "installation" })
 
@@ -88,7 +88,7 @@ export interface Interface {
   readonly upgrade: (method: Method, target: string) => Effect.Effect<void, UpgradeFailedError>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/Installation") {}
+export class Service extends Context.Service<Service, Interface>()("@simpletoolsindia/Installation") {}
 
 export const layer: Layer.Layer<Service, never, HttpClient.HttpClient | ChildProcessSpawner.ChildProcessSpawner> =
   Layer.effect(
@@ -134,8 +134,8 @@ export const layer: Layer.Layer<Service, never, HttpClient.HttpClient | ChildPro
       )
 
       const getBrewFormula = Effect.fnUntraced(function* () {
-        const tapFormula = yield* text(["brew", "list", "--formula", "simpletoolsindia/tap/code-cli"])
-        if (tapFormula.includes("beast")) return "simpletoolsindia/tap/code-cli"
+        const tapFormula = yield* text(["brew", "list", "--formula", "@simpletoolsindia/tap/code-cli"])
+        if (tapFormula.includes("beast")) return "@simpletoolsindia/tap/code-cli"
         const coreFormula = yield* text(["brew", "list", "--formula", "beast"])
         if (coreFormula.includes("beast")) return "beast"
         return "beast"
@@ -254,7 +254,7 @@ export const layer: Layer.Layer<Service, never, HttpClient.HttpClient | ChildPro
           }
 
           const response = yield* httpOk.execute(
-            HttpClientRequest.get("https://api.github.com/repos/simpletoolsindia/code-cli/releases/latest").pipe(
+            HttpClientRequest.get("https://api.github.com/repos/@simpletoolsindia/code-cli/releases/latest").pipe(
               HttpClientRequest.acceptJson,
             ),
           )
@@ -280,12 +280,12 @@ export const layer: Layer.Layer<Service, never, HttpClient.HttpClient | ChildPro
               const formula = yield* getBrewFormula()
               const env = { HOMEBREW_NO_AUTO_UPDATE: "1" }
               if (formula.includes("/")) {
-                const tap = yield* run(["brew", "tap", "simpletoolsindia/tap"], { env })
+                const tap = yield* run(["brew", "tap", "@simpletoolsindia/tap"], { env })
                 if (tap.code !== 0) {
                   upgradeResult = tap
                   break
                 }
-                const repo = yield* text(["brew", "--repo", "simpletoolsindia/tap"])
+                const repo = yield* text(["brew", "--repo", "@simpletoolsindia/tap"])
                 const dir = repo.trim()
                 if (dir) {
                   const pull = yield* run(["git", "pull", "--ff-only"], { cwd: dir, env })

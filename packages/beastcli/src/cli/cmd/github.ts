@@ -411,7 +411,7 @@ jobs:
           persist-credentials: false
 
       - name: Run beastcli
-        uses: simpletoolsindia/code-cli/github@latest${envStr}
+        uses: @@simpletoolsindia/code-cli/github@latest${envStr}
         with:
           model: ${provider}/${model}`,
             )

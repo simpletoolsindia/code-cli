@@ -36,7 +36,7 @@ export interface Interface {
   }) => Effect.Effect<void, AccountRepoError>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/AccountRepo") {}
+export class Service extends Context.Service<Service, Interface>()("@simpletoolsindia/AccountRepo") {}
 
 export const layer: Layer.Layer<Service> = Layer.effect(
   Service,

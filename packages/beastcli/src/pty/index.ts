@@ -3,11 +3,11 @@ import { Bus } from "@/bus"
 import { Config } from "@/config/config"
 import { InstanceState } from "@/effect/instance-state"
 import { EffectBridge } from "@/effect/bridge"
-import { lazy } from "@beastcli/core/util/lazy"
+import { lazy } from "@simpletoolsindia/core/util/lazy"
 import { Plugin } from "@/plugin"
 import { Shell } from "@/shell/shell"
 import type { Proc } from "#pty"
-import * as Log from "@beastcli/core/util/log"
+import * as Log from "@simpletoolsindia/core/util/log"
 import { PtyID } from "./schema"
 import { Effect, Layer, Context, Schema, Types } from "effect"
 import { zod } from "@/util/effect-zod"
@@ -112,7 +112,7 @@ export interface Interface {
   ) => Effect.Effect<{ onMessage: (message: string | ArrayBuffer) => void; onClose: () => void } | undefined>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/Pty") {}
+export class Service extends Context.Service<Service, Interface>()("@simpletoolsindia/Pty") {}
 
 export const layer = Layer.effect(
   Service,

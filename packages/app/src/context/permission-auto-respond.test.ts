@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
-import type { PermissionRequest, Session } from "@beastcli/sdk/v2/client"
-import { base64Encode } from "@beastcli/core/util/encode"
+import type { PermissionRequest, Session } from "@simpletoolsindia/sdk/v2/client"
+import { base64Encode } from "@simpletoolsindia/core/util/encode"
 import { autoRespondsPermission, isDirectoryAutoAccepting } from "./permission-auto-respond"
 
 const session = (input: { id: string; parentID?: string }) =>

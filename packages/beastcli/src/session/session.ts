@@ -1,12 +1,12 @@
-import { Slug } from "@beastcli/core/util/slug"
+import { Slug } from "@simpletoolsindia/core/util/slug"
 import path from "path"
 import { BusEvent } from "@/bus/bus-event"
 import { Bus } from "@/bus"
 import { Decimal } from "decimal.js"
 import z from "zod"
 import { type ProviderMetadata, type LanguageModelUsage } from "ai"
-import { Flag } from "@beastcli/core/flag/flag"
-import { InstallationVersion } from "@beastcli/core/installation/version"
+import { Flag } from "@simpletoolsindia/core/flag/flag"
+import { InstallationVersion } from "@simpletoolsindia/core/installation/version"
 
 import { Database } from "@/storage/db"
 import { NotFoundError } from "@/storage/storage"
@@ -24,7 +24,7 @@ import type { SQL } from "drizzle-orm"
 import { PartTable, SessionTable } from "./session.sql"
 import { ProjectTable } from "../project/project.sql"
 import { Storage } from "@/storage/storage"
-import * as Log from "@beastcli/core/util/log"
+import * as Log from "@simpletoolsindia/core/util/log"
 import { MessageV2 } from "./message-v2"
 import type { InstanceContext } from "../project/instance"
 import { InstanceState } from "@/effect/instance-state"
@@ -35,7 +35,7 @@ import { SessionID, MessageID, PartID } from "./schema"
 
 import type { Provider } from "@/provider/provider"
 import { Permission } from "@/permission"
-import { Global } from "@beastcli/core/global"
+import { Global } from "@simpletoolsindia/core/global"
 import { Effect, Layer, Option, Context, Schema, Types } from "effect"
 import { zod } from "@/util/effect-zod"
 import { NonNegativeInt, optionalOmitUndefined, withStatics } from "@/util/schema"
@@ -447,7 +447,7 @@ export interface Interface {
   ) => Effect.Effect<Option.Option<MessageV2.WithParts>>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/Session") {}
+export class Service extends Context.Service<Service, Interface>()("@@simpletoolsindia/Session") {}
 
 export type Patch = Types.DeepMutable<SyncEvent.Event<typeof Event.Updated>["data"]["info"]>
 

@@ -1,7 +1,7 @@
 import { createSignal } from "solid-js"
-import { Dialog } from "@beastcli/ui/dialog"
-import { Button } from "@beastcli/ui/button"
-import { useDialog } from "@beastcli/ui/context/dialog"
+import { Dialog } from "@simpletoolsindia/ui/dialog"
+import { Button } from "@simpletoolsindia/ui/button"
+import { useDialog } from "@simpletoolsindia/ui/context/dialog"
 import { useLanguage } from "@/context/language"
 import { useSettings } from "@/context/settings"
 

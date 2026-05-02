@@ -1,18 +1,18 @@
 import { BusEvent } from "@/bus/bus-event"
 import { Bus } from "@/bus"
-import * as Log from "@beastcli/core/util/log"
+import * as Log from "@simpletoolsindia/core/util/log"
 import * as LSPClient from "./client"
 import path from "path"
 import { pathToFileURL, fileURLToPath } from "url"
 import * as LSPServer from "./server"
 import z from "zod"
 import { Config } from "@/config/config"
-import { Flag } from "@beastcli/core/flag/flag"
+import { Flag } from "@simpletoolsindia/core/flag/flag"
 import { Process } from "@/util/process"
 import { spawn as lspspawn } from "./launch"
 import { Effect, Layer, Context, Schema } from "effect"
 import { InstanceState } from "@/effect/instance-state"
-import { AppFileSystem } from "@beastcli/core/filesystem"
+import { AppFileSystem } from "@simpletoolsindia/core/filesystem"
 import { NonNegativeInt, withStatics } from "@/util/schema"
 import { zod, ZodOverride } from "@/util/effect-zod"
 
@@ -149,7 +149,7 @@ export interface Interface {
   readonly outgoingCalls: (input: LocInput) => Effect.Effect<any[]>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/LSP") {}
+export class Service extends Context.Service<Service, Interface>()("@simpletoolsindia/LSP") {}
 
 export const layer = Layer.effect(
   Service,

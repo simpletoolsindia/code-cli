@@ -1,7 +1,7 @@
 export * as ConfigError from "./error"
 
 import z from "zod"
-import { NamedError } from "@beastcli/core/util/error"
+import { NamedError } from "@simpletoolsindia/core/util/error"
 
 export const JsonError = NamedError.create(
   "ConfigJsonError",

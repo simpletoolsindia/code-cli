@@ -1,4 +1,4 @@
-import { NamedError } from "@beastcli/core/util/error"
+import { NamedError } from "@simpletoolsindia/core/util/error"
 import { errorFormat } from "@/util/error"
 
 interface ErrorLike {

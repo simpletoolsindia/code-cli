@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
-import type { SnapshotFileDiff } from "@beastcli/sdk/v2"
-import type { Message } from "@beastcli/sdk/v2/client"
+import type { SnapshotFileDiff } from "@simpletoolsindia/sdk/v2"
+import type { Message } from "@simpletoolsindia/sdk/v2/client"
 import { diffs, message } from "./diffs"
 
 const item = {

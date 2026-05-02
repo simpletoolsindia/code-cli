@@ -4,18 +4,18 @@ import z from "zod"
 import { Effect, Layer, Context, Schema } from "effect"
 import { zod } from "@/util/effect-zod"
 import { withStatics } from "@/util/schema"
-import { NamedError } from "@beastcli/core/util/error"
+import { NamedError } from "@simpletoolsindia/core/util/error"
 import type { Agent } from "@/agent/agent"
 import { Bus } from "@/bus"
 import { InstanceState } from "@/effect/instance-state"
-import { Flag } from "@beastcli/core/flag/flag"
-import { Global } from "@beastcli/core/global"
+import { Flag } from "@simpletoolsindia/core/flag/flag"
+import { Global } from "@simpletoolsindia/core/global"
 import { Permission } from "@/permission"
-import { AppFileSystem } from "@beastcli/core/filesystem"
+import { AppFileSystem } from "@simpletoolsindia/core/filesystem"
 import { Config } from "@/config/config"
 import { ConfigMarkdown } from "@/config/markdown"
-import { Glob } from "@beastcli/core/util/glob"
-import * as Log from "@beastcli/core/util/log"
+import { Glob } from "@simpletoolsindia/core/util/glob"
+import * as Log from "@simpletoolsindia/core/util/log"
 import { Discovery } from "./discovery"
 
 const log = Log.create({ service: "skill" })
@@ -212,7 +212,7 @@ const loadSkills = Effect.fnUntraced(function* (state: State, discovered: Discov
   log.info("init", { count: Object.keys(state.skills).length })
 })
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/Skill") {}
+export class Service extends Context.Service<Service, Interface>()("@simpletoolsindia/Skill") {}
 
 export const layer = Layer.effect(
   Service,

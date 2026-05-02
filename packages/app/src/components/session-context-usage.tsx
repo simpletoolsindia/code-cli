@@ -1,7 +1,7 @@
 import { Match, Show, Switch, createMemo } from "solid-js"
-import { Tooltip, type TooltipProps } from "@beastcli/ui/tooltip"
-import { ProgressCircle } from "@beastcli/ui/progress-circle"
-import { Button } from "@beastcli/ui/button"
+import { Tooltip, type TooltipProps } from "@simpletoolsindia/ui/tooltip"
+import { ProgressCircle } from "@simpletoolsindia/ui/progress-circle"
+import { Button } from "@simpletoolsindia/ui/button"
 
 import { useFile } from "@/context/file"
 import { useLayout } from "@/context/layout"

@@ -8,8 +8,8 @@ import {
   type DragEvent,
 } from "@thisbeyond/solid-dnd"
 import { ConstrainDragXAxis } from "@/utils/solid-dnd"
-import { IconButton } from "@beastcli/ui/icon-button"
-import { Tooltip, TooltipKeybind } from "@beastcli/ui/tooltip"
+import { IconButton } from "@simpletoolsindia/ui/icon-button"
+import { Tooltip, TooltipKeybind } from "@simpletoolsindia/ui/tooltip"
 import { type LocalProject } from "@/context/layout"
 
 export const SidebarContent = (props: {

@@ -1,4 +1,4 @@
-import { Flag } from "@beastcli/core/flag/flag"
+import { Flag } from "@simpletoolsindia/core/flag/flag"
 import { lazy } from "@/util/lazy"
 import { Filesystem } from "@/util/filesystem"
 import { which } from "@/util/which"

@@ -3,26 +3,26 @@ import fuzzysort from "fuzzysort"
 import { Config } from "@/config/config"
 import { mapValues, mergeDeep, omit, pickBy, sortBy } from "remeda"
 import { NoSuchModelError, type Provider as SDK } from "ai"
-import * as Log from "@beastcli/core/util/log"
-import { Npm } from "@beastcli/core/npm"
-import { Hash } from "@beastcli/core/util/hash"
+import * as Log from "@simpletoolsindia/core/util/log"
+import { Npm } from "@simpletoolsindia/core/npm"
+import { Hash } from "@simpletoolsindia/core/util/hash"
 import { Plugin } from "../plugin"
 import { type LanguageModelV3 } from "@ai-sdk/provider"
 import * as ModelsDev from "./models"
 import { Auth } from "../auth"
 import { Env } from "../env"
-import { InstallationVersion } from "@beastcli/core/installation/version"
-import { Flag } from "@beastcli/core/flag/flag"
+import { InstallationVersion } from "@simpletoolsindia/core/installation/version"
+import { Flag } from "@simpletoolsindia/core/flag/flag"
 import { zod } from "@/util/effect-zod"
 import { namedSchemaError } from "@/util/named-schema-error"
 import { iife } from "@/util/iife"
-import { Global } from "@beastcli/core/global"
+import { Global } from "@simpletoolsindia/core/global"
 import path from "path"
 import { pathToFileURL } from "url"
 import { Effect, Layer, Context, Schema, Types } from "effect"
 import { EffectBridge } from "@/effect/bridge"
 import { InstanceState } from "@/effect/instance-state"
-import { AppFileSystem } from "@beastcli/core/filesystem"
+import { AppFileSystem } from "@simpletoolsindia/core/filesystem"
 import { isRecord } from "@/util/record"
 import { optionalOmitUndefined, withStatics } from "@/util/schema"
 
@@ -962,7 +962,7 @@ interface State {
   varsLoaders: Record<string, CustomVarsLoader>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/Provider") {}
+export class Service extends Context.Service<Service, Interface>()("@simpletoolsindia/Provider") {}
 
 function cost(c: ModelsDev.Model["cost"]): Model["cost"] {
   const result: Model["cost"] = {

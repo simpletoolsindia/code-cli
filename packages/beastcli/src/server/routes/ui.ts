@@ -1,5 +1,5 @@
-import { Flag } from "@beastcli/core/flag/flag"
-import { AppFileSystem } from "@beastcli/core/filesystem"
+import { Flag } from "@simpletoolsindia/core/flag/flag"
+import { AppFileSystem } from "@simpletoolsindia/core/filesystem"
 import { Effect, Stream } from "effect"
 import { HttpBody, HttpClient, HttpClientRequest, HttpServerRequest, HttpServerResponse } from "effect/unstable/http"
 import { Hono } from "hono"

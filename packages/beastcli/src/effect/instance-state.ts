@@ -1,5 +1,5 @@
 import { Effect, Fiber, ScopedCache, Scope, Context } from "effect"
-import * as EffectLogger from "@beastcli/core/effect/logger"
+import * as EffectLogger from "@simpletoolsindia/core/effect/logger"
 import { Instance, type InstanceContext } from "@/project/instance"
 import { LocalContext } from "@/util/local-context"
 import { InstanceRef, WorkspaceRef } from "./instance-ref"

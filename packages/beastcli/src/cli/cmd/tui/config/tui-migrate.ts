@@ -3,10 +3,10 @@ import { type ParseError as JsoncParseError, applyEdits, modify, parse as parseJ
 import { unique } from "remeda"
 import z from "zod"
 import { TuiInfo, TuiOptions } from "./tui-schema"
-import { Flag } from "@beastcli/core/flag/flag"
-import { Global } from "@beastcli/core/global"
+import { Flag } from "@simpletoolsindia/core/flag/flag"
+import { Global } from "@simpletoolsindia/core/global"
 import { Filesystem } from "@/util/filesystem"
-import * as Log from "@beastcli/core/util/log"
+import * as Log from "@simpletoolsindia/core/util/log"
 import * as ConfigPaths from "@/config/paths"
 
 const log = Log.create({ service: "tui.migrate" })

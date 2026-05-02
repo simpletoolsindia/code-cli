@@ -1,7 +1,7 @@
 import { Component, For, Match, Show, Switch } from "solid-js"
-import { FileIcon } from "@beastcli/ui/file-icon"
-import { Icon } from "@beastcli/ui/icon"
-import { getDirectory, getFilename } from "@beastcli/core/util/path"
+import { FileIcon } from "@simpletoolsindia/ui/file-icon"
+import { Icon } from "@simpletoolsindia/ui/icon"
+import { getDirectory, getFilename } from "@simpletoolsindia/core/util/path"
 
 export type AtOption =
   | { type: "agent"; name: string; display: string }

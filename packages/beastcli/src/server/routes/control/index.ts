@@ -1,6 +1,6 @@
 import { Auth } from "@/auth"
 import { AppRuntime } from "@/effect/app-runtime"
-import * as Log from "@beastcli/core/util/log"
+import * as Log from "@simpletoolsindia/core/util/log"
 import { Effect } from "effect"
 import { ProviderID } from "@/provider/schema"
 import { Hono } from "hono"

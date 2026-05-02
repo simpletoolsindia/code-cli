@@ -1,8 +1,8 @@
 import { For, Show, createEffect, createMemo } from "solid-js"
 import { createStore } from "solid-js/store"
-import { Button } from "@beastcli/ui/button"
-import { DockTray } from "@beastcli/ui/dock-surface"
-import { IconButton } from "@beastcli/ui/icon-button"
+import { Button } from "@simpletoolsindia/ui/button"
+import { DockTray } from "@simpletoolsindia/ui/dock-surface"
+import { IconButton } from "@simpletoolsindia/ui/icon-button"
 import { useLanguage } from "@/context/language"
 
 export function SessionRevertDock(props: {

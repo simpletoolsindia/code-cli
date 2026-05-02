@@ -1,5 +1,5 @@
-import { useFilteredList } from "@beastcli/ui/hooks"
-import { getDirectory, getFilename } from "@beastcli/core/util/path"
+import { useFilteredList } from "@simpletoolsindia/ui/hooks"
+import { getDirectory, getFilename } from "@simpletoolsindia/core/util/path"
 import { createSignal, For, onMount, Show, splitProps, type JSX } from "solid-js"
 import { Button } from "./button"
 import { FileIcon } from "./file-icon"

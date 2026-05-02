@@ -1,7 +1,7 @@
 import { type ChildProcess, spawnSync } from "node:child_process"
 
 // Duplicated from `packages/beastcli/src/util/process.ts` because the SDK cannot
-// import `beast` without creating a cycle (`beast` depends on `@beastcli/sdk`).
+// import `beast` without creating a cycle (`beast` depends on `@simpletoolsindia/sdk`).
 export function stop(proc: ChildProcess) {
   if (proc.exitCode !== null || proc.signalCode !== null) return
   if (process.platform === "win32" && proc.pid) {

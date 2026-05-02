@@ -1,5 +1,5 @@
-import type { Event } from "@beastcli/sdk/v2/client"
-import { createSimpleContext } from "@beastcli/ui/context"
+import type { Event } from "@simpletoolsindia/sdk/v2/client"
+import { createSimpleContext } from "@simpletoolsindia/ui/context"
 import { createGlobalEmitter } from "@solid-primitives/event-bus"
 import { type Accessor, createEffect, createMemo, onCleanup } from "solid-js"
 import { useGlobalSDK } from "./global-sdk"

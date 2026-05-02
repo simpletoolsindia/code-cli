@@ -1,28 +1,28 @@
-import * as Log from "@beastcli/core/util/log"
+import * as Log from "@simpletoolsindia/core/util/log"
 import path from "path"
 import { pathToFileURL } from "url"
 import os from "os"
 import z from "zod"
 import { mergeDeep } from "remeda"
-import { Global } from "@beastcli/core/global"
+import { Global } from "@simpletoolsindia/core/global"
 import fsNode from "fs/promises"
-import { NamedError } from "@beastcli/core/util/error"
-import { Flag } from "@beastcli/core/flag/flag"
+import { NamedError } from "@simpletoolsindia/core/util/error"
+import { Flag } from "@simpletoolsindia/core/flag/flag"
 import { Auth } from "../auth"
 import { Env } from "../env"
 import { applyEdits, modify } from "jsonc-parser"
 import { Instance, type InstanceContext } from "../project/instance"
-import { InstallationLocal, InstallationVersion } from "@beastcli/core/installation/version"
+import { InstallationLocal, InstallationVersion } from "@simpletoolsindia/core/installation/version"
 import { existsSync } from "fs"
 import { GlobalBus } from "@/bus/global"
 import { Event } from "../server/event"
 import { Account } from "@/account/account"
 import { isRecord } from "@/util/record"
 import type { ConsoleState } from "./console-state"
-import { AppFileSystem } from "@beastcli/core/filesystem"
+import { AppFileSystem } from "@simpletoolsindia/core/filesystem"
 import { InstanceState } from "@/effect/instance-state"
 import { Context, Duration, Effect, Exit, Fiber, Layer, Option, Schema } from "effect"
-import { EffectFlock } from "@beastcli/core/util/effect-flock"
+import { EffectFlock } from "@simpletoolsindia/core/util/effect-flock"
 import { InstanceRef } from "@/effect/instance-ref"
 import { zod } from "@/util/effect-zod"
 import { NonNegativeInt, PositiveInt, withStatics, type DeepMutable } from "@/util/schema"
@@ -42,7 +42,7 @@ import { ConfigProvider } from "./provider"
 import { ConfigServer } from "./server"
 import { ConfigSkills } from "./skills"
 import { ConfigVariable } from "./variable"
-import { Npm } from "@beastcli/core/npm"
+import { Npm } from "@simpletoolsindia/core/npm"
 
 const log = Log.create({ service: "config" })
 
@@ -295,7 +295,7 @@ export interface Interface {
   readonly waitForDependencies: () => Effect.Effect<void>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/Config") {}
+export class Service extends Context.Service<Service, Interface>()("@@simpletoolsindia/Config") {}
 
 function globalConfigFile() {
   const candidates = ["beastcli.jsonc", "beastcli.json", "config.json"].map((file) =>
@@ -555,7 +555,7 @@ export const layer = Layer.effect(
             .install(dir, {
               add: [
                 {
-                  name: "@beastcli/plugin",
+                  name: "@@simpletoolsindia/plugin",
                   version: InstallationLocal ? undefined : InstallationVersion,
                 },
               ],

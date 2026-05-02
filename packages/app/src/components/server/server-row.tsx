@@ -1,4 +1,4 @@
-import { Tooltip } from "@beastcli/ui/tooltip"
+import { Tooltip } from "@simpletoolsindia/ui/tooltip"
 import { createResizeObserver } from "@solid-primitives/resize-observer"
 import {
   children,

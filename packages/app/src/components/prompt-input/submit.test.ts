@@ -63,18 +63,18 @@ beforeAll(async () => {
     useParams: () => params,
   }))
 
-  mock.module("@beastcli/sdk/v2/client", () => ({
+  mock.module("@simpletoolsindia/sdk/v2/client", () => ({
     createBeastcliClient: (input: { directory: string }) => {
       createdClients.push(input.directory)
       return clientFor(input.directory)
     },
   }))
 
-  mock.module("@beastcli/ui/toast", () => ({
+  mock.module("@simpletoolsindia/ui/toast", () => ({
     showToast: () => 0,
   }))
 
-  mock.module("@beastcli/core/util/encode", () => ({
+  mock.module("@simpletoolsindia/core/util/encode", () => ({
     base64Encode: (value: string) => value,
   }))
 

@@ -1,5 +1,5 @@
 import type { Argv } from "yargs"
-import type { Session as SDKSession, Message, Part } from "@beastcli/sdk/v2"
+import type { Session as SDKSession, Message, Part } from "@simpletoolsindia/sdk/v2"
 import { Session } from "@/session/session"
 import { MessageV2 } from "../../session/message-v2"
 import { cmd } from "./cmd"

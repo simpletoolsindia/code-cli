@@ -1,6 +1,6 @@
 import z from "zod"
-import { NamedError } from "@beastcli/core/util/error"
-import { Global } from "@beastcli/core/global"
+import { NamedError } from "@simpletoolsindia/core/util/error"
+import { Global } from "@simpletoolsindia/core/global"
 import { Instance } from "../project/instance"
 import { InstanceBootstrap } from "../project/bootstrap"
 import { Project } from "@/project/project"
@@ -8,8 +8,8 @@ import { Database } from "@/storage/db"
 import { eq } from "drizzle-orm"
 import { ProjectTable } from "../project/project.sql"
 import type { ProjectID } from "../project/schema"
-import * as Log from "@beastcli/core/util/log"
-import { Slug } from "@beastcli/core/util/slug"
+import * as Log from "@simpletoolsindia/core/util/log"
+import { Slug } from "@simpletoolsindia/core/util/slug"
 import { errorMessage } from "../util/error"
 import { BusEvent } from "@/bus/bus-event"
 import { GlobalBus } from "@/bus/global"
@@ -17,9 +17,9 @@ import { Git } from "@/git"
 import { Effect, Layer, Path, Schema, Scope, Context, Stream } from "effect"
 import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process"
 import { NodePath } from "@effect/platform-node"
-import { AppFileSystem } from "@beastcli/core/filesystem"
+import { AppFileSystem } from "@simpletoolsindia/core/filesystem"
 import { BootstrapRuntime } from "@/effect/bootstrap-runtime"
-import { CrossSpawnSpawner } from "@beastcli/core/cross-spawn-spawner"
+import { CrossSpawnSpawner } from "@simpletoolsindia/core/cross-spawn-spawner"
 import { InstanceState } from "@/effect/instance-state"
 import { zod as effectZod } from "@/util/effect-zod"
 import { withStatics } from "@/util/schema"
@@ -153,7 +153,7 @@ export interface Interface {
   readonly reset: (input: ResetInput) => Effect.Effect<boolean>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/Worktree") {}
+export class Service extends Context.Service<Service, Interface>()("@@simpletoolsindia/Worktree") {}
 
 type GitResult = { code: number; text: string; stderr: string }
 

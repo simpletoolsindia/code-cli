@@ -14,7 +14,7 @@ import type {
   SessionStatus,
   TextPart,
   Config as SdkConfig,
-} from "@beastcli/sdk/v2"
+} from "@simpletoolsindia/sdk/v2"
 import type { CliRenderer, ParsedKey, RGBA, SlotMode } from "@opentui/core"
 import type { JSX, SolidPlugin } from "@opentui/solid"
 import type { Config as PluginConfig, PluginOptions } from "./index.js"

@@ -1,7 +1,7 @@
 import { createRoot, getOwner, onCleanup, runWithOwner, type Owner } from "solid-js"
 import { createStore, type SetStoreFunction, type Store } from "solid-js/store"
 import { Persist, persisted } from "@/utils/persist"
-import type { BeastcliClient, ProviderListResponse, VcsInfo } from "@beastcli/sdk/v2/client"
+import type { BeastcliClient, ProviderListResponse, VcsInfo } from "@simpletoolsindia/sdk/v2/client"
 import {
   DIR_IDLE_TTL_MS,
   MAX_DIR_STORES,

@@ -1,12 +1,12 @@
-import { TextField } from "@beastcli/ui/text-field"
+import { TextField } from "@simpletoolsindia/ui/text-field"
 import * as Sentry from "@sentry/solid"
-import { Logo } from "@beastcli/ui/logo"
-import { Button } from "@beastcli/ui/button"
+import { Logo } from "@simpletoolsindia/ui/logo"
+import { Button } from "@simpletoolsindia/ui/button"
 import { Component, createSignal, Show } from "solid-js"
 import { createStore } from "solid-js/store"
 import { usePlatform } from "@/context/platform"
 import { useLanguage } from "@/context/language"
-import { Icon } from "@beastcli/ui/icon"
+import { Icon } from "@simpletoolsindia/ui/icon"
 
 export type InitError = {
   name: string

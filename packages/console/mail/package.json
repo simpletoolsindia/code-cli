@@ -1,5 +1,5 @@
 {
-  "name": "@beastcli/console-mail",
+  "name": "@simpletoolsindia/console-mail",
   "version": "1.14.31",
   "dependencies": {
     "@jsx-email/all": "2.2.3",

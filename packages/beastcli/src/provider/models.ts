@@ -1,13 +1,13 @@
-import { Global } from "@beastcli/core/global"
-import * as Log from "@beastcli/core/util/log"
+import { Global } from "@simpletoolsindia/core/global"
+import * as Log from "@simpletoolsindia/core/util/log"
 import path from "path"
 import { Schema } from "effect"
 import { Installation } from "../installation"
-import { Flag } from "@beastcli/core/flag/flag"
+import { Flag } from "@simpletoolsindia/core/flag/flag"
 import { lazy } from "@/util/lazy"
 import { Filesystem } from "@/util/filesystem"
-import { Flock } from "@beastcli/core/util/flock"
-import { Hash } from "@beastcli/core/util/hash"
+import { Flock } from "@simpletoolsindia/core/util/flock"
+import { Hash } from "@simpletoolsindia/core/util/hash"
 
 // Try to import bundled snapshot (generated at build time)
 // Falls back to undefined in dev mode when snapshot doesn't exist

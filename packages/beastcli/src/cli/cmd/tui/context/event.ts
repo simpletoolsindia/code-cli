@@ -1,4 +1,4 @@
-import type { Event } from "@beastcli/sdk/v2"
+import type { Event } from "@simpletoolsindia/sdk/v2"
 import { useProject } from "./project"
 import { useSDK } from "./sdk"
 

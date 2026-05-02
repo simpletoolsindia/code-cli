@@ -1,4 +1,4 @@
-import type { Plugin } from "@beastcli/plugin"
+import type { Plugin } from "@simpletoolsindia/plugin"
 import { mkdir, rm } from "node:fs/promises"
 
 export const FolderWorkspacePlugin: Plugin = async ({ experimental_workspace }) => {

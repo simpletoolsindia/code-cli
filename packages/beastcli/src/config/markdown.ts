@@ -1,4 +1,4 @@
-import { NamedError } from "@beastcli/core/util/error"
+import { NamedError } from "@simpletoolsindia/core/util/error"
 import matter from "gray-matter"
 import { z } from "zod"
 import { Filesystem } from "@/util/filesystem"

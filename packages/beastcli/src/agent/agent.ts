@@ -14,7 +14,7 @@ import PROMPT_SUMMARY from "./prompt/summary.txt"
 import PROMPT_TITLE from "./prompt/title.txt"
 import { Permission } from "@/permission"
 import { mergeDeep, pipe, sortBy, values } from "remeda"
-import { Global } from "@beastcli/core/global"
+import { Global } from "@simpletoolsindia/core/global"
 import path from "path"
 import { Plugin } from "@/plugin"
 import { Skill } from "../skill"
@@ -66,7 +66,7 @@ export interface Interface {
 
 type State = Omit<Interface, "generate">
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/Agent") {}
+export class Service extends Context.Service<Service, Interface>()("@simpletoolsindia/Agent") {}
 
 export const layer = Layer.effect(
   Service,

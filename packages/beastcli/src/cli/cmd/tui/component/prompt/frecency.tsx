@@ -1,5 +1,5 @@
 import path from "path"
-import { Global } from "@beastcli/core/global"
+import { Global } from "@simpletoolsindia/core/global"
 import { Filesystem } from "@/util/filesystem"
 import { onMount } from "solid-js"
 import { createStore } from "solid-js/store"

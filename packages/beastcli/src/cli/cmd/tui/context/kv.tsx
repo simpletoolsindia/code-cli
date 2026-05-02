@@ -1,6 +1,6 @@
-import { Global } from "@beastcli/core/global"
+import { Global } from "@simpletoolsindia/core/global"
 import { Filesystem } from "@/util/filesystem"
-import { Flock } from "@beastcli/core/util/flock"
+import { Flock } from "@simpletoolsindia/core/util/flock"
 import { rename, rm } from "fs/promises"
 import { createSignal, type Setter } from "solid-js"
 import { createStore, unwrap } from "solid-js/store"

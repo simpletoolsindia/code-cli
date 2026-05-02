@@ -6,7 +6,7 @@ import {
   parseDeepLink,
   parseNewSessionDeepLink,
 } from "./deep-links"
-import { type Session } from "@beastcli/sdk/v2/client"
+import { type Session } from "@simpletoolsindia/sdk/v2/client"
 import {
   childSessionOnPath,
   displayName,

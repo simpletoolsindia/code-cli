@@ -6,7 +6,7 @@ import { Provider } from "@/provider/provider"
 import { MessageV2 } from "./message-v2"
 import z from "zod"
 import { Token } from "@/util/token"
-import * as Log from "@beastcli/core/util/log"
+import * as Log from "@simpletoolsindia/core/util/log"
 import { SessionProcessor } from "./processor"
 import { Agent } from "@/agent/agent"
 import { Plugin } from "@/plugin"
@@ -203,7 +203,7 @@ export interface Interface {
   }) => Effect.Effect<void>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/SessionCompaction") {}
+export class Service extends Context.Service<Service, Interface>()("@simpletoolsindia/SessionCompaction") {}
 
 export const layer: Layer.Layer<
   Service,

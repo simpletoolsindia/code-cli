@@ -1,4 +1,4 @@
-import type { Hooks, PluginInput } from "@beastcli/plugin"
+import type { Hooks, PluginInput } from "@simpletoolsindia/plugin"
 
 export async function AzureAuthPlugin(_input: PluginInput): Promise<Hooks> {
   const prompts = []

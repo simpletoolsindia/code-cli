@@ -1,4 +1,4 @@
-import type { UserMessage } from "@beastcli/sdk/v2"
+import type { UserMessage } from "@simpletoolsindia/sdk/v2"
 
 type Local = {
   session: {

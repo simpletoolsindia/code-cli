@@ -1,4 +1,4 @@
-import { Glob } from "@beastcli/core/util/glob"
+import { Glob } from "@simpletoolsindia/core/util/glob"
 
 const FOLDERS = new Set([
   "node_modules",

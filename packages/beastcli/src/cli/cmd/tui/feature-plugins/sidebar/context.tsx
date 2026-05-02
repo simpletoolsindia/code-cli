@@ -1,5 +1,5 @@
-import type { AssistantMessage } from "@beastcli/sdk/v2"
-import type { TuiPlugin, TuiPluginApi, TuiPluginModule } from "@beastcli/plugin/tui"
+import type { AssistantMessage } from "@simpletoolsindia/sdk/v2"
+import type { TuiPlugin, TuiPluginApi, TuiPluginModule } from "@simpletoolsindia/plugin/tui"
 import { createMemo } from "solid-js"
 
 const id = "internal:sidebar-context"

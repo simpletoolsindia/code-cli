@@ -1,6 +1,6 @@
 import { Component, For, Show } from "solid-js"
-import { Icon } from "@beastcli/ui/icon"
-import { Tooltip } from "@beastcli/ui/tooltip"
+import { Icon } from "@simpletoolsindia/ui/icon"
+import { Tooltip } from "@simpletoolsindia/ui/tooltip"
 import type { ImageAttachmentPart } from "@/context/prompt"
 
 type PromptImageAttachmentsProps = {

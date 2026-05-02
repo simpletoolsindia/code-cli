@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import type { Message, Part } from "@beastcli/sdk/v2/client"
+import type { Message, Part } from "@simpletoolsindia/sdk/v2/client"
 import { estimateSessionContextBreakdown } from "./session-context-breakdown"
 
 const user = (id: string) => {

@@ -1,5 +1,5 @@
-import type { SnapshotFileDiff, VcsFileDiff } from "@beastcli/sdk/v2"
-import type { Message } from "@beastcli/sdk/v2/client"
+import type { SnapshotFileDiff, VcsFileDiff } from "@simpletoolsindia/sdk/v2"
+import type { Message } from "@simpletoolsindia/sdk/v2/client"
 
 type Diff = SnapshotFileDiff | VcsFileDiff
 

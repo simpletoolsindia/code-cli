@@ -3,10 +3,10 @@ import { Effect, Layer, Context } from "effect"
 import { FetchHttpClient, HttpClient, HttpClientRequest } from "effect/unstable/http"
 import { Config } from "@/config/config"
 import { InstanceState } from "@/effect/instance-state"
-import { Flag } from "@beastcli/core/flag/flag"
-import { AppFileSystem } from "@beastcli/core/filesystem"
+import { Flag } from "@simpletoolsindia/core/flag/flag"
+import { AppFileSystem } from "@simpletoolsindia/core/filesystem"
 import { withTransientReadRetry } from "@/util/effect-http-client"
-import { Global } from "@beastcli/core/global"
+import { Global } from "@simpletoolsindia/core/global"
 import type { MessageV2 } from "./message-v2"
 import type { MessageID } from "./schema"
 
@@ -45,7 +45,7 @@ export interface Interface {
   ) => Effect.Effect<{ filepath: string; content: string }[], AppFileSystem.Error>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/Instruction") {}
+export class Service extends Context.Service<Service, Interface>()("@simpletoolsindia/Instruction") {}
 
 export const layer: Layer.Layer<
   Service,

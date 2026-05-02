@@ -1,11 +1,11 @@
 import { Effect, Layer, Context, Schema } from "effect"
 import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process"
-import { CrossSpawnSpawner } from "@beastcli/core/cross-spawn-spawner"
+import { CrossSpawnSpawner } from "@simpletoolsindia/core/cross-spawn-spawner"
 import { InstanceState } from "@/effect/instance-state"
 import path from "path"
 import { mergeDeep } from "remeda"
 import { Config } from "@/config/config"
-import * as Log from "@beastcli/core/util/log"
+import * as Log from "@simpletoolsindia/core/util/log"
 import * as Formatter from "./formatter"
 import { zod } from "@/util/effect-zod"
 import { withStatics } from "@/util/schema"
@@ -27,7 +27,7 @@ export interface Interface {
   readonly file: (filepath: string) => Effect.Effect<boolean>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/Format") {}
+export class Service extends Context.Service<Service, Interface>()("@simpletoolsindia/Format") {}
 
 export const layer = Layer.effect(
   Service,

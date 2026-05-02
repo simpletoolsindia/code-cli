@@ -1,6 +1,6 @@
-import type { TuiPlugin, TuiPluginApi, TuiPluginModule } from "@beastcli/plugin/tui"
+import type { TuiPlugin, TuiPluginApi, TuiPluginModule } from "@simpletoolsindia/plugin/tui"
 import { createMemo, Show } from "solid-js"
-import { Global } from "@beastcli/core/global"
+import { Global } from "@simpletoolsindia/core/global"
 
 const id = "internal:sidebar-footer"
 

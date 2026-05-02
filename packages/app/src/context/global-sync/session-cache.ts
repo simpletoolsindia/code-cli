@@ -6,7 +6,7 @@ import type {
   SessionStatus,
   SnapshotFileDiff,
   Todo,
-} from "@beastcli/sdk/v2/client"
+} from "@simpletoolsindia/sdk/v2/client"
 
 export const SESSION_CACHE_LIMIT = 40
 

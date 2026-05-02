@@ -20,15 +20,15 @@ beforeAll(async () => {
       },
     }),
   }))
-  mock.module("@beastcli/ui/collapsible", () => ({
+  mock.module("@simpletoolsindia/ui/collapsible", () => ({
     Collapsible: {
       Trigger: (props: { children?: unknown }) => props.children,
       Content: (props: { children?: unknown }) => props.children,
     },
   }))
-  mock.module("@beastcli/ui/file-icon", () => ({ FileIcon: () => null }))
-  mock.module("@beastcli/ui/icon", () => ({ Icon: () => null }))
-  mock.module("@beastcli/ui/tooltip", () => ({ Tooltip: (props: { children?: unknown }) => props.children }))
+  mock.module("@simpletoolsindia/ui/file-icon", () => ({ FileIcon: () => null }))
+  mock.module("@simpletoolsindia/ui/icon", () => ({ Icon: () => null }))
+  mock.module("@simpletoolsindia/ui/tooltip", () => ({ Tooltip: (props: { children?: unknown }) => props.children }))
   const mod = await import("./file-tree")
   shouldListRoot = mod.shouldListRoot
   shouldListExpanded = mod.shouldListExpanded

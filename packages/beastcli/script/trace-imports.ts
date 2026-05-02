@@ -2,7 +2,7 @@
 import * as path from "path"
 import * as ts from "typescript"
 
-const BASE_DIR = "/home/thdxr/dev/projects/simpletoolsindia/code-cli/packages/beastcli"
+const BASE_DIR = "/home/thdxr/dev/projects/@simpletoolsindia/code-cli/packages/beastcli"
 
 // Get entry file from command line arg or use default
 const ENTRY_FILE = process.argv[2] || "src/cli/cmd/tui/plugin/index.ts"

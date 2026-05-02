@@ -1,5 +1,5 @@
 import { z } from "zod"
-import type { Model } from "@beastcli/sdk/v2"
+import type { Model } from "@simpletoolsindia/sdk/v2"
 
 export const schema = z.object({
   data: z.array(

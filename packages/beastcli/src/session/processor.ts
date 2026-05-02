@@ -18,7 +18,7 @@ import { SessionSummary } from "./summary"
 import type { Provider } from "@/provider/provider"
 import { Question } from "@/question"
 import { errorMessage } from "@/util/error"
-import * as Log from "@beastcli/core/util/log"
+import * as Log from "@simpletoolsindia/core/util/log"
 import { isRecord } from "@/util/record"
 
 const DOOM_LOOP_THRESHOLD = 3
@@ -75,7 +75,7 @@ interface ProcessorContext extends Input {
 
 type StreamEvent = Event
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/SessionProcessor") {}
+export class Service extends Context.Service<Service, Interface>()("@simpletoolsindia/SessionProcessor") {}
 
 export const layer: Layer.Layer<
   Service,

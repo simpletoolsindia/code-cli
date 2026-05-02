@@ -1,4 +1,4 @@
-import { base64Encode } from "@beastcli/core/util/encode"
+import { base64Encode } from "@simpletoolsindia/core/util/encode"
 
 export function acceptKey(sessionID: string, directory?: string) {
   if (!directory) return sessionID

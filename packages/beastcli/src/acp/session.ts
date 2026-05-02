@@ -1,7 +1,7 @@
 import { RequestError, type McpServer } from "@agentclientprotocol/sdk"
 import type { ACPSessionState } from "./types"
-import * as Log from "@beastcli/core/util/log"
-import type { BeastcliClient } from "@beastcli/sdk/v2"
+import * as Log from "@simpletoolsindia/core/util/log"
+import type { BeastcliClient } from "@simpletoolsindia/sdk/v2"
 
 const log = Log.create({ service: "acp-session-manager" })
 

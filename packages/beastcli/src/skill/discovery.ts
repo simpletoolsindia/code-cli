@@ -2,9 +2,9 @@ import { NodePath } from "@effect/platform-node"
 import { Effect, Layer, Path, Schema, Context } from "effect"
 import { FetchHttpClient, HttpClient, HttpClientRequest, HttpClientResponse } from "effect/unstable/http"
 import { withTransientReadRetry } from "@/util/effect-http-client"
-import { AppFileSystem } from "@beastcli/core/filesystem"
-import { Global } from "@beastcli/core/global"
-import * as Log from "@beastcli/core/util/log"
+import { AppFileSystem } from "@simpletoolsindia/core/filesystem"
+import { Global } from "@simpletoolsindia/core/global"
+import * as Log from "@simpletoolsindia/core/util/log"
 
 const skillConcurrency = 4
 const fileConcurrency = 8
@@ -22,7 +22,7 @@ export interface Interface {
   readonly pull: (url: string) => Effect.Effect<string[]>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/SkillDiscovery") {}
+export class Service extends Context.Service<Service, Interface>()("@simpletoolsindia/SkillDiscovery") {}
 
 export const layer: Layer.Layer<Service, never, AppFileSystem.Service | Path.Path | HttpClient.HttpClient> =
   Layer.effect(

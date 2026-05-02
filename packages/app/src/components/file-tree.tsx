@@ -1,8 +1,8 @@
 import { useFile } from "@/context/file"
 import { encodeFilePath } from "@/context/file/path"
-import { Collapsible } from "@beastcli/ui/collapsible"
-import { FileIcon } from "@beastcli/ui/file-icon"
-import { Icon } from "@beastcli/ui/icon"
+import { Collapsible } from "@simpletoolsindia/ui/collapsible"
+import { FileIcon } from "@simpletoolsindia/ui/file-icon"
+import { Icon } from "@simpletoolsindia/ui/icon"
 import {
   createEffect,
   createMemo,
@@ -17,7 +17,7 @@ import {
   type ParentProps,
 } from "solid-js"
 import { Dynamic } from "solid-js/web"
-import type { FileNode } from "@beastcli/sdk/v2"
+import type { FileNode } from "@simpletoolsindia/sdk/v2"
 
 const MAX_DEPTH = 128
 

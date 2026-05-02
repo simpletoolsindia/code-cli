@@ -1,6 +1,6 @@
 import yargs from "yargs"
 import { TuiThreadCommand } from "./cli/cmd/tui/thread"
-import { InstallationVersion } from "@beastcli/core/installation/version"
+import { InstallationVersion } from "@simpletoolsindia/core/installation/version"
 import { hideBin } from "yargs/helpers"
 import { Log } from "./node"
 

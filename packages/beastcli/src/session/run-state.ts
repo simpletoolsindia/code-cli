@@ -22,7 +22,7 @@ export interface Interface {
   ) => Effect.Effect<MessageV2.WithParts>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/SessionRunState") {}
+export class Service extends Context.Service<Service, Interface>()("@simpletoolsindia/SessionRunState") {}
 
 export const layer = Layer.effect(
   Service,

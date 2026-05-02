@@ -1,9 +1,9 @@
-import { Npm } from "@beastcli/core/npm"
+import { Npm } from "@simpletoolsindia/core/npm"
 import type { InstanceContext } from "../project/instance"
 import { Filesystem } from "@/util/filesystem"
 import { Process } from "@/util/process"
 import { which } from "../util/which"
-import { Flag } from "@beastcli/core/flag/flag"
+import { Flag } from "@simpletoolsindia/core/flag/flag"
 
 export interface Context extends Pick<InstanceContext, "directory" | "worktree"> {}
 

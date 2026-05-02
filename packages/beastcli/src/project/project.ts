@@ -4,8 +4,8 @@ import { Database } from "@/storage/db"
 import { eq } from "drizzle-orm"
 import { ProjectTable } from "./project.sql"
 import { SessionTable } from "../session/session.sql"
-import * as Log from "@beastcli/core/util/log"
-import { Flag } from "@beastcli/core/flag/flag"
+import * as Log from "@simpletoolsindia/core/util/log"
+import { Flag } from "@simpletoolsindia/core/flag/flag"
 import { BusEvent } from "@/bus/bus-event"
 import { GlobalBus } from "@/bus/global"
 import { which } from "../util/which"
@@ -13,8 +13,8 @@ import { ProjectID } from "./schema"
 import { Effect, Layer, Path, Scope, Context, Stream, Types, Schema } from "effect"
 import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process"
 import { NodePath } from "@effect/platform-node"
-import { AppFileSystem } from "@beastcli/core/filesystem"
-import { CrossSpawnSpawner } from "@beastcli/core/cross-spawn-spawner"
+import { AppFileSystem } from "@simpletoolsindia/core/filesystem"
+import { CrossSpawnSpawner } from "@simpletoolsindia/core/cross-spawn-spawner"
 import { zod } from "@/util/effect-zod"
 import { NonNegativeInt, optionalOmitUndefined, withStatics } from "@/util/schema"
 import { serviceUse } from "@/effect/service-use"
@@ -120,7 +120,7 @@ export interface Interface {
   readonly removeSandbox: (id: ProjectID, directory: string) => Effect.Effect<void>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/Project") {}
+export class Service extends Context.Service<Service, Interface>()("@simpletoolsindia/Project") {}
 
 type GitResult = { code: number; text: string; stderr: string }
 

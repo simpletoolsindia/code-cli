@@ -2,8 +2,8 @@ import path from "path"
 import { Effect, Layer, Record, Result, Schema, Context } from "effect"
 import { zod } from "@/util/effect-zod"
 import { NonNegativeInt } from "@/util/schema"
-import { Global } from "@beastcli/core/global"
-import { AppFileSystem } from "@beastcli/core/filesystem"
+import { Global } from "@simpletoolsindia/core/global"
+import { AppFileSystem } from "@simpletoolsindia/core/filesystem"
 
 export const OAUTH_DUMMY_KEY = "beastcli-oauth-dummy-key"
 
@@ -48,7 +48,7 @@ export interface Interface {
   readonly remove: (key: string) => Effect.Effect<void, AuthError>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/Auth") {}
+export class Service extends Context.Service<Service, Interface>()("@simpletoolsindia/Auth") {}
 
 export const layer = Layer.effect(
   Service,

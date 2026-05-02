@@ -1,4 +1,4 @@
-import type { AssistantMessage, Part, Provider, UserMessage } from "@beastcli/sdk/v2"
+import type { AssistantMessage, Part, Provider, UserMessage } from "@simpletoolsindia/sdk/v2"
 import { Locale } from "@/util/locale"
 import * as Model from "./model"
 

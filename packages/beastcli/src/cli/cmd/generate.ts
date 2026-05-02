@@ -25,7 +25,7 @@ export const GenerateCommand = {
           {
             lang: "js",
             source: [
-              `import { createBeastcliClient } from "@beastcli/sdk`,
+              `import { createBeastcliClient } from "@simpletoolsindia/sdk`,
               ``,
               `const client = createBeastcliClient()`,
               `await client.${operation.operationId}({`,

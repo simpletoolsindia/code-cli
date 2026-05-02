@@ -1,4 +1,4 @@
-import type { AssistantMessage, Message } from "@beastcli/sdk/v2/client"
+import type { AssistantMessage, Message } from "@simpletoolsindia/sdk/v2/client"
 
 type Provider = {
   id: string

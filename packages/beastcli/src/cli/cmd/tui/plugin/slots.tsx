@@ -1,4 +1,4 @@
-import type { TuiPluginApi, TuiSlotContext, TuiSlotMap, TuiSlotProps } from "@beastcli/plugin/tui"
+import type { TuiPluginApi, TuiSlotContext, TuiSlotMap, TuiSlotProps } from "@simpletoolsindia/plugin/tui"
 import { createSlot, createSolidSlotRegistry, type JSX, type SolidPlugin } from "@opentui/solid"
 import { isRecord } from "@/util/record"
 

@@ -1,9 +1,9 @@
 import { Bus } from "@/bus"
 import { Config } from "@/config/config"
 import { AppRuntime } from "@/effect/app-runtime"
-import { Flag } from "@beastcli/core/flag/flag"
+import { Flag } from "@simpletoolsindia/core/flag/flag"
 import { Installation } from "@/installation"
-import { InstallationVersion } from "@beastcli/core/installation/version"
+import { InstallationVersion } from "@simpletoolsindia/core/installation/version"
 
 export async function upgrade() {
   const config = await AppRuntime.runPromise(Config.Service.use((cfg) => cfg.getGlobal()))

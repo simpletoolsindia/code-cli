@@ -197,7 +197,12 @@ for (const item of targets) {
     conditions: ["browser"],
     tsconfig: "./tsconfig.json",
     plugins: [plugin],
-    external: ["node-gyp"],
+    external: [
+      "node-gyp",
+      "beastcli-gitlab-auth",
+      "beastcli-poe-auth",
+      "@lydell/node-pty",
+    ],
     format: "esm",
     minify: true,
     sourcemap: sourcemapsFlag ? "linked" : "none",

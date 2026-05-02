@@ -1,6 +1,6 @@
 import { Effect, Schema } from "effect"
 import * as Tool from "./tool"
-import * as Log from "@beastcli/core/util/log"
+import * as Log from "@simpletoolsindia/core/util/log"
 import { ChildProcessSpawner } from "effect/unstable/process/ChildProcessSpawner"
 import { ChildProcess } from "effect/unstable/process"
 import { Stream } from "effect"

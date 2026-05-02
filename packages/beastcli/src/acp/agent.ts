@@ -31,10 +31,10 @@ import {
   type Usage,
 } from "@agentclientprotocol/sdk"
 
-import * as Log from "@beastcli/core/util/log"
+import * as Log from "@simpletoolsindia/core/util/log"
 import { pathToFileURL } from "url"
 import { Filesystem } from "@/util/filesystem"
-import { Hash } from "@beastcli/core/util/hash"
+import { Hash } from "@simpletoolsindia/core/util/hash"
 import { ACPSessionManager } from "./session"
 import type { ACPConfig } from "./types"
 import { Provider } from "@/provider/provider"
@@ -48,9 +48,9 @@ import { ConfigMCP } from "@/config/mcp"
 import { Todo } from "@/session/todo"
 import { Result, Schema } from "effect"
 import { LoadAPIKeyError } from "ai"
-import type { AssistantMessage, Event, BeastcliClient, SessionMessageResponse, ToolPart } from "@beastcli/sdk/v2"
+import type { AssistantMessage, Event, BeastcliClient, SessionMessageResponse, ToolPart } from "@simpletoolsindia/sdk/v2"
 import { applyPatch } from "diff"
-import { InstallationVersion } from "@beastcli/core/installation/version"
+import { InstallationVersion } from "@simpletoolsindia/core/installation/version"
 
 type ModeOption = { id: string; name: string; description?: string }
 type ModelOption = { modelId: string; name: string }

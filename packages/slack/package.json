@@ -1,5 +1,5 @@
 {
-  "name": "@beastcli/slack",
+  "name": "@simpletoolsindia/slack",
   "version": "1.14.31",
   "type": "module",
   "license": "MIT",
@@ -8,8 +8,8 @@
     "typecheck": "tsgo --noEmit"
   },
   "dependencies": {
-    "@beastcli/sdk": "workspace:*",
-    "@slack/bolt": "^3.17.1"
+    "@slack/bolt": "^3.17.1",
+    "@simpletoolsindia/sdk": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "catalog:",

@@ -3,13 +3,13 @@ import {
   type SnapshotFileDiff,
   Message as MessageType,
   Part as PartType,
-} from "@beastcli/sdk/v2/client"
-import type { SessionStatus } from "@beastcli/sdk/v2"
+} from "@simpletoolsindia/sdk/v2/client"
+import type { SessionStatus } from "@simpletoolsindia/sdk/v2"
 import { useData } from "../context"
 import { useFileComponent } from "../context/file"
 
-import { Binary } from "@beastcli/core/util/binary"
-import { getDirectory, getFilename } from "@beastcli/core/util/path"
+import { Binary } from "@simpletoolsindia/core/util/binary"
+import { getDirectory, getFilename } from "@simpletoolsindia/core/util/path"
 import { createEffect, createMemo, createSignal, For, on, ParentProps, Show } from "solid-js"
 import { createStore } from "solid-js/store"
 import { Dynamic } from "solid-js/web"

@@ -1,8 +1,8 @@
 import path from "path"
 import { writeHeapSnapshot } from "node:v8"
-import { Flag } from "@beastcli/core/flag/flag"
-import { Global } from "@beastcli/core/global"
-import * as Log from "@beastcli/core/util/log"
+import { Flag } from "@simpletoolsindia/core/flag/flag"
+import { Global } from "@simpletoolsindia/core/global"
+import * as Log from "@simpletoolsindia/core/util/log"
 
 const log = Log.create({ service: "heap" })
 const MINUTE = 60_000

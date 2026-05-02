@@ -8,13 +8,13 @@ import z from "zod"
 import { Bus } from "@/bus"
 import { BusEvent } from "@/bus/bus-event"
 import { InstanceState } from "@/effect/instance-state"
-import { Flag } from "@beastcli/core/flag/flag"
+import { Flag } from "@simpletoolsindia/core/flag/flag"
 import { Git } from "@/git"
 import { lazy } from "@/util/lazy"
 import { Config } from "@/config/config"
 import { FileIgnore } from "./ignore"
 import { Protected } from "./protected"
-import * as Log from "@beastcli/core/util/log"
+import * as Log from "@simpletoolsindia/core/util/log"
 
 declare const BEAST_LIBC: string | undefined
 
@@ -62,7 +62,7 @@ export interface Interface {
   readonly init: () => Effect.Effect<void>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/FileWatcher") {}
+export class Service extends Context.Service<Service, Interface>()("@simpletoolsindia/FileWatcher") {}
 
 export const layer = Layer.effect(
   Service,

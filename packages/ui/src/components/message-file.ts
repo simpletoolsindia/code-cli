@@ -1,4 +1,4 @@
-import type { FilePart } from "@beastcli/sdk/v2"
+import type { FilePart } from "@simpletoolsindia/sdk/v2"
 
 export function attached(part: FilePart) {
   return part.url.startsWith("data:")

@@ -1,15 +1,15 @@
 import path from "path"
-import { AppFileSystem } from "@beastcli/core/filesystem"
+import { AppFileSystem } from "@simpletoolsindia/core/filesystem"
 import { Cause, Context, Effect, Fiber, Layer, Queue, Schema, Stream } from "effect"
 import type { PlatformError } from "effect/PlatformError"
 import { FetchHttpClient, HttpClient, HttpClientRequest } from "effect/unstable/http"
 import { ChildProcess } from "effect/unstable/process"
 import { ChildProcessSpawner } from "effect/unstable/process/ChildProcessSpawner"
 
-import { CrossSpawnSpawner } from "@beastcli/core/cross-spawn-spawner"
-import { Global } from "@beastcli/core/global"
-import * as Log from "@beastcli/core/util/log"
-import { sanitizedProcessEnv } from "@beastcli/core/util/beastcli-process"
+import { CrossSpawnSpawner } from "@simpletoolsindia/core/cross-spawn-spawner"
+import { Global } from "@simpletoolsindia/core/global"
+import * as Log from "@simpletoolsindia/core/util/log"
+import { sanitizedProcessEnv } from "@simpletoolsindia/core/util/beastcli-process"
 import { which } from "@/util/which"
 import { zod } from "@/util/effect-zod"
 import { NonNegativeInt, withStatics } from "@/util/schema"
@@ -140,7 +140,7 @@ export interface Interface {
   readonly search: (input: SearchInput) => Effect.Effect<SearchResult, PlatformError | Error>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/Ripgrep") {}
+export class Service extends Context.Service<Service, Interface>()("@simpletoolsindia/Ripgrep") {}
 
 function env() {
   const env = sanitizedProcessEnv()

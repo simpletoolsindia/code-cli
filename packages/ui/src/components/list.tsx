@@ -1,4 +1,4 @@
-import { type FilteredListProps, useFilteredList } from "@beastcli/ui/hooks"
+import { type FilteredListProps, useFilteredList } from "@simpletoolsindia/ui/hooks"
 import { createEffect, For, type JSX, on, Show } from "solid-js"
 import { createStore } from "solid-js/store"
 import { makeEventListener } from "@solid-primitives/event-listener"

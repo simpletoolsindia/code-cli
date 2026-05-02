@@ -9,10 +9,10 @@ import type {
   QuestionRequest,
   Session,
   Todo,
-} from "@beastcli/sdk/v2/client"
-import { showToast } from "@beastcli/ui/toast"
-import { getFilename } from "@beastcli/core/util/path"
-import { retry } from "@beastcli/core/util/retry"
+} from "@simpletoolsindia/sdk/v2/client"
+import { showToast } from "@simpletoolsindia/ui/toast"
+import { getFilename } from "@simpletoolsindia/core/util/path"
+import { retry } from "@simpletoolsindia/core/util/retry"
 import { batch } from "solid-js"
 import { reconcile, type SetStoreFunction, type Store } from "solid-js/store"
 import type { State, VcsCache } from "./types"

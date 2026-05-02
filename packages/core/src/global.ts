@@ -39,7 +39,7 @@ await Promise.all([
   fs.mkdir(Path.bin, { recursive: true }),
 ])
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/Global") {}
+export class Service extends Context.Service<Service, Interface>()("@simpletoolsindia/Global") {}
 
 export interface Interface {
   readonly home: string

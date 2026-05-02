@@ -1,5 +1,5 @@
 {
-  "name": "@beastcli/console-app",
+  "name": "@simpletoolsindia/console-app",
   "version": "1.14.31",
   "type": "module",
   "license": "MIT",
@@ -16,10 +16,6 @@
     "@jsx-email/render": "1.1.1",
     "@kobalte/core": "catalog:",
     "@openauthjs/openauth": "catalog:",
-    "@beastcli/console-core": "workspace:*",
-    "@beastcli/console-mail": "workspace:*",
-    "@beastcli/console-resource": "workspace:*",
-    "@beastcli/ui": "workspace:*",
     "@smithy/eventstream-codec": "4.2.7",
     "@smithy/util-utf8": "4.2.0",
     "@solidjs/meta": "catalog:",
@@ -32,7 +28,11 @@
     "solid-list": "0.3.0",
     "solid-stripe": "0.8.1",
     "vite": "catalog:",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "@simpletoolsindia/console-core": "workspace:*",
+    "@simpletoolsindia/console-mail": "workspace:*",
+    "@simpletoolsindia/console-resource": "workspace:*",
+    "@simpletoolsindia/ui": "workspace:*"
   },
   "devDependencies": {
     "@typescript/native-preview": "catalog:",

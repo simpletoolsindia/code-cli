@@ -1,4 +1,4 @@
-import type { TuiPlugin, TuiPluginApi, TuiPluginModule } from "@beastcli/plugin/tui"
+import type { TuiPlugin, TuiPluginApi, TuiPluginModule } from "@simpletoolsindia/plugin/tui"
 import { createMemo, For, Show, createSignal } from "solid-js"
 import { TodoItem } from "../../component/todo-item"
 

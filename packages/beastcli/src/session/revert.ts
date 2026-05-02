@@ -3,7 +3,7 @@ import { Bus } from "../bus"
 import { Snapshot } from "../snapshot"
 import { Storage } from "@/storage/storage"
 import { SyncEvent } from "../sync"
-import * as Log from "@beastcli/core/util/log"
+import * as Log from "@simpletoolsindia/core/util/log"
 import { zod } from "@/util/effect-zod"
 import { withStatics } from "@/util/schema"
 import * as Session from "./session"
@@ -27,7 +27,7 @@ export interface Interface {
   readonly cleanup: (session: Session.Info) => Effect.Effect<void>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/SessionRevert") {}
+export class Service extends Context.Service<Service, Interface>()("@simpletoolsindia/SessionRevert") {}
 
 export const layer = Layer.effect(
   Service,

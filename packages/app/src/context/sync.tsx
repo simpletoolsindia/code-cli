@@ -1,8 +1,8 @@
 import { batch, createMemo } from "solid-js"
 import { createStore, produce, reconcile } from "solid-js/store"
-import { Binary } from "@beastcli/core/util/binary"
-import { retry } from "@beastcli/core/util/retry"
-import { createSimpleContext } from "@beastcli/ui/context"
+import { Binary } from "@simpletoolsindia/core/util/binary"
+import { retry } from "@simpletoolsindia/core/util/retry"
+import { createSimpleContext } from "@simpletoolsindia/ui/context"
 import {
   clearSessionPrefetch,
   getSessionPrefetch,
@@ -11,7 +11,7 @@ import {
 } from "./global-sync/session-prefetch"
 import { useGlobalSync } from "./global-sync"
 import { useSDK } from "./sdk"
-import type { Message, Part } from "@beastcli/sdk/v2/client"
+import type { Message, Part } from "@simpletoolsindia/sdk/v2/client"
 import { SESSION_CACHE_LIMIT, dropSessionCaches, pickSessionCacheEvictions } from "./global-sync/session-cache"
 import { diffs as list, message as clean } from "@/utils/diffs"
 

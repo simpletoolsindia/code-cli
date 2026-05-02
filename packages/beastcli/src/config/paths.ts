@@ -2,12 +2,12 @@ export * as ConfigPaths from "./paths"
 
 import path from "path"
 import { Filesystem } from "@/util/filesystem"
-import { Flag } from "@beastcli/core/flag/flag"
-import { Global } from "@beastcli/core/global"
+import { Flag } from "@simpletoolsindia/core/flag/flag"
+import { Global } from "@simpletoolsindia/core/global"
 import { unique } from "remeda"
 import { JsonError } from "./error"
 import * as Effect from "effect/Effect"
-import { AppFileSystem } from "@beastcli/core/filesystem"
+import { AppFileSystem } from "@simpletoolsindia/core/filesystem"
 
 export const files = Effect.fn("ConfigPaths.projectFiles")(function* (
   name: string,

@@ -1,10 +1,10 @@
 import path from "path"
 import { Effect } from "effect"
-import * as EffectLogger from "@beastcli/core/effect/logger"
+import * as EffectLogger from "@simpletoolsindia/core/effect/logger"
 import { InstanceState } from "@/effect/instance-state"
 import type * as Tool from "./tool"
 import { Instance } from "../project/instance"
-import { AppFileSystem } from "@beastcli/core/filesystem"
+import { AppFileSystem } from "@simpletoolsindia/core/filesystem"
 
 type Kind = "file" | "directory"
 

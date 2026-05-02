@@ -10,11 +10,11 @@ import { GlobalBus } from "@/bus/global"
 import { Auth } from "@/auth"
 import { SyncEvent } from "@/sync"
 import { EventSequenceTable, EventTable } from "@/sync/event.sql"
-import { Flag } from "@beastcli/core/flag/flag"
-import * as Log from "@beastcli/core/util/log"
+import { Flag } from "@simpletoolsindia/core/flag/flag"
+import * as Log from "@simpletoolsindia/core/util/log"
 import { Filesystem } from "@/util/filesystem"
 import { ProjectID } from "@/project/schema"
-import { Slug } from "@beastcli/core/util/slug"
+import { Slug } from "@simpletoolsindia/core/util/slug"
 import { WorkspaceTable } from "./workspace.sql"
 import { getAdaptor } from "./adaptors"
 import { type WorkspaceInfo, WorkspaceInfo as WorkspaceInfoSchema } from "./types"
@@ -161,7 +161,7 @@ export interface Interface {
   readonly startWorkspaceSyncing: (projectID: ProjectID) => Effect.Effect<void>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/Workspace") {}
+export class Service extends Context.Service<Service, Interface>()("@simpletoolsindia/Workspace") {}
 
 export const layer = Layer.effect(
   Service,

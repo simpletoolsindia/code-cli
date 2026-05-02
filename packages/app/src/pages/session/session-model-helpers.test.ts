@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import type { UserMessage } from "@beastcli/sdk/v2"
+import type { UserMessage } from "@simpletoolsindia/sdk/v2"
 import { resetSessionModel, syncSessionModel } from "./session-model-helpers"
 
 const message = (input?: { agent?: string; model?: UserMessage["model"] }) =>

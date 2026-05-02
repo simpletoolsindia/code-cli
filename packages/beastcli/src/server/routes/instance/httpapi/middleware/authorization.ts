@@ -7,7 +7,7 @@ const AUTH_TOKEN_QUERY = "auth_token"
 const UNAUTHORIZED = 401
 
 export class Authorization extends HttpApiMiddleware.Service<Authorization>()(
-  "@beastcli/ExperimentalHttpApiAuthorization",
+  "@simpletoolsindia/ExperimentalHttpApiAuthorization",
   {
     error: HttpApiError.UnauthorizedNoContent,
     security: {
@@ -18,7 +18,7 @@ export class Authorization extends HttpApiMiddleware.Service<Authorization>()(
 ) {}
 
 export class ServerAuthConfig extends ConfigService.Service<ServerAuthConfig>()(
-  "@beastcli/ExperimentalHttpApiServerAuthConfig",
+  "@simpletoolsindia/ExperimentalHttpApiServerAuthConfig",
   {
     password: Config.string("BEAST_SERVER_PASSWORD").pipe(Config.option),
     username: Config.string("BEAST_SERVER_USERNAME").pipe(Config.withDefault("beast")),

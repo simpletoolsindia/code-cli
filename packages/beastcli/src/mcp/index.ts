@@ -11,13 +11,13 @@ import {
 } from "@modelcontextprotocol/sdk/types.js"
 import { Config } from "@/config/config"
 import { ConfigMCP } from "../config/mcp"
-import * as Log from "@beastcli/core/util/log"
-import { NamedError } from "@beastcli/core/util/error"
+import * as Log from "@simpletoolsindia/core/util/log"
+import { NamedError } from "@simpletoolsindia/core/util/error"
 import z from "zod/v4"
 import { Installation } from "../installation"
-import { InstallationVersion } from "@beastcli/core/installation/version"
+import { InstallationVersion } from "@simpletoolsindia/core/installation/version"
 import { withTimeout } from "@/util/timeout"
-import { AppFileSystem } from "@beastcli/core/filesystem"
+import { AppFileSystem } from "@simpletoolsindia/core/filesystem"
 import { McpOAuthProvider } from "./oauth-provider"
 import { McpOAuthCallback } from "./oauth-callback"
 import { McpAuth } from "./auth"
@@ -29,7 +29,7 @@ import { Effect, Exit, Layer, Option, Context, Schema, Stream } from "effect"
 import { EffectBridge } from "@/effect/bridge"
 import { InstanceState } from "@/effect/instance-state"
 import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process"
-import { CrossSpawnSpawner } from "@beastcli/core/cross-spawn-spawner"
+import { CrossSpawnSpawner } from "@simpletoolsindia/core/cross-spawn-spawner"
 import { zod as effectZod } from "@/util/effect-zod"
 import { withStatics } from "@/util/schema"
 
@@ -235,7 +235,7 @@ export interface Interface {
   readonly getAuthStatus: (mcpName: string) => Effect.Effect<AuthStatus>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/MCP") {}
+export class Service extends Context.Service<Service, Interface>()("@@simpletoolsindia/MCP") {}
 
 export const layer = Layer.effect(
   Service,

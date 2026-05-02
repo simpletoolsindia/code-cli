@@ -1,5 +1,5 @@
 import type { McpServer } from "@agentclientprotocol/sdk"
-import type { BeastcliClient } from "@beastcli/sdk/v2"
+import type { BeastcliClient } from "@simpletoolsindia/sdk/v2"
 import type { ProviderID, ModelID } from "../provider/schema"
 
 export interface ACPSessionState {

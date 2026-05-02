@@ -1,4 +1,4 @@
-import { createBeastcliClient } from "@beastcli/sdk/v2"
+import { createBeastcliClient } from "@simpletoolsindia/sdk/v2"
 import { SessionID } from "@/session/schema"
 
 export async function validateSession(input: {

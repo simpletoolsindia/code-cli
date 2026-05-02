@@ -1,4 +1,4 @@
-import { createBeastcliClient } from "@beastcli/sdk/v2/client"
+import { createBeastcliClient } from "@simpletoolsindia/sdk/v2/client"
 import type { ServerConnection } from "@/context/server"
 
 export function createSdkForServer({

@@ -2,7 +2,7 @@ import { intro, log, outro, spinner } from "@clack/prompts"
 import type { Argv } from "yargs"
 
 import { ConfigPaths } from "@/config/paths"
-import { Global } from "@beastcli/core/global"
+import { Global } from "@simpletoolsindia/core/global"
 import { installPlugin, patchPluginConfig, readPluginManifest } from "../../plugin/install"
 import { resolvePluginTarget } from "../../plugin/shared"
 import { Instance } from "../../project/instance"

@@ -1,10 +1,10 @@
 import path from "path"
 import { fileURLToPath } from "url"
 
-import { Flag } from "@beastcli/core/flag/flag"
-import { Global } from "@beastcli/core/global"
+import { Flag } from "@simpletoolsindia/core/flag/flag"
+import { Global } from "@simpletoolsindia/core/global"
 import { Filesystem } from "@/util/filesystem"
-import { Flock } from "@beastcli/core/util/flock"
+import { Flock } from "@simpletoolsindia/core/util/flock"
 
 import { parsePluginSpecifier, pluginSource } from "./shared"
 

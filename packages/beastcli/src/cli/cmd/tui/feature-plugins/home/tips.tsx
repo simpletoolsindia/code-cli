@@ -1,4 +1,4 @@
-import type { TuiPlugin, TuiPluginModule } from "@beastcli/plugin/tui"
+import type { TuiPlugin, TuiPluginModule } from "@simpletoolsindia/plugin/tui"
 import { createMemo, Show } from "solid-js"
 import { Tips } from "./tips-view"
 

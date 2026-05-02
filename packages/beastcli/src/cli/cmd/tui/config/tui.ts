@@ -7,19 +7,19 @@ import { ConfigParse } from "@/config/parse"
 import * as ConfigPaths from "@/config/paths"
 import { migrateTuiConfig } from "./tui-migrate"
 import { TuiInfo } from "./tui-schema"
-import { Flag } from "@beastcli/core/flag/flag"
+import { Flag } from "@simpletoolsindia/core/flag/flag"
 import { isRecord } from "@/util/record"
-import { Global } from "@beastcli/core/global"
-import { AppFileSystem } from "@beastcli/core/filesystem"
+import { Global } from "@simpletoolsindia/core/global"
+import { AppFileSystem } from "@simpletoolsindia/core/filesystem"
 import { CurrentWorkingDirectory } from "./cwd"
 import { ConfigPlugin } from "@/config/plugin"
 import { ConfigKeybinds } from "@/config/keybinds"
-import { InstallationLocal, InstallationVersion } from "@beastcli/core/installation/version"
-import { makeRuntime } from "@beastcli/core/effect/runtime"
+import { InstallationLocal, InstallationVersion } from "@simpletoolsindia/core/installation/version"
+import { makeRuntime } from "@simpletoolsindia/core/effect/runtime"
 import { Filesystem } from "@/util/filesystem"
-import * as Log from "@beastcli/core/util/log"
+import * as Log from "@simpletoolsindia/core/util/log"
 import { ConfigVariable } from "@/config/variable"
-import { Npm } from "@beastcli/core/npm"
+import { Npm } from "@simpletoolsindia/core/npm"
 
 const log = Log.create({ service: "tui.config" })
 
@@ -44,7 +44,7 @@ export interface Interface {
   readonly waitForDependencies: () => Effect.Effect<void>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@beastcli/TuiConfig") {}
+export class Service extends Context.Service<Service, Interface>()("@simpletoolsindia/TuiConfig") {}
 
 function pluginScope(file: string, ctx: { directory: string }): ConfigPlugin.Scope {
   if (Filesystem.contains(ctx.directory, file)) return "local"
@@ -161,7 +161,7 @@ export const layer = Layer.effect(
           .install(dir, {
             add: [
               {
-                name: "@beastcli/plugin",
+                name: "@simpletoolsindia/plugin",
                 version: InstallationLocal ? undefined : InstallationVersion,
               },
             ],

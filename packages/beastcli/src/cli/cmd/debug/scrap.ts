@@ -1,6 +1,6 @@
 import { EOL } from "os"
 import { Project } from "@/project/project"
-import * as Log from "@beastcli/core/util/log"
+import * as Log from "@simpletoolsindia/core/util/log"
 import { cmd } from "../cmd"
 
 export const ScrapCommand = cmd({

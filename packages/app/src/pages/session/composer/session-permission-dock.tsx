@@ -1,8 +1,8 @@
 import { For, Show } from "solid-js"
-import type { PermissionRequest } from "@beastcli/sdk/v2"
-import { Button } from "@beastcli/ui/button"
-import { DockPrompt } from "@beastcli/ui/dock-prompt"
-import { Icon } from "@beastcli/ui/icon"
+import type { PermissionRequest } from "@simpletoolsindia/sdk/v2"
+import { Button } from "@simpletoolsindia/ui/button"
+import { DockPrompt } from "@simpletoolsindia/ui/dock-prompt"
+import { Icon } from "@simpletoolsindia/ui/icon"
 import { useLanguage } from "@/context/language"
 
 export function SessionPermissionDock(props: {

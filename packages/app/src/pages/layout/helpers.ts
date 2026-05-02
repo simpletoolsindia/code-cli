@@ -1,5 +1,5 @@
-import { getFilename } from "@beastcli/core/util/path"
-import { type Session } from "@beastcli/sdk/v2/client"
+import { getFilename } from "@simpletoolsindia/core/util/path"
+import { type Session } from "@simpletoolsindia/sdk/v2/client"
 import { pathKey } from "@/utils/path-key"
 
 type SessionStore = {

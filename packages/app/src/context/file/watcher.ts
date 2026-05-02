@@ -1,4 +1,4 @@
-import type { FileNode } from "@beastcli/sdk/v2"
+import type { FileNode } from "@simpletoolsindia/sdk/v2"
 
 type WatcherEvent = {
   type: string

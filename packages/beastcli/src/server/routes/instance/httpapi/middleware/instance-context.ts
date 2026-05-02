@@ -14,7 +14,7 @@ export class InstanceContextMiddleware extends HttpApiMiddleware.Service<
   {
     requires: WorkspaceRouteContext
   }
->()("@beastcli/ExperimentalHttpApiInstanceContext") {}
+>()("@simpletoolsindia/ExperimentalHttpApiInstanceContext") {}
 
 function decode(input: string): string {
   try {

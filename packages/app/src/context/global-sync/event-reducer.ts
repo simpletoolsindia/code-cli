@@ -1,4 +1,4 @@
-import { Binary } from "@beastcli/core/util/binary"
+import { Binary } from "@simpletoolsindia/core/util/binary"
 import { produce, reconcile, type SetStoreFunction, type Store } from "solid-js/store"
 import type {
   Message,
@@ -10,7 +10,7 @@ import type {
   SessionStatus,
   SnapshotFileDiff,
   Todo,
-} from "@beastcli/sdk/v2/client"
+} from "@simpletoolsindia/sdk/v2/client"
 import type { State, VcsCache } from "./types"
 import { trimSessions } from "./session-trim"
 import { dropSessionCaches } from "./session-cache"

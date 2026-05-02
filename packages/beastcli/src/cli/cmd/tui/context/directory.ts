@@ -1,7 +1,7 @@
 import { createMemo } from "solid-js"
 import { useProject } from "./project"
 import { useSync } from "./sync"
-import { Global } from "@beastcli/core/global"
+import { Global } from "@simpletoolsindia/core/global"
 
 export function useDirectory() {
   const project = useProject()

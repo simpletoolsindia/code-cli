@@ -15,7 +15,7 @@ import type {
   SnapshotFileDiff,
   Todo,
   VcsInfo,
-} from "@beastcli/sdk/v2/client"
+} from "@simpletoolsindia/sdk/v2/client"
 import type { Accessor } from "solid-js"
 import type { SetStoreFunction, Store } from "solid-js/store"
 
