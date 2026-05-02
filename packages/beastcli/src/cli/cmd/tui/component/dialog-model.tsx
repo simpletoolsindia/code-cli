@@ -103,7 +103,7 @@ export function DialogModel(props: { providerID?: string }) {
           provider.models,
           entries(),
           filter(([_, info]) => info.status !== "deprecated"),
-          filter(([_, info]) => (props.providerID ? info.providerID === props.providerID : true)),
+          filter(([_, info]) => (props.providerID ? provider.id === props.providerID : true)),
           map(([model, info]) => ({
             value: { providerID: provider.id, modelID: model },
             title: info.name ?? model,
@@ -136,28 +136,30 @@ export function DialogModel(props: { providerID?: string }) {
       ),
     )
 
-    const detectedLocalOptions = showExtra()
-      ? detectedLocal().flatMap((provider) => {
-          if (provider.status !== "ready") return []
-          return provider.models.flatMap((model) => {
-            const configured = sync.data.provider.find((item) => item.id === provider.id)
-            if (configured?.models[model.id]) return []
-            return [
-              {
-                value: { providerID: provider.id, modelID: model.id },
-                title: model.name,
-                description: provider.name,
-                category: "💻 Detected local",
-                disabled: configuring(),
-                footer: "Click to setup",
-                onSelect() {
-                  void onSelectDetected(provider, model.id)
-                },
-              },
-            ]
-          })
-        })
-      : []
+    // Always show detected local models — even when providerID is set,
+    // because sync might not have refreshed yet after connecting a local provider
+    const detectedLocalOptions = detectedLocal().flatMap((provider) => {
+      if (provider.status !== "ready") return []
+      // When providerID is set, only show matching local provider
+      if (props.providerID && provider.id !== props.providerID) return []
+      return provider.models.flatMap((model) => {
+        const configured = sync.data.provider.find((item) => item.id === provider.id)
+        if (configured?.models[model.id]) return []
+        return [
+          {
+            value: { providerID: provider.id, modelID: model.id },
+            title: model.name,
+            description: provider.name,
+            category: props.providerID ? undefined : "💻 Detected local",
+            disabled: configuring(),
+            footer: props.providerID ? "Select model" : "Click to setup",
+            onSelect() {
+              void onSelectDetected(provider, model.id)
+            },
+          },
+        ]
+      })
+    })
 
     const popularProviders = !connected()
       ? pipe(

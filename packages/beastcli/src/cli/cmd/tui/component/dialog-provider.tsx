@@ -187,12 +187,14 @@ export function DialogProvider() {
           ),
         },
       }
+      const defaultModelID = provider.models[0]?.id ?? ""
       const nextConfig: Config = {
         ...sync.data.config,
         provider: {
           ...sync.data.config.provider,
           [provider.id]: nextProvider,
         },
+        model: defaultModelID ? `${provider.id}/${defaultModelID}` : sync.data.config.model,
       }
       await sdk.client.config.update({ config: nextConfig }, { throwOnError: true })
       await sdk.client.instance.dispose()
