@@ -3,7 +3,7 @@ import { useSync } from "@tui/context/sync"
 import { createMemo, For, Show } from "solid-js"
 import { useTheme } from "../../context/theme"
 import { useTuiConfig } from "../../context/tui-config"
-import { InstallationVersion } from "@simpletoolsindia/core/installation/version"
+
 import { TuiPluginRuntime } from "@/cli/cmd/tui/plugin/runtime"
 import { getScrollAcceleration } from "../../util/scroll"
 import { useLocal } from "../../context/local"
@@ -302,7 +302,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
                 <span style={{ fg: theme.text }}>
                   <b>CLI</b>
                 </span>{" "}
-                <span>{InstallationVersion}</span>
+                <span style={{ fg: theme.textMuted }}>— Made with love by SimpleTools India</span>
               </text>
               <text fg={theme.textMuted}>{mod}+B toggle</text>
             </box>
