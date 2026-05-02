@@ -256,8 +256,23 @@ export const Info = Schema.Struct({
       mcp_timeout: Schema.optional(PositiveInt).annotate({
         description: "Timeout in milliseconds for model context protocol (MCP) requests",
       }),
+      search_timeout: Schema.optional(PositiveInt).annotate({
+        description: "Timeout in milliseconds for search tool requests (default: 15000)",
+      }),
     }),
   ),
+  search_engine: Schema.optional(Schema.Literals(["exa", "ddg", "searxng"])).annotate({
+    description: "Default search engine for websearch tool: 'exa' (Exa AI MCP), 'ddg' (DuckDuckGo), or 'searxng' (self-hosted SearXNG)",
+  }),
+  search_config: Schema.optional(
+    Schema.Struct({
+      searxng_url: Schema.optional(Schema.String).annotate({
+        description: "Base URL of your self-hosted SearXNG instance (e.g. https://searx.example.com)",
+      }),
+    }),
+  ).annotate({
+    description: "Search engine-specific configuration",
+  }),
 })
   .annotate({ identifier: "Config" })
   .pipe(
@@ -288,7 +303,7 @@ export interface Interface {
   readonly get: () => Effect.Effect<Info>
   readonly getGlobal: () => Effect.Effect<Info>
   readonly getConsoleState: () => Effect.Effect<ConsoleState>
-  readonly update: (config: Info, options?: { dispose?: boolean }) => Effect.Effect<void>
+  readonly update: (config: Info, options?: { dispose?: boolean; disposeProvider?: boolean }) => Effect.Effect<void>
   readonly updateGlobal: (config: Info) => Effect.Effect<Info>
   readonly invalidate: (wait?: boolean) => Effect.Effect<void>
   readonly directories: () => Effect.Effect<string[]>
@@ -729,14 +744,19 @@ export const layer = Layer.effect(
       )
     })
 
-    const update = Effect.fn("Config.update")(function* (config: Info, options?: { dispose?: boolean }) {
+    const update = Effect.fn("Config.update")(function* (
+      config: Info,
+      options?: { dispose?: boolean; disposeProvider?: boolean },
+    ) {
       const dir = yield* InstanceState.directory
       const file = path.join(dir, "config.json")
       const existing = yield* loadFile(file)
       yield* fs
         .writeFileString(file, JSON.stringify(mergeDeep(writable(existing), writable(config)), null, 2))
         .pipe(Effect.orDie)
-      if (options?.dispose !== false) yield* Effect.promise(() => Instance.dispose())
+      if (options?.dispose !== false || (options?.disposeProvider !== false && config.provider)) {
+        yield* Effect.promise(() => Instance.dispose())
+      }
     })
 
     const invalidate = Effect.fn("Config.invalidate")(function* (wait?: boolean) {

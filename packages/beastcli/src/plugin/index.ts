@@ -30,7 +30,7 @@ const log = Log.create({ service: "plugin" })
 const GitlabAuthPluginCompat: PluginInstance = async (input) => {
   try {
     const mod = await import("beastcli-gitlab-auth")
-    return mod.gitlabAuthPlugin(input)
+    return mod.gitlabAuthPlugin(input as any)
   } catch (error) {
     log.warn("failed to load optional gitlab auth plugin", { error })
     return {}

@@ -50,6 +50,7 @@ import { Agent } from "../agent/agent"
 import { Skill } from "../skill"
 import { Permission } from "@/permission"
 import { YouTubeSearchTool, YouTubeSummarizeTool, YouTubeTranscriptTool, YouTubeVideoInfoTool } from "./youtube"
+import { SearxngSearchTool } from "./searxng"
 
 const log = Log.create({ service: "tool.registry" })
 const TOOL_DEFINITION_CACHE_TTL = 5_000
@@ -134,6 +135,7 @@ export const layer: Layer.Layer<
         youtubeVideoInfo: YouTubeVideoInfoTool,
         youtubeSearch: YouTubeSearchTool,
         youtubeSummarize: YouTubeSummarizeTool,
+        searxng: SearxngSearchTool,
       },
       { concurrency: "unbounded" },
     )
@@ -236,10 +238,11 @@ export const layer: Layer.Layer<
           pandasAggregate: Tool.init(info.pandasAggregate),
           plotLine: Tool.init(info.plotLine),
           plotBar: Tool.init(info.plotBar),
-          youtubeTranscript: Tool.init(info.youtubeTranscript),
+           youtubeTranscript: Tool.init(info.youtubeTranscript),
           youtubeVideoInfo: Tool.init(info.youtubeVideoInfo),
           youtubeSearch: Tool.init(info.youtubeSearch),
           youtubeSummarize: Tool.init(info.youtubeSummarize),
+          searxng: Tool.init(info.searxng),
           question: Tool.init(info.question),
           lsp: Tool.init(info.lsp),
           plan: Tool.init(info.plan),
@@ -273,6 +276,7 @@ export const layer: Layer.Layer<
             tool.youtubeVideoInfo,
             tool.youtubeSearch,
             tool.youtubeSummarize,
+            tool.searxng,
             tool.skill,
             tool.patch,
             tool.codecli,

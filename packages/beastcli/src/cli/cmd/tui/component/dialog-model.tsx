@@ -143,8 +143,6 @@ export function DialogModel(props: { providerID?: string }) {
       // When providerID is set, only show matching local provider
       if (props.providerID && provider.id !== props.providerID) return []
       return provider.models.flatMap((model) => {
-        const configured = sync.data.provider.find((item) => item.id === provider.id)
-        if (configured?.models[model.id]) return []
         return [
           {
             value: { providerID: provider.id, modelID: model.id },
@@ -153,14 +151,10 @@ export function DialogModel(props: { providerID?: string }) {
             category: props.providerID ? undefined : "💻 Detected local",
             disabled: configuring(),
             footer: props.providerID ? "Select model" : "Click to setup",
-                onSelect() {
-                  const configured = sync.data.provider.find((item) => item.id === provider.id)
-                  if (configured && configured.models[model.id]) {
-                    onSelect(provider.id, model.id)
-                  } else {
-                    void onSelectDetected(provider, model.id)
-                  }
-                },
+            onSelect() {
+              // Always setup the provider + select the model
+              void onSelectDetected(provider, model.id)
+            },
           },
         ]
       })
@@ -247,7 +241,7 @@ export function DialogModel(props: { providerID?: string }) {
         model: `${provider.id}/${modelID}`,
       }
       await sdk.client.config.update({ config: nextConfig }, { throwOnError: true })
-      await sdk.client.instance.dispose()
+      // Config.update disposes provider state when provider definitions change.
       await sync.bootstrap()
       onSelect(provider.id, modelID)
       toast.show({
@@ -266,6 +260,13 @@ export function DialogModel(props: { providerID?: string }) {
     <DialogSelect<ReturnType<typeof options>[number]["value"]>
       options={options()}
       keybind={[
+        {
+          keybind: { name: "escape", ctrl: false, meta: false, shift: false, super: false, leader: false },
+          title: "Back to provider list",
+          onTrigger() {
+            dialog.replace(() => <DialogProvider />)
+          },
+        },
         {
           keybind: keybind.all.model_provider_list?.[0],
           title: connected() ? "+ Add provider" : "View all providers",

@@ -19,6 +19,8 @@ import { win32DisableProcessedInput, win32InstallCtrlCGuard } from "./win32"
 import { Flag } from "@simpletoolsindia/core/flag/flag"
 import semver from "semver"
 import { DialogProvider, useDialog } from "@tui/ui/dialog"
+import { DialogSelect } from "@tui/ui/dialog-select"
+import { DialogPrompt } from "@tui/ui/dialog-prompt"
 import { DialogProvider as DialogProviderList } from "@tui/component/dialog-provider"
 import { ErrorComponent } from "@tui/component/error-component"
 import { PluginRouteMissing } from "@tui/component/plugin-route-missing"
@@ -462,7 +464,7 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
       keybind: "command_list",
       category: "System",
       onSelect: () => {
-        dialog.replace(() => <DialogCommand />)
+        command.show()
       },
     },
     {
@@ -579,6 +581,84 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
       },
       onSelect: () => {
         dialog.replace(() => <DialogProviderList />)
+      },
+      category: "Provider",
+    },
+    {
+      title: "Search engine settings",
+      value: "searchweb.settings",
+      slash: {
+        name: "searchweb",
+      },
+      onSelect: () => {
+        dialog.replace(() => (
+          <DialogSelect
+            title="Search Engine"
+            options={[
+              {
+                title: "DuckDuckGo",
+                value: "ddg",
+                description: "Privacy-focused web search — no API key needed, works out of the box",
+                onSelect: async () => {
+                  await sdk.client.config.update({
+                    config: {
+                      ...(sync.data.config as any),
+                      search_engine: "ddg",
+                    } as any,
+                  })
+                  dialog.clear()
+                  toast.show({ message: "Search engine set to DuckDuckGo", variant: "success", duration: 2500 })
+                },
+              },
+              {
+                title: "Exa AI (MCP)",
+                value: "exa",
+                description: "Premium search via Exa AI (requires EXA_API_KEY env var for best results)",
+                onSelect: async () => {
+                  await sdk.client.config.update({
+                    config: {
+                      ...(sync.data.config as any),
+                      search_engine: "exa",
+                    } as any,
+                  })
+                  dialog.clear()
+                  toast.show({ message: "Search engine set to Exa AI", variant: "success", duration: 2500 })
+                },
+              },
+              {
+                title: "SearXNG (Self-hosted)",
+                value: "searxng",
+                description: "Your own self-hosted or public SearXNG instance",
+                onSelect: () => {
+                  dialog.replace(() => (
+                    <DialogPrompt
+                      title="SearXNG Instance URL"
+                      placeholder="https://searx.example.com or https://search.bus-hit.me"
+                      onConfirm={async (url) => {
+                        if (!url) {
+                          dialog.clear()
+                          return
+                        }
+                        await sdk.client.config.update({
+                          config: {
+                            ...(sync.data.config as any),
+                            search_engine: "searxng",
+                            search_config: {
+                              ...((sync.data.config as any).search_config ?? {}),
+                              searxng_url: url,
+                            },
+                          } as any,
+                        })
+                        dialog.clear()
+                        toast.show({ message: `SearXNG set to ${url}`, variant: "success", duration: 2500 })
+                      }}
+                    />
+                  ))
+                },
+              },
+            ]}
+          />
+        ))
       },
       category: "Provider",
     },

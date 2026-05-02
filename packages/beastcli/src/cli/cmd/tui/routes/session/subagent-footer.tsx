@@ -6,6 +6,7 @@ import { SplitBorder } from "@tui/component/border"
 import { useCommandDialog } from "@tui/component/dialog-command"
 import { useKeybind } from "../../context/keybind"
 import { useTerminalDimensions } from "@opentui/solid"
+import { Locale } from "@/util/locale"
 
 export function SubagentFooter() {
   const route = useRouteData("session")

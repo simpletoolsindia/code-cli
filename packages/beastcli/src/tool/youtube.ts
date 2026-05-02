@@ -63,7 +63,7 @@ function extractVideoId(input: string | undefined) {
 
 async function fetchText(url: string) {
   const response = await fetch(url, {
-    headers: { "User-Agent": "BeastCLI/1.0" },
+    headers: { "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 BeastCLI/2.0" },
     signal: AbortSignal.timeout(20_000),
   })
   if (!response.ok) throw new Error(`YouTube request failed: ${response.status}`)
@@ -72,7 +72,7 @@ async function fetchText(url: string) {
 
 async function fetchJson(url: string): Promise<unknown> {
   const response = await fetch(url, {
-    headers: { "User-Agent": "BeastCLI/1.0" },
+    headers: { "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 BeastCLI/2.0" },
     signal: AbortSignal.timeout(20_000),
   })
   if (!response.ok) throw new Error(`YouTube request failed: ${response.status}`)
@@ -183,12 +183,12 @@ function summarizeTranscript(transcript: string, maxWords: number) {
 export const YouTubeTranscriptTool = Tool.define(
   "youtube_transcript",
   Effect.succeed({
-    description: "Get the transcript text for a YouTube video URL or video ID.",
+    description: "Get the transcript text for a YouTube video URL or video ID. Returns plain text of the spoken content.",
     parameters: TranscriptParameters,
     execute: (params: Schema.Schema.Type<typeof TranscriptParameters>, ctx: Tool.Context) =>
       Effect.gen(function* () {
         const videoId = extractVideoId(params.url)
-        if (!videoId) throw new Error("Invalid YouTube URL or video ID")
+        if (!videoId) throw new Error("Invalid YouTube URL or video ID. Expected a URL like https://www.youtube.com/watch?v=VIDEOID or an 11-character video ID.")
 
         yield* ctx.ask({
           permission: "webfetch",
@@ -198,9 +198,12 @@ export const YouTubeTranscriptTool = Tool.define(
         })
 
         const transcript = yield* Effect.promise(() => fetchTranscript(videoId))
+        if (!transcript || transcript.length < 10) {
+          throw new Error(`No transcript available for video ${videoId}. The video may not have captions enabled, or the transcript service is temporarily unavailable.`)
+        }
         return {
           title: `YouTube transcript: ${videoId}`,
-          metadata: { videoID: videoId },
+          metadata: { videoID: videoId, length: transcript.length },
           output: transcript,
         }
       }).pipe(Effect.orDie),

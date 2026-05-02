@@ -531,7 +531,21 @@ export const BashTool = Tool.define(
         )
       }
       if (aborted) meta.push("User aborted the command")
+      if (code !== null && code !== undefined) {
+        // Always include exit code so the LLM knows if the command succeeded or failed
+        const isError = code !== 0
+        if (isError) {
+          meta.unshift(`Command FAILED with exit code ${code}`)
+        } else {
+          meta.push(`Command succeeded with exit code ${code}`)
+        }
+      }
+
       const raw = list.map((item) => item.text).join("")
+
+      // When there is a non-zero exit code, keep the LAST lines (errors are often at the end for build commands)
+      // but also try to preserve the first few lines for context. For now, we keep the tail behavior
+      // but prepend the exit code so the LLM sees it even after truncation.
       const end = tail(raw, limits.maxLines, limits.maxBytes)
       if (end.cut) cut = true
       if (!file && end.cut) {
@@ -545,8 +559,9 @@ export const BashTool = Tool.define(
         output = `...output truncated...\n\nFull output saved to: ${file}\n\n` + output
       }
 
+      // Ensure bash metadata (including exit code) appears FIRST so the LLM sees it even if output is long
       if (meta.length > 0) {
-        output += "\n\n<bash_metadata>\n" + meta.join("\n") + "\n</bash_metadata>"
+        output = `<bash_metadata>\n` + meta.join("\n") + `\n</bash_metadata>\n\n` + output
       }
       if (sink) {
         const stream = sink

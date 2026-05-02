@@ -318,6 +318,20 @@ export const layer: Layer.Layer<
               return
             }
 
+            // Relax doom loop detection if previous attempts failed — retrying a failing
+            // command is a legitimate debugging pattern
+            const anyFailed = recentParts.some(
+              (part) =>
+                part.type === "tool" &&
+                (part.state.status === "error" ||
+                  (part.state.status === "completed" &&
+                    part.state.metadata?.exit != null &&
+                    part.state.metadata.exit !== 0)),
+            )
+            if (anyFailed) {
+              return
+            }
+
             const agent = yield* agents.get(ctx.assistantMessage.agent)
             yield* permission.ask({
               permission: "doom_loop",

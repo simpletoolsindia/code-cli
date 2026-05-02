@@ -1420,12 +1420,14 @@ export function Prompt(props: PromptProps) {
                   })()}
                 </box>
               </box>
-              <text fg={store.interrupt > 0 ? theme.primary : theme.text}>
-                esc{" "}
-                <span style={{ fg: store.interrupt > 0 ? theme.primary : theme.textMuted }}>
-                  {store.interrupt > 0 ? "again to interrupt" : "interrupt"}
-                </span>
-              </text>
+              <box gap={1} flexDirection="row">
+                <text fg={store.interrupt > 0 ? theme.warning : theme.textMuted} attributes={store.interrupt > 0 ? 2 : undefined}>
+                  {store.interrupt > 0 ? "⚠ STOP" : "esc"}
+                </text>
+                <text fg={store.interrupt > 0 ? theme.warning : theme.textMuted}>
+                  {store.interrupt > 0 ? " press again to cancel" : " interrupt"}
+                </text>
+              </box>
             </box>
           </Show>
           <Show when={status().type !== "retry"}>

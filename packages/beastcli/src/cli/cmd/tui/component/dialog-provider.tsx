@@ -18,14 +18,29 @@ import { useConnected } from "./use-connected"
 import { probeLocalModelProviders, type DetectedLocalProvider } from "./model-provider-detect"
 import type { Config, ProviderConfig } from "@simpletoolsindia/sdk/v2"
 
+const ALLOWED_PROVIDER_IDS = new Set([
+  "beastcli",
+  "beastcli-go",
+  "openai",
+  "anthropic",
+  "deepseek",
+  "openrouter",
+  "nvidia",
+  "ollama",
+  "lmstudio",
+  "jan",
+  "mlx",
+  "vllm",
+])
+
 const PROVIDER_PRIORITY: Record<string, number> = {
   beastcli: 0,
   "beastcli-go": 1,
   openai: 2,
-  "github-copilot": 3,
-  anthropic: 4,
-  google: 5,
-  openrouter: 6,
+  anthropic: 3,
+  deepseek: 4,
+  openrouter: 5,
+  nvidia: 6,
 }
 
 export function createDialogProviderOptions() {
@@ -37,20 +52,24 @@ export function createDialogProviderOptions() {
   const onboarded = useConnected()
   const options = createMemo(() => {
     return pipe(
-      sync.data.provider_next.all,
+      sync.data.provider_next.all.filter((p) => ALLOWED_PROVIDER_IDS.has(p.id)),
       sortBy((x) => PROVIDER_PRIORITY[x.id] ?? 99),
       map((provider) => {
         const consoleManaged = isConsoleManagedProvider(sync.data.console_state.consoleManagedProviders, provider.id)
         const connected = sync.data.provider_next.connected.includes(provider.id)
+        const p = sync.data.provider.find((x) => x.id === provider.id)
+        const providerModelCount = p ? Object.keys(p.models).length : 0
 
         return {
           title: provider.name,
           value: provider.id,
           description: {
             beastcli: "(Recommended)",
-            anthropic: "(API key)",
-            openai: "(ChatGPT Plus/Pro or API key)",
-            openrouter: "(Many models, one API key)",
+            anthropic: `(${providerModelCount > 0 ? `${providerModelCount} models` : "API key"})`,
+            openai: `(${providerModelCount > 0 ? `${providerModelCount} models` : "ChatGPT Plus/Pro or API key"})`,
+            openrouter: `(${providerModelCount > 0 ? `${providerModelCount} models` : "Many models, one API key"})`,
+            deepseek: `(${providerModelCount > 0 ? `${providerModelCount} models` : "API key"})`,
+            nvidia: `(${providerModelCount > 0 ? `${providerModelCount} models` : "API key"})`,
             "beastcli-go": "Low cost subscription for everyone",
           }[provider.id],
           footer: consoleManaged ? sync.data.console_state.activeOrgName : undefined,
@@ -59,10 +78,17 @@ export function createDialogProviderOptions() {
           async onSelect() {
             if (consoleManaged) return
 
+            // If already connected, just open model picker — don't re-ask for auth
+            if (connected) {
+              dialog.replace(() => <DialogModel providerID={provider.id} />)
+              return
+            }
+
             const methods = sync.data.provider_auth[provider.id] ?? [
               {
                 type: "api",
                 label: "API key",
+                description: "Enter your API key directly",
               },
             ]
             let index: number | null = 0
@@ -71,10 +97,12 @@ export function createDialogProviderOptions() {
                 dialog.replace(
                   () => (
                     <DialogSelect
-                      title="Select auth method"
+                      title={`Connect to ${provider.name}`}
                       options={methods.map((x, index) => ({
                         title: x.label,
                         value: index,
+                        description: x.type === "oauth" ? "Sign in via your browser" : x.type === "api" ? "Enter your API key" : "",
+                        category: x.type === "oauth" ? "Browser" : "Direct",
                       }))}
                       onSelect={(option) => resolve(option.value)}
                     />
@@ -156,10 +184,16 @@ export function DialogProvider() {
   const toast = useToast()
   const options = createDialogProviderOptions()
   const [detectedLocal, setDetectedLocal] = createSignal<DetectedLocalProvider[]>([])
+  const [scanning, setScanning] = createSignal(true)
   const [configuring, setConfiguring] = createSignal(false)
 
   onMount(() => {
-    void probeLocalModelProviders().then(setDetectedLocal)
+    void probeLocalModelProviders()
+      .then((results) => {
+        setDetectedLocal(results)
+        setScanning(false)
+      })
+      .catch(() => setScanning(false))
   })
 
   async function onSelectDetected(provider: DetectedLocalProvider) {
@@ -197,8 +231,9 @@ export function DialogProvider() {
         model: defaultModelID ? `${provider.id}/${defaultModelID}` : sync.data.config.model,
       }
       await sdk.client.config.update({ config: nextConfig }, { throwOnError: true })
-      await sdk.client.instance.dispose()
+      // Config.update disposes provider state when provider definitions change.
       await sync.bootstrap()
+      // After bootstrap refreshes providers, open model picker
       dialog.replace(() => <DialogModel providerID={provider.id} />)
       toast.show({
         variant: "success",
@@ -230,15 +265,140 @@ export function DialogProvider() {
   const allOptions = createMemo(() => {
     const cloud = options()
     const local = localOptions()
-    if (local.length === 0) return cloud
-    // Show local providers first, then cloud providers
-    const result = [...local, ...cloud]
+    const result: any[] = [...local]
     // Remove cloud duplicates if a local provider with same ID exists
     const localIds = new Set<string>(local.map((l) => l.value))
-    return result.filter((o, i) => {
-      if (i < local.length) return true
-      return !localIds.has(o.value)
+    for (const o of cloud) {
+      if (!localIds.has(o.value)) result.push(o)
+    }
+    // Add "Other (Custom)" option at the end
+    result.push({
+      title: "Ollama Cloud",
+      value: "ollama-cloud",
+      disabled: false,
+      description: "Run models in the browser/cloud",
+      category: "Other",
+      async onSelect() {
+        dialog.replace(() => (
+          <DialogPrompt
+            title="Ollama Cloud API Key"
+            placeholder="sk-..."
+            onConfirm={async (apiKey) => {
+              if (!apiKey) return
+              dialog.replace(() => (
+                <DialogPrompt
+                  title="Model Name"
+                  placeholder="e.g. qwen2.5-coder:32b"
+                  onConfirm={async (modelName) => {
+                    if (!modelName) return
+                    const providerID = `ollama-cloud`
+                    const nextConfig: Config = {
+                      ...sync.data.config,
+                      provider: {
+                        ...sync.data.config.provider,
+                        [providerID]: {
+                          npm: "@ai-sdk/openai-compatible",
+                          name: "Ollama Cloud",
+                          options: { baseURL: "https://api.ollama.com/v1/", apiKey },
+                          models: {
+                            [modelName]: {
+                              name: modelName,
+                            },
+                          },
+                        },
+                      },
+                      model: `${providerID}/${modelName}`,
+                    }
+                    await sdk.client.config.update({ config: nextConfig }, { throwOnError: true })
+                    await sync.bootstrap()
+                    dialog.clear()
+                    toast.show({
+                      message: "Ollama Cloud connected",
+                      variant: "success",
+                      duration: 2500,
+                    })
+                  }}
+                />
+              ))
+            }}
+          />
+        ))
+      },
     })
+    // Add "Other (Custom)" option at the end
+    result.push({
+      title: "Other (Custom Provider)",
+      value: "other",
+      disabled: false,
+      description: "Add any OpenAI-compatible API",
+      category: "Custom",
+      async onSelect() {
+        dialog.replace(() => (
+          <DialogPrompt
+            title="Custom Provider Setup"
+            placeholder="Base URL (e.g. https://api.custom.ai/v1)"
+            onConfirm={async (baseURL) => {
+              if (!baseURL) return
+              dialog.replace(() => (
+                <DialogPrompt
+                  title="API Key"
+                  placeholder="sk-..."
+                  onConfirm={async (apiKey) => {
+                    if (!apiKey) return
+                    dialog.replace(() => (
+                      <DialogPrompt
+                        title="Model Name"
+                        placeholder="e.g. custom-model-7b"
+                        onConfirm={async (modelName) => {
+                          if (!modelName) return
+                          const providerID = `custom-${Date.now()}`
+                          const nextConfig: Config = {
+                            ...sync.data.config,
+                            provider: {
+                              ...sync.data.config.provider,
+                              [providerID]: {
+                                npm: "@ai-sdk/openai-compatible",
+                                name: "Custom Provider",
+                                options: { baseURL, apiKey },
+                                models: {
+                                  [modelName]: {
+                                    name: modelName,
+                                  },
+                                },
+                              },
+                            },
+                            model: `${providerID}/${modelName}`,
+                          }
+                          await sdk.client.config.update({ config: nextConfig }, { throwOnError: true })
+                          await sync.bootstrap()
+                          dialog.clear()
+                          toast.show({
+                            message: "Custom provider connected",
+                            variant: "success",
+                            duration: 2500,
+                          })
+                        }}
+                      />
+                    ))
+                  }}
+                />
+              ))
+            }}
+          />
+        ))
+      },
+    })
+    if (result.length === 0 && scanning()) {
+      result.push({
+        title: "🔍 Scanning for local providers...",
+        value: "loading",
+        description: "Checking Ollama, LM Studio, Jan, MLX, vLLM",
+        category: "Local",
+        disabled: true,
+        onSelect: () => {},
+      })
+    }
+    return result
   })
 
   return <DialogSelect title="Connect a provider" options={allOptions()} />

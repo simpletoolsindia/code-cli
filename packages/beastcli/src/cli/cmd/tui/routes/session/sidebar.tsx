@@ -238,22 +238,32 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
 
             {/* Live Operations / Current Status */}
             <Show when={status()?.type === "busy"}>
-              <box gap={1} paddingTop={1} flexShrink={0}>
-                <text fg={theme.primary}>
-                  <b>⚡ Processing...</b>
-                </text>
-                <box flexDirection="row">
-                  <text fg={theme.primary}>◈</text>
-                  <text fg={theme.textMuted}>Generating response...</text>
+              <box gap={1} flexShrink={0} border={["top"]} borderColor={theme.borderActive} paddingTop={1}>
+                <box flexDirection="row" gap={1}>
+                  <text fg={theme.primary}>▶</text>
+                  <text fg={theme.primary} attributes={2}>
+                    <b>Thinking...</b>
+                  </text>
+                </box>
+                <box flexDirection="row" gap={1}>
+                  <text fg={theme.warning}>◐</text>
+                  <text fg={theme.textMuted}>Generating response</text>
+                </box>
+                <box flexDirection="row" gap={1}>
+                  <text fg={theme.info}>●</text>
+                  <text fg={theme.textMuted}>Processing context</text>
                 </box>
               </box>
             </Show>
 
             <Show when={status()?.type === "retry"}>
-              <box gap={1} paddingTop={1} flexShrink={0}>
-                <text fg={theme.warning}>
-                  <b>⟳ Retrying...</b>
-                </text>
+              <box gap={1} flexShrink={0} border={["top"]} borderColor={theme.warning} paddingTop={1}>
+                <box flexDirection="row" gap={1}>
+                  <text fg={theme.warning}>⟳</text>
+                  <text fg={theme.warning} attributes={2}>
+                    <b>Retrying...</b>
+                  </text>
+                </box>
                 <text fg={theme.textMuted}>
                   Attempt {(status() as any)?.attempt ?? 1}
                 </text>
@@ -299,7 +309,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
         </scrollbox>
 
         {/* Footer */}
-        <box flexShrink={0} gap={1} paddingTop={1} borderTop={{ style: "single", color: theme.border }}>
+        <box flexShrink={0} gap={1} paddingTop={1} border={["top"]} borderColor={theme.border}>
           <TuiPluginRuntime.Slot name="sidebar_footer" mode="single_winner" session_id={props.sessionID}>
             <box flexDirection="row" justifyContent="space-between">
               <text fg={theme.textMuted}>

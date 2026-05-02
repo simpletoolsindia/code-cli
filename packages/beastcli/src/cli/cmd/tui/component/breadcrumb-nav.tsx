@@ -16,18 +16,18 @@ export function BreadcrumbNav() {
   const crumbs = createMemo(() => {
     switch (route.data.type) {
       case "home": {
-        return ["BeastCLI", "Home"]
+        return []
       }
       case "session": {
         const session = useSync().session.get(route.data.sessionID)
         const name = session?.title ?? route.data.sessionID
-        return ["BeastCLI", "Session", name]
+        return ["Session", name]
       }
       case "plugin": {
-        return ["BeastCLI", "Plugin", route.data.id]
+        return ["Plugin", route.data.id]
       }
       default:
-        return ["BeastCLI"]
+        return []
     }
   })
 
