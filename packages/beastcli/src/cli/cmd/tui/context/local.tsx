@@ -40,11 +40,10 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
       return !!provider?.models[model.modelID]
     }
 
-    function getFirstValidModel(...modelFns: (() => { providerID: string; modelID: string } | undefined)[]) {
+    function getFirstModel(...modelFns: (() => { providerID: string; modelID: string } | undefined)[]) {
       for (const modelFn of modelFns) {
         const model = modelFn()
-        if (!model) continue
-        if (isModelValid(model)) return model
+        if (model) return model
       }
     }
 
@@ -146,6 +145,7 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
         }
         state.pending = false
         void Filesystem.writeJson(filePath, {
+          model: modelStore.model,
           recent: modelStore.recent,
           favorite: modelStore.favorite,
           variant: modelStore.variant,
@@ -154,6 +154,7 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
 
       Filesystem.readJson(filePath)
         .then((x: any) => {
+          if (typeof x.model === "object" && x.model !== null) setModelStore("model", x.model)
           if (Array.isArray(x.recent)) setModelStore("recent", x.recent)
           if (Array.isArray(x.favorite)) setModelStore("favorite", x.favorite)
           if (typeof x.variant === "object" && x.variant !== null) setModelStore("variant", x.variant)
@@ -165,54 +166,17 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
         })
 
       const args = useArgs()
-      const fallbackModel = createMemo(() => {
-        if (args.model) {
-          const { providerID, modelID } = parseModel(args.model)
-          if (isModelValid({ providerID, modelID })) {
-            return {
-              providerID,
-              modelID,
-            }
-          }
-        }
-
-        if (sync.data.config.model) {
-          const { providerID, modelID } = parseModel(sync.data.config.model)
-          if (isModelValid({ providerID, modelID })) {
-            return {
-              providerID,
-              modelID,
-            }
-          }
-        }
-
-        for (const item of modelStore.recent) {
-          if (isModelValid(item)) {
-            return item
-          }
-        }
-
-        const provider = sync.data.provider[0]
-        if (!provider) return undefined
-        const defaultModel = sync.data.provider_default[provider.id]
-        const firstModel = Object.values(provider.models)[0]
-        const model = defaultModel ?? firstModel?.id
-        if (!model) return undefined
-        return {
-          providerID: provider.id,
-          modelID: model,
-        }
-      })
-
       const currentModel = createMemo(() => {
         const a = agent.current()
-        return (
-          getFirstValidModel(
-            () => a && modelStore.model[a.name],
-            () => a && a.model,
-            fallbackModel,
-          ) ?? undefined
-        )
+        if (!a) return undefined
+        // 1. Use per-agent saved model (set via dialog picker)
+        const saved = modelStore.model[a.name]
+        if (saved) return saved
+        // 2. Fall back to config.model string directly — no validation
+        if (sync.data.config.model) {
+          return parseModel(sync.data.config.model)
+        }
+        return undefined
       })
 
       return {
@@ -293,42 +257,17 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
           )
           save()
         },
-        set(model: { providerID: string; modelID: string }, options?: { recent?: boolean; force?: boolean }) {
+        set(model: { providerID: string; modelID: string }, options?: { recent?: boolean; saveToConfig?: boolean }) {
           batch(() => {
-            if (!options?.force && !isModelValid(model)) {
-              log.warn("reject invalid model selection", {
-                providerID: model.providerID,
-                modelID: model.modelID,
-                providers: sync.data.provider.map((provider) => ({
-                  id: provider.id,
-                  models: Object.keys(provider.models),
-                })),
-              })
-              toast.show({
-                message: `Model ${model.providerID}/${model.modelID} is not valid`,
-                variant: "warning",
-                duration: 3000,
-              })
-              return
-            }
             const a = agent.current()
             if (!a) return
-            log.info("set current model", {
-              agent: a.name,
-              providerID: model.providerID,
-              modelID: model.modelID,
-              previous: modelStore.model[a.name],
-              recent: options?.recent === true,
-            })
             setModelStore("model", a.name, model)
-            if (options?.recent || options?.force) {
-              const uniq = uniqueBy([model, ...modelStore.recent], (x) => `${x.providerID}/${x.modelID}`)
-              if (uniq.length > 10) uniq.pop()
-              setModelStore(
-                "recent",
-                uniq.map((x) => ({ providerID: x.providerID, modelID: x.modelID })),
-              )
+            if (options?.recent || options?.saveToConfig) {
               save()
+            }
+            if (options?.saveToConfig) {
+              const nextConfig = { ...sync.data.config, model: `${model.providerID}/${model.modelID}` }
+              sdk.client.config.update({ config: nextConfig }).catch(() => {})
             }
           })
         },

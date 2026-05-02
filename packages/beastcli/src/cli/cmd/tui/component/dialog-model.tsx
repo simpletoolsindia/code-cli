@@ -195,16 +195,15 @@ export function DialogModel(props: { providerID?: string }) {
     return value.name
   })
 
-  function onSelect(providerID: string, modelID: string, force = false) {
+  function onSelect(providerID: string, modelID: string) {
     log.info("select model", {
       providerID,
       modelID,
-      force,
       before: local.model.current(),
       providerLoaded: sync.data.provider.some((provider) => provider.id === providerID),
       modelLoaded: sync.data.provider.some((provider) => provider.id === providerID && !!provider.models[modelID]),
     })
-    local.model.set({ providerID, modelID }, { recent: true, force })
+    local.model.set({ providerID, modelID }, { recent: true })
     log.info("selected model state", {
       providerID,
       modelID,
@@ -227,56 +226,29 @@ export function DialogModel(props: { providerID?: string }) {
     if (configuring()) return
     setConfiguring(true)
     try {
-      const existing = sync.data.config.provider?.[provider.id] ?? {}
-      const nextProvider: ProviderConfig = {
-        ...existing,
-        npm: existing.npm ?? "@ai-sdk/openai-compatible",
-        name: existing.name ?? provider.name,
-        options: {
-          ...existing.options,
-          baseURL: provider.baseURL,
-        },
-        models: {
-          ...existing.models,
-          ...Object.fromEntries(
-            provider.models.map((model) => [
-              model.id,
-              {
-                name: model.name,
-              },
-            ]),
-          ),
-        },
-      }
       const nextConfig: Config = {
         ...sync.data.config,
         provider: {
           ...sync.data.config.provider,
-          [provider.id]: nextProvider,
+          [provider.id]: {
+            npm: "@ai-sdk/openai-compatible",
+            name: provider.name,
+            options: { baseURL: provider.baseURL },
+            models: {
+              ...sync.data.config.provider?.[provider.id]?.models,
+              [modelID]: { name: modelID },
+            },
+          },
         },
         model: `${provider.id}/${modelID}`,
       }
-      log.info("configure detected local provider", {
-        providerID: provider.id,
-        modelID,
-        detectedModels: provider.models.map((model) => model.id),
-      })
       await sdk.client.config.update({ config: nextConfig }, { throwOnError: true })
-      // Config.update disposes provider state when provider definitions change.
-      await sync.bootstrap()
-      log.info("bootstrap after detected local provider", {
-        providerID: provider.id,
-        modelID,
-        providerLoaded: sync.data.provider.some((item) => item.id === provider.id),
-        models: sync.data.provider.find((item) => item.id === provider.id)?.models
-          ? Object.keys(sync.data.provider.find((item) => item.id === provider.id)!.models)
-          : [],
-      })
-      onSelect(provider.id, modelID, true)
+      // Just save locally without disposing instance
+      local.model.set({ providerID: provider.id, modelID }, { saveToConfig: true })
       toast.show({
         variant: "success",
-        message: `${provider.name} is ready`,
-        duration: 2500,
+        message: `${provider.name} is ready — restart beast to use it`,
+        duration: 4000,
       })
     } catch (error) {
       toast.error(error)
