@@ -32,7 +32,6 @@ export function DialogModel(props: { providerID?: string }) {
   const showExtra = createMemo(() => connected() && !props.providerID)
 
   onMount(() => {
-    if (props.providerID) return
     void probeLocalModelProviders().then(setDetectedLocal)
   })
 

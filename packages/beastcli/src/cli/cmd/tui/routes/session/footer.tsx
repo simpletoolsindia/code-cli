@@ -1,4 +1,4 @@
-import { createMemo, Match, onCleanup, onMount, Show, Switch } from "solid-js"
+import { createMemo, Match, onCleanup, onMount, Show, Switch, createSignal } from "solid-js"
 import { useTheme } from "../../context/theme"
 import { useSync } from "../../context/sync"
 import { useDirectory } from "../../context/directory"
@@ -6,6 +6,7 @@ import { useConnected } from "../../component/use-connected"
 import { createStore } from "solid-js/store"
 import { useRoute } from "../../context/route"
 import { useLocal } from "../../context/local"
+import { Tips } from "../../feature-plugins/home/tips-view"
 
 function FooterModelInfo() {
   const { theme } = useTheme()
@@ -98,7 +99,8 @@ export function Footer() {
                 {mcp()} MCP
               </text>
             </Show>
-            <text fg={theme.textMuted}>/status</text>
+            {/* Random Tips rotator */}
+            <Tips connected={true} />
           </Match>
         </Switch>
       </box>

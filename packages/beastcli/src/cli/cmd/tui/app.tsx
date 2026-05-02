@@ -457,16 +457,12 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
       },
     },
     {
-      title: "Switch model",
-      value: "model.list",
-      keybind: "model_list",
-      suggested: true,
-      category: "Agent",
-      slash: {
-        name: "models",
-      },
+      title: "Command palette",
+      value: "command.list",
+      keybind: "command_list",
+      category: "System",
       onSelect: () => {
-        dialog.replace(() => <DialogModel />)
+        dialog.replace(() => <DialogCommand />)
       },
     },
     {
