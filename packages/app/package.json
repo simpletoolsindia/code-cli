@@ -72,9 +72,9 @@
     "tailwindcss": "4.1.11",
     "virtua": "0.42.3",
     "zod": "4.1.8",
-    "@simpletoolsindia/sdk": "^1.0.0",
-    "@simpletoolsindia/ui": "^1.0.0",
-    "@simpletoolsindia/core": "^1.0.0"
+    "@simpletoolsindia/sdk": "workspace:*",
+    "@simpletoolsindia/ui": "workspace:*",
+    "@simpletoolsindia/core": "workspace:*"
   },
   "files": [
     "src",
