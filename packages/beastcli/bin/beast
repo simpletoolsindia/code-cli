@@ -51,7 +51,7 @@ if (!arch) {
   arch = os.arch()
 }
 const base = "beastcli-" + platform + "-" + arch
-const binary = platform === "windows" ? "beastcli.exe" : "beast"
+const binary = platform === "windows" ? "beastcli.exe" : "beastcli"
 
 function supportsAvx2() {
   if (arch !== "x64") return false
