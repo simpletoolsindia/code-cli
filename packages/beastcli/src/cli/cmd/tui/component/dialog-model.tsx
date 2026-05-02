@@ -12,7 +12,7 @@ import { useConnected } from "./use-connected"
 import { probeLocalModelProviders, type DetectedLocalProvider } from "./model-provider-detect"
 import { useSDK } from "../context/sdk"
 import { useToast } from "../ui/toast"
-import type { Config, ProviderConfig } from "@beastcli/sdk/v2"
+import type { Config, ProviderConfig, Model } from "@beastcli/sdk/v2"
 
 export function DialogModel(props: { providerID?: string }) {
   const local = useLocal()
@@ -24,6 +24,7 @@ export function DialogModel(props: { providerID?: string }) {
   const [query, setQuery] = createSignal("")
   const [detectedLocal, setDetectedLocal] = createSignal<DetectedLocalProvider[]>([])
   const [configuring, setConfiguring] = createSignal(false)
+  const [expandedProviders, setExpandedProviders] = createSignal<Set<string>>(new Set())
 
   const connected = useConnected()
   const providers = createDialogProviderOptions()
@@ -34,6 +35,25 @@ export function DialogModel(props: { providerID?: string }) {
     if (props.providerID) return
     void probeLocalModelProviders().then(setDetectedLocal)
   })
+
+  function buildFooter(info: Model, providerID: string): string {
+    const parts: string[] = []
+    if (info.cost?.input === 0 && providerID === "beast") {
+      parts.push("Free")
+    } else if (info.cost?.input && info.cost.input > 0) {
+      parts.push(`$${info.cost.input}/M`)
+    }
+    if (info.limit?.context) {
+      const ctx = info.limit.context >= 1000 ? `${Math.round(info.limit.context / 1000)}K` : String(info.limit.context)
+      parts.push(`${ctx} ctx`)
+    }
+    const caps: string[] = []
+    if (info.capabilities?.reasoning) caps.push("Reasoning")
+    if (info.capabilities?.attachment) caps.push("Vision")
+    if (info.capabilities?.toolcall) caps.push("Tools")
+    if (caps.length) parts.push(caps.join(" · "))
+    return parts.join("  ")
+  }
 
   const options = createMemo(() => {
     const needle = query().trim()
@@ -56,7 +76,7 @@ export function DialogModel(props: { providerID?: string }) {
             description: provider.name,
             category,
             disabled: provider.id === "beast" && model.id.includes("-nano"),
-            footer: model.cost?.input === 0 && provider.id === "beast" ? "Free" : undefined,
+            footer: buildFooter(model, provider.id),
             onSelect: () => {
               onSelect(provider.id, model.id)
             },
@@ -65,12 +85,12 @@ export function DialogModel(props: { providerID?: string }) {
       })
     }
 
-    const favoriteOptions = toOptions(favorites, "Favorites")
+    const favoriteOptions = toOptions(favorites, "★ Favorites")
     const recentOptions = toOptions(
       recents.filter(
         (item) => !favorites.some((fav) => fav.providerID === item.providerID && fav.modelID === item.modelID),
       ),
-      "Recent",
+      "🕐 Recent",
     )
 
     const providerOptions = pipe(
@@ -89,11 +109,11 @@ export function DialogModel(props: { providerID?: string }) {
             value: { providerID: provider.id, modelID: model },
             title: info.name ?? model,
             description: favorites.some((item) => item.providerID === provider.id && item.modelID === model)
-              ? "(Favorite)"
+              ? "★"
               : undefined,
-            category: connected() ? provider.name : undefined,
+            category: connected() ? `☁️  ${provider.name}` : undefined,
             disabled: provider.id === "beast" && model.includes("-nano"),
-            footer: info.cost?.input === 0 && provider.id === "beast" ? "Free" : undefined,
+            footer: buildFooter(info, provider.id),
             onSelect() {
               onSelect(provider.id, model)
             },
@@ -107,7 +127,10 @@ export function DialogModel(props: { providerID?: string }) {
             return true
           }),
           sortBy(
-            (x) => x.footer !== "Free",
+            (x) => {
+              const info = Object.entries(provider.models).find(([id]) => id === x.value.modelID)?.[1]
+              return info?.cost?.input !== 0
+            },
             (x) => x.title,
           ),
         ),
@@ -125,9 +148,9 @@ export function DialogModel(props: { providerID?: string }) {
                 value: { providerID: provider.id, modelID: model.id },
                 title: model.name,
                 description: provider.name,
-                category: "Detected local",
+                category: "💻 Detected local",
                 disabled: configuring(),
-                footer: "Setup",
+                footer: "Click to setup",
                 onSelect() {
                   void onSelectDetected(provider, model.id)
                 },
@@ -239,14 +262,14 @@ export function DialogModel(props: { providerID?: string }) {
       keybind={[
         {
           keybind: keybind.all.model_provider_list?.[0],
-          title: connected() ? "Connect provider" : "View all providers",
+          title: connected() ? "+ Add provider" : "View all providers",
           onTrigger() {
             dialog.replace(() => <DialogProvider />)
           },
         },
         {
           keybind: keybind.all.model_favorite_toggle?.[0],
-          title: "Favorite",
+          title: "★ Favorite",
           disabled: !connected(),
           onTrigger: (option) => {
             local.model.toggleFavorite(option.value as { providerID: string; modelID: string })

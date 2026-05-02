@@ -5,6 +5,24 @@ import { useDirectory } from "../../context/directory"
 import { useConnected } from "../../component/use-connected"
 import { createStore } from "solid-js/store"
 import { useRoute } from "../../context/route"
+import { useLocal } from "../../context/local"
+
+function FooterModelInfo() {
+  const { theme } = useTheme()
+  const local = useLocal()
+  const parsed = createMemo(() => local.model.parsed())
+
+  return (
+    <Show when={parsed().model !== "No provider"}>
+      <box flexDirection="row" gap={1} flexShrink={0}>
+        <text fg={theme.textMuted}>{parsed().model}</text>
+        <Show when={parsed().reasoning}>
+          <text fg={theme.primary}>🧠</text>
+        </Show>
+      </box>
+    </Show>
+  )
+}
 
 export function Footer() {
   const { theme } = useTheme()
@@ -66,6 +84,7 @@ export function Footer() {
                 {permissions().length > 1 ? "s" : ""}
               </text>
             </Show>
+            <FooterModelInfo />
             <text fg={theme.text}>
               <span style={{ fg: lsp().length > 0 ? theme.success : theme.textMuted }}>•</span> {lsp().length} LSP
             </text>
