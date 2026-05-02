@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "name": "@simpletoolsindia/beast-cli",
   "type": "module",
   "license": "MIT",
@@ -16,7 +16,7 @@
     "db": "bun drizzle-kit"
   },
   "bin": {
-    "beast": "./bin/beast"
+    "beast": "./bin/beast.cjs"
   },
   "exports": {
     "./*": "./src/*.ts"
