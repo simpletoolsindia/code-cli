@@ -1,6 +1,6 @@
 import { createStore } from "solid-js/store"
 import { createSimpleContext } from "./helper"
-import { batch, createEffect, createMemo } from "solid-js"
+import { batch, createEffect, createMemo, on, untrack } from "solid-js"
 import { useSync } from "@tui/context/sync"
 import { useTheme } from "@tui/context/theme"
 import { uniqueBy } from "remeda"
@@ -12,6 +12,9 @@ import { useArgs } from "./args"
 import { useSDK } from "./sdk"
 import { RGBA } from "@opentui/core"
 import { Filesystem } from "@/util/filesystem"
+import * as Log from "@simpletoolsindia/core/util/log"
+
+const log = Log.create({ service: "tui.model" })
 
 export function parseModel(model: string) {
   const [providerID, ...rest] = model.split("/")
@@ -19,6 +22,10 @@ export function parseModel(model: string) {
     providerID: providerID,
     modelID: rest.join("/"),
   }
+}
+
+export function shouldApplyAgentModel(input: { previousAgentName?: string; nextAgentName?: string }) {
+  return input.nextAgentName !== undefined && input.previousAgentName !== input.nextAgentName
 }
 
 export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
@@ -286,9 +293,17 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
           )
           save()
         },
-        set(model: { providerID: string; modelID: string }, options?: { recent?: boolean }) {
+        set(model: { providerID: string; modelID: string }, options?: { recent?: boolean; force?: boolean }) {
           batch(() => {
-            if (!isModelValid(model)) {
+            if (!options?.force && !isModelValid(model)) {
+              log.warn("reject invalid model selection", {
+                providerID: model.providerID,
+                modelID: model.modelID,
+                providers: sync.data.provider.map((provider) => ({
+                  id: provider.id,
+                  models: Object.keys(provider.models),
+                })),
+              })
               toast.show({
                 message: `Model ${model.providerID}/${model.modelID} is not valid`,
                 variant: "warning",
@@ -298,8 +313,15 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
             }
             const a = agent.current()
             if (!a) return
+            log.info("set current model", {
+              agent: a.name,
+              providerID: model.providerID,
+              modelID: model.modelID,
+              previous: modelStore.model[a.name],
+              recent: options?.recent === true,
+            })
             setModelStore("model", a.name, model)
-            if (options?.recent) {
+            if (options?.recent || options?.force) {
               const uniq = uniqueBy([model, ...modelStore.recent], (x) => `${x.providerID}/${x.modelID}`)
               if (uniq.length > 10) uniq.pop()
               setModelStore(
@@ -398,23 +420,33 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
     }
 
     // Automatically update model when agent changes
-    createEffect(() => {
-      const value = agent.current()
-      if (!value) return
-      if (value.model) {
-        if (isModelValid(value.model))
-          model.set({
-            providerID: value.model.providerID,
-            modelID: value.model.modelID,
-          })
-        else
+    createEffect(
+      on(
+        () => agent.current()?.name,
+        (nextAgentName, previousAgentName) => {
+          if (!shouldApplyAgentModel({ previousAgentName, nextAgentName })) return
+          const value = untrack(() => agent.current())
+          if (!value?.model) return
+          if (untrack(() => isModelValid(value.model!))) {
+            log.info("apply agent configured model", {
+              agent: value.name,
+              providerID: value.model.providerID,
+              modelID: value.model.modelID,
+            })
+            model.set({
+              providerID: value.model.providerID,
+              modelID: value.model.modelID,
+            })
+            return
+          }
           toast.show({
             variant: "warning",
             message: `Agent ${value.name}'s configured model ${value.model.providerID}/${value.model.modelID} is not valid`,
             duration: 3000,
           })
-      }
-    })
+        },
+      ),
+    )
 
     const result = {
       model,

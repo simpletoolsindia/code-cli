@@ -13,6 +13,9 @@ import { probeLocalModelProviders, type DetectedLocalProvider } from "./model-pr
 import { useSDK } from "../context/sdk"
 import { useToast } from "../ui/toast"
 import type { Config, ProviderConfig, Model } from "@simpletoolsindia/sdk/v2"
+import * as Log from "@simpletoolsindia/core/util/log"
+
+const log = Log.create({ service: "tui.dialog.model" })
 
 export function DialogModel(props: { providerID?: string }) {
   const local = useLocal()
@@ -192,8 +195,21 @@ export function DialogModel(props: { providerID?: string }) {
     return value.name
   })
 
-  function onSelect(providerID: string, modelID: string) {
-    local.model.set({ providerID, modelID }, { recent: true })
+  function onSelect(providerID: string, modelID: string, force = false) {
+    log.info("select model", {
+      providerID,
+      modelID,
+      force,
+      before: local.model.current(),
+      providerLoaded: sync.data.provider.some((provider) => provider.id === providerID),
+      modelLoaded: sync.data.provider.some((provider) => provider.id === providerID && !!provider.models[modelID]),
+    })
+    local.model.set({ providerID, modelID }, { recent: true, force })
+    log.info("selected model state", {
+      providerID,
+      modelID,
+      after: local.model.current(),
+    })
     const list = local.model.variant.list()
     const cur = local.model.variant.selected()
     if (cur === "default" || (cur && list.includes(cur))) {
@@ -240,10 +256,23 @@ export function DialogModel(props: { providerID?: string }) {
         },
         model: `${provider.id}/${modelID}`,
       }
+      log.info("configure detected local provider", {
+        providerID: provider.id,
+        modelID,
+        detectedModels: provider.models.map((model) => model.id),
+      })
       await sdk.client.config.update({ config: nextConfig }, { throwOnError: true })
       // Config.update disposes provider state when provider definitions change.
       await sync.bootstrap()
-      onSelect(provider.id, modelID)
+      log.info("bootstrap after detected local provider", {
+        providerID: provider.id,
+        modelID,
+        providerLoaded: sync.data.provider.some((item) => item.id === provider.id),
+        models: sync.data.provider.find((item) => item.id === provider.id)?.models
+          ? Object.keys(sync.data.provider.find((item) => item.id === provider.id)!.models)
+          : [],
+      })
+      onSelect(provider.id, modelID, true)
       toast.show({
         variant: "success",
         message: `${provider.name} is ready`,

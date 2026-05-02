@@ -43,6 +43,9 @@ import { DialogSkill } from "../dialog-skill"
 import { DialogWorkspaceCreate, restoreWorkspaceSession } from "../dialog-workspace-create"
 import { DialogWorkspaceUnavailable } from "../dialog-workspace-unavailable"
 import { useArgs } from "@tui/context/args"
+import * as Log from "@simpletoolsindia/core/util/log"
+
+const log = Log.create({ service: "tui.prompt" })
 
 export type PromptProps = {
   sessionID?: string
@@ -726,6 +729,14 @@ export function Prompt(props: PromptProps) {
       void promptModelWarning()
       return false
     }
+    log.info("submit selected model", {
+      agent: agent.name,
+      providerID: selectedModel.providerID,
+      modelID: selectedModel.modelID,
+      parsed: local.model.parsed(),
+      configuredAgentModel: agent.model,
+      configModel: sync.data.config.model,
+    })
 
     const workspaceSession = props.sessionID ? sync.session.get(props.sessionID) : undefined
     const workspaceID = workspaceSession?.workspaceID
