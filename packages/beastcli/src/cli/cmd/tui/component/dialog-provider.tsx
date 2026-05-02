@@ -15,6 +15,8 @@ import * as Clipboard from "@tui/util/clipboard"
 import { useToast } from "../ui/toast"
 import { isConsoleManagedProvider } from "@tui/util/provider-origin"
 import { useConnected } from "./use-connected"
+import { probeLocalModelProviders, type DetectedLocalProvider } from "./model-provider-detect"
+import type { Config, ProviderConfig } from "@simpletoolsindia/sdk/v2"
 
 const PROVIDER_PRIORITY: Record<string, number> = {
   beastcli: 0,
@@ -148,8 +150,96 @@ export function createDialogProviderOptions() {
 }
 
 export function DialogProvider() {
+  const sync = useSync()
+  const sdk = useSDK()
+  const dialog = useDialog()
+  const toast = useToast()
   const options = createDialogProviderOptions()
-  return <DialogSelect title="Connect a provider" options={options()} />
+  const [detectedLocal, setDetectedLocal] = createSignal<DetectedLocalProvider[]>([])
+  const [configuring, setConfiguring] = createSignal(false)
+
+  onMount(() => {
+    void probeLocalModelProviders().then(setDetectedLocal)
+  })
+
+  async function onSelectDetected(provider: DetectedLocalProvider) {
+    if (configuring()) return
+    setConfiguring(true)
+    try {
+      const existing = sync.data.config.provider?.[provider.id] ?? {}
+      const nextProvider: ProviderConfig = {
+        ...existing,
+        npm: existing.npm ?? "@ai-sdk/openai-compatible",
+        name: existing.name ?? provider.name,
+        options: {
+          ...existing.options,
+          baseURL: provider.baseURL,
+        },
+        models: {
+          ...existing.models,
+          ...Object.fromEntries(
+            provider.models.map((model) => [
+              model.id,
+              {
+                name: model.name,
+              },
+            ]),
+          ),
+        },
+      }
+      const nextConfig: Config = {
+        ...sync.data.config,
+        provider: {
+          ...sync.data.config.provider,
+          [provider.id]: nextProvider,
+        },
+      }
+      await sdk.client.config.update({ config: nextConfig }, { throwOnError: true })
+      await sdk.client.instance.dispose()
+      await sync.bootstrap()
+      dialog.replace(() => <DialogModel providerID={provider.id} />)
+      toast.show({
+        variant: "success",
+        message: `${provider.name} connected`,
+        duration: 2500,
+      })
+    } catch (error) {
+      toast.error(error)
+    } finally {
+      setConfiguring(false)
+    }
+  }
+
+  const localOptions = createMemo(() => {
+    const ready = detectedLocal().filter((p) => p.status === "ready")
+    if (ready.length === 0) return []
+    return ready.map((provider) => ({
+      title: provider.name,
+      value: provider.id,
+      description: `${provider.models.length} model${provider.models.length !== 1 ? "s" : ""} detected`,
+      category: "💻 Local",
+      disabled: configuring(),
+      async onSelect() {
+        await onSelectDetected(provider)
+      },
+    }))
+  })
+
+  const allOptions = createMemo(() => {
+    const cloud = options()
+    const local = localOptions()
+    if (local.length === 0) return cloud
+    // Show local providers first, then cloud providers
+    const result = [...local, ...cloud]
+    // Remove cloud duplicates if a local provider with same ID exists
+    const localIds = new Set<string>(local.map((l) => l.value))
+    return result.filter((o, i) => {
+      if (i < local.length) return true
+      return !localIds.has(o.value)
+    })
+  })
+
+  return <DialogSelect title="Connect a provider" options={allOptions()} />
 }
 
 interface AutoMethodProps {

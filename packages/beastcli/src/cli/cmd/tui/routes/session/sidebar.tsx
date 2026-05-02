@@ -102,11 +102,11 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
     messages()
       .slice()
       .reverse()
-      .find((m) => m.role === "assistant" && "tokens" in m && (m.tokens?.output ?? 0) > 0),
+      .find((m) => m.role === "assistant" && "tokens" in m && ((m as any).tokens?.output ?? 0) > 0),
   )
 
   const contextPercent = createMemo(() => {
-    const last = lastAssistant()
+    const last = lastAssistant() as any
     if (!last || !last.tokens) return 0
     const used = last.tokens.input + last.tokens.output + (last.tokens.reasoning ?? 0)
     const model = sync.data.provider.find((p) => p.id === last.providerID)?.models[last.modelID]
@@ -114,19 +114,13 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
     return Math.round((used / model.limit.context) * 100)
   })
 
-  const cost = createMemo(() => {
-    const last = lastAssistant()
-    if (!last) return 0
-    return messages().reduce((sum, m) => sum + (m.role === "assistant" ? (m as any).cost ?? 0 : 0), 0)
-  })
-
   // Current model
   const currentModel = createMemo(() => local.model.parsed())
 
   // Connected services
   const mcpCount = createMemo(() => Object.values(sync.data.mcp).filter((x) => x.status === "connected").length)
-  const lspCount = createMemo(() => sync.data.lsp.length)
-  const providerCount = createMemo(() => sync.data.provider.filter((p) => p.status === "available").length)
+
+  const providerCount = createMemo(() => sync.data.provider.filter((p) => (p as any).status === "available").length)
 
   // Mock recent tool calls from session diffs or messages
   const recentTools = createMemo(() => {
@@ -134,16 +128,16 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
     const tools: Array<{ tool: string; status: "running" | "done" | "error"; detail: string }> = []
     const diff = diffs[0]
     if (diff) {
-      tools.push({ tool: "edit_file", status: "done", detail: diff.path })
+      tools.push({ tool: "edit_file", status: "done", detail: (diff as any).path ?? diff.file })
     }
     // Check last few messages for tool calls
     const lastMsgs = messages().slice(-5)
-    for (const msg of lastMsgs) {
+    for (const msg of lastMsgs as any[]) {
       if (msg.role === "tool") {
         tools.push({
-          tool: (msg as any).tool ?? "tool",
+          tool: msg.tool ?? "tool",
           status: msg.status === "error" ? "error" : "done",
-          detail: (msg as any).path ?? "",
+          detail: msg.path ?? "",
         })
       }
     }
@@ -207,17 +201,19 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
 
             {/* Context Usage Bar */}
             <box gap={1} paddingTop={1} flexShrink={0}>
-              <box flexDirection="row" justifyContent="space-between">
-                <text fg={theme.text}>
-                  <b>Context</b>
-                </text>
-                <text fg={theme.textMuted}>{cost() > 0 ? `$${cost().toFixed(4)}` : ""}</text>
-              </box>
+              <text fg={theme.text}>
+                <b>Context</b>
+              </text>
               <ProgressBar percent={contextPercent()} width={30} />
               <text fg={theme.textMuted}>
-                {lastAssistant()?.tokens
-                  ? `${(lastAssistant().tokens.input + lastAssistant().tokens.output).toLocaleString()} / ${(sync.data.provider.find((p) => p.id === lastAssistant().providerID)?.models[lastAssistant().modelID]?.limit?.context ?? 0).toLocaleString()} tokens`
-                  : "No context data"}
+                {(() => {
+                  const last = lastAssistant()
+                  if (!last || !(last as any).tokens) return "No context data"
+                  const tokens = (last as any).tokens
+                  const used = tokens.input + tokens.output
+                  const limit = sync.data.provider.find((p) => p.id === (last as any).providerID)?.models[(last as any).modelID]?.limit?.context ?? 0
+                  return `${used.toLocaleString()}${limit > 0 ? ` / ${limit.toLocaleString()}` : ""} tokens`
+                })()}
               </text>
             </box>
 
@@ -267,9 +263,6 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
               <box flexDirection="row" gap={2}>
                 <text fg={mcpCount() > 0 ? theme.success : theme.textMuted}>
                   🔧 {mcpCount()} MCP{mcpCount() !== 1 ? "s" : ""}
-                </text>
-                <text fg={lspCount() > 0 ? theme.success : theme.textMuted}>
-                  🌐 {lspCount()} LSP{lspCount() !== 1 ? "s" : ""}
                 </text>
               </box>
               <text fg={providerCount() > 0 ? theme.success : theme.textMuted}>

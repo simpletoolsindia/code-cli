@@ -29,12 +29,12 @@ const LOCAL_PROVIDERS = [
   {
     id: "mlx",
     name: "MLX",
-    baseURL: "http://localhost:8000/v1",
+    baseURL: "http://localhost:8080/v1",
   },
   {
     id: "vllm",
     name: "vLLM",
-    baseURL: "http://localhost:8000/v1",
+    baseURL: "http://localhost:8001/v1",
   },
 ] as const
 

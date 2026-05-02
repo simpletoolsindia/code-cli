@@ -50,7 +50,7 @@ let arch = archMap[os.arch()]
 if (!arch) {
   arch = os.arch()
 }
-const base = "beastcli-" + platform + "-" + arch
+const base = "@simpletoolsindia/beast-cli-" + platform + "-" + arch
 const binary = platform === "windows" ? "beastcli.exe" : "beastcli"
 
 function supportsAvx2() {

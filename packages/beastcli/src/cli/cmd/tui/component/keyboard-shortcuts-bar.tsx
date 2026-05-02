@@ -7,10 +7,9 @@ import os from "os"
 // 🎨 Modern gradient key styles for each key type
 const KEY_STYLES: Record<string, { bg: string; fg: string; icon: string }> = {
   command:  { bg: "#7B61FF", fg: "#FFFFFF", icon: "◆" },
-  leader:   { bg: "#00E5FF", fg: "#000000", icon: "▸" },
-  stop:     { bg: "#FF3366", fg: "#FFFFFF", icon: "■" },
   model:    { bg: "#00E676", fg: "#000000", icon: "◇" },
-  provider: { bg: "#FFAB00", fg: "#000000", icon: "◈" },
+  agent:    { bg: "#FFAB00", fg: "#000000", icon: "◈" },
+  stop:     { bg: "#FF3366", fg: "#FFFFFF", icon: "■" },
   help:     { bg: "#7C4DFF", fg: "#FFFFFF", icon: "?" },
 }
 
@@ -19,7 +18,6 @@ function getPlatformModifier() {
   const platform = os.platform()
   return {
     symbol: platform === "darwin" ? "⌘" : platform === "win32" ? "⊞" : "Ctrl",
-    alt: platform === "darwin" ? "⌥" : "Alt",
   }
 }
 
@@ -28,13 +26,13 @@ export function KeyboardShortcutsBar() {
   const connected = useConnected()
   const mod = getPlatformModifier()
 
+  // Simplified shortcuts matching actual defaults from config/keybinds.ts
   const items = createMemo(() => {
     const base: Array<{ key: keyof typeof KEY_STYLES; label: string; desc: string }> = [
-      { key: "command",  label: `${mod.symbol}+P`,   desc: "Commands" },
-      { key: "leader",   label: `${mod.symbol}+X`,   desc: "Leader" },
-      { key: "model",    label: `${mod.symbol}+K`,   desc: "Switch Model" },
-      { key: "provider", label: `${mod.symbol}+S+P`, desc: "Switch Provider" },
-      { key: "help",     label: `${mod.symbol}+X ?`, desc: "Help" },
+      { key: "command", label: `${mod.symbol}+K`, desc: "Commands" },
+      { key: "model",   label: `${mod.symbol}+O`, desc: "Switch Model" },
+      { key: "agent",   label: "Tab",             desc: "Switch Agent" },
+      { key: "help",    label: `${mod.symbol}+H`, desc: "Help" },
     ]
 
     if (connected()) {
