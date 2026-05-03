@@ -1,7 +1,7 @@
 <div align="center">
 
 <a href="https://github.com/simpletoolsindia/code-cli">
-  <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="BeastCLI" width="180">
+  
 </a>
 
 # BeastCLI
