@@ -103,7 +103,7 @@ export default function Footer(): React.ReactElement {
             </a>
           </p>
           <div className="flex items-center gap-4 text-sm text-slate-500">
-            <span>Version 2.5.0</span>
+            <span>Version 2.6.0</span>
             <span>·</span>
             <span>Made with AI</span>
           </div>
