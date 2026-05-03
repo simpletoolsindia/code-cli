@@ -460,7 +460,7 @@ export const ProvidersLoginCommand = cmd({
         }
 
         if (provider === "beast") {
-          prompts.log.info("Create an api key at https://beastcli.ai/auth")
+          prompts.log.info("Create an api key at https://beastcli.sridharhomelab.in/auth")
         }
 
         if (provider === "vercel") {
@@ -469,7 +469,7 @@ export const ProvidersLoginCommand = cmd({
 
         if (["cloudflare", "cloudflare-ai-gateway"].includes(provider)) {
           prompts.log.info(
-            "Cloudflare AI Gateway can be configured with CLOUDFLARE_GATEWAY_ID, CLOUDFLARE_ACCOUNT_ID, and CLOUDFLARE_API_TOKEN environment variables. Read more: https://beastcli.ai/docs/providers/#cloudflare-ai-gateway",
+            "Cloudflare AI Gateway can be configured with CLOUDFLARE_GATEWAY_ID, CLOUDFLARE_ACCOUNT_ID, and CLOUDFLARE_API_TOKEN environment variables. Read more: https://beastcli.sridharhomelab.in/docs/providers/#cloudflare-ai-gateway",
           )
         }
 

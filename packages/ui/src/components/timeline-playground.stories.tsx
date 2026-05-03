@@ -1275,9 +1275,12 @@ function Playground() {
   }
 
   // ---- User message helpers ----
-  const addUser = (variant: keyof typeof USER_VARIANTS) => {
-    const v = USER_VARIANTS[variant]
-    const user = mkUser(v.text, v.parts, session().id)
+  const addUser = (variant: string) => {
+    const v = variant as keyof typeof USER_VARIANTS
+    const data = USER_VARIANTS[v]
+    if (!data) return
+    const { text, parts } = data
+    const user = mkUser(text, parts, session().id)
     const asst = mkAssistant(user.message.id, session().id)
     setState(
       produce((draft) => {
@@ -1290,8 +1293,10 @@ function Playground() {
   }
 
   // ---- Part helpers (append to last turn) ----
-  const addText = (variant: keyof typeof MARKDOWN_SAMPLES) => {
-    appendParts([textPart(MARKDOWN_SAMPLES[variant])])
+  const addText = (variant: string) => {
+    if (variant in MARKDOWN_SAMPLES) {
+      appendParts([textPart(MARKDOWN_SAMPLES[variant as keyof typeof MARKDOWN_SAMPLES])])
+    }
   }
 
   const addReasoning = () => {
@@ -1299,8 +1304,10 @@ function Playground() {
     appendParts([reasoningPart(REASONING_SAMPLES[idx])])
   }
 
-  const addTool = (name: keyof typeof TOOL_SAMPLES) => {
-    appendParts([toolPart(TOOL_SAMPLES[name])])
+  const addTool = (name: string) => {
+    if (name in TOOL_SAMPLES) {
+      appendParts([toolPart(TOOL_SAMPLES[name as keyof typeof TOOL_SAMPLES])])
+    }
   }
 
   // ---- Composite helpers (create full turns with user + assistant) ----
@@ -1656,10 +1663,10 @@ function Playground() {
                 Creates a new turn (user + empty assistant)
               </div>
               <div style={{ display: "flex", "flex-wrap": "wrap", gap: "4px" }}>
-                <For each={Object.keys(USER_VARIANTS) as (keyof typeof USER_VARIANTS)[]}>
+                <For each={Object.keys(USER_VARIANTS)}>
                   {(key) => (
                     <button style={btnStyle} onClick={() => addUser(key)}>
-                      {USER_VARIANTS[key].label}
+                      {USER_VARIANTS[key as keyof typeof USER_VARIANTS].label}
                     </button>
                   )}
                 </For>
@@ -1684,7 +1691,7 @@ function Playground() {
                 Appends to the last turn's assistant parts
               </div>
               <div style={{ display: "flex", "flex-wrap": "wrap", gap: "4px" }}>
-                <For each={Object.keys(MARKDOWN_SAMPLES) as (keyof typeof MARKDOWN_SAMPLES)[]}>
+                <For each={Object.keys(MARKDOWN_SAMPLES)}>
                   {(key) => (
                     <button style={btnStyle} onClick={() => addText(key)}>
                       {key}
@@ -1702,7 +1709,7 @@ function Playground() {
                 Appends to the last turn's assistant parts
               </div>
               <div style={{ display: "flex", "flex-wrap": "wrap", gap: "4px" }}>
-                <For each={Object.keys(TOOL_SAMPLES) as (keyof typeof TOOL_SAMPLES)[]}>
+                <For each={Object.keys(TOOL_SAMPLES)}>
                   {(key) => (
                     <button style={btnStyle} onClick={() => addTool(key)}>
                       {key}
@@ -1961,7 +1968,7 @@ function Playground() {
 
       {/* Main area: timeline preview */}
       <div
-        ref={previewRef!}
+        ref={previewRef}
         style={{ flex: "1", overflow: "auto", "min-width": "0", "background-color": "var(--background-stronger)" }}
       >
         <DataProvider data={data()} directory="/project">

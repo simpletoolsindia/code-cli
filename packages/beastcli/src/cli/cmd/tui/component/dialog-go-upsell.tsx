@@ -8,7 +8,7 @@ import { Link } from "@tui/ui/link"
 import { GoLogo } from "./logo"
 import { BgPulse, type BgPulseMask } from "./bg-pulse"
 
-const GO_URL = "https://beastcli.ai/go"
+const GO_URL = "https://beastcli.sridharhomelab.in/go"
 const PAD_X = 3
 const PAD_TOP_OUTER = 1
 

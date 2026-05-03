@@ -43,11 +43,11 @@ export function DialogHelp() {
           All custom keybinds can be overridden in your tui.json configuration.
         </text>
         <text fg={theme.textMuted} wrapMode="word">
-          Support: https://beastcli.ai/docs or open an issue on the GitHub repository.
+          Support: https://beastcli.sridharhomelab.in/docs or open an issue on the GitHub repository.
         </text>
       </box>
       <box flexDirection="row" justifyContent="flex-end" gap={1} paddingBottom={1}>
-        <box paddingLeft={2} paddingRight={2} backgroundColor={theme.backgroundPanel} onMouseUp={() => open("https://beastcli.ai/docs").catch(() => {})}>
+        <box paddingLeft={2} paddingRight={2} backgroundColor={theme.backgroundPanel} onMouseUp={() => open("https://beastcli.sridharhomelab.in/docs").catch(() => {})}>
           <text fg={theme.text}>docs</text>
         </box>
         <box

@@ -111,7 +111,7 @@ export const Info = Schema.Struct({
     description: "Server configuration for beast serve and web commands",
   }),
   command: Schema.optional(Schema.Record(Schema.String, ConfigCommand.Info)).annotate({
-    description: "Command configuration, see https://beastcli.ai/docs/commands",
+    description: "Command configuration, see https://beastcli.sridharhomelab.in/docs/commands",
   }),
   skills: Schema.optional(ConfigSkills.Info).annotate({ description: "Additional skill folder paths" }),
   watcher: Schema.optional(
@@ -180,7 +180,7 @@ export const Info = Schema.Struct({
       }),
       [Schema.Record(Schema.String, ConfigAgent.Info)],
     ),
-  ).annotate({ description: "Agent configuration, see https://beastcli.ai/docs/agents" }),
+  ).annotate({ description: "Agent configuration, see https://beastcli.sridharhomelab.in/docs/agents" }),
   provider: Schema.optional(Schema.Record(Schema.String, ConfigProvider.Info)).annotate({
     description: "Custom provider configurations and model overrides",
   }),
@@ -348,6 +348,14 @@ function writableGlobal(info: Info) {
   return next
 }
 
+function isProjectConfigCandidate(data: unknown) {
+  if (!isRecord(data)) return false
+  if (typeof data.$schema === "string" && data.$schema.includes("beastcli")) return true
+  return ["provider", "model", "agent", "command", "mcp", "permission", "plugin", "formatter", "lsp"].some(
+    (key) => key in data,
+  )
+}
+
 export const ConfigDirectoryTypoError = NamedError.create(
   "ConfigDirectoryTypoError",
   z.object({
@@ -392,8 +400,8 @@ export const layer = Layer.effect(
 
       yield* Effect.promise(() => resolveLoadedPlugins(data, options.path))
       if (!data.$schema) {
-        data.$schema = "https://beastcli.ai/config.json"
-        const updated = text.replace(/^\s*\{/, '{\n  "$schema": "https://beastcli.ai/config.json",')
+        data.$schema = "https://beastcli.sridharhomelab.in/config.json"
+        const updated = text.replace(/^\s*\{/, '{\n  "$schema": "https://beastcli.sridharhomelab.in/config.json",')
         yield* fs.writeFileString(options.path, updated).pipe(Effect.catch(() => Effect.void))
       }
       return data
@@ -403,6 +411,20 @@ export const layer = Layer.effect(
       log.info("loading", { path: filepath })
       const text = yield* readConfigFile(filepath)
       if (!text) return {} as Info
+      return yield* loadConfig(text, { path: filepath })
+    })
+
+    const loadProjectConfigFile = Effect.fnUntraced(function* (filepath: string) {
+      const text = yield* readConfigFile(filepath)
+      if (!text) return {} as Info
+      const parsed = yield* Effect.sync(() => ConfigParse.jsonc(text, filepath)).pipe(
+        Effect.catch(() => Effect.succeed(undefined)),
+      )
+      if (!isProjectConfigCandidate(parsed)) {
+        log.debug("skipping project config.json because it is not beast config", { path: filepath })
+        return {} as Info
+      }
+      log.info("loading project config.json", { path: filepath })
       return yield* loadConfig(text, { path: filepath })
     })
 
@@ -419,7 +441,7 @@ export const layer = Layer.effect(
             .then(async (mod) => {
               const { provider, model, ...rest } = mod.default
               if (provider && model) result.model = `${provider}/${model}`
-              result["$schema"] = "https://beastcli.ai/config.json"
+              result["$schema"] = "https://beastcli.sridharhomelab.in/config.json"
               result = mergeConfig(result, rest)
               await fsNode.writeFile(path.join(Global.Path.config, "config.json"), JSON.stringify(result, null, 2))
               await fsNode.unlink(legacy)
@@ -515,7 +537,7 @@ export const layer = Layer.effect(
             }
             const wellknown = (yield* Effect.promise(() => response.json())) as { config?: Record<string, unknown> }
             const remoteConfig = wellknown.config ?? {}
-            if (!remoteConfig.$schema) remoteConfig.$schema = "https://beastcli.ai/config.json"
+            if (!remoteConfig.$schema) remoteConfig.$schema = "https://beastcli.sridharhomelab.in/config.json"
             const source = `${url}/.well-known/beastcli`
             const next = yield* loadConfig(JSON.stringify(remoteConfig), {
               dir: path.dirname(source),
@@ -538,6 +560,8 @@ export const layer = Layer.effect(
           for (const file of yield* ConfigPaths.files("beast", ctx.directory, ctx.worktree).pipe(Effect.orDie)) {
             yield* merge(file, yield* loadFile(file), "local")
           }
+          const configFile = path.join(ctx.directory, "config.json")
+          yield* merge(configFile, yield* loadProjectConfigFile(configFile), "local")
         }
 
         result.agent = result.agent || {}
@@ -751,8 +775,16 @@ export const layer = Layer.effect(
       const dir = yield* InstanceState.directory
       const file = path.join(dir, "config.json")
       const existing = yield* loadFile(file)
+      const next = mergeDeep(writable(existing), writable(config))
+      next.$schema ??= "https://beastcli.sridharhomelab.in/config.json"
+      log.info("writing project config", {
+        path: file,
+        model: next.model,
+        providerIDs: Object.keys(next.provider ?? {}),
+        updatedProviderIDs: Object.keys(config.provider ?? {}),
+      })
       yield* fs
-        .writeFileString(file, JSON.stringify(mergeDeep(writable(existing), writable(config)), null, 2))
+        .writeFileString(file, JSON.stringify(next, null, 2))
         .pipe(Effect.orDie)
       if (options?.dispose !== false || (options?.disposeProvider !== false && config.provider)) {
         yield* Effect.promise(() => Instance.dispose())

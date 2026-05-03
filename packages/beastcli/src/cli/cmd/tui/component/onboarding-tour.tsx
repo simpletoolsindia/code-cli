@@ -33,7 +33,7 @@ export function OnboardingTour() {
     },
     {
       title: "Start Coding",
-      body: "Once connected, type a prompt and press Enter. Visit beastcli.ai/docs for more tips.",
+      body: "Once connected, type a prompt and press Enter. Visit beastcli.sridharhomelab.in/docs for more tips.",
       onNext: () => finish(),
     },
   ]

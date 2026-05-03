@@ -16,7 +16,7 @@ const embeddedUIPromise = Flag.BEAST_DISABLE_EMBEDDED_WEB_UI
 
 const DEFAULT_CSP =
   "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; media-src 'self' data:; connect-src 'self' data:"
-const UI_UPSTREAM = new URL("https://app.beastcli.ai")
+const UI_UPSTREAM = new URL("https://app.beastcli.sridharhomelab.in")
 
 const csp = (hash = "") =>
   `default-src 'self'; script-src 'self' 'wasm-unsafe-eval'${hash ? ` 'sha256-${hash}'` : ""}; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; media-src 'self' data:; connect-src 'self' data:`

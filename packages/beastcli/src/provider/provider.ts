@@ -493,7 +493,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://beastcli.ai/",
+            "HTTP-Referer": "https://beastcli.sridharhomelab.in/",
             "X-Title": "beast",
             "X-Source": "beast",
           },
@@ -504,7 +504,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://beastcli.ai/",
+            "HTTP-Referer": "https://beastcli.sridharhomelab.in/",
             "X-Title": "beast",
           },
         },
@@ -514,7 +514,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://beastcli.ai/",
+            "HTTP-Referer": "https://beastcli.sridharhomelab.in/",
             "X-Title": "beast",
           },
         },
@@ -524,7 +524,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "http-referer": "https://beastcli.ai/",
+            "http-referer": "https://beastcli.sridharhomelab.in/",
             "x-title": "beast",
           },
         },
@@ -622,7 +622,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://beastcli.ai/",
+            "HTTP-Referer": "https://beastcli.sridharhomelab.in/",
             "X-Title": "beast",
           },
         },
@@ -913,7 +913,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://beastcli.ai/",
+            "HTTP-Referer": "https://beastcli.sridharhomelab.in/",
             "X-Title": "beast",
           },
         },
@@ -1681,6 +1681,12 @@ const layer: Layer.Layer<
       if (!provider) {
         const available = Object.keys(s.providers)
         const matches = fuzzysort.go(providerID, available, { limit: 3, threshold: -10000 })
+        log.warn("model lookup failed: provider missing", {
+          providerID,
+          modelID,
+          availableProviders: available,
+          suggestions: matches.map((m) => m.target),
+        })
         throw new ModelNotFoundError({ providerID, modelID, suggestions: matches.map((m) => m.target) })
       }
 
@@ -1688,8 +1694,15 @@ const layer: Layer.Layer<
       if (!info) {
         const available = Object.keys(provider.models)
         const matches = fuzzysort.go(modelID, available, { limit: 3, threshold: -10000 })
+        log.warn("model lookup failed: model missing", {
+          providerID,
+          modelID,
+          availableModels: available,
+          suggestions: matches.map((m) => m.target),
+        })
         throw new ModelNotFoundError({ providerID, modelID, suggestions: matches.map((m) => m.target) })
       }
+      log.info("model lookup resolved", { providerID, modelID })
       return info
     })
 

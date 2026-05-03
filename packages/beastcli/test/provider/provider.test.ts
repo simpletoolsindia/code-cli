@@ -14,6 +14,7 @@ import { Env } from "../../src/env"
 import { Effect } from "effect"
 import { AppRuntime } from "../../src/effect/app-runtime"
 import { makeRuntime } from "../../src/effect/run-service"
+import { Config } from "@/config/config"
 
 const env = makeRuntime(Env.Service, Env.defaultLayer)
 const set = (k: string, v: string) => env.runSync((svc) => svc.set(k, v))
@@ -92,6 +93,45 @@ test("provider loaded from env variable", async () => {
       // merge additional options.
       expect(providers[ProviderID.anthropic].source).toBe("env")
       expect(providers[ProviderID.anthropic].options.headers["anthropic-beta"]).toBeDefined()
+    },
+  })
+})
+
+test("provider written by config update is available after instance reload", async () => {
+  await using tmp = await tmpdir()
+  await Instance.provide({
+    directory: tmp.path,
+    fn: async () => {
+      await AppRuntime.runPromise(
+        Effect.gen(function* () {
+          const config = yield* Config.Service
+          yield* config.update(
+            {
+              provider: {
+                ollama: {
+                  npm: "@ai-sdk/openai-compatible",
+                  name: "Ollama",
+                  options: { baseURL: "http://localhost:11434/v1" },
+                  models: {
+                    "gemma4:e2b": { name: "gemma4:e2b" },
+                  },
+                },
+              },
+              model: "ollama/gemma4:e2b",
+            },
+            { dispose: false },
+          )
+        }),
+      )
+    },
+  })
+
+  await Instance.provide({
+    directory: tmp.path,
+    fn: async () => {
+      const model = await getModel(ProviderID.make("ollama"), ModelID.make("gemma4:e2b"))
+      expect(model.providerID).toBe(ProviderID.make("ollama"))
+      expect(model.id).toBe(ModelID.make("gemma4:e2b"))
     },
   })
 })

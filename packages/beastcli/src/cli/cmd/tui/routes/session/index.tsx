@@ -112,6 +112,38 @@ const context = createContext<{
   tui: ReturnType<typeof useTuiConfig>
 }>()
 
+function HeaderProgress(props: { active: boolean; label: string; detail?: string; width: number }) {
+  const { theme } = useTheme()
+  const barWidth = createMemo(() => Math.max(18, Math.min(64, props.width - 24)))
+  const frames = createMemo(() => {
+    const width = barWidth()
+    const segment = Math.max(4, Math.min(10, Math.floor(width / 4)))
+    return Array.from({ length: width }, (_, index) => {
+      const cells = Array.from({ length: width }, (_, pos) => {
+        const distance = (pos - index + width) % width
+        if (distance < segment) return "●"
+        if (distance < segment + 2) return "•"
+        return "·"
+      })
+      return cells.join("")
+    })
+  })
+
+  return (
+    <Show when={props.active}>
+      <box flexDirection="row" gap={1} height={1} flexShrink={0} alignItems="center">
+        <spinner color={theme.primary} frames={frames()} interval={55} />
+        <text fg={theme.primary} flexShrink={0} attributes={2}>
+          {props.label}
+        </text>
+        <Show when={props.detail}>
+          {(detail) => <text fg={theme.textMuted} wrapMode="none">{detail()}</text>}
+        </Show>
+      </box>
+    </Show>
+  )
+}
+
 function use() {
   const ctx = useContext(context)
   if (!ctx) throw new Error("useContext must be used within a Session component")
@@ -136,6 +168,27 @@ export function Session() {
       .toSorted((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
   })
   const messages = createMemo(() => sync.data.message[route.sessionID] ?? [])
+  const status = createMemo(() => sync.data.session_status?.[route.sessionID] ?? { type: "idle" })
+  const runningTool = createMemo(() =>
+    messages()
+      .flatMap((message) => ((sync.data.part[message.id] ?? []) as ToolPart[]))
+      .findLast((part) => part.type === "tool" && part.state.status === "running"),
+  )
+  const headerProgress = createMemo(() => {
+    const tool = runningTool()
+    if (tool) {
+      const title = tool.state.status === "running" ? tool.state.title : undefined
+      return {
+        active: true,
+        label: "Processing",
+        detail: `${Locale.titlecase(tool.tool)}${title ? ` · ${title}` : ""}`,
+      }
+    }
+    const current = status()
+    if (current.type === "busy") return { active: true, label: "Thinking", detail: "Preparing response" }
+    if (current.type === "retry") return { active: true, label: "Retrying", detail: `Attempt ${current.attempt}` }
+    return { active: false, label: "Ready", detail: undefined }
+  })
   const permissions = createMemo(() => {
     if (session()?.parentID) return []
     return children().flatMap((x) => sync.data.permission[x.id] ?? [])
@@ -1059,6 +1112,12 @@ export function Session() {
       <box flexDirection="row">
         <box flexGrow={1} paddingBottom={1} paddingLeft={2} paddingRight={2} gap={1}>
           <BreadcrumbNav />
+          <HeaderProgress
+            active={headerProgress().active}
+            label={headerProgress().label}
+            detail={headerProgress().detail}
+            width={contentWidth()}
+          />
           <Show when={session()}>
             <scrollbox
               ref={(r) => (scroll = r)}
@@ -1426,10 +1485,9 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
                       : local.agent.color(props.message.agent),
                 }}
               >
-                ▣{" "}
+                ◇{" "}
               </span>{" "}
-              <span style={{ fg: theme.text }}>{Locale.titlecase(props.message.mode)}</span>
-              <span style={{ fg: theme.textMuted }}> · {model()}</span>
+              <span style={{ fg: theme.text }}>{model()}</span>
               <Show when={duration()}>
                 <span style={{ fg: theme.textMuted }}> · {Locale.duration(duration())}</span>
               </Show>
@@ -1680,6 +1738,7 @@ function InlineTool(props: {
   })
 
   const error = createMemo(() => (props.part.state.status === "error" ? props.part.state.error : undefined))
+  const active = createMemo(() => props.spinner || props.part.state.status === "running")
 
   const denied = createMemo(
     () =>
@@ -1723,7 +1782,7 @@ function InlineTool(props: {
       }}
     >
       <Switch>
-        <Match when={props.spinner}>
+        <Match when={active()}>
           <Spinner color={fg()} children={props.children} />
         </Match>
         <Match when={true}>

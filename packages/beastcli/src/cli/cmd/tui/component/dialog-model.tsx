@@ -226,6 +226,13 @@ export function DialogModel(props: { providerID?: string }) {
     if (configuring()) return
     setConfiguring(true)
     try {
+      log.info("select detected local model", {
+        providerID: provider.id,
+        providerName: provider.name,
+        modelID,
+        baseURL: provider.baseURL,
+        before: local.model.current(),
+      })
       const nextConfig: Config = {
         ...sync.data.config,
         provider: {
@@ -243,11 +250,27 @@ export function DialogModel(props: { providerID?: string }) {
         model: `${provider.id}/${modelID}`,
       }
       await sdk.client.config.update({ config: nextConfig }, { throwOnError: true })
-      // Just save model locally — do NOT call config.update again
+      log.info("detected local model config saved", {
+        providerID: provider.id,
+        modelID,
+        configuredModels: Object.keys(nextConfig.provider?.[provider.id]?.models ?? {}),
+      })
+      await sync.bootstrap()
+      log.info("detected local model sync refreshed", {
+        providerID: provider.id,
+        modelID,
+        providerLoaded: sync.data.provider.some((item) => item.id === provider.id),
+        modelLoaded: sync.data.provider.some((item) => item.id === provider.id && !!item.models[modelID]),
+      })
       local.model.set({ providerID: provider.id, modelID }, { recent: true })
+      log.info("detected local model selected", {
+        providerID: provider.id,
+        modelID,
+        after: local.model.current(),
+      })
       toast.show({
         variant: "success",
-        message: `${provider.name} is ready — restart beast to use ${modelID}`,
+        message: `${provider.name} is ready with ${modelID}`,
         duration: 4000,
       })
     } catch (error) {

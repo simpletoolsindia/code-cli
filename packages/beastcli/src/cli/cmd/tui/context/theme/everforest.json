@@ -1,5 +1,5 @@
 {
-  "$schema": "https://beastcli.ai/theme.json",
+  "$schema": "https://beastcli.sridharhomelab.in/theme.json",
   "defs": {
     "darkStep1": "#2d353b",
     "darkStep2": "#333c43",

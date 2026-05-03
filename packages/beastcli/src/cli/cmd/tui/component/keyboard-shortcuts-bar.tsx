@@ -2,7 +2,6 @@ import { TextAttributes } from "@opentui/core"
 import { useTheme } from "@tui/context/theme"
 import { useConnected } from "@tui/component/use-connected"
 import { createMemo } from "solid-js"
-import os from "os"
 
 // 🎨 Modern gradient key styles for each key type
 const KEY_STYLES: Record<string, { bg: string; fg: string; icon: string }> = {
@@ -15,9 +14,8 @@ const KEY_STYLES: Record<string, { bg: string; fg: string; icon: string }> = {
 
 // Detect platform for correct modifier key symbols
 function getPlatformModifier() {
-  const platform = os.platform()
   return {
-    symbol: platform === "darwin" ? "⌘" : platform === "win32" ? "⊞" : "Ctrl",
+    symbol: "Ctrl",
   }
 }
 
@@ -29,7 +27,7 @@ export function KeyboardShortcutsBar() {
   // Simplified shortcuts matching actual defaults from config/keybinds.ts
   const items = createMemo(() => {
     const base: Array<{ key: keyof typeof KEY_STYLES; label: string; desc: string }> = [
-      { key: "command", label: `${mod.symbol}+K`, desc: "Commands" },
+      { key: "command", label: `${mod.symbol}+P`, desc: "Commands" },
       { key: "model",   label: `${mod.symbol}+O`, desc: "Switch Model" },
       { key: "agent",   label: "Tab",             desc: "Switch Agent" },
       { key: "help",    label: `${mod.symbol}+H`, desc: "Help" },
@@ -85,7 +83,7 @@ export function KeyboardShortcutsBar() {
 
       {/* Platform indicator */}
       <text fg={theme.textMuted} attributes={TextAttributes.DIM}>
-        {os.platform() === "darwin" ? "🍎" : os.platform() === "win32" ? "🪟" : "🐧"} {mod.symbol}-based
+        {mod.symbol}-based
       </text>
     </box>
   )

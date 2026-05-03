@@ -468,6 +468,19 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
       },
     },
     {
+      title: "Switch model",
+      value: "model.list",
+      keybind: "model_list",
+      category: "Agent",
+      slash: {
+        name: "models",
+        aliases: ["model"],
+      },
+      onSelect: () => {
+        dialog.replace(() => <DialogModel />)
+      },
+    },
+    {
       title: "Model cycle",
       value: "model.cycle_recent",
       keybind: "model_cycle_recent",
@@ -751,7 +764,7 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
       title: "Open docs",
       value: "docs.open",
       onSelect: () => {
-        open("https://beastcli.ai/docs").catch(() => {})
+        open("https://beastcli.sridharhomelab.in/docs").catch(() => {})
         dialog.clear()
       },
       category: "System",

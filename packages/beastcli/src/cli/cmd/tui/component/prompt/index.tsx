@@ -32,6 +32,7 @@ import { iife } from "@/util/iife"
 import { Locale } from "@/util/locale"
 import { formatDuration } from "@/util/format"
 import { createColors, createFrames } from "../../ui/spinner.ts"
+import { CircleSpinner } from "@tui/component/spinner"
 import { useDialog } from "@tui/ui/dialog"
 import { DialogProvider as DialogProviderConnect } from "../dialog-provider"
 import { DialogAlert } from "../../ui/dialog-alert"
@@ -87,13 +88,6 @@ function randomIndex(count: number) {
 
 function isLocalProvider(providerID: string) {
   return LOCAL_PROVIDER_IDS.has(providerID)
-}
-
-function loadingBar(tick: number) {
-  const width = 18
-  const segment = 5
-  const start = (tick % (width + segment)) - segment
-  return `[${Array.from({ length: width }, (_, index) => (index >= start && index < start + segment ? "=" : "-")).join("")}]`
 }
 
 function fadeColor(color: RGBA, alpha: number) {
@@ -153,7 +147,6 @@ export function Prompt(props: PromptProps) {
   const kv = useKV()
   const animationsEnabled = createMemo(() => kv.get("animations_enabled", true))
   const [activeLocalModel, setActiveLocalModel] = createSignal<{ providerID: string; modelID: string }>()
-  const [localModelLoadTick, setLocalModelLoadTick] = createSignal(0)
   const list = createMemo(() => props.placeholders?.normal ?? [])
   const shell = createMemo(() => props.placeholders?.shell ?? [])
   const fileContextEnabled = createMemo(() => kv.get("file_context_enabled", true))
@@ -192,29 +185,9 @@ export function Prompt(props: PromptProps) {
   const [auto, setAuto] = createSignal<AutocompleteRef>()
   const currentProviderLabel = createMemo(() => local.model.parsed().provider)
   const hasRightContent = createMemo(() => Boolean(props.right))
-  const isLocalModelLoading = createMemo(() => status().type === "busy" && activeLocalModel() !== undefined)
-  const localModelLoadingText = createMemo(() => {
-    const model = activeLocalModel()
-    if (!model) return
-    const label = Locale.truncateMiddle(model.modelID, Math.max(12, Math.min(48, Math.floor(dimensions().width / 3))))
-    if (!animationsEnabled()) return `loading ${label}`
-    return `${loadingBar(localModelLoadTick())} loading ${label}`
-  })
 
   createEffect(() => {
     if (status().type === "idle" || status().type === "retry") setActiveLocalModel(undefined)
-  })
-
-  createEffect(() => {
-    if (!isLocalModelLoading() || !animationsEnabled()) return
-    const timer = setInterval(() => {
-      setLocalModelLoadTick((tick) => tick + 1)
-      renderer.requestRender()
-    }, 120)
-
-    onCleanup(() => {
-      clearInterval(timer)
-    })
   })
 
   function promptModelWarning() {
@@ -1340,9 +1313,12 @@ export function Prompt(props: PromptProps) {
                       <text fg={fadeColor(highlight(), agentMetaAlpha())}>
                         {store.mode === "shell" ? "Shell" : Locale.titlecase(agent().name)}
                       </text>
-                      <Show when={store.mode === "normal"}>
+                          <Show when={store.mode === "normal"}>
                         <box flexDirection="row" gap={1}>
                           <text fg={fadeColor(theme.textMuted, modelMetaAlpha())}>·</text>
+                          <Show when={status().type === "busy"}>
+                            <CircleSpinner color={theme.primary} />
+                          </Show>
                           <text
                             flexShrink={0}
                             fg={fadeColor(keybind.leader ? theme.textMuted : theme.text, modelMetaAlpha())}
@@ -1407,15 +1383,14 @@ export function Prompt(props: PromptProps) {
               justifyContent={status().type === "retry" ? "space-between" : "flex-start"}
             >
               <box flexShrink={0} flexDirection="row" gap={1}>
-                <box marginLeft={1}>
-                  <Show when={kv.get("animations_enabled", true)} fallback={<text fg={theme.textMuted}>[⋯]</text>}>
-                    <spinner color={spinnerDef().color} frames={spinnerDef().frames} interval={40} />
-                  </Show>
-                </box>
+                <Show when={status().type === "retry"}>
+                  <box marginLeft={1}>
+                    <Show when={kv.get("animations_enabled", true)} fallback={<text fg={theme.textMuted}>[⋯]</text>}>
+                      <spinner color={spinnerDef().color} frames={spinnerDef().frames} interval={40} />
+                    </Show>
+                  </box>
+                </Show>
                 <box flexDirection="row" gap={1} flexShrink={0}>
-                  <Show when={status().type === "busy" && localModelLoadingText()}>
-                    {(text) => <text fg={theme.textMuted}>{text()}</text>}
-                  </Show>
                   {(() => {
                     const retry = createMemo(() => {
                       const s = status()
@@ -1484,7 +1459,7 @@ export function Prompt(props: PromptProps) {
               </box>
             </box>
           </Show>
-          <Show when={status().type !== "retry"}>
+          <Show when={status().type !== "retry" && status().type !== "busy"}>
             <box gap={2} flexDirection="row">
               <Show when={editorFileLabelDisplay()}>
                 {(file) => (

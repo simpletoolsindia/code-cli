@@ -7,26 +7,18 @@ import { useTuiConfig } from "../../context/tui-config"
 import { TuiPluginRuntime } from "@/cli/cmd/tui/plugin/runtime"
 import { getScrollAcceleration } from "../../util/scroll"
 import { useLocal } from "../../context/local"
-import os from "os"
+import { GradientProgressBar, Spinner, SidebarProgress } from "@tui/component/spinner"
+import { useKeybind } from "@tui/context/keybind"
 
 function ProgressBar(props: { percent: number; width: number }) {
   const { theme } = useTheme()
-  const filled = Math.max(0, Math.min(props.width, Math.round((props.percent / 100) * props.width)))
-  const empty = props.width - filled
-
-  const barColor =
-    props.percent > 95 ? theme.error : props.percent > 80 ? theme.warning : props.percent > 60 ? theme.primary : theme.success
-
-  // Use visible characters that contrast against the panel background
-  const emptyChar = "─"
-  const filledChar = "█"
-
   return (
-    <box flexDirection="row" flexShrink={0} gap={1}>
-      <text fg={barColor}>{filledChar.repeat(filled)}</text>
-      <text fg={theme.border}>{emptyChar.repeat(empty)}</text>
-      <text fg={barColor} attributes={3}>{` ${props.percent}%`}</text>
-    </box>
+    <GradientProgressBar
+      percent={props.percent}
+      width={props.width}
+      color={theme.primary}
+      showPercent
+    />
   )
 }
 
@@ -44,20 +36,33 @@ function StatusBadge(props: { status: string }) {
     retry: "⟳",
     error: "✕",
   }
+  const labels: Record<string, string> = {
+    idle: "Ready",
+    busy: "Thinking",
+    retry: "Retrying",
+    error: "Error",
+  }
   return (
-    <text fg={colors[props.status] ?? theme.textMuted}>
-      {icons[props.status] ?? "●"} {props.status.toUpperCase()}
-    </text>
+    <box flexDirection="row" gap={1}>
+      <text fg={colors[props.status] ?? theme.textMuted}>
+        {icons[props.status] ?? "●"}
+      </text>
+      <text fg={colors[props.status] ?? theme.textMuted} attributes={3}>
+        {labels[props.status] ?? props.status.toUpperCase()}
+      </text>
+    </box>
   )
 }
 
 function ToolCallItem(props: { tool: string; status: "running" | "done" | "error"; detail?: string }) {
   const { theme } = useTheme()
-  const icon = props.status === "running" ? "⚡" : props.status === "done" ? "✓" : "✕"
+  const icon = props.status === "running" ? "◈" : props.status === "done" ? "✓" : "✕"
   const color = props.status === "running" ? theme.primary : props.status === "done" ? theme.success : theme.error
   return (
     <box flexDirection="row" gap={1} flexShrink={0}>
-      <text fg={color}>{icon}</text>
+      <Show when={props.status === "running"} fallback={<text fg={color}>{icon}</text>}>
+        <Spinner color={color}>{icon}</Spinner>
+      </Show>
       <text fg={theme.textMuted} wrapMode="word" flexShrink={1}>
         {props.tool}
         {props.detail && (
@@ -77,6 +82,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   const { theme } = useTheme()
   const tuiConfig = useTuiConfig()
   const local = useLocal()
+  const keybind = useKeybind()
 
   const session = createMemo(() => sync.session.get(props.sessionID))
   const status = createMemo(() => sync.data.session_status?.[props.sessionID])
@@ -113,10 +119,11 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   const contextPercent = createMemo(() => {
     const last = lastAssistant() as any
     if (!last || !last.tokens) return 0
-    const used = last.tokens.input + last.tokens.output + (last.tokens.reasoning ?? 0)
+    const used =
+      last.tokens.input + last.tokens.output + last.tokens.reasoning + last.tokens.cache?.read + last.tokens.cache?.write
     const model = sync.data.provider.find((p) => p.id === last.providerID)?.models[last.modelID]
     if (!model?.limit?.context) return 0
-    return Math.round((used / model.limit.context) * 100)
+    return Math.min(100, Math.round((used / model.limit.context) * 100))
   })
 
   // Current model
@@ -124,8 +131,6 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
 
   // Connected services
   const mcpCount = createMemo(() => Object.values(sync.data.mcp).filter((x) => x.status === "connected").length)
-
-  const providerCount = createMemo(() => sync.data.provider.filter((p) => (p as any).status === "available").length)
 
   // Mock recent tool calls from session diffs or messages
   const recentTools = createMemo(() => {
@@ -149,8 +154,34 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
     return tools.slice(-4).reverse()
   })
 
-  const isMac = os.platform() === "darwin"
-  const mod = isMac ? "⌘" : "Ctrl"
+  const runningTools = createMemo(() =>
+    messages().flatMap((message) =>
+      ((sync.data.part[message.id] ?? []) as any[])
+        .filter((part) => part.type === "tool" && part.state.status === "running")
+        .map((part) => ({
+          tool: part.tool,
+          title: part.state.title,
+        })),
+    ),
+  )
+
+  const activityRows = createMemo(() => {
+    const busy = status()?.type === "busy"
+    const retry = status()?.type === "retry"
+    const tool = runningTools().at(-1)
+    if (!busy && !retry && !tool) {
+      return [{ label: "Ready", active: false, text: "Waiting for input" }]
+    }
+    return [
+      { label: "Think", active: busy || retry, text: retry ? "Retrying..." : busy ? "Thinking..." : "Ready" },
+      {
+        label: "Process",
+        active: Boolean(tool),
+        text: tool ? `${tool.tool}${tool.title ? ` - ${tool.title}` : ""}` : "Idle",
+      },
+      { label: "Respond", active: busy && !tool, text: busy ? "Generating response..." : "Waiting" },
+    ]
+  })
 
   return (
     <Show when={session()}>
@@ -209,17 +240,39 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
               <text fg={theme.text}>
                 <b>Context</b>
               </text>
-              <ProgressBar percent={contextPercent()} width={30} />
+              <ProgressBar percent={contextPercent()} width={24} />
               <text fg={theme.textMuted}>
                 {(() => {
                   const last = lastAssistant()
                   if (!last || !(last as any).tokens) return "No context data"
                   const tokens = (last as any).tokens
-                  const used = tokens.input + tokens.output
+                  const used = tokens.input + tokens.output + tokens.reasoning + tokens.cache.read + tokens.cache.write
                   const limit = sync.data.provider.find((p) => p.id === (last as any).providerID)?.models[(last as any).modelID]?.limit?.context ?? 0
                   return `${used.toLocaleString()}${limit > 0 ? ` / ${limit.toLocaleString()}` : ""} tokens`
                 })()}
               </text>
+            </box>
+
+            <box gap={1} paddingTop={1} flexShrink={0}>
+              <text fg={theme.text}>
+                <b>Activity</b>
+              </text>
+              <Show when={status()?.type === "busy"} fallback={(
+                <For each={activityRows()}>
+                  {(row) => (
+                    <box flexDirection="row" gap={1} flexShrink={0}>
+                      <Show when={row.active} fallback={<text fg={theme.textMuted}>○</text>}>
+                        <Spinner color={theme.primary}>◉</Spinner>
+                      </Show>
+                      <text fg={row.active ? theme.text : theme.textMuted} wrapMode="word" flexShrink={1}>
+                        {row.label}: <span style={{ fg: theme.textMuted }}>{row.text}</span>
+                      </text>
+                    </box>
+                  )}
+                </For>
+              )}>
+                <SidebarProgress />
+              </Show>
             </box>
 
             {/* Recent Tool Calls */}
@@ -233,26 +286,6 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
                     <ToolCallItem tool={tool.tool} status={tool.status} detail={tool.detail} />
                   )}
                 </For>
-              </box>
-            </Show>
-
-            {/* Live Operations / Current Status */}
-            <Show when={status()?.type === "busy"}>
-              <box gap={1} flexShrink={0} border={["top"]} borderColor={theme.borderActive} paddingTop={1}>
-                <box flexDirection="row" gap={1}>
-                  <text fg={theme.primary}>▶</text>
-                  <text fg={theme.primary} attributes={2}>
-                    <b>Thinking...</b>
-                  </text>
-                </box>
-                <box flexDirection="row" gap={1}>
-                  <text fg={theme.warning}>◐</text>
-                  <text fg={theme.textMuted}>Generating response</text>
-                </box>
-                <box flexDirection="row" gap={1}>
-                  <text fg={theme.info}>●</text>
-                  <text fg={theme.textMuted}>Processing context</text>
-                </box>
               </box>
             </Show>
 
@@ -280,9 +313,6 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
                   🔧 {mcpCount()} MCP{mcpCount() !== 1 ? "s" : ""}
                 </text>
               </box>
-              <text fg={providerCount() > 0 ? theme.success : theme.textMuted}>
-                ☁️ {providerCount()} provider{providerCount() !== 1 ? "s" : ""} available
-              </text>
             </box>
 
             {/* Current Model */}
@@ -299,7 +329,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
                 </box>
                 <text fg={theme.textMuted}>{currentModel().provider}</text>
                 <text fg={theme.textMuted}>
-                  Press {mod}+K to switch
+                  Press {keybind.print("model_list")} to switch
                 </text>
               </box>
             </Show>
@@ -319,7 +349,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
                 </span>{" "}
                 <span style={{ fg: theme.textMuted }}>— Made with love by SimpleTools India</span>
               </text>
-              <text fg={theme.textMuted}>{mod}+B toggle</text>
+              <text fg={theme.textMuted}>{keybind.print("sidebar_toggle")} toggle</text>
             </box>
           </TuiPluginRuntime.Slot>
         </box>
