@@ -78,9 +78,22 @@ const money = new Intl.NumberFormat("en-US", {
   currency: "USD",
 })
 
+const LOCAL_PROVIDER_IDS = new Set(["ollama", "lmstudio", "jan", "mlx", "vllm"])
+
 function randomIndex(count: number) {
   if (count <= 0) return 0
   return Math.floor(Math.random() * count)
+}
+
+function isLocalProvider(providerID: string) {
+  return LOCAL_PROVIDER_IDS.has(providerID)
+}
+
+function loadingBar(tick: number) {
+  const width = 18
+  const segment = 5
+  const start = (tick % (width + segment)) - segment
+  return `[${Array.from({ length: width }, (_, index) => (index >= start && index < start + segment ? "=" : "-")).join("")}]`
 }
 
 function fadeColor(color: RGBA, alpha: number) {
@@ -139,6 +152,8 @@ export function Prompt(props: PromptProps) {
   const { theme, syntax } = useTheme()
   const kv = useKV()
   const animationsEnabled = createMemo(() => kv.get("animations_enabled", true))
+  const [activeLocalModel, setActiveLocalModel] = createSignal<{ providerID: string; modelID: string }>()
+  const [localModelLoadTick, setLocalModelLoadTick] = createSignal(0)
   const list = createMemo(() => props.placeholders?.normal ?? [])
   const shell = createMemo(() => props.placeholders?.shell ?? [])
   const fileContextEnabled = createMemo(() => kv.get("file_context_enabled", true))
@@ -177,6 +192,30 @@ export function Prompt(props: PromptProps) {
   const [auto, setAuto] = createSignal<AutocompleteRef>()
   const currentProviderLabel = createMemo(() => local.model.parsed().provider)
   const hasRightContent = createMemo(() => Boolean(props.right))
+  const isLocalModelLoading = createMemo(() => status().type === "busy" && activeLocalModel() !== undefined)
+  const localModelLoadingText = createMemo(() => {
+    const model = activeLocalModel()
+    if (!model) return
+    const label = Locale.truncateMiddle(model.modelID, Math.max(12, Math.min(48, Math.floor(dimensions().width / 3))))
+    if (!animationsEnabled()) return `loading ${label}`
+    return `${loadingBar(localModelLoadTick())} loading ${label}`
+  })
+
+  createEffect(() => {
+    if (status().type === "idle" || status().type === "retry") setActiveLocalModel(undefined)
+  })
+
+  createEffect(() => {
+    if (!isLocalModelLoading() || !animationsEnabled()) return
+    const timer = setInterval(() => {
+      setLocalModelLoadTick((tick) => tick + 1)
+      renderer.requestRender()
+    }, 120)
+
+    onCleanup(() => {
+      clearInterval(timer)
+    })
+  })
 
   function promptModelWarning() {
     toast.show({
@@ -871,6 +910,7 @@ export function Prompt(props: PromptProps) {
           })),
       })
     } else {
+      if (isLocalProvider(selectedModel.providerID)) setActiveLocalModel(selectedModel)
       sdk.client.session
         .prompt({
           sessionID,
@@ -1373,6 +1413,9 @@ export function Prompt(props: PromptProps) {
                   </Show>
                 </box>
                 <box flexDirection="row" gap={1} flexShrink={0}>
+                  <Show when={status().type === "busy" && localModelLoadingText()}>
+                    {(text) => <text fg={theme.textMuted}>{text()}</text>}
+                  </Show>
                   {(() => {
                     const retry = createMemo(() => {
                       const s = status()

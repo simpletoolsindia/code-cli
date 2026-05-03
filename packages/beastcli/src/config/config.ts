@@ -303,7 +303,7 @@ export interface Interface {
   readonly get: () => Effect.Effect<Info>
   readonly getGlobal: () => Effect.Effect<Info>
   readonly getConsoleState: () => Effect.Effect<ConsoleState>
-  readonly update: (config: Info, options?: { dispose?: boolean }) => Effect.Effect<void>
+  readonly update: (config: Info, options?: { dispose?: boolean; disposeProvider?: boolean }) => Effect.Effect<void>
   readonly updateGlobal: (config: Info) => Effect.Effect<Info>
   readonly invalidate: (wait?: boolean) => Effect.Effect<void>
   readonly directories: () => Effect.Effect<string[]>
@@ -746,7 +746,7 @@ export const layer = Layer.effect(
 
     const update = Effect.fn("Config.update")(function* (
       config: Info,
-      options?: { dispose?: boolean },
+      options?: { dispose?: boolean; disposeProvider?: boolean },
     ) {
       const dir = yield* InstanceState.directory
       const file = path.join(dir, "config.json")
@@ -754,7 +754,7 @@ export const layer = Layer.effect(
       yield* fs
         .writeFileString(file, JSON.stringify(mergeDeep(writable(existing), writable(config)), null, 2))
         .pipe(Effect.orDie)
-      if (options?.dispose !== false) {
+      if (options?.dispose !== false || (options?.disposeProvider !== false && config.provider)) {
         yield* Effect.promise(() => Instance.dispose())
       }
     })

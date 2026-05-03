@@ -385,19 +385,21 @@ export function DialogProvider() {
             title="Custom Provider Setup"
             placeholder="Base URL (e.g. https://api.custom.ai/v1)"
             onConfirm={async (baseURL) => {
-              if (!baseURL) return
+              const url = baseURL.trim()
+              if (!url) return
               dialog.replace(() => (
                 <DialogPrompt
-                  title="API Key"
-                  placeholder="sk-..."
+                  title="API Key (optional)"
+                  placeholder="Leave blank for local endpoints"
                   onConfirm={async (apiKey) => {
-                    if (!apiKey) return
+                    const key = apiKey.trim()
                     dialog.replace(() => (
                       <DialogPrompt
                         title="Model Name"
                         placeholder="e.g. custom-model-7b"
                         onConfirm={async (modelName) => {
-                          if (!modelName) return
+                          const modelID = modelName.trim()
+                          if (!modelID) return
                           const providerID = `custom-${Date.now()}`
                           const nextConfig: Config = {
                             ...sync.data.config,
@@ -406,15 +408,18 @@ export function DialogProvider() {
                               [providerID]: {
                                 npm: "@ai-sdk/openai-compatible",
                                 name: "Custom Provider",
-                                options: { baseURL, apiKey },
+                                options: {
+                                  baseURL: url,
+                                  ...(key ? { apiKey: key } : {}),
+                                },
                                 models: {
-                                  [modelName]: {
-                                    name: modelName,
+                                  [modelID]: {
+                                    name: modelID,
                                   },
                                 },
                               },
                             },
-                            model: `${providerID}/${modelName}`,
+                            model: `${providerID}/${modelID}`,
                           }
                           await sdk.client.config.update({ config: nextConfig }, { throwOnError: true })
                           await sync.bootstrap()
