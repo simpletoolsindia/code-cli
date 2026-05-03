@@ -368,6 +368,22 @@ export function SessionTurn(
     return true
   })
 
+  // Show "Reading tool results" when tools completed but no text response yet
+  const showReadingToolResults = createMemo(() => {
+    if (!working() || !!error()) return false
+    if (status().type === "retry") return false
+    // Check if there are any completed tool parts
+    for (const message of assistantMessages()) {
+      for (const part of list(data.store.part?.[message.id], emptyParts)) {
+        if (part.type === "tool" && part.state.status === "completed") {
+          // Tools are done but no text visible yet
+          if (assistantVisible() === 0) return true
+        }
+      }
+    }
+    return false
+  })
+
   const autoScroll = createAutoScroll({
     working,
     onUserInteracted: props.onUserInteracted,
@@ -422,6 +438,11 @@ export function SessionTurn(
                       duration={700}
                     />
                   </Show>
+                </div>
+              </Show>
+              <Show when={showReadingToolResults()}>
+                <div data-slot="session-turn-reading-tool-results">
+                  <TextShimmer text={i18n.t("ui.sessionTurn.status.readingToolResults")} />
                 </div>
               </Show>
               <SessionRetry status={status()} show={active()} />

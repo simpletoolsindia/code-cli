@@ -1505,7 +1505,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
                       style={providersShouldFadeIn() ? { animation: "fade-in 0.3s" } : undefined}
                     >
                       <Show
-                        when={providers.paid().length > 0}
+                        when={!providersLoading()}
                         fallback={
                           <TooltipKeybind
                             placement="top"
@@ -1520,22 +1520,9 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
                               size="normal"
                               class="min-w-0 max-w-[320px] text-13-regular text-text-base group"
                               style={control()}
-                              onClick={() => {
-                                void import("@/components/dialog-select-model-unpaid").then((x) => {
-                                  dialog.show(() => <x.DialogSelectModelUnpaid model={local.model} />)
-                                })
-                              }}
+                              disabled={true}
                             >
-                              <Show when={local.model.current()?.provider?.id}>
-                                <ProviderIcon
-                                  id={local.model.current()?.provider?.id ?? ""}
-                                  class="size-4 shrink-0 opacity-40 group-hover:opacity-100 transition-opacity duration-150"
-                                  style={{ "will-change": "opacity", transform: "translateZ(0)" }}
-                                />
-                              </Show>
-                              <span class="truncate">
-                                {local.model.current()?.name ?? language.t("dialog.model.select.title")}
-                              </span>
+                              <span class="truncate">{language.t("dialog.model.select.title")}</span>
                               <Icon name="chevron-down" size="small" class="shrink-0" />
                             </Button>
                           </TooltipKeybind>
