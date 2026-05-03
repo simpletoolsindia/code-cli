@@ -183,6 +183,48 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
     return { assistant, user }
   })
 
+  const contextInfo = createMemo(() => {
+    const msgs = messages()
+    const totalTokens = msgs.reduce(
+      (sum, m) => {
+        if ("tokens" in m && m.tokens) {
+          sum.input += m.tokens.input ?? 0
+          sum.output += m.tokens.output ?? 0
+          sum.reasoning += m.tokens.reasoning ?? 0
+          sum.cacheRead += m.tokens.cache?.read ?? 0
+          sum.cacheWrite += m.tokens.cache?.write ?? 0
+        }
+        return sum
+      },
+      { input: 0, output: 0, reasoning: 0, cacheRead: 0, cacheWrite: 0 },
+    )
+    const used = totalTokens.input + totalTokens.output + totalTokens.reasoning + totalTokens.cacheRead + totalTokens.cacheWrite
+    if (used === 0) return { used: 0, limit: 0, pct: undefined, label: "No context data" }
+
+    const lastAssistant = msgs.findLast(
+      (m): m is AssistantMessage => m.role === "assistant" && m.tokens.output > 0,
+    )
+    const limit = lastAssistant
+      ? contextLimit({
+          providerID: lastAssistant.providerID,
+          modelID: lastAssistant.modelID,
+          fallbackModelID: (() => {
+            const lastUser = msgs.findLast(
+              (m): m is UserMessage => m.role === "user" && m.id < lastAssistant.id,
+            )
+            return lastUser?.model.providerID === lastAssistant.providerID ? lastUser.model.modelID : undefined
+          })(),
+        })
+      : 0
+    const pct = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : undefined
+    return {
+      used,
+      limit,
+      pct,
+      label: `${used.toLocaleString()}${limit > 0 ? ` / ${limit.toLocaleString()}` : ""} tokens`,
+    }
+  })
+
   function contextLimit(input: { providerID: string; modelID: string; fallbackModelID?: string }) {
     const provider = sync.data.provider.find((p) => p.id === input.providerID)
     if (!provider) return 0
