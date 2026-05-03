@@ -4,7 +4,7 @@ import * as InstanceState from "@/effect/instance-state"
 import { Effect } from "effect"
 import { HttpApiBuilder } from "effect/unstable/httpapi"
 import { InstanceHttpApi } from "../api"
-import { markInstanceForDisposal } from "../lifecycle"
+
 
 export const configHandlers = HttpApiBuilder.group(InstanceHttpApi, "config", (handlers) =>
   Effect.gen(function* () {
@@ -16,9 +16,7 @@ export const configHandlers = HttpApiBuilder.group(InstanceHttpApi, "config", (h
     })
 
     const update = Effect.fn("ConfigHttpApi.update")(function* (ctx) {
-      const instance = yield* InstanceState.context
-      yield* configSvc.update(ctx.payload, { dispose: false, disposeProvider: false })
-      yield* markInstanceForDisposal(instance)
+      yield* configSvc.update(ctx.payload, { dispose: false })
       return ctx.payload
     })
 

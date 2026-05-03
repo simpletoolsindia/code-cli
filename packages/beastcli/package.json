@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "version": "2.4.8",
+  "version": "2.4.10",
   "name": "@simpletoolsindia/beast-cli",
   "type": "module",
   "license": "MIT",
@@ -75,8 +75,8 @@
     "vscode-languageserver-types": "3.17.5",
     "why-is-node-running": "3.2.2",
     "zod-to-json-schema": "3.25.2",
-    "@simpletoolsindia/script": "workspace:*",
-    "@simpletoolsindia/core": "workspace:*"
+    "@simpletoolsindia/script": "^1.0.0",
+    "@simpletoolsindia/core": "^1.0.0"
   },
   "dependencies": {
     "@actions/core": "1.11.1",

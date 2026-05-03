@@ -243,11 +243,11 @@ export function DialogModel(props: { providerID?: string }) {
         model: `${provider.id}/${modelID}`,
       }
       await sdk.client.config.update({ config: nextConfig }, { throwOnError: true })
-      // Just save locally without disposing instance
-      local.model.set({ providerID: provider.id, modelID }, { saveToConfig: true })
+      // Just save model locally — do NOT call config.update again
+      local.model.set({ providerID: provider.id, modelID }, { recent: true })
       toast.show({
         variant: "success",
-        message: `${provider.name} is ready — restart beast to use it`,
+        message: `${provider.name} is ready — restart beast to use ${modelID}`,
         duration: 4000,
       })
     } catch (error) {

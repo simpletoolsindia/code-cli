@@ -17,6 +17,9 @@ import { isConsoleManagedProvider } from "@tui/util/provider-origin"
 import { useConnected } from "./use-connected"
 import { probeLocalModelProviders, type DetectedLocalProvider } from "./model-provider-detect"
 import type { Config, ProviderConfig } from "@simpletoolsindia/sdk/v2"
+import * as Log from "@simpletoolsindia/core/util/log"
+
+const log = Log.create({ service: "tui.dialog.provider" })
 
 const ALLOWED_PROVIDER_IDS = new Set([
   "beastcli",
@@ -27,6 +30,7 @@ const ALLOWED_PROVIDER_IDS = new Set([
   "openrouter",
   "nvidia",
   "ollama",
+  "ollama-cloud",
   "lmstudio",
   "jan",
   "mlx",
@@ -285,41 +289,84 @@ export function DialogProvider() {
             placeholder="sk-..."
             onConfirm={async (apiKey) => {
               if (!apiKey) return
+              const baseURL = "https://api.ollama.com/v1/"
               dialog.replace(() => (
                 <DialogPrompt
-                  title="Model Name"
-                  placeholder="e.g. qwen2.5-coder:32b"
-                  onConfirm={async (modelName) => {
-                    if (!modelName) return
-                    const providerID = `ollama-cloud`
-                    const nextConfig: Config = {
-                      ...sync.data.config,
-                      provider: {
-                        ...sync.data.config.provider,
-                        [providerID]: {
-                          npm: "@ai-sdk/openai-compatible",
-                          name: "Ollama Cloud",
-                          options: { baseURL: "https://api.ollama.com/v1/", apiKey },
-                          models: {
-                            [modelName]: {
-                              name: modelName,
-                            },
-                          },
-                        },
-                      },
-                      model: `${providerID}/${modelName}`,
-                    }
-                    await sdk.client.config.update({ config: nextConfig }, { throwOnError: true })
-                    await sync.bootstrap()
-                    dialog.clear()
-                    toast.show({
-                      message: "Ollama Cloud connected",
-                      variant: "success",
-                      duration: 2500,
-                    })
-                  }}
+                  title="Fetching models from Ollama Cloud..."
+                  placeholder="Press Enter to retry or Esc to cancel"
+                  onConfirm={async () => {}}
                 />
               ))
+              try {
+                const resp = await fetch(`${baseURL}models`, {
+                  headers: { Authorization: `Bearer ${apiKey}` },
+                })
+                if (!resp.ok) {
+                  toast.show({
+                    message: `Ollama Cloud API error: ${resp.status}`,
+                    variant: "error",
+                    duration: 4000,
+                  })
+                  dialog.clear()
+                  return
+                }
+                const data = (await resp.json()) as any
+                const models: { id: string; name: string }[] =
+                  data?.data?.flatMap((m: any) => {
+                    const id = typeof m.id === "string" ? m.id : typeof m.name === "string" ? m.name : ""
+                    if (!id) return []
+                    return [{ id, name: id }]
+                  }) ?? []
+                if (models.length === 0) {
+                  toast.show({
+                    message: "No models found on Ollama Cloud",
+                    variant: "error",
+                    duration: 4000,
+                  })
+                  dialog.clear()
+                  return
+                }
+                dialog.replace(() => (
+                  <DialogSelect<{ id: string; name: string }>
+                    title="Select Ollama Cloud Model"
+                    options={models.map((model) => ({
+                      title: model.name,
+                      value: model,
+                      onSelect: async () => {
+                        const providerID = "ollama-cloud"
+                        const nextConfig: Config = {
+                          ...sync.data.config,
+                          provider: {
+                            ...sync.data.config.provider,
+                            [providerID]: {
+                              npm: "@ai-sdk/openai-compatible",
+                              name: "Ollama Cloud",
+                              options: { baseURL, apiKey },
+                              models: {
+                                [model.id]: {
+                                  name: model.name,
+                                },
+                              },
+                            },
+                          },
+                          model: `${providerID}/${model.id}`,
+                        }
+                        await sdk.client.config.update({ config: nextConfig }, { throwOnError: true })
+                        await sync.bootstrap()
+                        dialog.clear()
+                        toast.show({
+                          message: "Ollama Cloud connected",
+                          variant: "success",
+                          duration: 2500,
+                        })
+                      },
+                    }))}
+                  />
+                ))
+              } catch (error) {
+                toast.error(error)
+                dialog.clear()
+              }
             }}
           />
         ))

@@ -40,13 +40,6 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
       return !!provider?.models[model.modelID]
     }
 
-    function getFirstModel(...modelFns: (() => { providerID: string; modelID: string } | undefined)[]) {
-      for (const modelFn of modelFns) {
-        const model = modelFn()
-        if (model) return model
-      }
-    }
-
     const agent = iife(() => {
       const agents = createMemo(() => sync.data.agent.filter((x) => x.mode !== "subagent" && !x.hidden))
       const visibleAgents = createMemo(() => sync.data.agent.filter((x) => !x.hidden))
@@ -257,17 +250,13 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
           )
           save()
         },
-        set(model: { providerID: string; modelID: string }, options?: { recent?: boolean; saveToConfig?: boolean }) {
+        set(model: { providerID: string; modelID: string }, options?: { recent?: boolean }) {
           batch(() => {
             const a = agent.current()
             if (!a) return
             setModelStore("model", a.name, model)
-            if (options?.recent || options?.saveToConfig) {
+            if (options?.recent) {
               save()
-            }
-            if (options?.saveToConfig) {
-              const nextConfig = { ...sync.data.config, model: `${model.providerID}/${model.modelID}` }
-              sdk.client.config.update({ config: nextConfig }).catch(() => {})
             }
           })
         },

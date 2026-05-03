@@ -138,6 +138,86 @@ function useLanguageModel(sdk: any) {
   return sdk.responses === undefined && sdk.chat === undefined
 }
 
+function resolveOllama(
+  input: Info,
+  dep: CustomDep,
+): Effect.Effect<{
+  autoload: boolean
+  getModel?: (sdk: any, modelID: string) => any
+  options?: Record<string, any>
+  discoverModels?: () => Promise<Record<string, Model>>
+}> {
+  return Effect.gen(function* () {
+    const config = yield* dep.config()
+    const providerConfig = config.provider?.[input.id]
+    const baseURL = providerConfig?.options?.baseURL ?? input.options?.baseURL
+    if (!baseURL) return { autoload: false }
+    return {
+      autoload: true,
+      options: { baseURL },
+      getModel(sdk: any, modelID: string) {
+        return sdk.languageModel(modelID)
+      },
+      async discoverModels(): Promise<Record<string, Model>> {
+        try {
+          const resp = await fetch(`${baseURL.replace(/\/$/, "")}/models`, {
+            headers: providerConfig?.options?.apiKey
+              ? { Authorization: `Bearer ${providerConfig.options.apiKey}` }
+              : {},
+          })
+          if (!resp.ok) {
+            log.warn("ollama model discovery failed", { status: resp.status, baseURL })
+            return {}
+          }
+          const data = (await resp.json()) as any
+          const models: Record<string, Model> = {}
+          const modelList: any[] = data?.data ?? data?.models ?? (Array.isArray(data) ? data : [])
+          for (const m of modelList) {
+            const id =
+              typeof m.id === "string"
+                ? m.id
+                : typeof m.name === "string"
+                  ? m.name
+                  : String(m.model ?? m.id ?? "")
+            if (!id) continue
+            models[id] = {
+              id: ModelID.make(id),
+              providerID: ProviderID.make(input.id),
+              name: id,
+              family: "",
+              api: { id, url: baseURL, npm: "@ai-sdk/openai-compatible" },
+              status: "active",
+              headers: {},
+              options: {},
+              cost: { input: 0, output: 0, cache: { read: 0, write: 0 } },
+              limit: { context: 0, output: 0 },
+              capabilities: {
+                temperature: true,
+                reasoning: false,
+                attachment: false,
+                toolcall: true,
+                input: { text: true, audio: false, image: false, video: false, pdf: false },
+                output: { text: true, audio: false, image: false, video: false, pdf: false },
+                interleaved: false,
+              },
+              release_date: "",
+              variants: {},
+            }
+          }
+          log.info("ollama model discovery complete", {
+            count: Object.keys(models).length,
+            baseURL,
+          })
+          return models
+        } catch (e) {
+          log.warn("ollama model discovery error", { error: e, baseURL })
+          return {}
+        }
+      },
+    }
+  })
+}
+
 function custom(dep: CustomDep): Record<string, CustomLoader> {
   return {
     anthropic: () =>
@@ -547,6 +627,12 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
           },
         },
       }),
+    ollama: Effect.fnUntraced(function* (input: Info) {
+      return yield* resolveOllama(input, dep)
+    }),
+    "ollama-cloud": Effect.fnUntraced(function* (input: Info) {
+      return yield* resolveOllama(input, dep)
+    }),
     gitlab: Effect.fnUntraced(function* (input: Info) {
       const {
         VERSION: GITLAB_PROVIDER_VERSION,
@@ -1121,9 +1207,24 @@ const layer: Layer.Layer<
             return
           }
           const match = database[providerID]
-          if (!match) return
+          if (match) {
+            // @ts-expect-error
+            providers[providerID] = mergeDeep(match, provider)
+            return
+          }
+          // Config-only provider not in models.dev — create minimal Info from config
+          const configProvider = cfg.provider?.[providerID]
+          if (!configProvider) return
+          const minimal: Info = {
+            id: ProviderID.make(providerID),
+            name: configProvider.name ?? providerID,
+            env: [],
+            options: configProvider.options ?? {},
+            source: "config",
+            models: {},
+          }
           // @ts-expect-error
-          providers[providerID] = mergeDeep(match, provider)
+          providers[providerID] = mergeDeep(minimal, provider)
         }
 
         // load plugins first so config() hook runs before reading cfg.provider
@@ -1312,11 +1413,11 @@ const layer: Layer.Layer<
           const providerID = ProviderID.make(id)
           if (disabled.has(providerID)) continue
           const data = database[providerID]
-          if (!data) {
+          if (!data && !providers[providerID]) {
             log.error("Provider does not exist in model list " + providerID)
             continue
           }
-          const result = yield* fn(data)
+          const result = yield* fn(data ?? providers[providerID])
           if (result && (result.autoload || providers[providerID])) {
             if (result.getModel) modelLoaders[providerID] = result.getModel
             if (result.vars) varsLoaders[providerID] = result.vars
@@ -1335,6 +1436,22 @@ const layer: Layer.Layer<
           if (provider.name) partial.name = provider.name
           if (provider.options) partial.options = provider.options
           mergeProvider(providerID, partial)
+        }
+
+        const ollama = ProviderID.make("ollama")
+        if (discoveryLoaders[ollama] && providers[ollama] && isProviderAllowed(ollama)) {
+          yield* Effect.promise(async () => {
+            try {
+              const discovered = await discoveryLoaders[ollama]()
+              for (const [modelID, model] of Object.entries(discovered)) {
+                if (!providers[ollama].models[modelID]) {
+                  providers[ollama].models[modelID] = model
+                }
+              }
+            } catch (e) {
+              log.warn("state discovery error", { id: "ollama", error: e })
+            }
+          })
         }
 
         const gitlab = ProviderID.make("gitlab")

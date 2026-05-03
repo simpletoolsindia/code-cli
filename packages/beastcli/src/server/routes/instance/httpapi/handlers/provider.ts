@@ -25,6 +25,7 @@ export const providerHandlers = HttpApiBuilder.group(InstanceHttpApi, "provider"
         if ((enabled ? enabled.has(key) : true) && !disabled.has(key)) filtered[key] = value
       }
       const connected = yield* provider.list()
+      // Merge config-only providers (like ollama, custom) into the list so UI shows them
       const providers = Object.assign(
         mapValues(filtered, (item) => Provider.fromModelsDevProvider(item)),
         connected,
