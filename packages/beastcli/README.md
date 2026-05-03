@@ -3,6 +3,7 @@
 ![BeastCLI](https://img.shields.io/badge/beastcli-v4.0.1-7B61FF?style=for-the-badge&labelColor=1a1a2e)
 [![License](https://img.shields.io/badge/license-MIT-00E5FF?style=for-the-badge&labelColor=1a1a2e)](./LICENSE)
 [![npm](https://img.shields.io/npm/v/@simpletoolsindia/beast-cli?style=for-the-badge&labelColor=1a1a2e&color=7B61FF)](https://www.npmjs.com/package/@simpletoolsindia/beast-cli)
+[![Docs](https://img.shields.io/badge/docs-github_pages-7B61FF?style=for-the-badge&labelColor=1a1a2e)](https://simpletoolsindia.github.io/code-cli/)
 
 # @simpletoolsindia/beast-cli
 
@@ -17,18 +18,16 @@ npm install -g @simpletoolsindia/beast-cli
 ```
 
 <p align="center">
-  <a href="#-quick-start">Quick Start</a> ·
-  <a href="#-features">Features</a> ·
-  <a href="#-commands">Commands</a> ·
-  <a href="#-ai-providers">Providers</a> ·
-  <a href="#-tools">Tools</a> ·
-  <a href="#-agents">Agents</a> ·
-  <a href="#-configuration">Config</a> ·
-  <a href="#-plugins">Plugins</a> ·
-  <a href="#-skills">Skills</a> ·
-  <a href="#-mcp-servers">MCP</a> ·
-  <a href="#-notifications">Notifications</a> ·
-  <a href="#-development">Development</a>
+  <a href="https://simpletoolsindia.github.io/code-cli/">Documentation</a> ·
+  <a href="https://simpletoolsindia.github.io/code-cli/installation">Installation</a> ·
+  <a href="https://simpletoolsindia.github.io/code-cli/docs/commands">Commands</a> ·
+  <a href="https://simpletoolsindia.github.io/code-cli/docs/providers">Providers</a> ·
+  <a href="https://simpletoolsindia.github.io/code-cli/docs/tools">Tools</a> ·
+  <a href="https://simpletoolsindia.github.io/code-cli/docs/agents">Agents</a> ·
+  <a href="https://simpletoolsindia.github.io/code-cli/docs/configuration">Config</a> ·
+  <a href="https://simpletoolsindia.github.io/code-cli/docs/plugins">Plugins</a> ·
+  <a href="https://simpletoolsindia.github.io/code-cli/docs/skills">Skills</a> ·
+  <a href="https://simpletoolsindia.github.io/code-cli/docs/mcp">MCP</a>
 </p>
 
 </div>

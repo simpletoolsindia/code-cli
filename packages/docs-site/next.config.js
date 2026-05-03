@@ -1,9 +1,14 @@
 /** @type {import('next').NextConfig} */
+const isProd = process.env.NODE_ENV === 'production'
+
+/** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: false,
   output: 'export',
   distDir: '.next',
+  basePath: isProd ? '/code-cli' : '',
+  assetPrefix: isProd ? '/code-cli/' : '',
   images: {
     unoptimized: true,
   },
