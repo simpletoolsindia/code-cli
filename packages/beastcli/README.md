@@ -1,6 +1,6 @@
 <div align="center">
 
-![BeastCLI](https://img.shields.io/badge/beastcli-v3.1.0-7B61FF?style=for-the-badge&labelColor=1a1a2e)
+![BeastCLI](https://img.shields.io/badge/beastcli-v4.0.0-7B61FF?style=for-the-badge&labelColor=1a1a2e)
 [![License](https://img.shields.io/badge/license-MIT-00E5FF?style=for-the-badge&labelColor=1a1a2e)](./LICENSE)
 [![npm](https://img.shields.io/npm/v/@simpletoolsindia/beast-cli?style=for-the-badge&labelColor=1a1a2e&color=7B61FF)](https://www.npmjs.com/package/@simpletoolsindia/beast-cli)
 
@@ -83,7 +83,7 @@ scoop install beastcli
 
 ```bash
 beast --version
-# beast-cli v3.1.0
+# beast-cli v4.0.0
 ```
 
 ### Start a Session
