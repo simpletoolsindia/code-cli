@@ -35,10 +35,14 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: cd packages/docs-site && pnpm install --no-frozen-lockfile
+        run: |
+          cd packages/docs-site
+          pnpm install --no-frozen-lockfile --ignore-workspace
 
       - name: Build docs
-        run: cd packages/docs-site && NODE_ENV=production pnpm run build
+        run: |
+          cd packages/docs-site
+          pnpm run build
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
