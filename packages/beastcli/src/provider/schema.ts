@@ -22,6 +22,13 @@ export const ProviderID = providerIdSchema.pipe(
     openrouter: schema.make("openrouter"),
     mistral: schema.make("mistral"),
     gitlab: schema.make("gitlab"),
+    // Local/self-hosted providers
+    ollama: schema.make("ollama"),
+    lmstudio: schema.make("lmstudio"),
+    jan: schema.make("jan"),
+    llamacpp: schema.make("llamacpp"),
+    mlx: schema.make("mlx"),
+    vllm: schema.make("vllm"),
   })),
 )
 

@@ -119,6 +119,36 @@ function init() {
       })
       refocus()
     },
+    back() {
+      if (store.stack.length <= 1) {
+        for (const item of store.stack) {
+          if (item.onClose) item.onClose()
+        }
+        batch(() => {
+          setStore("size", "medium")
+          setStore("stack", [])
+        })
+        refocus()
+        return
+      }
+      const current = store.stack.at(-1)
+      current?.onClose?.()
+      setStore("stack", store.stack.slice(0, -1))
+    },
+    push(input: any, onClose?: () => void) {
+      if (store.stack.length === 0) {
+        focus = renderer.currentFocusedRenderable
+        focus?.blur()
+      }
+      setStore("size", "medium")
+      setStore("stack", [
+        ...store.stack,
+        {
+          element: input,
+          onClose,
+        },
+      ])
+    },
     replace(input: any, onClose?: () => void) {
       if (store.stack.length === 0) {
         focus = renderer.currentFocusedRenderable

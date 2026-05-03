@@ -66,6 +66,9 @@ const SUMMARY_TEMPLATE = `Output exactly the Markdown structure shown inside <te
 
 ## Relevant Files
 - [file or directory path: why it matters, or "(none)"]
+
+## Random Tips
+- [one useful CLI, workflow, or AI coding tip from this session, or "(none)"]
 </template>
 
 Rules:

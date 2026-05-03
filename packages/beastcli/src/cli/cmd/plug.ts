@@ -28,7 +28,7 @@ export type PlugDeps = {
   readText: (file: string) => Promise<string>
   write: (file: string, text: string) => Promise<void>
   exists: (file: string) => Promise<boolean>
-  files: (dir: string, name: "beast" | "tui") => string[]
+  files: (dir: string, name: "beastcli" | "tui") => string[]
   global: string
 }
 

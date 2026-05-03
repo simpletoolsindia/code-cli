@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --beast-50: #f3f0ff;
+  --beast-100: #e8e0ff;
+  --beast-200: #d4c4ff;
+  --beast-300: #b89aff;
+  --beast-400: #9b6aff;
+  --beast-500: #7B61FF;
+  --beast-600: #6545e0;
+  --beast-700: #5434c4;
+  --beast-800: #4428a8;
+  --beast-900: #35208c;
+  --cyber-400: #00E5FF;
+  --cyber-500: #00bcd4;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, var(--beast-400) 0%, var(--cyber-400) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.terminal-window {
+  border: 1px solid rgba(51, 65, 85, 0.5);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+}
+
+.bg-hero-pattern {
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(123, 97, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(0, 229, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 80%, rgba(123, 97, 255, 0.05) 0%, transparent 50%);
+}
+
+@layer components {
+  .doc-link {
+    @apply text-beast-400 hover:text-beast-300 transition-colors underline underline-offset-2;
+  }
+  
+  .doc-heading {
+    @apply text-white font-bold tracking-tight;
+  }
+  
+  .doc-prose {
+    @apply text-slate-400 leading-relaxed;
+  }
+  
+  .doc-code {
+    @apply font-mono text-sm text-cyber-400 bg-slate-800/50 px-1.5 py-0.5 rounded border border-slate-700/50;
+  }
+  
+  .doc-table {
+    @apply w-full border-collapse;
+  }
+  
+  .doc-table th {
+    @apply text-left text-xs sm:text-sm font-semibold text-slate-300 bg-slate-800/50 px-4 py-3 border-b border-slate-700/50;
+  }
+  
+  .doc-table td {
+    @apply text-sm text-slate-400 px-4 py-3 border-b border-slate-700/30;
+  }
+  
+  .doc-table tr:hover td {
+    @apply bg-slate-800/20;
+  }
+
+  .sidebar-link {
+    @apply block px-3 py-2 text-sm rounded-lg transition-colors;
+  }
+  
+  .sidebar-link.active {
+    @apply bg-beast-500/10 text-beast-300 border-l-2 border-beast-500;
+  }
+  
+  .sidebar-link:not(.active) {
+    @apply text-slate-400 hover:text-white hover:bg-slate-800/50;
+  }
+}

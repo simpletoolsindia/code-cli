@@ -26,6 +26,8 @@ import { lazy } from "@/util/lazy"
 import { zodObject } from "@/util/effect-zod"
 import { Bus } from "@/bus"
 import { NamedError } from "@simpletoolsindia/core/util/error"
+import * as InstanceState from "@/effect/instance-state"
+import path from "path"
 import { jsonRequest, runRequest } from "./trace"
 
 const log = Log.create({ service: "server" })
@@ -82,16 +84,22 @@ export const SessionRoutes = lazy(() =>
           await runRequest(
             "SessionRoutes.list",
             c,
-            Session.Service.use((svc) =>
-              svc.list({
-                directory: query.scope === "project" ? undefined : query.directory,
-                path: query.path,
-                roots: queryBoolean(query.roots),
-                start: query.start,
-                search: query.search,
-                limit: query.limit,
-              }),
-            ),
+            Effect.gen(function* () {
+              const instance = yield* InstanceState.context
+              return yield* Session.Service.use((svc) =>
+                svc.list({
+                  directory: query.scope === "project" ? undefined : query.directory,
+                  path:
+                    query.scope === "project" && query.directory
+                      ? path.relative(path.resolve(instance.worktree), query.directory).replaceAll("\\", "/")
+                      : query.path,
+                  roots: queryBoolean(query.roots),
+                  start: query.start,
+                  search: query.search,
+                  limit: query.limit,
+                }),
+              )
+            }),
           ),
         )
       },

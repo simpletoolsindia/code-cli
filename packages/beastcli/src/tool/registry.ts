@@ -55,6 +55,66 @@ import { SearxngSearchTool } from "./searxng"
 const log = Log.create({ service: "tool.registry" })
 const TOOL_DEFINITION_CACHE_TTL = 5_000
 
+const CORE_TOOL_IDS = new Set([
+  "invalid",
+  "bash",
+  "read",
+  "glob",
+  "grep",
+  "edit",
+  "write",
+  "task",
+  "fetch",
+  "todo",
+  "skill",
+  "patch",
+  "codecli",
+  "question",
+])
+
+const TOOL_KEYWORDS: Record<string, string[]> = {
+  search: ["websearch", "searxng_search"],
+  web: ["websearch", "fetch", "searxng_search"],
+  url: ["webfetch", "fetch"],
+  http: ["webfetch", "fetch"],
+  website: ["websearch", "fetch", "searxng_search"],
+  "look up": ["websearch", "searxng_search"],
+  "find online": ["websearch", "searxng_search"],
+  "hacker news": ["hackernews_top", "hackernews_new", "hackernews_best", "hackernews_comments"],
+  hn: ["hackernews_top", "hackernews_new", "hackernews_best", "hackernews_comments"],
+  "tech news": ["hackernews_top", "hackernews_new", "hackernews_best", "hackernews_comments"],
+  startup: ["hackernews_top", "hackernews_new", "hackernews_best", "hackernews_comments"],
+  youtube: ["youtube_transcript", "youtube_video_info", "youtube_search", "youtube_summarize"],
+  video: ["youtube_transcript", "youtube_video_info", "youtube_search", "youtube_summarize"],
+  transcript: ["youtube_transcript", "youtube_summarize"],
+  data: ["pandas_create", "pandas_filter", "pandas_aggregate", "plot_line", "plot_bar"],
+  csv: ["pandas_create", "pandas_filter", "pandas_aggregate"],
+  pandas: ["pandas_create", "pandas_filter", "pandas_aggregate"],
+  plot: ["plot_line", "plot_bar"],
+  chart: ["plot_line", "plot_bar"],
+  graph: ["plot_line", "plot_bar"],
+  lsp: ["lsp"],
+  "language server": ["lsp"],
+  symbol: ["lsp"],
+  definition: ["lsp"],
+  references: ["lsp"],
+  plan: ["plan"],
+  strategy: ["plan"],
+}
+
+function preselectToolIDs(prompt: string): Set<string> {
+  const lower = prompt.toLowerCase()
+  const selected = new Set<string>(CORE_TOOL_IDS)
+
+  for (const [keyword, toolIDs] of Object.entries(TOOL_KEYWORDS)) {
+    if (lower.includes(keyword)) {
+      for (const id of toolIDs) selected.add(id)
+    }
+  }
+
+  return selected
+}
+
 type TaskDef = Tool.InferDef<typeof TaskTool>
 type ReadDef = Tool.InferDef<typeof ReadTool>
 
@@ -70,6 +130,7 @@ export interface Interface {
   readonly all: () => Effect.Effect<Tool.Def[]>
   readonly named: () => Effect.Effect<{ task: TaskDef; read: ReadDef }>
   readonly tools: (model: { providerID: ProviderID; modelID: ModelID; agent: Agent.Info }) => Effect.Effect<Tool.Def[]>
+  readonly preselect: (prompt: string, model: { providerID: ProviderID; modelID: ModelID; agent: Agent.Info }) => Effect.Effect<Tool.Def[]>
 }
 
 export class Service extends Context.Service<Service, Interface>()("@simpletoolsindia/ToolRegistry") {}
@@ -389,7 +450,13 @@ export const layer: Layer.Layer<
       return { task: s.task, read: s.read }
     })
 
-    return Service.of({ ids, all, named, tools })
+    const preselect: Interface["preselect"] = Effect.fn("ToolRegistry.preselect")(function* (prompt, model) {
+      const allTools = yield* tools(model)
+      const allowedIDs = preselectToolIDs(prompt)
+      return allTools.filter((tool) => allowedIDs.has(tool.id))
+    })
+
+    return Service.of({ ids, all, named, tools, preselect })
   }),
 )
 

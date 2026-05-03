@@ -59,9 +59,9 @@ export const Parameters = Schema.Struct({
   workdir: Schema.optional(Schema.String).annotate({
     description: `The working directory to run the command in. Defaults to the current directory. Use this instead of 'cd' commands.`,
   }),
-  description: Schema.String.annotate({
+  description: Schema.optional(Schema.String).annotate({
     description:
-      "Clear, concise description of what this command does in 5-10 words. Examples:\nInput: ls\nOutput: Lists files in current directory\n\nInput: git status\nOutput: Shows working tree status\n\nInput: npm install\nOutput: Installs package dependencies\n\nInput: mkdir foo\nOutput: Creates directory 'foo'",
+      "Clear, concise description of what this command does in 5-10 words.",
   }),
 })
 
@@ -420,12 +420,13 @@ export const BashTool = Tool.define(
         cwd: string
         env: NodeJS.ProcessEnv
         timeout: number
-        description: string
+        description?: string
       },
       ctx: Tool.Context,
     ) {
       const limits = yield* trunc.limits()
       const keep = limits.maxBytes * 2
+      const desc = input.description ?? input.command.slice(0, 100)
       let full = ""
       let last = ""
       const list: Chunk[] = []
@@ -439,7 +440,7 @@ export const BashTool = Tool.define(
       yield* ctx.metadata({
         metadata: {
           output: "",
-          description: input.description,
+          description: desc,
         },
       })
 
@@ -479,7 +480,7 @@ export const BashTool = Tool.define(
                       ctx.metadata({
                         metadata: {
                           output: last,
-                          description: input.description,
+                          description: desc,
                         },
                       }),
                     ),
@@ -490,7 +491,7 @@ export const BashTool = Tool.define(
               return ctx.metadata({
                 metadata: {
                   output: last,
-                  description: input.description,
+                  description: desc,
                 },
               })
             }),
@@ -575,11 +576,11 @@ export const BashTool = Tool.define(
       }
 
       return {
-        title: input.description,
+        title: desc,
         metadata: {
           output: last || preview(output),
           exit: code,
-          description: input.description,
+          description: desc,
           truncated: cut,
           ...(cut && file ? { outputPath: file } : {}),
         },

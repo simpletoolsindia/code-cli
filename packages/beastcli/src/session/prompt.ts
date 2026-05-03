@@ -366,6 +366,7 @@ NOTE: At any point in time through this workflow you should feel free to ask the
       processor: Pick<SessionProcessor.Handle, "message" | "updateToolCall" | "completeToolCall">
       bypassAgentCheck: boolean
       messages: MessageV2.WithParts[]
+      prompt: string
     }) {
       using _ = log.time("resolveTools")
       const tools: Record<string, AITool> = {}
@@ -405,7 +406,7 @@ NOTE: At any point in time through this workflow you should feel free to ask the
             .pipe(Effect.orDie),
       })
 
-      for (const item of yield* registry.tools({
+      for (const item of yield* registry.preselect(input.prompt, {
         modelID: ModelID.make(input.model.api.id),
         providerID: input.model.providerID,
         agent: input.agent,
@@ -1399,6 +1400,11 @@ NOTE: At any point in time through this workflow you should feel free to ask the
             const lastUserMsg = msgs.findLast((m) => m.info.role === "user")
             const bypassAgentCheck = lastUserMsg?.parts.some((p) => p.type === "agent") ?? false
 
+            const promptText = lastUserMsg?.parts
+              .filter((p): p is MessageV2.TextPart => p.type === "text")
+              .map((p) => p.text)
+              .join("\n") ?? ""
+
             const tools = yield* resolveTools({
               agent,
               session,
@@ -1407,6 +1413,7 @@ NOTE: At any point in time through this workflow you should feel free to ask the
               processor: handle,
               bypassAgentCheck,
               messages: msgs,
+              prompt: promptText,
             })
 
             if (lastUser.format?.type === "json_schema") {

@@ -26,6 +26,7 @@ export function DialogModel(props: { providerID?: string }) {
   const toast = useToast()
   const [query, setQuery] = createSignal("")
   const [detectedLocal, setDetectedLocal] = createSignal<DetectedLocalProvider[]>([])
+  const [scanningLocal, setScanningLocal] = createSignal(true)
   const [configuring, setConfiguring] = createSignal(false)
   const [expandedProviders, setExpandedProviders] = createSignal<Set<string>>(new Set())
 
@@ -35,7 +36,9 @@ export function DialogModel(props: { providerID?: string }) {
   const showExtra = createMemo(() => connected() && !props.providerID)
 
   onMount(() => {
-    void probeLocalModelProviders().then(setDetectedLocal)
+    void probeLocalModelProviders()
+      .then(setDetectedLocal)
+      .finally(() => setScanningLocal(false))
   })
 
   function buildFooter(info: Model, providerID: string): string {
@@ -163,6 +166,20 @@ export function DialogModel(props: { providerID?: string }) {
       })
     })
 
+    const scanningOptions =
+      scanningLocal() && !props.providerID
+        ? [
+            {
+              value: { providerID: "local-scan", modelID: "loading" },
+              title: "🔍 Scanning local models...",
+              description: "Ollama, LM Studio, Jan, MLX, vLLM",
+              category: "💻 Detected local",
+              footer: "Please wait",
+              onSelect() {},
+            },
+          ]
+        : []
+
     const popularProviders = !connected()
       ? pipe(
           providers(),
@@ -182,7 +199,7 @@ export function DialogModel(props: { providerID?: string }) {
       ]
     }
 
-    return [...favoriteOptions, ...recentOptions, ...detectedLocalOptions, ...providerOptions, ...popularProviders]
+    return [...favoriteOptions, ...recentOptions, ...scanningOptions, ...detectedLocalOptions, ...providerOptions, ...popularProviders]
   })
 
   const provider = createMemo(() =>
@@ -288,7 +305,7 @@ export function DialogModel(props: { providerID?: string }) {
           keybind: { name: "escape", ctrl: false, meta: false, shift: false, super: false, leader: false },
           title: "Back to provider list",
           onTrigger() {
-            dialog.replace(() => <DialogProvider />)
+            dialog.back()
           },
         },
         {

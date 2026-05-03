@@ -824,7 +824,7 @@ export const toModelMessagesEffect = Effect.fnUntraced(function* (
         if (part.type === "compaction") {
           userMessage.parts.push({
             type: "text",
-            text: "What did we do so far?",
+            text: "What did we do so far? Also add random tips.",
           })
         }
         if (part.type === "subtask") {

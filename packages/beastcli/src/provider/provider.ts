@@ -229,7 +229,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
           },
         },
       }),
-    beastcli: Effect.fnUntraced(function* (input: Info) {
+    beast: Effect.fnUntraced(function* (input: Info) {
       const env = yield* dep.env()
       const hasKey = iife(() => {
         if (input.env.some((item) => env[item])) return true
@@ -238,6 +238,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
       const ok =
         hasKey ||
         Boolean(yield* dep.auth(input.id)) ||
+        (input.id === "beast" && Boolean(yield* dep.auth("beastcli"))) ||
         Boolean((yield* dep.config()).provider?.["beast"]?.options?.apiKey)
 
       if (!ok) {
@@ -631,6 +632,24 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
       return yield* resolveOllama(input, dep)
     }),
     "ollama-cloud": Effect.fnUntraced(function* (input: Info) {
+      return yield* resolveOllama(input, dep)
+    }),
+    // Local OpenAI-compatible providers — all use @ai-sdk/openai-compatible
+    // with /v1/models discovery and /v1/chat/completions for generation.
+    // Tool calling is handled entirely by the application's tool engine.
+    lmstudio: Effect.fnUntraced(function* (input: Info) {
+      return yield* resolveOllama(input, dep)
+    }),
+    jan: Effect.fnUntraced(function* (input: Info) {
+      return yield* resolveOllama(input, dep)
+    }),
+    llamacpp: Effect.fnUntraced(function* (input: Info) {
+      return yield* resolveOllama(input, dep)
+    }),
+    mlx: Effect.fnUntraced(function* (input: Info) {
+      return yield* resolveOllama(input, dep)
+    }),
+    vllm: Effect.fnUntraced(function* (input: Info) {
       return yield* resolveOllama(input, dep)
     }),
     gitlab: Effect.fnUntraced(function* (input: Info) {
@@ -1124,14 +1143,16 @@ function fromModelsDevModel(provider: ModelsDev.Provider, model: ModelsDev.Model
 }
 
 export function fromModelsDevProvider(provider: ModelsDev.Provider): Info {
+  const providerID = ProviderID.make(provider.id === "beastcli" ? "beast" : provider.id)
   const models: Record<string, Model> = {}
   for (const [key, model] of Object.entries(provider.models)) {
-    models[key] = fromModelsDevModel(provider, model)
+    models[key] = { ...fromModelsDevModel(provider, model), providerID }
     for (const [mode, opts] of Object.entries(model.experimental?.modes ?? {})) {
       const id = `${model.id}-${mode}`
       const base = fromModelsDevModel(provider, model)
       models[id] = {
         ...base,
+        providerID,
         id: ModelID.make(id),
         name: `${model.name} ${mode[0].toUpperCase()}${mode.slice(1)}`,
         cost: opts.cost ? mergeDeep(base.cost, cost(opts.cost)) : base.cost,
@@ -1148,7 +1169,7 @@ export function fromModelsDevProvider(provider: ModelsDev.Provider): Info {
     }
   }
   return {
-    id: ProviderID.make(provider.id),
+    id: providerID,
     source: "custom",
     name: provider.name,
     env: [...(provider.env ?? [])],
@@ -1176,7 +1197,12 @@ const layer: Layer.Layer<
         const bridge = yield* EffectBridge.make()
         const cfg = yield* config.get()
         const modelsDev = yield* Effect.promise(() => ModelsDev.get())
-        const database = mapValues(modelsDev, fromModelsDevProvider)
+        const database = Object.fromEntries(
+          Object.entries(modelsDev).map(([id, provider]) => [
+            id === "beastcli" ? "beast" : id,
+            fromModelsDevProvider(provider),
+          ]),
+        )
 
         const providers: Record<ProviderID, Info> = {} as Record<ProviderID, Info>
         const languages = new Map<string, LanguageModelV3>()
@@ -1378,7 +1404,7 @@ const layer: Layer.Layer<
         // load apikeys
         const auths = yield* auth.all().pipe(Effect.orDie)
         for (const [id, provider] of Object.entries(auths)) {
-          const providerID = ProviderID.make(id)
+          const providerID = ProviderID.make(id === "beastcli" ? "beast" : id)
           if (disabled.has(providerID)) continue
           if (provider.type === "api") {
             mergeProvider(providerID, {

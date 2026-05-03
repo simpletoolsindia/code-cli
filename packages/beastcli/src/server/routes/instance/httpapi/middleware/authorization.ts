@@ -45,9 +45,11 @@ function isCredentialAuthorized(
   credential: { readonly username: string; readonly password: Redacted.Redacted },
   config: Context.Service.Shape<typeof ServerAuthConfig>,
 ) {
+  const isUsernameAllowed =
+    credential.username === config.username || (config.username === "beast" && credential.username === "beastcli")
   return (
     Option.isSome(config.password) &&
-    credential.username === config.username &&
+    isUsernameAllowed &&
     Redacted.value(credential.password) === config.password.value
   )
 }

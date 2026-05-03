@@ -194,8 +194,80 @@ function fail(queue: Queue.Queue<string, PlatformError | Error | Cause.Done>, er
   Queue.failCauseUnsafe(queue, Cause.fail(err))
 }
 
+const MACOS_RESTRICTED_DIRS = [
+  "!.Trash",
+  "!.Spotlight-V100",
+  "!.fseventsd",
+  "!.DocumentRevisions-V100",
+  "!.vol",
+  "!.MobileBackups",
+  "!.com.apple.mobilecontainermanager",
+  "!/Library/Assistant/*",
+  "!/Library/Containers/*",
+  "!/Library/Group Containers/*",
+  "!/Library/Messages",
+  "!/Library/Mail",
+  "!/Library/Safari",
+  "!/Library/HomeKit",
+  "!/Library/Sharing",
+  "!/Library/IdentityServices",
+  "!/Library/Accounts",
+  "!/Library/Shortcuts",
+  "!/Library/Biome",
+  "!/Library/Suggestions",
+  "!/Library/Weather",
+  "!/Library/IntelligencePlatform",
+  "!/Library/DoNotDisturb",
+  "!/Library/StatusKit",
+  "!/Library/CoreFollowUp",
+  "!/Library/Trial",
+  "!/Library/DuetExpertCenter",
+  "!/Library/AppleMediaServices",
+  "!/Library/Metadata",
+  "!/Library/PersonalizationPortrait",
+  "!/Library/ContainerManager",
+  "!/Library/Caches/com.apple.*",
+  "!/Library/Caches/CloudKit",
+]
+
+const WINDOWS_RESTRICTED_DIRS = [
+  "!/Windows",
+  "!/Program Files",
+  "!/Program Files (x86)",
+  "!/ProgramData",
+  "!/$Recycle.Bin",
+  "!/System Volume Information",
+  "!/Recovery",
+  "!/Users/Default",
+  "!/Users/Public",
+  "!/bootmgr",
+  "!/pagefile.sys",
+  "!/swapfile.sys",
+  "!/hiberfil.sys",
+]
+
+const LINUX_RESTRICTED_DIRS = [
+  "!.Trash-*",
+  "!/proc",
+  "!/sys",
+  "!/dev",
+  "!/run",
+  "!/snap",
+  "!/lost+found",
+  "!/etc/shadow",
+  "!/etc/gshadow",
+  "!/etc/sudoers",
+]
+
+const RESTRICTED_DIRS = process.platform === "darwin"
+  ? MACOS_RESTRICTED_DIRS
+  : process.platform === "win32"
+    ? WINDOWS_RESTRICTED_DIRS
+    : LINUX_RESTRICTED_DIRS
+
 function filesArgs(input: FilesInput) {
-  const args = ["--no-config", "--files", "--glob=!.git/*"]
+  const args = ["--no-config", "--files", "--glob=!.git/*", "--no-messages"]
+  for (const pattern of RESTRICTED_DIRS) args.push(`--glob=${pattern}`)
   if (input.follow) args.push("--follow")
   if (input.hidden !== false) args.push("--hidden")
   if (input.hidden === false) args.push("--glob=!.*")
@@ -209,6 +281,7 @@ function filesArgs(input: FilesInput) {
 
 function searchArgs(input: SearchInput) {
   const args = ["--no-config", "--json", "--hidden", "--glob=!.git/*", "--no-messages"]
+  for (const pattern of RESTRICTED_DIRS) args.push(`--glob=${pattern}`)
   if (input.follow) args.push("--follow")
   if (input.glob) {
     for (const glob of input.glob) args.push(`--glob=${glob}`)

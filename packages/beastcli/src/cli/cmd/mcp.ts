@@ -19,6 +19,8 @@ import { Filesystem } from "@/util/filesystem"
 import { Bus } from "../../bus"
 import { AppRuntime } from "../../effect/app-runtime"
 import { Effect } from "effect"
+import { discoverMcpServers, type DiscoveredMCP } from "../../mcp/autodetect"
+import fs from "fs/promises"
 
 function getAuthStatusIcon(status: MCP.AuthStatus): string {
   switch (status) {
@@ -100,6 +102,7 @@ export const McpCommand = cmd({
   describe: "manage MCP (Model Context Protocol) servers",
   builder: (yargs) =>
     yargs
+      .command(McpDiscoverCommand)
       .command(McpAddCommand)
       .command(McpListCommand)
       .command(McpAuthCommand)
@@ -792,6 +795,123 @@ export const McpDebugCommand = cmd({
         }
 
         prompts.outro("Debug complete")
+      },
+    })
+  },
+})
+
+export const McpDiscoverCommand = cmd({
+  command: "discover",
+  describe: "auto-detect MCP servers from your system",
+  async handler() {
+    await Instance.provide({
+      directory: process.cwd(),
+      async fn() {
+        UI.empty()
+        prompts.intro("MCP Server Discovery")
+
+        const results = await discoverMcpServers(process.cwd())
+        const allServers = [...results.fromExternalConfig, ...results.fromPackages]
+
+        if (allServers.length === 0) {
+          prompts.log.warn("No MCP servers found")
+          prompts.log.info("MCP servers can be detected from:")
+          prompts.log.info("  - Claude Desktop config")
+          prompts.log.info("  - Cursor MCP config")
+          prompts.log.info("  - Installed npm packages in node_modules")
+          prompts.outro("Add servers manually with: beast mcp add")
+          return
+        }
+
+        // Show summary
+        prompts.log.info(`Found ${allServers.length} MCP server(s):`)
+
+        if (results.fromExternalConfig.length > 0) {
+          prompts.log.info(`\nFrom external configs (${results.fromExternalConfig.length}):`)
+          for (const mcp of results.fromExternalConfig) {
+            const typeLabel = mcp.config.type === "local" ? mcp.config.command.join(" ") : mcp.config.url
+            prompts.log.info(`  ${mcp.source}: ${mcp.name} (${typeLabel})`)
+          }
+        }
+
+        if (results.fromPackages.length > 0) {
+          prompts.log.info(`\nFrom node_modules (${results.fromPackages.length}):`)
+          for (const mcp of results.fromPackages) {
+            prompts.log.info(`  ${mcp.name}: ${mcp.description ?? "MCP server"}`)
+          }
+        }
+
+        // Ask which to add
+        const choices = allServers.map((mcp) => {
+          const label = mcp.config.type === "local"
+            ? `${mcp.name} (${mcp.config.command[mcp.config.command.length - 1]})`
+            : `${mcp.name} (${mcp.config.url})`
+          return {
+            label,
+            value: mcp,
+            hint: mcp.description ?? `[from ${mcp.source}]`,
+          }
+        })
+
+        const selected = await prompts.multiselect({
+          message: "Select servers to add",
+          options: choices,
+        })
+
+        if (prompts.isCancel(selected)) {
+          prompts.outro("Cancelled")
+          return
+        }
+
+        if (selected.length === 0) {
+          prompts.outro("No servers selected")
+          return
+        }
+
+        // Determine scope
+        const project = Instance.project
+        let configPath = path.join(Global.Path.config, "config.json")
+
+        if (project.vcs === "git") {
+          const scopeResult = await prompts.select({
+            message: "Location",
+            options: [
+              {
+                label: "Current project",
+                value: "local",
+                hint: path.join(Instance.worktree, ".beastcli", "beastcli.json"),
+              },
+              {
+                label: "Global",
+                value: "global",
+                hint: path.join(Global.Path.config, "config.json"),
+              },
+            ],
+          })
+          if (prompts.isCancel(scopeResult)) {
+            prompts.outro("Cancelled")
+            return
+          }
+          if (scopeResult === "local") {
+            configPath = path.join(Instance.worktree, ".beastcli", "beastcli.json")
+            await fs.mkdir(path.dirname(configPath), { recursive: true }).catch(() => {})
+          }
+        }
+
+        // Add selected servers
+        const spinner = prompts.spinner()
+        for (const mcp of selected) {
+          spinner.start(`Adding ${mcp.name}...`)
+          try {
+            await addMcpToConfig(mcp.name, mcp.config, configPath)
+            spinner.stop(`Added ${mcp.name}`)
+          } catch (err) {
+            spinner.stop(`Failed to add ${mcp.name}: ${err instanceof Error ? err.message : String(err)}`, 1)
+          }
+        }
+
+        prompts.log.success(`Added ${selected.length} MCP server(s) to ${configPath}`)
+        prompts.outro("Restart beast to apply changes")
       },
     })
   },

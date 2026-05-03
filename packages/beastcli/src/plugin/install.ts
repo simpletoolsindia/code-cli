@@ -31,7 +31,7 @@ export type PatchDeps = {
   readText: (file: string) => Promise<string>
   write: (file: string, text: string) => Promise<void>
   exists: (file: string) => Promise<boolean>
-  files: (dir: string, name: "beast" | "tui") => string[]
+  files: (dir: string, name: "beastcli" | "tui") => string[]
 }
 
 export type PatchInput = {
@@ -337,8 +337,8 @@ function patchDir(input: PatchInput) {
   return path.join(root, ".beastcli")
 }
 
-function patchName(kind: Kind): "beast" | "tui" {
-  if (kind === "server") return "beast"
+function patchName(kind: Kind): "beastcli" | "tui" {
+  if (kind === "server") return "beastcli"
   return "tui"
 }
 

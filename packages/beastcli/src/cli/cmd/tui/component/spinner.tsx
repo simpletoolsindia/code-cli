@@ -52,11 +52,38 @@ export function CircleSpinner(props: { color?: RGBA; size?: "sm" | "md" }) {
   })
   const c = () => props.color ?? theme.primary
   const { theme } = useTheme()
+  const s = () => props.size ?? "sm"
   const quarters = () => {
     const t = tick() % 4
-    return ["◐", "◓", "◑", "◒"][t]
+    const chars = ["◐", "◓", "◑", "◒"]
+    const ch = chars[t]
+    return s() === "md" ? `${ch}${ch}` : ch
   }
   return <text fg={c()}>{quarters()}</text>
+}
+
+/** Square animated loading bar for response header */
+export function SquareLoadingBar(props: { color?: RGBA; width?: number }) {
+  const [tick, setTick] = createSignal(0)
+  createEffect(() => {
+    const timer = setInterval(() => setTick(t => t + 1), 100)
+    onCleanup(() => clearInterval(timer))
+  })
+  const c = () => props.color ?? theme.primary
+  const { theme } = useTheme()
+  const w = () => props.width ?? 6
+  const bar = () => {
+    const t = tick()
+    const width = w()
+    const filled = (t % (width + 2)) - 1
+    return Array.from({ length: width }, (_, i) => {
+      if (i === filled) return "█"
+      if (i === filled - 1 || i === filled + 1) return "▓"
+      if (Math.abs(i - filled) <= 2) return "▒"
+      return "░"
+    }).join("")
+  }
+  return <text fg={c()}>{bar()}</text>
 }
 export function FullWidthProgress(props: {
   width?: number

@@ -44,6 +44,20 @@ export function DialogSessionList() {
   const currentSessionID = createMemo(() => (route.data.type === "session" ? route.data.sessionID : undefined))
   const sessions = createMemo(() => searchResults() ?? sync.data.session)
 
+  function sessionPreview(sessionID: string) {
+    const messages = sync.data.message[sessionID] ?? []
+    const message = messages.findLast((item) => item.role === "user") ?? messages.findLast((item) => item.role === "assistant")
+    if (!message) return
+    const text = (sync.data.part[message.id] ?? [])
+      .filter((part) => part.type === "text" && !part.synthetic)
+      .map((part) => (part.type === "text" ? part.text : ""))
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim()
+    if (!text) return
+    return `${message.role === "user" ? "You" : "AI"}: ${Locale.truncate(text, 56)}`
+  }
+
   function createWorkspace() {
     dialog.replace(() => (
       <DialogWorkspaceCreate
@@ -163,7 +177,8 @@ export function DialogSessionList() {
         const status = sync.data.session_status?.[x.id]
         const isWorking = status?.type === "busy"
         return {
-          title: isDeleting ? `Press ${keybind.print("session_delete")} again to confirm` : x.title,
+          title: x.title,
+          description: isDeleting ? `Delete this session? Press ${keybind.print("session_delete")} again to confirm` : sessionPreview(x.id),
           bg: isDeleting ? theme.error : undefined,
           value: x.id,
           category,

@@ -36,7 +36,7 @@ export function DialogHelp() {
         </text>
         {!connected() && (
           <text fg={theme.textMuted}>
-            No providers connected. Run {keybind.print("help_show") ?? "/connect"} to add one and get started.
+            No providers connected. Run /connect or open {keybind.print("command_list") ?? "the command palette"} to add one and get started.
           </text>
         )}
         <text fg={theme.textMuted}>

@@ -261,7 +261,7 @@ describe("session.message-v2.toModelMessage", () => {
             filename: "img.png",
             data: "https://example.com/img.png",
           },
-          { type: "text", text: "What did we do so far?" },
+          { type: "text", text: "What did we do so far? Also add random tips." },
           { type: "text", text: "The following tool was executed by the user" },
         ],
       },

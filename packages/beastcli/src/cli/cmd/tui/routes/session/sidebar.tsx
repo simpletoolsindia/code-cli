@@ -1,24 +1,45 @@
 import { useProject } from "@tui/context/project"
 import { useSync } from "@tui/context/sync"
-import { createMemo, For, Show } from "solid-js"
+import { useRoute } from "@tui/context/route"
+import { createMemo, createSignal, createEffect, onCleanup, For, Show } from "solid-js"
 import { useTheme } from "../../context/theme"
 import { useTuiConfig } from "../../context/tui-config"
 
 import { TuiPluginRuntime } from "@/cli/cmd/tui/plugin/runtime"
 import { getScrollAcceleration } from "../../util/scroll"
 import { useLocal } from "../../context/local"
-import { GradientProgressBar, Spinner, SidebarProgress } from "@tui/component/spinner"
+import { Spinner, SidebarProgress } from "@tui/component/spinner"
 import { useKeybind } from "@tui/context/keybind"
+import type { AssistantMessage, ToolPart, UserMessage } from "@simpletoolsindia/sdk/v2"
 
-function ProgressBar(props: { percent: number; width: number }) {
-  const { theme } = useTheme()
+function ContextAnimated(props: { pct?: number; label: string; theme: any; used: number }) {
+  const [displayPct, setDisplayPct] = createSignal(0)
+
+  createEffect(() => {
+    const target = props.pct
+    if (target === undefined) return
+    const start = displayPct()
+    if (start === target) return
+    const frames = 20
+    let frame = 0
+    const timer = setInterval(() => {
+      frame++
+      setDisplayPct(Math.round(start + ((target - start) / frames) * frame))
+      if (frame >= frames) {
+        clearInterval(timer)
+        setDisplayPct(target)
+      }
+    }, 30)
+    onCleanup(() => clearInterval(timer))
+  })
+
+  const color = () =>
+    (props.pct ?? 0) > 90 ? props.theme.error : (props.pct ?? 0) > 70 ? props.theme.warning : props.theme.primary
+
   return (
-    <GradientProgressBar
-      percent={props.percent}
-      width={props.width}
-      color={theme.primary}
-      showPercent
-    />
+    <text fg={color()} attributes={1}>
+      <b>Context: {props.pct === undefined ? props.label : `${displayPct()}% — ${props.label}`}</b>
+    </text>
   )
 }
 
@@ -56,12 +77,38 @@ function StatusBadge(props: { status: string }) {
 
 function ToolCallItem(props: { tool: string; status: "running" | "done" | "error"; detail?: string }) {
   const { theme } = useTheme()
-  const icon = props.status === "running" ? "◈" : props.status === "done" ? "✓" : "✕"
-  const color = props.status === "running" ? theme.primary : props.status === "done" ? theme.success : theme.error
+  const toolEmojis: Record<string, string> = {
+    bash: "🐚",
+    read: "📖",
+    write: "📄",
+    edit: "✏️",
+    glob: "🔍",
+    grep: "🔎",
+    webfetch: "🌐",
+    websearch: "🔎",
+    task: "🤖",
+    apply_patch: "🩹",
+    todowrite: "📋",
+    question: "❓",
+    skill: "⚡",
+  }
+  const statusIcons: Record<string, string> = {
+    running: "◈",
+    done: "✓",
+    error: "✕",
+  }
+  const statusColors: Record<string, any> = {
+    running: theme.primary,
+    done: theme.success,
+    error: theme.error,
+  }
+  const emoji = toolEmojis[props.tool] || "🔧"
+  const icon = statusIcons[props.status]
+  const color = statusColors[props.status]
   return (
     <box flexDirection="row" gap={1} flexShrink={0}>
-      <Show when={props.status === "running"} fallback={<text fg={color}>{icon}</text>}>
-        <Spinner color={color}>{icon}</Spinner>
+      <Show when={props.status === "running"} fallback={<text fg={color}>{`${emoji} ${icon}`}</text>}>
+        <Spinner color={color}>{emoji}</Spinner>
       </Show>
       <text fg={theme.textMuted} wrapMode="word" flexShrink={1}>
         {props.tool}
@@ -79,6 +126,7 @@ function ToolCallItem(props: { tool: string; status: "running" | "done" | "error
 export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   const project = useProject()
   const sync = useSync()
+  const route = useRoute()
   const { theme } = useTheme()
   const tuiConfig = useTuiConfig()
   const local = useLocal()
@@ -87,6 +135,16 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   const session = createMemo(() => sync.session.get(props.sessionID))
   const status = createMemo(() => sync.data.session_status?.[props.sessionID])
   const messages = createMemo(() => sync.data.message[props.sessionID] ?? [])
+
+  const recentSessions = createMemo(() => {
+    const current = props.sessionID
+    return sync.data.session.reduce<typeof sync.data.session>((acc, item) => {
+      if (item.id === current || item.parentID !== undefined || item.time.archived) return acc
+      const index = acc.findIndex((existing) => item.time.updated > existing.time.updated)
+      const next = index === -1 ? [...acc, item] : [...acc.slice(0, index), item, ...acc.slice(index)]
+      return next.slice(0, 5)
+    }, [])
+  })
 
   const workspaceStatus = () => {
     const workspaceID = session()?.workspaceID
@@ -104,26 +162,64 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
 
   const scrollAcceleration = createMemo(() => getScrollAcceleration(tuiConfig))
 
-  // Session metrics
-  const turnCount = createMemo(() => messages().filter((m) => m.role === "user").length)
-  const assistantCount = createMemo(() => messages().filter((m) => m.role === "assistant").length)
-
-  // Context usage
-  const lastAssistant = createMemo(() =>
-    messages()
-      .slice()
-      .reverse()
-      .find((m) => m.role === "assistant" && "tokens" in m && ((m as any).tokens?.output ?? 0) > 0),
+  const messageStats = createMemo(() =>
+    messages().reduce(
+      (acc, message) => ({
+        turns: acc.turns + (message.role === "user" ? 1 : 0),
+        assistants: acc.assistants + (message.role === "assistant" ? 1 : 0),
+      }),
+      { turns: 0, assistants: 0 },
+    ),
   )
 
-  const contextPercent = createMemo(() => {
-    const last = lastAssistant() as any
-    if (!last || !last.tokens) return 0
-    const used =
-      last.tokens.input + last.tokens.output + last.tokens.reasoning + last.tokens.cache?.read + last.tokens.cache?.write
-    const model = sync.data.provider.find((p) => p.id === last.providerID)?.models[last.modelID]
-    if (!model?.limit?.context) return 0
-    return Math.min(100, Math.round((used / model.limit.context) * 100))
+  const lastUsage = createMemo(() => {
+    const assistant = messages().findLast(
+      (m): m is AssistantMessage => m.role === "assistant" && m.tokens.output > 0,
+    )
+    if (!assistant) return undefined
+    const user = messages().findLast(
+      (m): m is UserMessage => m.role === "user" && m.id < assistant.id,
+    )
+    return { assistant, user }
+  })
+
+  function contextLimit(input: { providerID: string; modelID: string; fallbackModelID?: string }) {
+    const provider = sync.data.provider.find((p) => p.id === input.providerID)
+    if (!provider) return 0
+    const model =
+      provider.models[input.modelID] ??
+      (input.fallbackModelID ? provider.models[input.fallbackModelID] : undefined) ??
+      Object.values(provider.models).find(
+        (item) =>
+          item.id === input.modelID ||
+          item.api.id === input.modelID ||
+          item.name === input.modelID ||
+          (input.fallbackModelID &&
+            (item.id === input.fallbackModelID ||
+              item.api.id === input.fallbackModelID ||
+              item.name === input.fallbackModelID)),
+      )
+    return model?.limit?.context ?? 0
+  }
+
+  const contextInfo = createMemo(() => {
+    const usage = lastUsage()
+    if (!usage) return { used: 0, limit: 0, pct: undefined, label: "No context data" }
+    const tokens = usage.assistant.tokens
+    const used = tokens.input + tokens.output + tokens.reasoning + (tokens.cache?.read ?? 0) + (tokens.cache?.write ?? 0)
+    const limit = contextLimit({
+      providerID: usage.assistant.providerID,
+      modelID: usage.assistant.modelID,
+      fallbackModelID:
+        usage.user?.model.providerID === usage.assistant.providerID ? usage.user.model.modelID : undefined,
+    })
+    const pct = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : undefined
+    return {
+      used,
+      limit,
+      pct,
+      label: `${used.toLocaleString()}${limit > 0 ? ` / ${limit.toLocaleString()}` : ""} tokens`,
+    }
   })
 
   // Current model
@@ -132,43 +228,48 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
   // Connected services
   const mcpCount = createMemo(() => Object.values(sync.data.mcp).filter((x) => x.status === "connected").length)
 
-  // Mock recent tool calls from session diffs or messages
   const recentTools = createMemo(() => {
     const diffs = sync.data.session_diff[props.sessionID] ?? []
     const tools: Array<{ tool: string; status: "running" | "done" | "error"; detail: string }> = []
     const diff = diffs[0]
     if (diff) {
-      tools.push({ tool: "edit_file", status: "done", detail: (diff as any).path ?? diff.file })
+      tools.push({ tool: "edit_file", status: "done", detail: diff.file })
     }
-    // Check last few messages for tool calls
-    const lastMsgs = messages().slice(-5)
-    for (const msg of lastMsgs as any[]) {
-      if (msg.role === "tool") {
-        tools.push({
-          tool: msg.tool ?? "tool",
-          status: msg.status === "error" ? "error" : "done",
-          detail: msg.path ?? "",
-        })
-      }
-    }
+    const recentParts = messages()
+      .slice(-5)
+      .flatMap((message) => sync.data.part[message.id] ?? [])
+      .filter((part): part is ToolPart => part.type === "tool")
+      .filter((part) => part.state.status !== "running")
+      .map((part) => ({
+        tool: part.tool,
+        status: part.state.status === "error" ? "error" as const : "done" as const,
+        detail: part.state.status === "completed" ? part.state.title : "",
+      }))
+    tools.push(...recentParts)
     return tools.slice(-4).reverse()
   })
 
-  const runningTools = createMemo(() =>
-    messages().flatMap((message) =>
-      ((sync.data.part[message.id] ?? []) as any[])
-        .filter((part) => part.type === "tool" && part.state.status === "running")
-        .map((part) => ({
-          tool: part.tool,
-          title: part.state.title,
-        })),
-    ),
-  )
+  const runningTool = createMemo(() => {
+    const list = messages()
+    for (let i = list.length - 1; i >= 0; i--) {
+      const part = (sync.data.part[list[i].id] ?? []).findLast(
+        (part): part is ToolPart => part.type === "tool" && part.state.status === "running",
+      )
+      if (part?.state.status === "running") return { tool: part.tool, title: part.state.title }
+    }
+    return undefined
+  })
+
+  const retryStatus = createMemo(() => {
+    const current = status()
+    if (current?.type !== "retry") return undefined
+    return current
+  })
 
   const activityRows = createMemo(() => {
     const busy = status()?.type === "busy"
     const retry = status()?.type === "retry"
-    const tool = runningTools().at(-1)
+    const tool = runningTool()
     if (!busy && !retry && !tool) {
       return [{ label: "Ready", active: false, text: "Waiting for input" }]
     }
@@ -223,7 +324,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
                 </box>
                 <box flexDirection="row" gap={2} flexShrink={0}>
                   <text fg={theme.textMuted}>
-                    📝 {turnCount()} turns · 🤖 {assistantCount()} responses
+                    📝 {messageStats().turns} turns · 🤖 {messageStats().assistants} responses
                   </text>
                 </box>
                 <Show when={session()!.workspaceID}>
@@ -235,22 +336,9 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
               </box>
             </TuiPluginRuntime.Slot>
 
-            {/* Context Usage Bar */}
+            {/* Context Usage */}
             <box gap={1} paddingTop={1} flexShrink={0}>
-              <text fg={theme.text}>
-                <b>Context</b>
-              </text>
-              <ProgressBar percent={contextPercent()} width={24} />
-              <text fg={theme.textMuted}>
-                {(() => {
-                  const last = lastAssistant()
-                  if (!last || !(last as any).tokens) return "No context data"
-                  const tokens = (last as any).tokens
-                  const used = tokens.input + tokens.output + tokens.reasoning + tokens.cache.read + tokens.cache.write
-                  const limit = sync.data.provider.find((p) => p.id === (last as any).providerID)?.models[(last as any).modelID]?.limit?.context ?? 0
-                  return `${used.toLocaleString()}${limit > 0 ? ` / ${limit.toLocaleString()}` : ""} tokens`
-                })()}
-              </text>
+              <ContextAnimated pct={contextInfo().pct} label={contextInfo().label} theme={theme} used={contextInfo().used} />
             </box>
 
             <box gap={1} paddingTop={1} flexShrink={0}>
@@ -289,7 +377,8 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
               </box>
             </Show>
 
-            <Show when={status()?.type === "retry"}>
+            <Show when={retryStatus()}>
+              {(retry) => (
               <box gap={1} flexShrink={0} border={["top"]} borderColor={theme.warning} paddingTop={1}>
                 <box flexDirection="row" gap={1}>
                   <text fg={theme.warning}>⟳</text>
@@ -298,9 +387,10 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
                   </text>
                 </box>
                 <text fg={theme.textMuted}>
-                  Attempt {(status() as any)?.attempt ?? 1}
+                  Attempt {retry().attempt}
                 </text>
               </box>
+              )}
             </Show>
 
             {/* Connected Services */}
@@ -314,6 +404,41 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
                 </text>
               </box>
             </box>
+
+            {/* Recent Chat History */}
+            <Show when={recentSessions().length > 0}>
+              <box gap={1} paddingTop={1} flexShrink={0}>
+                <text fg={theme.text}>
+                  <b>Recent Chats</b>
+                </text>
+                <For each={recentSessions()}>
+                  {(s) => {
+                    const timeAgo = () => {
+                      const diff = Date.now() - s.time.updated
+                      const mins = Math.floor(diff / 60000)
+                      if (mins < 60) return `${mins}m ago`
+                      const hours = Math.floor(mins / 60)
+                      if (hours < 24) return `${hours}h ago`
+                      const days = Math.floor(hours / 24)
+                      return `${days}d ago`
+                    }
+                    return (
+                      <box
+                        flexDirection="row"
+                        justifyContent="space-between"
+                        flexShrink={0}
+                        onMouseUp={() => route.navigate({ type: "session", sessionID: s.id })}
+                      >
+                        <text fg={theme.text} wrapMode="word" flexShrink={1}>
+                          💬 {s.title.length > 27 ? s.title.slice(0, 24) + "..." : s.title}
+                        </text>
+                        <text fg={theme.textMuted}>{timeAgo()}</text>
+                      </box>
+                    )
+                  }}
+                </For>
+              </box>
+            </Show>
 
             {/* Current Model */}
             <Show when={currentModel().provider !== "No provider"}>

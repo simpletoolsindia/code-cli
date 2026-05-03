@@ -19,6 +19,7 @@ import { MessageID, PartID, SessionID } from "@/session/schema"
 import { NotFoundError } from "@/storage/storage"
 import { NamedError } from "@simpletoolsindia/core/util/error"
 import { Cause, Effect, Schema, Scope } from "effect"
+import path from "path"
 import * as Stream from "effect/Stream"
 import { HttpServerRequest, HttpServerResponse } from "effect/unstable/http"
 import { HttpApiBuilder, HttpApiError, HttpApiSchema } from "effect/unstable/httpapi"
@@ -63,10 +64,14 @@ export const sessionHandlers = HttpApiBuilder.group(InstanceHttpApi, "session", 
     const scope = yield* Scope.Scope
 
     const list = Effect.fn("SessionHttpApi.list")(function* (ctx: { query: typeof ListQuery.Type }) {
+      const instance = yield* InstanceState.context
       return yield* session.list({
         directory: ctx.query.scope === "project" ? undefined : ctx.query.directory,
         scope: ctx.query.scope,
-        path: ctx.query.path,
+        path:
+          ctx.query.scope === "project" && ctx.query.directory
+            ? path.relative(path.resolve(instance.worktree), ctx.query.directory).replaceAll("\\", "/")
+            : ctx.query.path,
         roots: ctx.query.roots,
         start: ctx.query.start,
         search: ctx.query.search,

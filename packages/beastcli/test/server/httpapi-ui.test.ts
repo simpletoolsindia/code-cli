@@ -134,7 +134,7 @@ describe("HttpApi UI fallback", () => {
     expect(response.status).toBe(200)
     expect(response.headers.get("content-type")).toContain("text/html")
     expect(await response.text()).toBe("<html>beastcli</html>")
-    expect(proxiedUrl).toBe("https://app.beastcli.ai/")
+    expect(proxiedUrl).toBe("https://app.beastcli.sridharhomelab.in/")
   })
 
   test("strips upstream transfer encoding headers from proxied assets", async () => {
@@ -179,7 +179,7 @@ describe("HttpApi UI fallback", () => {
     )
 
     expect(response.status).toBe(200)
-    expect(proxiedUrl).toBe("https://app.beastcli.ai/assets/app.js")
+    expect(proxiedUrl).toBe("https://app.beastcli.sridharhomelab.in/assets/app.js")
     expect(response.headers.get("content-encoding")).toBeNull()
     expect(response.headers.get("content-length")).not.toBe("999")
     expect(response.headers.get("content-type")).toContain("text/javascript")
@@ -211,7 +211,7 @@ describe("HttpApi UI fallback", () => {
       password: "secret",
       username: "beast",
       client: httpClient(new Response("<html>beastcli</html>", { headers: { "content-type": "text/html" } })),
-    }).request(`/?auth_token=${btoa("beastcli:secret")}`)
+    }).request(`/?auth_token=${btoa("beast:secret")}`)
 
     expect(response.status).toBe(200)
     expect(await response.text()).toBe("<html>beastcli</html>")
@@ -222,7 +222,7 @@ describe("HttpApi UI fallback", () => {
     Flag.BEAST_DISABLE_EMBEDDED_WEB_UI = true
 
     const response = await uiApp({ password: "secret", username: "beast" }).request("/", {
-      headers: { authorization: `Basic ${btoa("beastcli:secret")}` },
+      headers: { authorization: `Basic ${btoa("beast:secret")}` },
     })
 
     expect(response.status).toBe(200)

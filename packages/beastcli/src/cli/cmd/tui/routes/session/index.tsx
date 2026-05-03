@@ -19,7 +19,7 @@ import { useProject } from "@tui/context/project"
 import { useSync } from "@tui/context/sync"
 import { useEvent } from "@tui/context/event"
 import { SplitBorder } from "@tui/component/border"
-import { Spinner } from "@tui/component/spinner"
+import { Spinner, SquareLoadingBar } from "@tui/component/spinner"
 import { selectedForeground, useTheme } from "@tui/context/theme"
 import { BoxRenderable, ScrollBoxRenderable, addDefaultParsers, TextAttributes, RGBA } from "@opentui/core"
 import { Prompt, type PromptRef } from "@tui/component/prompt"
@@ -112,38 +112,6 @@ const context = createContext<{
   tui: ReturnType<typeof useTuiConfig>
 }>()
 
-function HeaderProgress(props: { active: boolean; label: string; detail?: string; width: number }) {
-  const { theme } = useTheme()
-  const barWidth = createMemo(() => Math.max(18, Math.min(64, props.width - 24)))
-  const frames = createMemo(() => {
-    const width = barWidth()
-    const segment = Math.max(4, Math.min(10, Math.floor(width / 4)))
-    return Array.from({ length: width }, (_, index) => {
-      const cells = Array.from({ length: width }, (_, pos) => {
-        const distance = (pos - index + width) % width
-        if (distance < segment) return "●"
-        if (distance < segment + 2) return "•"
-        return "·"
-      })
-      return cells.join("")
-    })
-  })
-
-  return (
-    <Show when={props.active}>
-      <box flexDirection="row" gap={1} height={1} flexShrink={0} alignItems="center">
-        <spinner color={theme.primary} frames={frames()} interval={55} />
-        <text fg={theme.primary} flexShrink={0} attributes={2}>
-          {props.label}
-        </text>
-        <Show when={props.detail}>
-          {(detail) => <text fg={theme.textMuted} wrapMode="none">{detail()}</text>}
-        </Show>
-      </box>
-    </Show>
-  )
-}
-
 function use() {
   const ctx = useContext(context)
   if (!ctx) throw new Error("useContext must be used within a Session component")
@@ -152,7 +120,7 @@ function use() {
 
 export function Session() {
   const route = useRouteData("session")
-  const { navigate } = useRoute()
+  const router = useRoute()
   const sync = useSync()
   const event = useEvent()
   const project = useProject()
@@ -168,27 +136,6 @@ export function Session() {
       .toSorted((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
   })
   const messages = createMemo(() => sync.data.message[route.sessionID] ?? [])
-  const status = createMemo(() => sync.data.session_status?.[route.sessionID] ?? { type: "idle" })
-  const runningTool = createMemo(() =>
-    messages()
-      .flatMap((message) => ((sync.data.part[message.id] ?? []) as ToolPart[]))
-      .findLast((part) => part.type === "tool" && part.state.status === "running"),
-  )
-  const headerProgress = createMemo(() => {
-    const tool = runningTool()
-    if (tool) {
-      const title = tool.state.status === "running" ? tool.state.title : undefined
-      return {
-        active: true,
-        label: "Processing",
-        detail: `${Locale.titlecase(tool.tool)}${title ? ` · ${title}` : ""}`,
-      }
-    }
-    const current = status()
-    if (current.type === "busy") return { active: true, label: "Thinking", detail: "Preparing response" }
-    if (current.type === "retry") return { active: true, label: "Retrying", detail: `Attempt ${current.attempt}` }
-    return { active: false, label: "Ready", detail: undefined }
-  })
   const permissions = createMemo(() => {
     if (session()?.parentID) return []
     return children().flatMap((x) => sync.data.permission[x.id] ?? [])
@@ -248,7 +195,7 @@ export function Session() {
           variant: "error",
           duration: 5000,
         })
-        navigate({ type: "home" })
+        router.navigate({ type: "home" })
         return
       }
 
@@ -273,7 +220,7 @@ export function Session() {
         variant: "error",
         duration: 5000,
       })
-      navigate({ type: "home" })
+      router.navigate({ type: "home" })
     })
   })
 
@@ -413,7 +360,7 @@ export function Session() {
     if (children().length === 1) return
     const next = children().find((x) => !!x.parentID)
     if (next) {
-      navigate({
+      router.navigate({
         type: "session",
         sessionID: next.id,
       })
@@ -429,7 +376,7 @@ export function Session() {
     if (next >= sessions.length) next = 0
     if (next < 0) next = sessions.length - 1
     if (sessions[next]) {
-      navigate({
+      router.navigate({
         type: "session",
         sessionID: sessions[next].id,
       })
@@ -1031,7 +978,7 @@ export function Session() {
       onSelect: childSessionHandler((dialog) => {
         const parentID = session()?.parentID
         if (parentID) {
-          navigate({
+          router.navigate({
             type: "session",
             sessionID: parentID,
           })
@@ -1112,12 +1059,6 @@ export function Session() {
       <box flexDirection="row">
         <box flexGrow={1} paddingBottom={1} paddingLeft={2} paddingRight={2} gap={1}>
           <BreadcrumbNav />
-          <HeaderProgress
-            active={headerProgress().active}
-            label={headerProgress().label}
-            detail={headerProgress().detail}
-            width={contentWidth()}
-          />
           <Show when={session()}>
             <scrollbox
               ref={(r) => (scroll = r)}
@@ -1424,6 +1365,8 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
     return props.message.finish && !["tool-calls", "unknown"].includes(props.message.finish)
   })
 
+  const streaming = createMemo(() => !final() && props.message.time.completed === undefined)
+
   const duration = createMemo(() => {
     if (!final()) return 0
     if (!props.message.time.completed) return 0
@@ -1476,8 +1419,11 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
       <Switch>
         <Match when={props.last || final() || props.message.error?.name === "MessageAbortedError"}>
           <box paddingLeft={3}>
-            <text marginTop={1}>
-              <span
+            <box marginTop={1} flexDirection="row" gap={1} alignItems="center">
+              <Show when={streaming()}>
+                <SquareLoadingBar color={local.agent.color(props.message.agent)} width={8} />
+              </Show>
+              <text
                 style={{
                   fg:
                     props.message.error?.name === "MessageAbortedError"
@@ -1486,15 +1432,15 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
                 }}
               >
                 ◇{" "}
-              </span>{" "}
-              <span style={{ fg: theme.text }}>{model()}</span>
+              </text>
+              <text style={{ fg: theme.text }}>{model()}</text>
               <Show when={duration()}>
-                <span style={{ fg: theme.textMuted }}> · {Locale.duration(duration())}</span>
+                <text style={{ fg: theme.textMuted }}> · {Locale.duration(duration())}</text>
               </Show>
               <Show when={props.message.error?.name === "MessageAbortedError"}>
-                <span style={{ fg: theme.textMuted }}> · interrupted</span>
+                <text style={{ fg: theme.textMuted }}> · interrupted</text>
               </Show>
-            </text>
+            </box>
           </box>
         </Match>
       </Switch>
@@ -1686,7 +1632,7 @@ function GenericTool(props: ToolProps<any>) {
     <Show
       when={props.output && ctx.showGenericToolOutput()}
       fallback={
-        <InlineTool icon="⚙" pending="Writing command..." complete={true} part={props.part}>
+        <InlineTool icon="🔧" pending="Writing command..." complete={true} part={props.part}>
           {props.tool} {input(props.input)}
         </InlineTool>
       }
@@ -1880,9 +1826,9 @@ function Bash(props: ToolProps<typeof BashTool>) {
   const title = createMemo(() => {
     const desc = props.input.description ?? "Shell"
     const wd = workdirDisplay()
-    if (!wd) return `# ${desc}`
-    if (desc.includes(wd)) return `# ${desc}`
-    return `# ${desc} in ${wd}`
+    if (!wd) return `🐚 ${desc}`
+    if (desc.includes(wd)) return `🐚 ${desc}`
+    return `🐚 ${desc} in ${wd}`
   })
 
   return (
@@ -1906,7 +1852,7 @@ function Bash(props: ToolProps<typeof BashTool>) {
         </BlockTool>
       </Match>
       <Match when={true}>
-        <InlineTool icon="$" pending="Writing command..." complete={props.input.command} part={props.part}>
+        <InlineTool icon="🐚" pending="Writing command..." complete={props.input.command} part={props.part}>
           {props.input.command}
         </InlineTool>
       </Match>
@@ -1924,7 +1870,7 @@ function Write(props: ToolProps<typeof WriteTool>) {
   return (
     <Switch>
       <Match when={props.metadata.diagnostics !== undefined}>
-        <BlockTool title={"# Wrote " + normalizePath(props.input.filePath!)} part={props.part}>
+        <BlockTool title={"📄 Wrote " + normalizePath(props.input.filePath!)} part={props.part}>
           <line_number fg={theme.textMuted} minWidth={3} paddingRight={1}>
             <code
               conceal={false}
@@ -1938,7 +1884,7 @@ function Write(props: ToolProps<typeof WriteTool>) {
         </BlockTool>
       </Match>
       <Match when={true}>
-        <InlineTool icon="←" pending="Preparing write..." complete={props.input.filePath} part={props.part}>
+        <InlineTool icon="📄" pending="Preparing write..." complete={props.input.filePath} part={props.part}>
           Write {normalizePath(props.input.filePath!)}
         </InlineTool>
       </Match>
@@ -1948,7 +1894,7 @@ function Write(props: ToolProps<typeof WriteTool>) {
 
 function Glob(props: ToolProps<typeof GlobTool>) {
   return (
-    <InlineTool icon="✱" pending="Finding files..." complete={props.input.pattern} part={props.part}>
+    <InlineTool icon="🔍" pending="Finding files..." complete={props.input.pattern} part={props.part}>
       Glob "{props.input.pattern}" <Show when={props.input.path}>in {normalizePath(props.input.path)} </Show>
       <Show when={props.metadata.count}>
         ({props.metadata.count} {props.metadata.count === 1 ? "match" : "matches"})
@@ -1970,7 +1916,7 @@ function Read(props: ToolProps<typeof ReadTool>) {
   return (
     <>
       <InlineTool
-        icon="→"
+        icon="📖"
         pending="Reading file..."
         complete={props.input.filePath}
         spinner={isRunning()}
@@ -1993,7 +1939,7 @@ function Read(props: ToolProps<typeof ReadTool>) {
 
 function Grep(props: ToolProps<typeof GrepTool>) {
   return (
-    <InlineTool icon="✱" pending="Searching content..." complete={props.input.pattern} part={props.part}>
+    <InlineTool icon="🔎" pending="Searching content..." complete={props.input.pattern} part={props.part}>
       Grep "{props.input.pattern}" <Show when={props.input.path}>in {normalizePath(props.input.path)} </Show>
       <Show when={props.metadata.matches}>
         ({props.metadata.matches} {props.metadata.matches === 1 ? "match" : "matches"})
@@ -2004,23 +1950,40 @@ function Grep(props: ToolProps<typeof GrepTool>) {
 
 function WebFetch(props: ToolProps<typeof WebFetchTool>) {
   return (
-    <InlineTool icon="%" pending="Fetching from the web..." complete={props.input.url} part={props.part}>
+    <InlineTool icon="🌐" pending="Fetching from the web..." complete={props.input.url} part={props.part}>
       WebFetch {props.input.url}
     </InlineTool>
   )
 }
 
 function WebSearch(props: ToolProps<typeof WebSearchTool>) {
+  const { theme } = useTheme()
   const metadata = props.metadata as { numResults?: number }
+  const active = createMemo(() => props.part.state.status === "running")
   return (
-    <InlineTool icon="◈" pending="Searching web..." complete={props.input.query} part={props.part}>
-      Exa Web Search "{props.input.query}" <Show when={metadata.numResults}>({metadata.numResults} results)</Show>
+    <InlineTool
+      icon="🌐"
+      iconColor={theme.info}
+      pending="Searching web..."
+      complete={props.input.query || active()}
+      spinner={active()}
+      part={props.part}
+    >
+      <span style={{ fg: theme.info, attributes: "bold" }}>Web</span>{" "}
+      <span style={{ fg: theme.primary, attributes: "bold" }}>Search</span>{" "}
+      <span style={{ fg: active() ? theme.accent : theme.textMuted }}>"{props.input.query}"</span>
+      <Show when={active()}>
+        <span style={{ fg: theme.primary }}> searching...</span>
+      </Show>
+      <Show when={metadata.numResults}>
+        <span style={{ fg: theme.success }}> ({metadata.numResults} results)</span>
+      </Show>
     </InlineTool>
   )
 }
 
 function Task(props: ToolProps<typeof TaskTool>) {
-  const { navigate } = useRoute()
+  const router = useRoute()
   const sync = useSync()
 
   onMount(() => {
@@ -2073,14 +2036,14 @@ function Task(props: ToolProps<typeof TaskTool>) {
 
   return (
     <InlineTool
-      icon="│"
+      icon="🤖"
       spinner={isRunning()}
       complete={props.input.description}
       pending="Delegating..."
       part={props.part}
       onClick={() => {
         if (props.metadata.sessionId) {
-          navigate({ type: "session", sessionID: props.metadata.sessionId })
+          router.navigate({ type: "session", sessionID: props.metadata.sessionId })
         }
       }}
     >
@@ -2107,7 +2070,7 @@ function Edit(props: ToolProps<typeof EditTool>) {
   return (
     <Switch>
       <Match when={props.metadata.diff !== undefined}>
-        <BlockTool title={"← Edit " + normalizePath(props.input.filePath!)} part={props.part}>
+        <BlockTool title={"✏️ Edit " + normalizePath(props.input.filePath!)} part={props.part}>
           <box paddingLeft={1}>
             <diff
               diff={diffContent()}
@@ -2133,7 +2096,7 @@ function Edit(props: ToolProps<typeof EditTool>) {
         </BlockTool>
       </Match>
       <Match when={true}>
-        <InlineTool icon="←" pending="Preparing edit..." complete={props.input.filePath} part={props.part}>
+        <InlineTool icon="✏️" pending="Preparing edit..." complete={props.input.filePath} part={props.part}>
           Edit {normalizePath(props.input.filePath!)} {input({ replaceAll: props.input.replaceAll })}
         </InlineTool>
       </Match>
@@ -2180,10 +2143,10 @@ function ApplyPatch(props: ToolProps<typeof ApplyPatchTool>) {
   }
 
   function title(file: { type: string; relativePath: string; filePath: string; deletions: number }) {
-    if (file.type === "delete") return "# Deleted " + file.relativePath
-    if (file.type === "add") return "# Created " + file.relativePath
-    if (file.type === "move") return "# Moved " + normalizePath(file.filePath) + " → " + file.relativePath
-    return "← Patched " + file.relativePath
+    if (file.type === "delete") return "🗑️ Deleted " + file.relativePath
+    if (file.type === "add") return "✨ Created " + file.relativePath
+    if (file.type === "move") return "📦 Moved " + normalizePath(file.filePath) + " → " + file.relativePath
+    return "🩹 Patched " + file.relativePath
   }
 
   return (
@@ -2208,7 +2171,7 @@ function ApplyPatch(props: ToolProps<typeof ApplyPatchTool>) {
         </For>
       </Match>
       <Match when={true}>
-        <InlineTool icon="%" pending="Preparing patch..." complete={false} part={props.part}>
+        <InlineTool icon="🩹" pending="Preparing patch..." complete={false} part={props.part}>
           Patch
         </InlineTool>
       </Match>
@@ -2220,7 +2183,7 @@ function TodoWrite(props: ToolProps<typeof TodoWriteTool>) {
   return (
     <Switch>
       <Match when={props.metadata.todos?.length}>
-        <BlockTool title="# Todos" part={props.part}>
+        <BlockTool title="📋 Todos" part={props.part}>
           <box>
             <For each={props.input.todos ?? []}>
               {(todo) => <TodoItem status={todo.status} content={todo.content} />}
@@ -2229,7 +2192,7 @@ function TodoWrite(props: ToolProps<typeof TodoWriteTool>) {
         </BlockTool>
       </Match>
       <Match when={true}>
-        <InlineTool icon="⚙" pending="Updating todos..." complete={false} part={props.part}>
+        <InlineTool icon="📋" pending="Updating todos..." complete={false} part={props.part}>
           Updating todos...
         </InlineTool>
       </Match>
@@ -2249,7 +2212,7 @@ function Question(props: ToolProps<typeof QuestionTool>) {
   return (
     <Switch>
       <Match when={props.metadata.answers}>
-        <BlockTool title="# Questions" part={props.part}>
+        <BlockTool title="❓ Questions" part={props.part}>
           <box gap={1}>
             <For each={props.input.questions ?? []}>
               {(q, i) => (
@@ -2263,7 +2226,7 @@ function Question(props: ToolProps<typeof QuestionTool>) {
         </BlockTool>
       </Match>
       <Match when={true}>
-        <InlineTool icon="→" pending="Asking questions..." complete={count()} part={props.part}>
+        <InlineTool icon="❓" pending="Asking questions..." complete={count()} part={props.part}>
           Asked {count()} question{count() !== 1 ? "s" : ""}
         </InlineTool>
       </Match>
@@ -2273,7 +2236,7 @@ function Question(props: ToolProps<typeof QuestionTool>) {
 
 function Skill(props: ToolProps<typeof SkillTool>) {
   return (
-    <InlineTool icon="→" pending="Loading skill..." complete={props.input.name} part={props.part}>
+    <InlineTool icon="⚡" pending="Loading skill..." complete={props.input.name} part={props.part}>
       Skill "{props.input.name}"
     </InlineTool>
   )

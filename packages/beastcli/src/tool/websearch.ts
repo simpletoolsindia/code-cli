@@ -122,9 +122,8 @@ export const WebSearchTool = Tool.define(
       execute: (params: Schema.Schema.Type<typeof Parameters>, _ctx: Tool.Context) =>
         Effect.gen(function* () {
           const config = yield* cfg.get()
-          // Cast to access new config fields that are in the backend schema but may not yet be in the SDK types
-          const runtimeConfig = config as any
-          const engine = runtimeConfig.search_engine ?? "exa"
+          const engine = config.search_engine ?? "exa"
+          const searxngURL = config.search_config?.searxng_url ?? ""
           const numResults = Math.min(params.numResults || 8, 15)
           let output: string
           let usedEngine = engine
@@ -136,8 +135,8 @@ export const WebSearchTool = Tool.define(
               break
             }
             case "searxng": {
-              const searxngURL = runtimeConfig.search_config?.searxng_url ?? ""
               if (!searxngURL) {
+                log.warn("searxng url missing, falling back to ddg", { query: params.query })
                 output = yield* Effect.promise(() => searchDuckDuckGo(params.query, numResults))
                 usedEngine = "ddg"
                 fallback = true
@@ -171,7 +170,7 @@ export const WebSearchTool = Tool.define(
                   },
                   "25 seconds",
                 )
-                output = result ?? "No search results found from Exa."
+                output = result ?? "No search results found."
               } catch (error) {
                 const msg = error instanceof Error ? error.message : String(error)
                 log.warn("exa search failed, falling back to ddg", { error: msg, query: params.query })
@@ -189,7 +188,7 @@ export const WebSearchTool = Tool.define(
 
           return {
             output,
-            title: `Web search (${usedEngine}${fallback ? " fallback" : ""}): ${params.query}`,
+            title: `Web Search${fallback ? " fallback" : ""}: ${params.query}`,
             metadata: { engine: usedEngine },
           }
         }).pipe(Effect.orDie),

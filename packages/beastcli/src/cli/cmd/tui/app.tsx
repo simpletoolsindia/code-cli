@@ -79,7 +79,7 @@ function rendererConfig(_config: TuiConfig.Info): CliRendererConfig {
 
   return {
     externalOutputMode: "passthrough",
-    targetFps: 60,
+    targetFps: 30,
     gatherStats: false,
     exitOnCtrlC: false,
     useKittyKeyboard: {},
@@ -406,6 +406,10 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
       (isEmpty, wasEmpty) => {
         // only trigger when we transition into an empty-provider state
         if (!isEmpty || wasEmpty) return
+        if (!kv.get("onboarding_completed")) {
+          dialog.replace(() => <OnboardingTour />)
+          return
+        }
         dialog.replace(() => <DialogProviderList />)
       },
     ),
@@ -673,7 +677,7 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
           />
         ))
       },
-      category: "Provider",
+      category: "Settings",
     },
     ...(sync.data.console_state.switchableOrgCount > 1
       ? [

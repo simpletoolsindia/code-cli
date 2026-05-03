@@ -82,17 +82,17 @@ export const SearxngSearchTool = Tool.define(
   "searxng_search",
   Effect.gen(function* () {
     const cfg = yield* Config.Service
-    const config = yield* cfg.get()
-    const baseURL = config.search_config?.searxng_url ?? ""
-    const timeout = config.experimental?.search_timeout ?? 15_000
 
     return {
       description:
-        "Search the web using a self-hosted SearXNG instance. Returns search results with titles, URLs, and snippets. " +
-        (baseURL ? `Configured instance: ${baseURL}` : "Requires searxng_url to be configured via /searchweb command."),
+        "Search the web using a self-hosted SearXNG instance. Returns search results with titles, URLs, and snippets.",
       parameters: SearxngSearchArgs,
       execute: (params: Schema.Schema.Type<typeof SearxngSearchArgs>, ctx: Tool.Context) =>
         Effect.gen(function* () {
+          const config = yield* cfg.get()
+          const baseURL = config.search_config?.searxng_url ?? ""
+          const timeout = config.experimental?.search_timeout ?? 15_000
+
           if (!baseURL) {
             return {
               title: `SearXNG search: ${params.query}`,

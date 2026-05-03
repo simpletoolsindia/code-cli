@@ -42,7 +42,9 @@ import { ConfigProvider } from "./provider"
 import { ConfigServer } from "./server"
 import { ConfigSkills } from "./skills"
 import { ConfigVariable } from "./variable"
+import { ConfigNotifier } from "./notifier"
 import { Npm } from "@simpletoolsindia/core/npm"
+import { discoverMcpServers } from "@/mcp/autodetect"
 
 const log = Log.create({ service: "config" })
 
@@ -63,6 +65,16 @@ function mergeConfigConcatArrays(target: Info, source: Info): Info {
 function normalizeLoadedConfig(data: unknown, source: string) {
   if (!isRecord(data)) return data
   const copy = { ...data }
+  const provider = copy.provider
+  if (isRecord(provider) && "beastcli" in provider && !("beast" in provider)) {
+    copy.provider = { ...provider, beast: provider["beastcli"] }
+  }
+  if (provider !== undefined && !isRecord(provider)) {
+    delete copy.provider
+    log.warn("legacy provider string in beastcli config is ignored; configure provider models under provider.<id>", {
+      path: source,
+    })
+  }
   const hadLegacy = "theme" in copy || "keybinds" in copy || "tui" in copy
   if (!hadLegacy) return copy
   delete copy.theme
@@ -273,6 +285,9 @@ export const Info = Schema.Struct({
   ).annotate({
     description: "Search engine-specific configuration",
   }),
+  notifier: Schema.optional(ConfigNotifier.Info).annotate({
+    description: "Notification configuration for Telegram and macOS alerts",
+  }),
 })
   .annotate({ identifier: "Config" })
   .pipe(
@@ -450,6 +465,30 @@ export const layer = Layer.effect(
         )
       }
 
+      const worktree = yield* Effect.try({
+        try: () => Instance.worktree,
+        catch: () => undefined,
+      })
+      if (worktree) {
+        const existingMcp = result.mcp ?? {}
+        const discovered = yield* Effect.promise(() => discoverMcpServers(worktree))
+        const autoDiscoveredMcp: Record<string, ConfigMCP.Info> = {}
+
+        for (const mcp of [...discovered.fromExternalConfig, ...discovered.fromPackages]) {
+          if (!existingMcp[mcp.name]) {
+            autoDiscoveredMcp[mcp.name] = {
+              ...mcp.config,
+              enabled: false,
+            } as ConfigMCP.Info
+            log.info("auto-discovered MCP server (disabled by default)", { name: mcp.name, source: mcp.source })
+          }
+        }
+
+        if (Object.keys(autoDiscoveredMcp).length > 0) {
+          result.mcp = { ...existingMcp, ...autoDiscoveredMcp }
+        }
+      }
+
       return result
     })
 
@@ -557,7 +596,7 @@ export const layer = Layer.effect(
         }
 
         if (!Flag.BEAST_DISABLE_PROJECT_CONFIG) {
-          for (const file of yield* ConfigPaths.files("beast", ctx.directory, ctx.worktree).pipe(Effect.orDie)) {
+          for (const file of yield* ConfigPaths.files("beastcli", ctx.directory, ctx.worktree).pipe(Effect.orDie)) {
             yield* merge(file, yield* loadFile(file), "local")
           }
           const configFile = path.join(ctx.directory, "config.json")

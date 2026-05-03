@@ -5,12 +5,22 @@ import { useKeyboard } from "@opentui/solid"
 import { useKeybind } from "@tui/context/keybind"
 import { createSignal, onMount } from "solid-js"
 import { Show } from "solid-js"
+import { DialogProvider } from "./dialog-provider"
+import { useKV } from "../context/kv"
 
 export function OnboardingTour() {
   const dialog = useDialog()
   const { theme } = useTheme()
+  const keybind = useKeybind()
+  const kv = useKV()
 
-  const steps = [
+  const steps: {
+    title: string
+    body: string
+    primary?: string
+    onPrimary?: () => void
+    onNext: () => void
+  }[] = [
     {
       title: "Welcome to BeastCLI",
       body: "Your AI-powered coding assistant in the terminal.",
@@ -18,8 +28,13 @@ export function OnboardingTour() {
     },
     {
       title: "Connect a Provider",
-      body: "Before you start, press Ctrl+P and search for 'connect provider' to add your first AI model (e.g., OpenAI, Anthropic, or Ollama).",
+      body: `Before you start, connect your first AI model. You can do it now, or later with /connect or ${keybind.print("command_list")}.`,
       onNext: () => setStep(step() + 1),
+      primary: "connect now",
+      onPrimary: () => {
+        kv.set("onboarding_completed", true)
+        dialog.replace(() => <DialogProvider />)
+      },
     },
     {
       title: "Command Palette",
@@ -58,6 +73,7 @@ export function OnboardingTour() {
   })
 
   function finish() {
+    kv.set("onboarding_completed", true)
     dialog.clear()
   }
 
@@ -81,6 +97,16 @@ export function OnboardingTour() {
           skip
         </text>
         <box flexDirection="row" gap={1}>
+          <Show when={steps[step()]?.primary}>
+            <box
+              paddingLeft={2}
+              paddingRight={2}
+              backgroundColor={theme.backgroundPanel}
+              onMouseUp={() => steps[step()]?.onPrimary?.()}
+            >
+              <text fg={theme.text}>{steps[step()]?.primary}</text>
+            </box>
+          </Show>
           <Show when={step() > 0}>
             <box
               paddingLeft={2}

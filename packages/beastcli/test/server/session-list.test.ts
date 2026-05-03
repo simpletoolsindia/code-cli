@@ -129,7 +129,7 @@ describe("session.list", () => {
         const pathIDs = (
           await svc.list({
             directory: path.join(tmp.path, "packages", "app"),
-            path: "packages/beastcli/src",
+            path: "packages/beast/src",
           })
         ).map((s) => s.id)
         expect(pathIDs).not.toContain(parent.id)
@@ -164,7 +164,7 @@ describe("session.list", () => {
         const pathIDs = (
           await svc.list({
             directory: path.join(tmp.path, "packages", "beast", "src"),
-            path: "packages/beastcli/src",
+            path: "packages/beast/src",
           })
         ).map((s) => s.id)
         expect(pathIDs).toContain(current.id)

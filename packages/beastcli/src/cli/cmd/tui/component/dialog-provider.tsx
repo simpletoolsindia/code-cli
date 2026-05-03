@@ -84,7 +84,7 @@ export function createDialogProviderOptions() {
 
             // If already connected, just open model picker — don't re-ask for auth
             if (connected) {
-              dialog.replace(() => <DialogModel providerID={provider.id} />)
+              dialog.push(() => <DialogModel providerID={provider.id} />)
               return
             }
 
@@ -238,7 +238,7 @@ export function DialogProvider() {
       // Config.update disposes provider state when provider definitions change.
       await sync.bootstrap()
       // After bootstrap refreshes providers, open model picker
-      dialog.replace(() => <DialogModel providerID={provider.id} />)
+      dialog.push(() => <DialogModel providerID={provider.id} />)
       toast.show({
         variant: "success",
         message: `${provider.name} connected`,
@@ -270,6 +270,15 @@ export function DialogProvider() {
     const cloud = options()
     const local = localOptions()
     const result: any[] = [...local]
+    if (scanning()) {
+      result.push({
+        title: "🔍 Scanning for local providers...",
+        value: "loading",
+        description: "Checking Ollama, LM Studio, Jan, MLX, vLLM",
+        category: "Local",
+        onSelect: () => {},
+      })
+    }
     // Remove cloud duplicates if a local provider with same ID exists
     const localIds = new Set<string>(local.map((l) => l.value))
     for (const o of cloud) {
@@ -440,16 +449,6 @@ export function DialogProvider() {
         ))
       },
     })
-    if (result.length === 0 && scanning()) {
-      result.push({
-        title: "🔍 Scanning for local providers...",
-        value: "loading",
-        description: "Checking Ollama, LM Studio, Jan, MLX, vLLM",
-        category: "Local",
-        disabled: true,
-        onSelect: () => {},
-      })
-    }
     return result
   })
 
@@ -489,7 +488,7 @@ function AutoMethod(props: AutoMethodProps) {
     }
     await sdk.client.instance.dispose()
     await sync.bootstrap()
-    dialog.replace(() => <DialogModel providerID={props.providerID} />)
+    dialog.push(() => <DialogModel providerID={props.providerID} />)
   })
 
   return (
@@ -540,7 +539,7 @@ function CodeMethod(props: CodeMethodProps) {
         if (!error) {
           await sdk.client.instance.dispose()
           await sync.bootstrap()
-          dialog.replace(() => <DialogModel providerID={props.providerID} />)
+          dialog.push(() => <DialogModel providerID={props.providerID} />)
           return
         }
         setError(true)
@@ -568,51 +567,65 @@ function ApiMethod(props: ApiMethodProps) {
   const sdk = useSDK()
   const sync = useSync()
   const { theme } = useTheme()
+  const [error, setError] = createSignal<string>()
 
   return (
     <DialogPrompt
       title={props.title}
       placeholder="API key"
-      description={
-        {
-          beastcli: (
-            <box gap={1}>
-              <text fg={theme.textMuted}>
-                BeastCLI Zen gives you access to all the best coding models at the cheapest prices with a single API
-                key.
-              </text>
-              <text fg={theme.text}>
-                Go to <span style={{ fg: theme.primary }}>https://beastcli.sridharhomelab.in/zen</span> to get a key
-              </text>
-            </box>
-          ),
-          "beastcli-go": (
-            <box gap={1}>
-              <text fg={theme.textMuted}>
-                BeastCLI Go is a $10 per month subscription that provides reliable access to popular open coding models
-                with generous usage limits.
-              </text>
-              <text fg={theme.text}>
-                Go to <span style={{ fg: theme.primary }}>https://beastcli.sridharhomelab.in/zen</span> and enable BeastCLI Go
-              </text>
-            </box>
-          ),
-        }[props.providerID] ?? undefined
-      }
       onConfirm={async (value) => {
         if (!value) return
-        await sdk.client.auth.set({
-          providerID: props.providerID,
-          auth: {
-            type: "api",
-            key: value,
-            ...(props.metadata ? { metadata: props.metadata } : {}),
-          },
-        })
-        await sdk.client.instance.dispose()
-        await sync.bootstrap()
-        dialog.replace(() => <DialogModel providerID={props.providerID} />)
+        setError(undefined)
+        try {
+          await sdk.client.auth.set({
+            providerID: props.providerID,
+            auth: {
+              type: "api",
+              key: value,
+              ...(props.metadata ? { metadata: props.metadata } : {}),
+            },
+          })
+          await sdk.client.instance.dispose()
+          await sync.bootstrap()
+          dialog.push(() => <DialogModel providerID={props.providerID} />)
+        } catch (error) {
+          setError(error instanceof Error ? error.message : String(error))
+        }
       }}
+      description={() => (
+        <box gap={1}>
+          {
+            {
+              beastcli: (
+                <box gap={1}>
+                  <text fg={theme.textMuted}>
+                    BeastCLI Zen gives you access to all the best coding models at the cheapest prices with a single API
+                    key.
+                  </text>
+                  <text fg={theme.text}>
+                    Go to <span style={{ fg: theme.primary }}>https://beastcli.sridharhomelab.in/zen</span> to get a key
+                  </text>
+                </box>
+              ),
+              "beastcli-go": (
+                <box gap={1}>
+                  <text fg={theme.textMuted}>
+                    BeastCLI Go is a $10 per month subscription that provides reliable access to popular open coding
+                    models with generous usage limits.
+                  </text>
+                  <text fg={theme.text}>
+                    Go to <span style={{ fg: theme.primary }}>https://beastcli.sridharhomelab.in/zen</span> and enable
+                    BeastCLI Go
+                  </text>
+                </box>
+              ),
+            }[props.providerID]
+          }
+          <Show when={error()}>
+            {(message) => <text fg={theme.error}>Could not connect: {message()}</text>}
+          </Show>
+        </box>
+      )}
     />
   )
 }

@@ -1,5 +1,5 @@
 export type DetectedLocalProvider = {
-  id: "ollama" | "lmstudio" | "jan" | "mlx" | "vllm"
+  id: "ollama" | "lmstudio" | "jan" | "llamacpp" | "mlx" | "vllm"
   name: string
   baseURL: string
   status: "ready" | "not_running" | "error"
@@ -27,6 +27,11 @@ const LOCAL_PROVIDERS = [
     baseURL: "http://localhost:1337/v1",
   },
   {
+    id: "llamacpp",
+    name: "llama.cpp",
+    baseURL: "http://localhost:8080/v1",
+  },
+  {
     id: "mlx",
     name: "MLX",
     baseURL: "http://localhost:8080/v1",
@@ -34,7 +39,7 @@ const LOCAL_PROVIDERS = [
   {
     id: "vllm",
     name: "vLLM",
-    baseURL: "http://localhost:8001/v1",
+    baseURL: "http://localhost:8000/v1",
   },
 ] as const
 

@@ -142,6 +142,13 @@ export function DialogSelect<T>(props: DialogSelectProps<T>) {
 
   const selected = createMemo(() => flat()[store.selected])
 
+  function optionKey(option: DialogSelectOption<T> | undefined) {
+    if (!option) return ""
+    if (typeof option.value === "string") return option.value
+    if (typeof option.value === "number" || typeof option.value === "boolean") return String(option.value)
+    return JSON.stringify(option.value)
+  }
+
   createEffect(
     on([() => store.filter, () => props.current], ([filter, current]) => {
       setTimeout(() => {
@@ -166,12 +173,16 @@ export function DialogSelect<T>(props: DialogSelectProps<T>) {
   }
 
   function moveTo(next: number, center = false) {
-    setStore("selected", next)
-    const option = selected()
+    const items = flat()
+    if (items.length === 0) return
+    const index = Math.max(0, Math.min(next, items.length - 1))
+    const option = items[index]
+    setStore("selected", index)
     if (option) props.onMove?.(option)
     if (!scroll) return
+    const key = optionKey(option)
     const target = scroll.getChildren().find((child) => {
-      return child.id === JSON.stringify(selected()?.value)
+      return child.id === key
     })
     if (!target) return
     const y = target.y - scroll.y
@@ -310,11 +321,11 @@ export function DialogSelect<T>(props: DialogSelectProps<T>) {
                 </Show>
                 <For each={options}>
                   {(option) => {
-                    const active = createMemo(() => isDeepEqual(option.value, selected()?.value))
-                    const current = createMemo(() => isDeepEqual(option.value, props.current))
+                    const active = () => isDeepEqual(option.value, selected()?.value)
+                    const current = () => isDeepEqual(option.value, props.current)
                     return (
                       <box
-                        id={JSON.stringify(option.value)}
+                        id={optionKey(option)}
                         flexDirection="row"
                         position="relative"
                         onMouseMove={() => {

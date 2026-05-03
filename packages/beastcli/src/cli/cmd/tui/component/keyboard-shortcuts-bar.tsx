@@ -2,6 +2,7 @@ import { TextAttributes } from "@opentui/core"
 import { useTheme } from "@tui/context/theme"
 import { useConnected } from "@tui/component/use-connected"
 import { createMemo } from "solid-js"
+import { useKeybind } from "@tui/context/keybind"
 
 // 🎨 Modern gradient key styles for each key type
 const KEY_STYLES: Record<string, { bg: string; fg: string; icon: string }> = {
@@ -12,32 +13,25 @@ const KEY_STYLES: Record<string, { bg: string; fg: string; icon: string }> = {
   help:     { bg: "#7C4DFF", fg: "#FFFFFF", icon: "?" },
 }
 
-// Detect platform for correct modifier key symbols
-function getPlatformModifier() {
-  return {
-    symbol: "Ctrl",
-  }
-}
-
 export function KeyboardShortcutsBar() {
   const { theme } = useTheme()
   const connected = useConnected()
-  const mod = getPlatformModifier()
+  const keybind = useKeybind()
 
   // Simplified shortcuts matching actual defaults from config/keybinds.ts
   const items = createMemo(() => {
     const base: Array<{ key: keyof typeof KEY_STYLES; label: string; desc: string }> = [
-      { key: "command", label: `${mod.symbol}+P`, desc: "Commands" },
-      { key: "model",   label: `${mod.symbol}+O`, desc: "Switch Model" },
-      { key: "agent",   label: "Tab",             desc: "Switch Agent" },
-      { key: "help",    label: `${mod.symbol}+H`, desc: "Help" },
+      { key: "command", label: keybind.print("command_list"), desc: "Commands" },
+      { key: "model",   label: keybind.print("model_list"), desc: "Switch Model" },
+      { key: "agent",   label: keybind.print("agent_cycle"), desc: "Switch Agent" },
+      { key: "help",    label: keybind.print("help_show"), desc: "Help" },
     ]
 
     if (connected()) {
-      base.splice(2, 0, { key: "stop", label: "Esc", desc: "Stop" })
+      base.splice(2, 0, { key: "stop", label: keybind.print("session_interrupt"), desc: "Stop" })
     }
 
-    return base
+    return base.filter((item) => item.label && item.label !== "none")
   })
 
   return (
@@ -78,13 +72,7 @@ export function KeyboardShortcutsBar() {
       {/* Right bracket */}
       <text flexShrink={0} fg={theme.primary}>{"]"}</text>
 
-      {/* Spacer */}
       <box flexGrow={1} />
-
-      {/* Platform indicator */}
-      <text fg={theme.textMuted} attributes={TextAttributes.DIM}>
-        {mod.symbol}-based
-      </text>
     </box>
   )
 }

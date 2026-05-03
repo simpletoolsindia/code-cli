@@ -45,6 +45,7 @@ import { DialogWorkspaceCreate, restoreWorkspaceSession } from "../dialog-worksp
 import { DialogWorkspaceUnavailable } from "../dialog-workspace-unavailable"
 import { useArgs } from "@tui/context/args"
 import * as Log from "@simpletoolsindia/core/util/log"
+import { errorMessage } from "@/util/error"
 
 const log = Log.create({ service: "tui.prompt" })
 
@@ -79,7 +80,7 @@ const money = new Intl.NumberFormat("en-US", {
   currency: "USD",
 })
 
-const LOCAL_PROVIDER_IDS = new Set(["ollama", "lmstudio", "jan", "mlx", "vllm"])
+const LOCAL_PROVIDER_IDS = new Set(["ollama", "lmstudio", "jan", "llamacpp", "mlx", "vllm"])
 
 function randomIndex(count: number) {
   if (count <= 0) return 0
@@ -798,6 +799,22 @@ export function Prompt(props: PromptProps) {
 
     const messageID = MessageID.ascending()
     let inputText = store.prompt.input
+    const submittedPrompt = unwrap(store.prompt)
+    const submittedMode = store.mode
+
+    function restoreSubmittedPrompt(error: unknown) {
+      toast.show({
+        variant: "error",
+        message: `Failed to send prompt: ${errorMessage(error)}`,
+        duration: 8000,
+      })
+      if (!input || input.isDestroyed) return
+      input.setText(submittedPrompt.input)
+      setStore("prompt", submittedPrompt)
+      setStore("mode", submittedMode)
+      restoreExtmarksFromParts(submittedPrompt.parts)
+      input.gotoBufferEnd()
+    }
 
     // Expand pasted text inline before submitting
     const allExtmarks = input.extmarks.getAllForTypeId(promptPartTypeId)
@@ -842,15 +859,17 @@ export function Prompt(props: PromptProps) {
         : []
 
     if (store.mode === "shell") {
-      void sdk.client.session.shell({
-        sessionID,
-        agent: agent.name,
-        model: {
-          providerID: selectedModel.providerID,
-          modelID: selectedModel.modelID,
-        },
-        command: inputText,
-      })
+      void sdk.client.session
+        .shell({
+          sessionID,
+          agent: agent.name,
+          model: {
+            providerID: selectedModel.providerID,
+            modelID: selectedModel.modelID,
+          },
+          command: inputText,
+        })
+        .catch(restoreSubmittedPrompt)
       setStore("mode", "normal")
     } else if (
       inputText.startsWith("/") &&
@@ -867,21 +886,23 @@ export function Prompt(props: PromptProps) {
       const restOfInput = firstLineEnd === -1 ? "" : inputText.slice(firstLineEnd + 1)
       const args = firstLineArgs.join(" ") + (restOfInput ? "\n" + restOfInput : "")
 
-      void sdk.client.session.command({
-        sessionID,
-        command: command.slice(1),
-        arguments: args,
-        agent: agent.name,
-        model: `${selectedModel.providerID}/${selectedModel.modelID}`,
-        messageID,
-        variant,
-        parts: nonTextParts
-          .filter((x) => x.type === "file")
-          .map((x) => ({
-            id: PartID.ascending(),
-            ...x,
-          })),
-      })
+      void sdk.client.session
+        .command({
+          sessionID,
+          command: command.slice(1),
+          arguments: args,
+          agent: agent.name,
+          model: `${selectedModel.providerID}/${selectedModel.modelID}`,
+          messageID,
+          variant,
+          parts: nonTextParts
+            .filter((x) => x.type === "file")
+            .map((x) => ({
+              id: PartID.ascending(),
+              ...x,
+            })),
+        })
+        .catch(restoreSubmittedPrompt)
     } else {
       if (isLocalProvider(selectedModel.providerID)) setActiveLocalModel(selectedModel)
       sdk.client.session
@@ -902,7 +923,7 @@ export function Prompt(props: PromptProps) {
             ...nonTextParts.map(assign),
           ],
         })
-        .catch(() => {})
+        .catch(restoreSubmittedPrompt)
       lastSubmittedEditorSelectionKey = currentEditorSelectionKey
     }
     history.append({
@@ -1317,7 +1338,7 @@ export function Prompt(props: PromptProps) {
                         <box flexDirection="row" gap={1}>
                           <text fg={fadeColor(theme.textMuted, modelMetaAlpha())}>·</text>
                           <Show when={status().type === "busy"}>
-                            <CircleSpinner color={theme.primary} />
+                            <CircleSpinner color={theme.primary} size="md" />
                           </Show>
                           <text
                             flexShrink={0}

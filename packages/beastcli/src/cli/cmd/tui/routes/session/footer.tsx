@@ -7,6 +7,7 @@ import { createStore } from "solid-js/store"
 import { useRoute } from "../../context/route"
 import { useLocal } from "../../context/local"
 import { Tips } from "../../feature-plugins/home/tips-view"
+import { useTerminalDimensions } from "@opentui/solid"
 
 function FooterModelInfo() {
   const { theme } = useTheme()
@@ -38,6 +39,7 @@ export function Footer() {
   })
   const directory = useDirectory()
   const connected = useConnected()
+  const dimensions = useTerminalDimensions()
 
   const [store, setStore] = createStore({
     welcome: false,
@@ -99,8 +101,9 @@ export function Footer() {
                 {mcp()} MCP
               </text>
             </Show>
-            {/* Random Tips rotator */}
-            <Tips connected={true} />
+            <Show when={permissions().length === 0 && dimensions().width > 105}>
+              <Tips connected={true} />
+            </Show>
           </Match>
         </Switch>
       </box>

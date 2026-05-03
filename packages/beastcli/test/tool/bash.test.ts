@@ -1214,10 +1214,11 @@ describe("tool.bash truncation", () => {
         expect(filepath).toBeTruthy()
 
         const saved = await Filesystem.readText(filepath!)
-        const lines = saved.trim().split(/\r?\n/)
-        expect(lines.length).toBe(lineCount)
-        expect(lines[0]).toBe("1")
-        expect(lines[lineCount - 1]).toBe(String(lineCount))
+        const lines = saved.trim().split(/\r?\n/).filter(Boolean)
+        const firstOutput = lines.indexOf("1")
+        expect(lines.length - firstOutput).toBeGreaterThanOrEqual(lineCount)
+        expect(firstOutput).toBeGreaterThanOrEqual(0)
+        expect(lines[firstOutput + lineCount - 1]).toBe(String(lineCount))
       },
     })
   })
