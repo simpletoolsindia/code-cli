@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-
 import fs from "fs"
 import path from "path"
 import os from "os"
@@ -10,75 +9,48 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const require = createRequire(import.meta.url)
 
 function detectPlatformAndArch() {
-  // Map platform names
-  let platform
-  switch (os.platform()) {
-    case "darwin":
-      platform = "darwin"
-      break
-    case "linux":
-      platform = "linux"
-      break
-    case "win32":
-      platform = "windows"
-      break
-    default:
-      platform = os.platform()
-      break
+  const platformMap = { darwin: "darwin", linux: "linux", win32: "windows" }
+  const archMap = { x64: "x64", arm64: "arm64", arm: "arm" }
+  return {
+    platform: platformMap[os.platform()] || os.platform(),
+    arch: archMap[os.arch()] || os.arch(),
   }
-
-  // Map architecture names
-  let arch
-  switch (os.arch()) {
-    case "x64":
-      arch = "x64"
-      break
-    case "arm64":
-      arch = "arm64"
-      break
-    case "arm":
-      arch = "arm"
-      break
-    default:
-      arch = os.arch()
-      break
-  }
-
-  return { platform, arch }
 }
 
 function findBinary() {
   const { platform, arch } = detectPlatformAndArch()
-  const packageName = `beastcli-${platform}-${arch}`
-  const binaryName = platform === "windows" ? "beastcli.exe" : "beast"
+  const packageName = `@simpletoolsindia/beast-cli-${platform}-${arch}`
+  const binaryName = "beastcli"
 
-  try {
-    // Use require.resolve to find the package
-    const packageJsonPath = require.resolve(`${packageName}/package.json`)
-    const packageDir = path.dirname(packageJsonPath)
+  // Try multiple resolution strategies for npm hoisting
+  const searchPaths = [
+    // npm global: binary installed directly
+    path.join(__dirname, "node_modules", packageName),
+    // npm global hoisted
+    path.join(__dirname, "..", packageName),
+    // pnpm / nested
+    path.join(__dirname, "..", "..", packageName),
+    // Global npm root
+    path.join(require.resolve.paths(".")[0] || "", packageName),
+  ]
+
+  for (const packageDir of searchPaths) {
     const binaryPath = path.join(packageDir, "bin", binaryName)
-
-    if (!fs.existsSync(binaryPath)) {
-      throw new Error(`Binary not found at ${binaryPath}`)
+    if (fs.existsSync(binaryPath)) {
+      return { binaryPath, binaryName, packageDir }
     }
-
-    return { binaryPath, binaryName }
-  } catch (error) {
-    throw new Error(`Could not find package ${packageName}: ${error.message}`, { cause: error })
   }
+
+  throw new Error(`Could not find package ${packageName}. Searched: ${searchPaths.join(", ")}`)
 }
 
 async function main() {
   try {
     if (os.platform() === "win32") {
-      // On Windows, the .exe is already included in the package and bin field points to it
-      // No postinstall setup needed
       console.log("Windows detected: binary setup not needed (using packaged .exe)")
       return
     }
 
-    // On non-Windows platforms, just verify the binary package exists
-    // Don't replace the wrapper script - it handles binary execution
     const { binaryPath } = findBinary()
     const target = path.join(__dirname, "bin", ".beastcli")
     if (fs.existsSync(target)) fs.unlinkSync(target)
@@ -88,15 +60,14 @@ async function main() {
       fs.copyFileSync(binaryPath, target)
     }
     fs.chmodSync(target, 0o755)
+    console.log("BeastCLI binary set up successfully")
   } catch (error) {
     console.error("Failed to setup beastcli binary:", error.message)
     process.exit(1)
   }
 }
 
-try {
-  void main()
-} catch (error) {
-  console.error("Postinstall script error:", error.message)
+main().catch((e) => {
+  console.error("Postinstall error:", e.message)
   process.exit(0)
-}
+})

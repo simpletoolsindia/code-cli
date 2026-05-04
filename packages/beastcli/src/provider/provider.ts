@@ -1702,8 +1702,21 @@ const layer: Layer.Layer<
     )
 
     const getModel = Effect.fn("Provider.getModel")(function* (providerID: ProviderID, modelID: ModelID) {
-      const s = yield* InstanceState.get(state)
-      const provider = s.providers[providerID]
+      let s = yield* InstanceState.get(state)
+      let provider = s.providers[providerID]
+
+      // Retry up to 3 times if provider state is still loading
+      for (let i = 0; !provider && i < 3; i++) {
+        if (Object.keys(s.providers).length === 0) {
+          log.info("provider state still loading, waiting...", { attempt: i + 1, providerID, modelID })
+          yield* Effect.sleep("200 millis")
+          s = yield* InstanceState.get(state)
+          provider = s.providers[providerID]
+        } else {
+          break
+        }
+      }
+
       if (!provider) {
         const available = Object.keys(s.providers)
         const matches = fuzzysort.go(providerID, available, { limit: 3, threshold: -10000 })
