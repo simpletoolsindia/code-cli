@@ -25,12 +25,6 @@ if (envPath) {
 const scriptPath = fs.realpathSync(__filename)
 const scriptDir = path.dirname(scriptPath)
 
-//
-const cached = path.join(scriptDir, ".beastcli")
-if (fs.existsSync(cached)) {
-  run(cached)
-}
-
 const platformMap = {
   darwin: "darwin",
   linux: "linux",
@@ -172,6 +166,15 @@ function findBinary(startDir) {
 }
 
 const resolved = findBinary(scriptDir)
+if (resolved) {
+  run(resolved)
+}
+
+const cached = path.join(scriptDir, ".beastcli")
+if (fs.existsSync(cached)) {
+  run(cached)
+}
+
 if (!resolved) {
   console.error(
     "It seems that your package manager failed to install the right version of the beastcli CLI for your platform. You can try manually installing " +
@@ -180,5 +183,3 @@ if (!resolved) {
   )
   process.exit(1)
 }
-
-run(resolved)
