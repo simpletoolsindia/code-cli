@@ -11,6 +11,7 @@ import { useLocal } from "../../context/local"
 import { Spinner, SidebarProgress } from "@tui/component/spinner"
 import { useKeybind } from "@tui/context/keybind"
 import type { AssistantMessage, ToolPart, UserMessage } from "@simpletoolsindia/sdk/v2"
+import { Locale } from "@/util/locale"
 
 function ContextAnimated(props: { pct?: number; label: string; theme: any; used: number }) {
   const [displayPct, setDisplayPct] = createSignal(0)
@@ -121,6 +122,26 @@ function ToolCallItem(props: { tool: string; status: "running" | "done" | "error
       </text>
     </box>
   )
+}
+
+function toolResultStatus(tool: string) {
+  const statuses: Record<string, string> = {
+    bash: "Reading command output",
+    read: "Reading file content",
+    write: "Checking write result",
+    edit: "Reviewing edit result",
+    apply_patch: "Reviewing patch result",
+    glob: "Reading file matches",
+    grep: "Reading search results",
+    webfetch: "Reading fetched page",
+    websearch: "Reading search results",
+    searxng_search: "Reading search results",
+    task: "Reading agent result",
+    todowrite: "Reviewing todo updates",
+    question: "Reading answer",
+    skill: "Reading skill content",
+  }
+  return statuses[tool] ?? `Reading ${tool} result`
 }
 
 export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
@@ -260,6 +281,28 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
     return undefined
   })
 
+  const completedTool = createMemo(() => {
+    const list = messages()
+    const lastUser = list.findLast((message) => message.role === "user")
+    for (let i = list.length - 1; i >= 0; i--) {
+      if (lastUser && list[i].id <= lastUser.id) break
+      const part = (sync.data.part[list[i].id] ?? []).findLast(
+        (part): part is ToolPart => part.type === "tool" && part.state.status === "completed",
+      )
+      if (part?.state.status === "completed") return { tool: part.tool, title: part.state.title }
+    }
+    return undefined
+  })
+
+  const busyLabel = createMemo(() => {
+    const agent = Locale.titlecase(local.agent.current()?.name ?? "assistant")
+    const tool = runningTool()
+    if (tool) return `${agent}: Running ${tool.tool}${tool.title ? ` - ${tool.title}` : ""}`
+    const completed = completedTool()
+    if (completed) return `${agent}: ${toolResultStatus(completed.tool)}`
+    return `${agent}: Writing response`
+  })
+
   const retryStatus = createMemo(() => {
     const current = status()
     if (current?.type !== "retry") return undefined
@@ -359,7 +402,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
                   )}
                 </For>
               )}>
-                <SidebarProgress />
+                <SidebarProgress label={busyLabel()} />
               </Show>
             </box>
 

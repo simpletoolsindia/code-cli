@@ -4,7 +4,7 @@ import os from "os"
 import path from "path"
 import { Config } from "@/config/config"
 import { Shell } from "../../src/shell/shell"
-import { BashTool } from "../../src/tool/bash"
+import { BashTool, resolvePythonCommand } from "../../src/tool/bash"
 import { Instance } from "../../src/project/instance"
 import { Filesystem } from "@/util/filesystem"
 import { tmpdir } from "../fixture/fixture"
@@ -136,6 +136,22 @@ const mustTruncate = (result: {
 }
 
 describe("tool.bash", () => {
+  test("resolves python to python3 when python is missing", () => {
+    const resolved = resolvePythonCommand("python convert_md_to_html.py", (bin) =>
+      bin === "python3" ? "/usr/bin/python3" : undefined,
+    )
+    expect(resolved.command).toBe("python3 convert_md_to_html.py")
+    expect(resolved.note).toContain("python3")
+  })
+
+  test("keeps python command when python exists", () => {
+    const resolved = resolvePythonCommand("python convert_md_to_html.py", (bin) =>
+      bin === "python" ? "/usr/bin/python" : undefined,
+    )
+    expect(resolved.command).toBe("python convert_md_to_html.py")
+    expect(resolved.note).toBeUndefined()
+  })
+
   each("basic", async () => {
     await Instance.provide({
       directory: projectRoot,

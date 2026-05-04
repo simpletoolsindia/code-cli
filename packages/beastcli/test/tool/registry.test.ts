@@ -5,6 +5,8 @@ import { Effect, Layer } from "effect"
 import { Instance } from "../../src/project/instance"
 import { CrossSpawnSpawner } from "@beastcli/core/cross-spawn-spawner"
 import { ToolRegistry } from "@/tool/registry"
+import { Permission } from "@/permission"
+import { ProviderID, ModelID } from "@/provider/schema"
 import { provideTmpdirInstance } from "../fixture/fixture"
 import { testEffect } from "../lib/effect"
 
@@ -17,6 +19,25 @@ afterEach(async () => {
 })
 
 describe("tool.registry", () => {
+  it.live("preselects web tools for election prompts", () =>
+    provideTmpdirInstance((dir) =>
+      Effect.gen(function* () {
+        const registry = yield* ToolRegistry.Service
+        const tools = yield* registry.preselect("give summaries about 2026 election in tamilnadu", {
+          providerID: ProviderID.make("test"),
+          modelID: ModelID.make("test"),
+          agent: {
+            name: "build",
+            mode: "primary",
+            permission: Permission.fromConfig({ "*": "allow" }),
+            options: {},
+          },
+        })
+        expect(tools.map((tool) => tool.id)).toContain("websearch")
+      }),
+    ),
+  )
+
   it.live("loads tools from .beastcli/tool (singular)", () =>
     provideTmpdirInstance((dir) =>
       Effect.gen(function* () {

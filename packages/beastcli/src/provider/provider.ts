@@ -1260,10 +1260,13 @@ const layer: Layer.Layer<
         const configProviders = Object.entries(cfg.provider ?? {})
         const disabled = new Set(cfg.disabled_providers ?? [])
         const enabled = cfg.enabled_providers ? new Set(cfg.enabled_providers) : null
+        const selectedProvider = cfg.model ? parseModel(cfg.model).providerID : undefined
 
         function isProviderAllowed(providerID: ProviderID): boolean {
-          if (enabled && !enabled.has(providerID)) return false
           if (disabled.has(providerID)) return false
+          if (selectedProvider === providerID) return true
+          if (cfg.provider?.[providerID]) return true
+          if (enabled && !enabled.has(providerID)) return false
           return true
         }
 

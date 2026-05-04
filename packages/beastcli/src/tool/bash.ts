@@ -219,6 +219,34 @@ function preview(text: string) {
   return "...\n\n" + text.slice(-MAX_METADATA_LENGTH)
 }
 
+export function resolvePythonCommand(command: string, find: (bin: string) => string | undefined | null = Bun.which) {
+  if (!/^\s*python(?=\s|$)/.test(command)) return { command }
+  if (find("python")) return { command }
+  if (!find("python3")) return { command }
+  return {
+    command: command.replace(/^(\s*)python(?=\s|$)/, "$1python3"),
+    note: "The requested `python` command was not found, so the CLI ran `python3` instead.",
+  }
+}
+
+function commandNotFoundGuidance(output: string) {
+  if (
+    ![
+      /command not found:/i,
+      /command not found/i,
+      /not recognized as an internal or external command/i,
+      /no such file or directory/i,
+    ].some((pattern) => pattern.test(output))
+  )
+    return
+  return [
+    "A command was not found. Do not stop after this failure.",
+    "Check for an installed alternative with `command -v <name>` or the platform-specific equivalent, then retry.",
+    "For Python scripts, try `python3` or `/usr/bin/python3` when `python` is missing.",
+    "If no suitable runtime exists, install it with the user's package manager when safe, or ask for confirmation when system-level installation is required.",
+  ].join("\n")
+}
+
 function tail(text: string, maxLines: number, maxBytes: number) {
   const lines = text.split("\n")
   if (lines.length <= maxLines && Buffer.byteLength(text, "utf-8") <= maxBytes) {
@@ -543,6 +571,8 @@ export const BashTool = Tool.define(
       }
 
       const raw = list.map((item) => item.text).join("")
+      const notFound = commandNotFoundGuidance(raw)
+      if (notFound) meta.push(notFound)
 
       // When there is a non-zero exit code, keep the LAST lines (errors are often at the end for build commands)
       // but also try to preserve the first few lines for context. For now, we keep the tail behavior
@@ -621,10 +651,11 @@ export const BashTool = Tool.define(
                 throw new Error(`Invalid timeout value: ${params.timeout}. Timeout must be a positive number.`)
               }
               const timeout = params.timeout ?? DEFAULT_TIMEOUT
+              const resolved = resolvePythonCommand(params.command)
               const ps = Shell.ps(shell)
               yield* Effect.scoped(
                 Effect.gen(function* () {
-                  const tree = yield* Effect.acquireRelease(parse(params.command, ps), (tree) =>
+                  const tree = yield* Effect.acquireRelease(parse(resolved.command, ps), (tree) =>
                     Effect.sync(() => tree.delete()),
                   )
                   const scan = yield* collect(tree.rootNode, cwd, ps, shell, executeInstance)
@@ -636,11 +667,11 @@ export const BashTool = Tool.define(
               return yield* run(
                 {
                   shell,
-                  command: params.command,
+                  command: resolved.command,
                   cwd,
                   env: yield* shellEnv(ctx, cwd),
                   timeout,
-                  description: params.description,
+                  description: resolved.note ?? params.description,
                 },
                 ctx,
               )

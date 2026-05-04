@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "name": "@simpletoolsindia/beast-cli",
   "type": "module",
   "license": "MIT",

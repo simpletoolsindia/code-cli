@@ -128,7 +128,7 @@ export function FullWidthProgress(props: {
 }
 
 /** Sidebar processing indicator — compact and clean */
-export function SidebarProgress(props: { color?: RGBA }) {
+export function SidebarProgress(props: { color?: RGBA; label?: string }) {
   const { theme } = useTheme()
   const c = () => props.color ?? theme.primary
   const [tick, setTick] = createSignal(0)
@@ -144,7 +144,7 @@ export function SidebarProgress(props: { color?: RGBA }) {
   return (
     <box flexDirection="row" gap={1}>
       <text fg={c()}>{frame()}</text>
-      <text fg={c()}>Processing{dots()}</text>
+      <text fg={c()}>{props.label ?? "Processing"}{dots()}</text>
     </box>
   )
 }

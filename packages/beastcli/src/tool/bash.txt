@@ -42,6 +42,7 @@ Usage notes:
     - ${chaining}
     - Use ';' only when you need to run commands sequentially but don't care if earlier commands fail
     - DO NOT use newlines to separate commands (newlines are ok in quoted strings)
+  - If a command fails because the executable is missing, do not give up immediately. Check for an installed alternative (for example `python3` or `/usr/bin/python3` when `python` is missing), retry with that alternative, or install/use the needed runtime or package when safe.
   - AVOID using `cd <directory> && <command>`. Use the `workdir` parameter to change directories instead.
     <good-example>
     Use workdir="/foo/bar" with command: pytest tests

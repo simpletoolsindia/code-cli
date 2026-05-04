@@ -1859,6 +1859,71 @@ test("model limit defaults to zero when not specified", async () => {
   })
 })
 
+test("selected config model provider remains available with empty enabled_providers", async () => {
+  await using tmp = await tmpdir({
+    init: async (dir) => {
+      await Bun.write(
+        path.join(dir, "beastcli.json"),
+        JSON.stringify({
+          $schema: "https://beastcli.ai/config.json",
+          enabled_providers: [],
+          model: "ollama/gemma4:e2b",
+          provider: {
+            ollama: {
+              npm: "@ai-sdk/openai-compatible",
+              name: "Ollama",
+              options: { baseURL: "http://localhost:11434/v1" },
+              models: {
+                "gemma4:e2b": { name: "gemma4:e2b" },
+              },
+            },
+          },
+        }),
+      )
+    },
+  })
+  await Instance.provide({
+    directory: tmp.path,
+    fn: async () => {
+      const providers = await list()
+      expect(providers[ProviderID.make("ollama")].models["gemma4:e2b"]).toBeDefined()
+      const model = await getModel(ProviderID.make("ollama"), ModelID.make("gemma4:e2b"))
+      expect(model.id).toBe(ModelID.make("gemma4:e2b"))
+    },
+  })
+})
+
+test("explicit config provider remains available with empty enabled_providers", async () => {
+  await using tmp = await tmpdir({
+    init: async (dir) => {
+      await Bun.write(
+        path.join(dir, "beastcli.json"),
+        JSON.stringify({
+          $schema: "https://beastcli.ai/config.json",
+          enabled_providers: [],
+          provider: {
+            ollama: {
+              npm: "@ai-sdk/openai-compatible",
+              name: "Ollama",
+              options: { baseURL: "http://localhost:11434/v1" },
+              models: {
+                "gemma4:e2b": { name: "gemma4:e2b" },
+              },
+            },
+          },
+        }),
+      )
+    },
+  })
+  await Instance.provide({
+    directory: tmp.path,
+    fn: async () => {
+      const providers = await list()
+      expect(providers[ProviderID.make("ollama")].models["gemma4:e2b"]).toBeDefined()
+    },
+  })
+})
+
 test("provider options are deeply merged", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {
