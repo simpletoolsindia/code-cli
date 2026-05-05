@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "version": "4.0.4",
+  "version": "5.0.0",
   "name": "@simpletoolsindia/beast-cli",
   "type": "module",
   "license": "MIT",
@@ -173,9 +173,9 @@
     "yargs": "18.0.0",
     "zod": "4.1.8",
     "zod-to-json-schema": "3.25.2",
-    "@simpletoolsindia/plugin": "4.0.4",
-    "@simpletoolsindia/sdk": "4.0.4",
+    "@simpletoolsindia/plugin": "5.0.0",
+    "@simpletoolsindia/sdk": "5.0.0",
     "@simpletoolsindia/script": "1.0.0",
-    "@simpletoolsindia/core": "1.0.0"
+    "@simpletoolsindia/core": "5.0.0"
   }
 }

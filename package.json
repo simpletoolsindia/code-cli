@@ -114,5 +114,5 @@
     "tree-sitter-powershell",
     "web-tree-sitter"
   ],
-  "version": "4.0.4"
+  "version": "5.0.0"
 }
