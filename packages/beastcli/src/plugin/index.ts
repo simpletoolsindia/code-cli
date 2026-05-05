@@ -29,8 +29,8 @@ const log = Log.create({ service: "plugin" })
 
 const GitlabAuthPluginCompat: PluginInstance = async (input) => {
   try {
-    const mod = await import("beastcli-gitlab-auth")
-    return mod.gitlabAuthPlugin(input as any)
+    const mod = (await import("beastcli-gitlab-auth")) as unknown as { gitlabAuthPlugin: PluginInstance }
+    return mod.gitlabAuthPlugin(input)
   } catch (error) {
     log.warn("failed to load optional gitlab auth plugin", { error })
     return {}
@@ -38,8 +38,8 @@ const GitlabAuthPluginCompat: PluginInstance = async (input) => {
 }
 const PoeAuthPluginCompat: PluginInstance = async (input) => {
   try {
-    const mod = await import("beastcli-poe-auth")
-    return mod.PoeAuthPlugin(input as never)
+    const mod = (await import("beastcli-poe-auth")) as unknown as { PoeAuthPlugin: PluginInstance }
+    return mod.PoeAuthPlugin(input)
   } catch (error) {
     log.warn("failed to load optional poe auth plugin", { error })
     return {}

@@ -11,7 +11,12 @@
     "paths": {
       "@/*": ["./src/*"],
       "@tui/*": ["./src/cli/cmd/tui/*"],
-      "@test/*": ["./test/*"]
+      "@test/*": ["./test/*"],
+      "@beastcli/core/*": ["../core/src/*"],
+      "@beastcli/plugin": ["../plugin/src/index.ts"],
+      "@beastcli/plugin/*": ["../plugin/src/*"],
+      "@beastcli/sdk": ["../sdk/js/src/index.ts"],
+      "@beastcli/sdk/*": ["../sdk/js/src/*"]
     }
   }
 }

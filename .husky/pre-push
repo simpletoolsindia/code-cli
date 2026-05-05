@@ -1,13 +1,13 @@
 #!/bin/sh
 set -e
-# Check if bun version matches package.json
+# Check if bun version matches package.json when Bun is the declared package manager.
 # keep in sync with packages/script/src/index.ts semver qualifier
 bun -e '
 import { semver } from "bun";
 const pkg = await Bun.file("package.json").json();
-const expectedBunVersion = pkg.packageManager?.split("@")[1];
-if (!expectedBunVersion) {
-  throw new Error("packageManager field not found in root package.json");
+const [manager, expectedBunVersion] = pkg.packageManager?.split("@") ?? [];
+if (manager !== "bun") {
+  process.exit(0);
 }
 const expectedBunVersionRange = `^${expectedBunVersion}`;
 if (!semver.satisfies(process.versions.bun, expectedBunVersionRange)) {

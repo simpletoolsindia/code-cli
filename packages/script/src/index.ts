@@ -4,16 +4,12 @@ import path from "path"
 
 const rootPkgPath = path.resolve(import.meta.dir, "../../../package.json")
 const rootPkg = await Bun.file(rootPkgPath).json()
-const expectedBunVersion = rootPkg.packageManager?.split("@")[1]
-
-if (!expectedBunVersion) {
-  throw new Error("packageManager field not found in root package.json")
-}
+const [packageManager, expectedBunVersion] = rootPkg.packageManager?.split("@") ?? []
 
 // relax version requirement
 const expectedBunVersionRange = `^${expectedBunVersion}`
 
-if (!semver.satisfies(process.versions.bun, expectedBunVersionRange)) {
+if (packageManager === "bun" && !semver.satisfies(process.versions.bun, expectedBunVersionRange)) {
   console.warn(`Warning: This script expects bun@${expectedBunVersionRange}, but you are using bun@${process.versions.bun}`)
 }
 
