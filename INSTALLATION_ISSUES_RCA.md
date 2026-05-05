@@ -93,33 +93,6 @@ The root `package.json` defines the catalog versions:
 |------|-----------|
 | 47 | `drizzle-orm: "catalog:"` |
 
-### packages/desktop-electron/package.json
-| Line | Reference |
-|------|-----------|
-| 27 | `effect: "catalog:"` |
-| 33 | `drizzle-orm: "catalog:"` |
-| 38 | `@lydell/node-pty: "catalog:"` |
-| 39 | `@sentry/solid: "catalog:"` |
-| 40 | `@sentry/vite-plugin: "catalog:"` |
-| 42 | `@solid-primitives/storage: "catalog:"` |
-| 43 | `@solidjs/meta: "catalog:"` |
-| 45 | `@types/bun: "catalog:"` |
-| 46 | `@types/node: "catalog:"` |
-| 47 | `@typescript/native-preview: "catalog:"` |
-| 52 | `solid-js: "catalog:"` |
-| 55 | `vite: "catalog:"` |
-
-### packages/desktop/package.json
-| Line | Reference |
-|------|-----------|
-| 16 | `@sentry/solid: "catalog:"` |
-| 18 | `@solid-primitives/storage: "catalog:"` |
-| 32 | `solid-js: "catalog:"` |
-| 33 | `@solidjs/meta: "catalog:"` |
-| 39 | `@sentry/vite-plugin: "catalog:"` |
-| 41 | `@types/bun: "catalog:"` |
-| 42 | `@typescript/native-preview: "catalog:"` |
-
 (And more in other packages...)
 
 ---
@@ -185,7 +158,6 @@ Changes already made to root `package.json`:
 
 ### 1. Invalid package.json files
 Some packages have invalid/incomplete package.json:
-- `packages/console/*/` (multiple packages)
 - `packages/containers/*/`
 - `packages/docs/*/`
 - `packages/extensions/*/`

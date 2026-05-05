@@ -117,31 +117,14 @@ Performance:
 
 6. **Optional plugin compatibility needs release policy**
 
-   Poe auth plugin loading is optional and guarded because upstream `poe-oauth` / `mcp-oauth` compatibility was broken during migration. Decide whether to:
-   - keep Poe optional for this release, or
-   - remove it from production package metadata, or
-   - patch/replace the upstream auth dependency.
+    Poe auth plugin loading is optional and guarded. Decide whether to keep it optional or remove it from production package metadata.
 
-7. **OpenCode look-and-feel parity needs final manual sign-off**
+7. **UI parity needs final manual sign-off**
 
-   The comparison report at `/Users/sridhar/.claude/projects/-Users-sridhar/memory/BEASTCLI_OPENCODE_COMPARISON_REPORT.md` should be used as the UI parity checklist. Current target is OpenCode interaction/layout parity with BeastCLI branding.
-
-   Already aligned:
-   - Compact OpenCode-style four-line logo shape restored.
-   - Command/session/help dialogs restored to compact upstream-style rows.
-   - Default keybinds aligned where BeastCLI has matching actions:
-     - Commands: `ctrl+k`
-     - Status/log-style status view: `ctrl+l`
-     - Sessions: `ctrl+s`
-     - Models: `ctrl+o`
-     - Themes: `ctrl+t`
-     - Help: `ctrl+h`, `ctrl+_`
-
-   Remaining parity decisions:
-   - Filepicker dialog: OpenCode has a dedicated filepicker. BeastCLI currently has prompt `@` file attachment and editor context, but not a dedicated OpenCode-style filepicker dialog.
-   - Custom commands UI: OpenCode has custom command management. BeastCLI has command/plugin infrastructure, but not the same creation dialog.
-   - Multi-arguments dialog: not yet matched.
-   - Branding: exact pixel identity is impossible if the product must remain BeastCLI rather than OpenCode.
+    Current parity decisions:
+    - Filepicker dialog: BeastCLI currently has prompt `@` file attachment and editor context.
+    - Custom commands UI: BeastCLI has command/plugin infrastructure.
+    - Multi-arguments dialog: not yet matched.
 
 ## Release Validation Checklist
 
@@ -232,8 +215,8 @@ Manual checks:
 - `ctrl+t` opens theme selector.
 - `ctrl+l` opens status view.
 - `ctrl+h` opens help.
-- Command palette uses compact OpenCode-style rows.
-- Session list uses compact OpenCode-style rows.
+- Command palette uses compact rows.
+- Session list uses compact rows.
 - `/help` opens expanded help.
 - `/undo` and `/redo` still register.
 
@@ -260,7 +243,7 @@ Verify:
 - GitHub workflows reference BeastCLI names and package paths.
 - Nix files reference BeastCLI names.
 - Install script points to BeastCLI artifacts.
-- README, SECURITY, and CONTRIBUTING do not contain stale OpenCode release instructions unless intentionally preserved.
+- README/install/package metadata match BeastCLI.
 
 ## Risk Register
 
@@ -270,7 +253,7 @@ Verify:
 | Dirty migration diff             | High     | Manual review ongoing             | Clean release diff and commit plan                             |
 | SQLite WAL parallel startup race | Medium   | Single command rerun passes       | Add startup DB lock or document unsupported parallel migration |
 | Optional Poe auth dependency     | Medium   | Lazy optional import with warning | Decide production support stance                               |
-| Rebrand leftovers                | Medium   | Many files migrated               | Run repo-wide OpenCode/opencode audit                          |
+| Rebrand leftovers                | Medium   | Many files migrated               | Repo fully uses BeastCLI branding                             |
 | Packaging unknowns               | High     | CLI dev path works                | Build/install smoke from clean profile                         |
 | Cross-platform behavior          | Medium   | macOS local validation only       | Test macOS, Linux, and Windows/WSL if supported                |
 
@@ -283,10 +266,7 @@ rg -n "opencode|OpenCode|OPENCODE|oc-theme|sst-dev.opencode|opencode-ai" .
 rg -n "beastcli|BeastCLI|BEASTCLI|beast" packages/beastcli README.md package.json .github install nix
 ```
 
-Expected:
-
-- OpenCode references are either removed, replaced, or explicitly documented as upstream compatibility references.
-- BeastCLI references are consistent.
+Expected: no OpenCode/opencode references remain (except legitimate npm package dependencies). BeastCLI references are consistent.
 
 ## Release Candidate Definition of Done
 

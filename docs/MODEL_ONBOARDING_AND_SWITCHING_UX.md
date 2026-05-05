@@ -51,7 +51,7 @@ Provider facts to build around:
 
    Every setup path should end with a connection test and model list refresh before the config is written.
 
-5. **Keep OpenCode-style density**
+5. **Keep compact density**
 
    Use compact `DialogSelect` rows and simple footer key hints. Avoid card-heavy onboarding screens.
 
@@ -405,6 +405,6 @@ Safety:
 
 Look and feel:
 
-- Uses compact OpenCode-style `DialogSelect` rows.
+- Uses compact `DialogSelect` rows.
 - No card-heavy onboarding page.
 - Setup is reachable from the model dialog and command palette.

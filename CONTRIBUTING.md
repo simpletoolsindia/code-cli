@@ -73,7 +73,6 @@ Replace `<platform>` with your platform (e.g., `darwin-arm64`, `linux-x64`).
   - `packages/beastcli`: BeastCLI core business logic & server.
   - `packages/beastcli/src/cli/cmd/tui/`: The TUI code, written in SolidJS with [opentui](https://github.com/sst/opentui)
   - `packages/app`: The shared web UI components, written in SolidJS
-  - `packages/desktop`: The native desktop app, built with Tauri (wraps `packages/app`)
   - `packages/plugin`: Source for `@beastcli/plugin`
 
 ### Understanding bun dev vs beastcli
@@ -121,39 +120,8 @@ bun run --cwd packages/app dev
 
 This starts a local dev server at http://localhost:5173 (or similar port shown in output). Most UI changes can be tested here, but the server must be running for full functionality.
 
-### Running the Desktop App
-
-The desktop app is a native Tauri application that wraps the web UI.
-
-To run the native desktop app:
-
-```bash
-bun run --cwd packages/desktop tauri dev
-```
-
-This starts the web dev server on http://localhost:1420 and opens the native window.
-
-If you only want the web dev server (no native shell):
-
-```bash
-bun run --cwd packages/desktop dev
-```
-
-To create a production `dist/` and build the native app bundle:
-
-```bash
-bun run --cwd packages/desktop tauri build
-```
-
-This runs `bun run --cwd packages/desktop build` automatically via Tauri’s `beforeBuildCommand`.
-
-> [!NOTE]
-> Running the desktop app requires additional Tauri dependencies (Rust toolchain, platform-specific libraries). See the [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/) for setup instructions.
-
 > [!NOTE]
 > If you make changes to the API or SDK (e.g. `packages/beastcli/src/server/server.ts`), run `./script/generate.ts` to regenerate the SDK and related files.
-
-Please try to follow the [style guide](./AGENTS.md)
 
 ### Setting up a Debugger
 
@@ -235,8 +203,7 @@ PR titles should follow conventional commit standards:
 You can optionally include a scope to indicate which package is affected:
 
 - `feat(app):` feature in the app package
-- `fix(desktop):` bug fix in the desktop package
-- `chore(beastcli):` maintenance in the beastcli package
+- `fix(beastcli):` bug fix in the beastcli package
 
 Examples:
 
