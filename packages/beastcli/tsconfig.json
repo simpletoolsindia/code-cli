@@ -16,7 +16,12 @@
       "@beastcli/plugin": ["../plugin/src/index.ts"],
       "@beastcli/plugin/*": ["../plugin/src/*"],
       "@beastcli/sdk": ["../sdk/js/src/index.ts"],
-      "@beastcli/sdk/*": ["../sdk/js/src/*"]
+      "@beastcli/sdk/*": ["../sdk/js/src/*"],
+      "@simpletoolsindia/core/*": ["../core/src/*"],
+      "@simpletoolsindia/plugin": ["../plugin/src/index.ts"],
+      "@simpletoolsindia/plugin/*": ["../plugin/src/*"],
+      "@simpletoolsindia/sdk": ["../sdk/js/src/index.ts"],
+      "@simpletoolsindia/sdk/*": ["../sdk/js/src/*"]
     }
   }
 }

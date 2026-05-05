@@ -40,13 +40,9 @@
             beastcli = final.callPackage ./nix/beastcli.nix {
               inherit node_modules;
             };
-            desktop = final.callPackage ./nix/desktop.nix {
-              inherit beastcli;
-            };
           in
           {
             inherit beastcli;
-            beastcli-desktop = desktop;
           };
       };
 
@@ -59,13 +55,10 @@
           beastcli = pkgs.callPackage ./nix/beastcli.nix {
             inherit node_modules;
           };
-          desktop = pkgs.callPackage ./nix/desktop.nix {
-            inherit beastcli;
-          };
         in
         {
           default = beastcli;
-          inherit beastcli desktop;
+          inherit beastcli;
           # Updater derivation with fakeHash - build fails and reveals correct hash
           node_modules_updater = node_modules.override {
             hash = pkgs.lib.fakeHash;

@@ -114,9 +114,5 @@
     "tree-sitter-powershell",
     "web-tree-sitter"
   ],
-  "patchedDependencies": {
-    "@npmcli/agent@4.0.0": "patches/@npmcli%2Fagent@4.0.0.patch",
-    "solid-js@1.9.10": "patches/solid-js@1.9.10.patch"
-  },
   "version": "4.0.4"
 }
